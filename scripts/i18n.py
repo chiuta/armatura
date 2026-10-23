@@ -105,7 +105,11 @@ def prose(text):
 
 
 def inline_code(text):
-    return sorted(m.group(0) for m in re.finditer(r"(`+)(?:[^`]|[^`][\s\S]*?[^`])\1(?!`)", prose(text)))
+    """Inline code spans, found line by line (a backtick run closes only at a run of the same length)."""
+    out = []
+    for ln in prose(text).split("\n"):
+        out += [m.group(0) for m in re.finditer(r"(?<!`)(`+)(?!`)(.+?)(?<!`)\1(?!`)", ln)]
+    return sorted(out)
 
 
 def link_targets(text):
