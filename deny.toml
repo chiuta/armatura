@@ -25,6 +25,8 @@ exceptions = [
   { allow = ["AGPL-3.0-or-later"], crate = "armatura-gui" },
   # MPL-2.0 (file-level copyleft, compatible with AGPL-3.0-or-later), pulled in by the window app's `dirs` dependency.
   { allow = ["MPL-2.0"], crate = "option-ext" },
+  # `smartstring` (via the scripting engine rhai) is licensed MPL-2.0+.
+  { allow = ["MPL-2.0"], crate = "smartstring" },
 ]
 # Anything else (GPL, LGPL, AGPL, EUPL, ...) is denied by default because it is not in `allow`.
 
