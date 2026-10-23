@@ -143,11 +143,13 @@ fn unprivileged(dir: &Path, args: &[&str]) -> Option<(bool, String)> {
     Some((o.status.success(), format!("{}{}", String::from_utf8_lossy(&o.stdout), String::from_utf8_lossy(&o.stderr))))
 }
 
+#[cfg(unix)]
 fn chmod(p: &Path, mode: u32) {
     use std::os::unix::fs::PermissionsExt;
     fs::set_permissions(p, fs::Permissions::from_mode(mode)).unwrap();
 }
 
+#[cfg(unix)]
 #[test]
 fn m5_write_into_a_read_only_directory_falls_back_to_overwriting_the_writable_file() {
     let s = ScratchDir::new("armatura-w4-m5");
@@ -171,6 +173,7 @@ fn m5_write_into_a_read_only_directory_falls_back_to_overwriting_the_writable_fi
     assert!(!ok && t.contains("not writable"), "{t}");
 }
 
+#[cfg(unix)]
 #[test]
 fn m5_symbolic_link_outputs_are_refused_with_the_opt_in_named() {
     let s = ScratchDir::new("armatura-w4-m5l");

@@ -29,7 +29,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.97.0
         with:
           components: clippy
       - uses: Swatinem/rust-cache@v2
@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.97.0
         with:
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
@@ -91,7 +91,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.97.0
       - uses: Swatinem/rust-cache@v2
       - name: GPU parity tests (skip when no adapter is available)
         shell: bash
@@ -107,7 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.97.0
       - name: cargo-deny
         shell: bash
         run: |
@@ -115,7 +115,8 @@ jobs:
           cargo install cargo-deny --locked
           cargo deny check 2>&1 | tee deny.log
           code=${PIPESTATUS[0]}
-          msg=$( { grep -E -A5 '^(error|warning)' deny.log | head -60; tail -10 deny.log; } | head -c 6000 | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')
+          sed 's/\x1b\[[0-9;]*m//g' deny.log > deny.plain
+          msg=$( { grep -E -A14 '^(error|warning)' deny.plain | head -60; tail -10 deny.plain; } | head -c 6000 | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')
           if [ "$code" != 0 ]; then echo "::error title=deny::$msg"; fi
           exit $code
       - name: REUSE lint
