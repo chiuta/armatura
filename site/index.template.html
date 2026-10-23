@@ -1208,7 +1208,7 @@ function initGallery(){
   const seen=new Set();
   D.order.forEach(id=>{
     const md=D.docs[id].md,lines=md.split('\n'),o=outline(md);
-    lines.forEach((ln,i)=>{const m=ln.match(/!\[([^\]]*)\]\(img\/([^)\s]+)\)/);
+    lines.forEach((ln,i)=>{const m=ln.match(/!\[([^\]]*)\]\((?:\.\.\/)*(?:docs\/)?img\/([^)\s]+)\)/);
       if(m&&IMGS[m[2]]&&!seen.has(m[2])){seen.add(m[2]);let a='';o.forEach(h=>{if(h.i<i)a=h.a});GAL.push({n:m[2],alt:m[1],id,a})}});
   });
   GAL.sort((x,y)=>(y.id==='STUDIO')-(x.id==='STUDIO'));
