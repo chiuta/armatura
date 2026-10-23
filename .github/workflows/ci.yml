@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio)
 #
-# Continuous integration for ARMATURA. NOTE: this workflow has never been run. It was written in an
-# environment without GitHub Actions, without Windows or macOS and without the wasm32 target, so the first
-# real run may need small fixes (action versions, runner images, a missing system package). See
-# docs/DEVELOPMENT.md ("Continuous integration").
+# Continuous integration for ARMATURA. First fully green run: 2026-10-24 (ubuntu, windows, macos tests and
+# clippy with -D warnings, wasm32 build + Node test, cargo-deny, REUSE; gpu parity jobs are informational).
+# The toolchain is pinned so that new clippy lints do not break the build; bump it deliberately.
+# See docs/DEVELOPMENT.md ("Continuous integration").
 name: ci
 
 on:
