@@ -348,3 +348,9 @@ are refused unless you pass `--allow-external-assets` (see [FAQ.md](FAQ.md)).
 * The browser editor, its shortcuts and the HTTP API: [STUDIO.md](STUDIO.md).
 * Questions and error messages: [FAQ.md](FAQ.md). Known limits: [LIMITATIONS.md](LIMITATIONS.md).
 * Every command and flag: [CLI_REFERENCE.md](CLI_REFERENCE.md); the file format: [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
+
+## Windows: double-clicking `armatura.exe`
+
+`armatura.exe` is a command-line program. Since 0.1.0-alpha.2, opening it from Explorer (double-click) creates `Documents\ARMATURA\first-rig.json` (an existing file is never overwritten), starts the studio on `http://127.0.0.1:8080` and opens it in your browser; the console window stays open while the studio runs, close it to stop. Opened from a terminal without arguments it prints the usage as before. In 0.1.0-alpha.1 a double-click only printed the usage and the window closed at once.
+
+The executables are **not code-signed**: Windows SmartScreen shows "Unknown publisher" (choose *More info* then *Run anyway*) and macOS Gatekeeper asks you to approve the program in *System Settings > Privacy & Security*. Check the download against `SHA256SUMS.txt` first. If port 8080 is busy, run `armatura studio first-rig.json --port 8090` from a terminal.
