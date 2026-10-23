@@ -1,0 +1,254 @@
+pub const API_VERSION: &str = "1.4.0"
+pub const API_VERSION_MAJOR: u32 = 1
+pub const MAX_RENDER_SIDE: u32 = 16384
+pub const MAX_JSON_BYTES: usize = 256 * 1024 * 1024
+#[non_exhaustive]
+pub enum ApiError
+pub enum ApiError :: InvalidJson(String)
+pub enum ApiError :: InvalidProject(Vec<String>)
+pub enum ApiError :: InvalidArgument(String)
+pub enum ApiError :: EditRejected(Vec<String>)
+pub enum ApiError :: Export(String)
+pub enum ApiError :: Internal(String)
+pub enum ApiError :: DirtyTree(String)
+pub enum ApiError :: MergeInProgress(String)
+pub enum ApiError :: Conflicts(Vec<String>)
+#[non_exhaustive]
+pub enum Interpolation
+pub enum Interpolation :: Linear
+pub enum Interpolation :: Step
+pub enum Interpolation :: EaseIn
+pub enum Interpolation :: EaseOut
+pub enum Interpolation :: EaseInOut
+pub enum Interpolation :: Smooth
+#[non_exhaustive]
+pub struct AnimationInfo
+pub struct AnimationInfo :: pub name: String
+pub struct AnimationInfo :: pub width: f32
+pub struct AnimationInfo :: pub height: f32
+pub struct AnimationInfo :: pub fps: f32
+pub struct AnimationInfo :: pub frames: u32
+#[non_exhaustive]
+pub struct RenderSettings
+pub struct RenderSettings :: pub scale: f32
+pub struct RenderSettings :: pub show_bones: bool
+pub struct RenderSettings :: pub transparent: bool
+impl RenderSettings :: pub fn new(scale: f32) -> RenderSettings
+impl RenderSettings :: pub fn with_bones(mut self, show_bones: bool) -> RenderSettings
+impl RenderSettings :: pub fn with_transparent(mut self, transparent: bool) -> RenderSettings
+#[non_exhaustive]
+pub struct Image
+pub struct Image :: pub width: u32
+pub struct Image :: pub height: u32
+pub struct Image :: pub pixels: Vec<u8>
+#[non_exhaustive]
+pub enum ExportFormat
+pub enum ExportFormat :: Gif
+pub enum ExportFormat :: Glb
+pub enum ExportFormat :: Lottie
+pub enum ExportFormat :: Html
+pub enum ExportFormat :: Apng
+#[non_exhaustive]
+pub struct LodLevel
+pub struct LodLevel :: pub level: usize
+pub struct LodLevel :: pub declared_px: f64
+pub struct LodLevel :: pub bound_stage: f64
+pub struct LodLevel :: pub path_anchors: usize
+pub struct LodLevel :: pub keys: usize
+pub struct LodLevel :: pub layers: usize
+pub struct LodLevel :: pub json: String
+impl LodLevel :: pub fn bound_at(&self, screen_scale: f64) -> f64
+#[non_exhaustive]
+pub enum FitFormat
+pub enum FitFormat :: Lottie
+pub enum FitFormat :: Html
+pub enum FitFormat :: Gif
+pub enum FitFormat :: Apng
+pub enum FitFormat :: Project
+#[non_exhaustive]
+pub struct SizeFit
+pub struct SizeFit :: pub met: bool
+pub struct SizeFit :: pub size: usize
+pub struct SizeFit :: pub bytes: Vec<u8>
+pub struct SizeFit :: pub ssim_min: f64
+pub struct SizeFit :: pub reason: Option<String>
+#[non_exhaustive]
+pub struct MocapSettings
+pub struct MocapSettings :: pub in_place: bool
+pub struct MocapSettings :: pub mirror: bool
+pub struct MocapSettings :: pub smooth: usize
+impl MocapSettings :: pub fn new() -> MocapSettings
+impl MocapSettings :: pub fn with_in_place(mut self, in_place: bool) -> MocapSettings
+impl MocapSettings :: pub fn with_mirror(mut self, mirror: bool) -> MocapSettings
+impl MocapSettings :: pub fn with_smooth(mut self, smooth: usize) -> MocapSettings
+#[non_exhaustive]
+pub struct MocapReport
+pub struct MocapReport :: pub matched: Vec<(String, String)>
+pub struct MocapReport :: pub unmatched_joints: Vec<String>
+pub struct MocapReport :: pub unmatched_bones: Vec<String>
+pub struct MocapReport :: pub frames: usize
+pub struct MocapReport :: pub bones_used: usize
+pub struct MocapReport :: pub blocked: Vec<String>
+pub struct MocapReport :: pub notes: Vec<String>
+#[non_exhaustive]
+pub struct FuzzSummary
+pub struct FuzzSummary :: pub samples: usize
+pub struct FuzzSummary :: pub failures: usize
+pub struct FuzzSummary :: pub failure_rate: f32
+pub struct FuzzSummary :: pub max_severity: f32
+pub struct FuzzSummary :: pub json: String
+#[non_exhaustive]
+pub struct VcsCommit
+pub struct VcsCommit :: pub id: String
+pub struct VcsCommit :: pub author: String
+pub struct VcsCommit :: pub time: u64
+pub struct VcsCommit :: pub message: String
+#[non_exhaustive]
+pub struct PhysicsBake
+pub struct PhysicsBake :: pub added: usize
+pub struct PhysicsBake :: pub skipped: Vec<String>
+#[non_exhaustive]
+pub struct VcsBranch
+pub struct VcsBranch :: pub name: String
+pub struct VcsBranch :: pub commit: String
+pub struct VcsBranch :: pub current: bool
+#[non_exhaustive]
+pub struct VcsChange
+pub struct VcsChange :: pub kind: String
+pub struct VcsChange :: pub path: String
+pub struct VcsChange :: pub description: String
+#[non_exhaustive]
+pub struct VcsStatus
+pub struct VcsStatus :: pub branch: Option<String>
+pub struct VcsStatus :: pub head: Option<String>
+pub struct VcsStatus :: pub changes: Vec<VcsChange>
+pub struct VcsStatus :: pub merge: Option<String>
+pub struct VcsStatus :: pub conflicts: Vec<String>
+#[non_exhaustive]
+pub struct VcsShow
+pub struct VcsShow :: pub commit: VcsCommit
+pub struct VcsShow :: pub changes: Vec<VcsChange>
+#[non_exhaustive]
+pub struct VcsGc
+pub struct VcsGc :: pub kept: usize
+pub struct VcsGc :: pub removed: usize
+#[non_exhaustive]
+pub struct CiOutcome
+pub struct CiOutcome :: pub total: usize
+pub struct CiOutcome :: pub passed: usize
+pub struct CiOutcome :: pub failed: usize
+pub struct CiOutcome :: pub errors: usize
+pub struct CiOutcome :: pub exit_code: i32
+pub struct CiOutcome :: pub json: String
+pub struct CiOutcome :: pub updated: usize
+pub struct CiOutcome :: pub blessed: usize
+pub fn trace_image_svg(image: &[u8], colors: usize) -> Result<String, ApiError>
+pub fn vcs_log(path: &str, limit: usize) -> Result<Vec<VcsCommit>, ApiError>
+pub fn ci_run(manifest_path: &str) -> Result<CiOutcome, ApiError>
+#[non_exhaustive]
+pub struct VcsConflict
+pub struct VcsConflict :: pub path: String
+pub struct VcsConflict :: pub kind: String
+pub struct VcsConflict :: pub description: String
+pub struct VcsConflict :: pub base: Option<String>
+pub struct VcsConflict :: pub ours: Option<String>
+pub struct VcsConflict :: pub theirs: Option<String>
+#[non_exhaustive]
+pub enum VcsMergeOutcome
+pub enum VcsMergeOutcome :: UpToDate
+pub enum VcsMergeOutcome :: FastForward(String)
+pub enum VcsMergeOutcome :: Merged(String)
+pub enum VcsMergeOutcome :: Conflicted(Vec<VcsConflict>)
+#[non_exhaustive]
+pub enum VcsChoice
+pub enum VcsChoice :: Ours
+pub enum VcsChoice :: Theirs
+pub enum VcsChoice :: Value(String)
+pub fn vcs_init(project_file: &str, author: Option<&str>) -> Result<(), ApiError>
+pub fn vcs_commit(path: &str, message: Option<&str>, author: Option<&str>) -> Result<String, ApiError>
+pub fn vcs_branch(path: &str, name: &str, at: Option<&str>) -> Result<String, ApiError>
+pub fn vcs_tag(path: &str, name: &str, at: Option<&str>) -> Result<String, ApiError>
+pub fn vcs_checkout(path: &str, target: &str, force: bool) -> Result<String, ApiError>
+pub fn vcs_merge(path: &str, rev: &str, no_ff: bool, message: Option<&str>, author: Option<&str>) -> Result<VcsMergeOutcome, ApiError>
+pub fn vcs_conflicts(path: &str) -> Result<Vec<VcsConflict>, ApiError>
+pub fn vcs_resolve(path: &str, conflict_path: &str, choice: &VcsChoice) -> Result<usize, ApiError>
+pub fn vcs_abort(path: &str) -> Result<(), ApiError>
+pub fn vcs_cherry_pick(path: &str, rev: &str, author: Option<&str>) -> Result<VcsMergeOutcome, ApiError>
+pub fn vcs_revert(path: &str, rev: &str, author: Option<&str>) -> Result<VcsMergeOutcome, ApiError>
+pub fn vcs_branches(path: &str) -> Result<Vec<VcsBranch>, ApiError>
+pub fn vcs_branch_delete(path: &str, name: &str) -> Result<(), ApiError>
+pub fn vcs_status(path: &str) -> Result<VcsStatus, ApiError>
+pub fn vcs_diff(path: &str, a: Option<&str>, b: Option<&str>) -> Result<Vec<VcsChange>, ApiError>
+pub fn vcs_show(path: &str, rev: &str) -> Result<VcsShow, ApiError>
+pub fn vcs_gc(path: &str) -> Result<VcsGc, ApiError>
+pub fn vcs_fsck(path: &str) -> Result<Vec<String>, ApiError>
+#[non_exhaustive]
+pub enum CiMode
+pub enum CiMode :: Verify
+pub enum CiMode :: Update
+pub enum CiMode :: Bless
+#[non_exhaustive]
+pub struct CiInit
+pub struct CiInit :: pub manifest: String
+pub struct CiInit :: pub checks: Vec<(String, String)>
+pub struct CiInit :: pub recorded: Option<CiOutcome>
+pub fn ci_run_mode(manifest_path: &str, mode: CiMode) -> Result<CiOutcome, ApiError>
+pub fn ci_bless(manifest_path: &str) -> Result<CiOutcome, ApiError>
+pub fn ci_init(project_file: &str, manifest: Option<&str>, write_goldens: bool) -> Result<CiInit, ApiError>
+pub struct Player
+pub struct Animation
+impl Animation :: pub fn from_json(json: &str) -> Result<Animation, ApiError>
+impl Animation :: pub fn validate_json(json: &str) -> Result<(), ApiError>
+impl Animation :: pub fn demo() -> Animation
+impl Animation :: pub fn to_json(&self) -> String
+impl Animation :: pub fn info(&self) -> AnimationInfo
+impl Animation :: pub fn frame_count(&self) -> u32
+impl Animation :: pub fn fps(&self) -> f32
+impl Animation :: pub fn bone_names(&self) -> Vec<String>
+impl Animation :: pub fn layer_names(&self) -> Vec<String>
+impl Animation :: pub fn bone_world(&self, frame: f32) -> Result<Vec<[f32; 6]>, ApiError>
+impl Animation :: pub fn machine_names(&self) -> Vec<String>
+impl Animation :: pub fn player(&self, machine: &str) -> Result<Player, ApiError>
+impl Animation :: pub fn render_rgba(&self, frame: f32, settings: &RenderSettings) -> Result<Image, ApiError>
+impl Animation :: pub fn render_png(&self, frame: f32, settings: &RenderSettings) -> Result<Vec<u8>, ApiError>
+impl Animation :: pub fn render_svg(&self, frame: f32, show_bones: bool) -> Result<String, ApiError>
+impl Animation :: pub fn export(&self, format: ExportFormat, scale: f32) -> Result<Vec<u8>, ApiError>
+impl Animation :: pub fn set_key(&mut self, target: &str, prop: &str, frame: f32, value: f32, interpolation: Interpolation) -> Result<(), ApiError>
+impl Animation :: pub fn delete_key(&mut self, target: &str, prop: &str, frame: f32) -> Result<bool, ApiError>
+impl Animation :: pub fn add_rect_layer(&mut self, name: &str, x: f32, y: f32, w: f32, h: f32, fill: &str, parent: Option<&str>) -> Result<(), ApiError>
+impl Animation :: pub fn add_ellipse_layer(&mut self, name: &str, cx: f32, cy: f32, rx: f32, ry: f32, fill: &str, parent: Option<&str>) -> Result<(), ApiError>
+impl Animation :: pub fn add_group_layer(&mut self, name: &str) -> Result<(), ApiError>
+impl Animation :: pub fn add_bone(&mut self, name: &str, parent: Option<&str>, length: f32, x: f32, y: f32, angle: f32) -> Result<(), ApiError>
+impl Animation :: pub fn bake_physics(&mut self, chain: &[&str], preset: &str, overwrite: bool) -> Result<PhysicsBake, ApiError>
+impl Animation :: pub fn render_exr(&self, frame: f32, settings: &RenderSettings, float32: bool) -> Result<Vec<u8>, ApiError>
+impl Animation :: pub fn lod_levels(&self, tolerance_px: f64, scale: f64, levels: usize) -> Result<Vec<LodLevel>, ApiError>
+impl Animation :: pub fn fit_to_size(&self, format: FitFormat, max_bytes: usize) -> Result<SizeFit, ApiError>
+impl Animation :: pub fn retarget_bvh(&mut self, bvh: &str, settings: &MocapSettings) -> Result<MocapReport, ApiError>
+impl Animation :: pub fn fuzz(&self, samples: usize, seed: u64) -> Result<FuzzSummary, ApiError>
+impl Animation :: pub fn from_image(image: &[u8], colors: usize, name: &str) -> Result<Animation, ApiError>
+impl Animation :: pub fn undo(&mut self) -> bool
+impl Animation :: pub fn redo(&mut self) -> bool
+impl Player :: pub fn set_bool(&mut self, name: &str, value: bool) -> Result<(), ApiError>
+impl Player :: pub fn set_number(&mut self, name: &str, value: f64) -> Result<(), ApiError>
+impl Player :: pub fn fire(&mut self, name: &str) -> Result<(), ApiError>
+impl Player :: pub fn set_value(&mut self, path: &str, value: f64) -> Result<(), ApiError>
+impl Player :: pub fn advance(&mut self, dt: f64) -> Result<(), ApiError>
+impl Player :: pub fn set_canvas_size(&mut self, width: f32, height: f32) -> Result<(), ApiError>
+impl Player :: pub fn canvas_size(&self) -> (f32, f32)
+impl Player :: pub fn scroll_ids(&self) -> Vec<String>
+impl Player :: pub fn scroll_drag(&mut self, id: &str, x: f32, y: f32) -> Result<(), ApiError>
+impl Player :: pub fn scroll_release(&mut self, id: &str, vx: f32, vy: f32) -> Result<(), ApiError>
+impl Player :: pub fn scroll_offset(&self, id: &str) -> Option<[f32; 2]>
+impl Player :: pub fn scroll_max(&self, id: &str) -> Option<[f32; 2]>
+impl Player :: pub fn scroll_settled(&self, id: &str) -> Option<bool>
+impl Player :: pub fn set_screen_size(&mut self, width_px: f32, height_px: f32, max_error_px: f32) -> Result<(), ApiError>
+impl Player :: pub fn clear_screen_size(&mut self)
+impl Player :: pub fn lod_level(&self) -> usize
+impl Player :: pub fn lod_bound_px(&self) -> f32
+impl Player :: pub fn state(&self, layer: &str) -> Option<String>
+impl Player :: pub fn events_json(&self) -> String
+impl Player :: pub fn clear_events(&mut self)
+impl Player :: pub fn take_events_json(&mut self) -> String
+impl Player :: pub fn render_rgba(&self, settings: &RenderSettings) -> Result<Image, ApiError>
+impl Player :: pub fn render_svg(&self, show_bones: bool) -> Result<String, ApiError>
+impl Player :: pub fn bone_world(&self) -> Result<Vec<[f32; 6]>, ApiError>

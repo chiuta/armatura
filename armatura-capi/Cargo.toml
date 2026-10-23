@@ -1,0 +1,13 @@
+[package]
+name = "armatura-capi"
+version = "0.1.0"
+edition = "2021"
+description = "ARMATURA C ABI: load a project, evaluate bones, render RGBA frames"
+license = "MPL-2.0"
+
+[lib]
+name = "armatura_capi"
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]
+armatura-core = { path = "../armatura-core", default-features = false }

@@ -1,0 +1,71 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio)
+#
+# Continuous integration for ARMATURA. NOTE: this workflow has never been run. It was written in an
+# environment without GitHub Actions, without Windows or macOS and without the wasm32 target, so the first
+# real run may need small fixes (action versions, runner images, a missing system package). See
+# docs/DEVELOPMENT.md ("Continuous integration").
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: ""
+
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      # armatura-gpu is outside the default members on purpose (it needs a GPU adapter); the workspace
+      # commands below therefore cover core, cli, capi and wasm (host build).
+      - name: Tests
+        run: cargo test --workspace --locked
+      - name: Clippy (warnings are errors)
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+  wasm32:
+    name: wasm32 build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - name: Build the wasm module
+        run: cargo build --target wasm32-unknown-unknown -p armatura-wasm --locked
+      - name: Put the module where the Node test looks for it (it then also runs its real-module part)
+        run: cp target/wasm32-unknown-unknown/debug/armatura_wasm.wasm armatura-wasm/armatura_wasm.wasm
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: JavaScript wrapper tests (host-side mock of the module)
+        run: node armatura-wasm/js/test.mjs
+
+  licences:
+    name: cargo-deny and REUSE
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check
+      - name: REUSE lint
+        uses: fsfe/reuse-action@v5

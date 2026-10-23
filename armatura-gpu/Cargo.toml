@@ -1,0 +1,13 @@
+[package]
+name = "armatura-gpu"
+version = "0.1.0"
+edition = "2021"
+description = "ARMATURA optional GPU renderer (wgpu): stencil-then-cover fills, tessellated strokes, WGSL gradients and blend modes"
+license = "MPL-2.0"
+
+[dependencies]
+armatura-core = { path = "../armatura-core", default-features = false }
+tiny-skia = "0.12"
+# Only the Vulkan and GL back-ends (Linux/Windows/Android); no dx12/metal/webgpu, so the tree stays small.
+wgpu = { version = "30", default-features = false, features = ["std", "parking_lot", "wgsl", "vulkan", "gles"] }
+pollster = "1"

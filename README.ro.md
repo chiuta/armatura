@@ -1,0 +1,156 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+<!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
+# ARMATURA
+
+**Un motor de rigging și animație vectorială 2D scris în Rust: oase, cinematică inversă (IK), skinning, deformatoare, un runtime cu mașini de stări, o trusă de instrumente în linia de comandă, un studio în browser și biblioteci integrabile, într-un singur workspace.** Versiunea engleză: [README.md](README.md). Documentația din `docs/` este în limba engleză.
+
+## Rezumat și filozofie
+
+ARMATURA îți permite să construiești un personaj sau o scenă din forme vectoriale și imagini, să le echipezi cu oase și constrângeri, să le animezi cu chei, clipuri și fizică și să le exporți ca GIF, video, Lottie, glTF, un player HTML autonom sau un runtime interactiv. Este alcătuit din piese mici și deterministe: același proiect și același seed dau aceiași pixeli, fiecare instrument citește și scrie un proiect JSON documentat, iar fiecare comandă funcționează dintr-un terminal, așa că animația poate fi scriptată, revizuită, comparată și testată ca un cod sursă.
+
+Principiile proiectului:
+
+* **Implementare independentă.** Scris pe baza specificațiilor publice, a articolelor științifice și a matematicii din manuale. Listele de funcții ale competitorilor au fost consultate doar pentru *domeniul* de acoperire; nu a fost copiat niciun cod sursă străin, iar proiectul nu citește și nu scrie niciun format proprietar. Nu este un proces „clean-room” strict (vezi [CLEANROOM.md](CLEANROOM.md), inclusiv declarația despre cercetare) și nu este afiliat cu, derivat din sau compatibil cu Moho ori cu alt produs comercial. Codul a fost scris în mare parte cu ajutorul unui model de inteligență artificială.
+* **Stare descrisă cinstit.** Fiecare funcție este descrisă împreună cu ceea ce *nu* face ([docs/LIMITATIONS.md](docs/LIMITATIONS.md), [ROADMAP.md](ROADMAP.md) secțiunea 9).
+* **Sigur în mod implicit.** Fără panici la date de intrare, verificări ale valorilor finite, limite de resurse, scrieri atomice, căi de resurse limitate la folderul proiectului ([docs/SECURITY.md](docs/SECURITY.md)).
+* **Formate deschise mai întâi.** OpenRaster, OCA, SVG, Lottie, glTF, APNG, WebM, EXR; niciun format de fișier proprietar, intenționat.
+* **Dependențe puține**, cu o politică de licențe verificată prin teste și prin `cargo deny`.
+
+## Stare
+
+> **Pre-lansare, un singur mediu de testare.** Toate crate-urile au versiunea `0.1.0`; nimic nu a fost lansat. Denumirile „v0.5 / v0.6 / v0.7” din istoric sunt *niveluri de funcționalitate* ([CHANGELOG.md](CHANGELOG.md)).
+>
+> | Verificat | Neverificat |
+> |---|---|
+> | 1368 de teste din `cargo test --workspace` plus 19 doc-teste trec (22 oct. 2026, Linux x86-64); patru teste de fum ale studioului în Chromium fără interfață trec (89, 35, 124, 60 de verificări); CLI-ul, fațada Rust și ABI-ul C (inclusiv sub ASan/UBSan) au fost rulate cu exemplele din documentație | **Modulul WebAssembly nu a fost construit și nici rulat niciodată** (ținta wasm32 nu a putut fi instalată; [docs/WASM.md](docs/WASM.md)); studioul nu a fost folosit de o persoană în producție și nici într-un alt browser decât Chromium; nu s-a folosit niciodată un GPU real (doar un adaptor software), o cameră web, o fotografie sau un fișier de captură de mișcare; Windows și macOS netestate; fără audit de securitate, revizuire juridică sau căutare de brevete |
+>
+> Citește [docs/LIMITATIONS.md](docs/LIMITATIONS.md) (69 de limite numerotate, cu gravitate și soluție ocolitoare) înainte să te bazezi pe ceva.
+
+## Funcții pe domenii
+
+Detalii și opțiunile exacte: [docs/CLI_REFERENCE.md](docs/CLI_REFERENCE.md); ce este parțial sau lipsește: [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
+
+* **Modelul de desen.** Trasee vectoriale, umpleri, contururi (linii întrerupte, lățime variabilă), gradienți liniari și radiali, măști, moduri de amestec, efecte pe strat (estompare, umbră, nuanțare, umplere), straturi de imagine cu deformare pe plasă, metaballs lichide, operații booleene pe poligoane, particule deterministe, cameră multiplan cu cadre salvate, profunzime de câmp.
+* **Rigging.** Oase cu cinematică directă; IK cu două oase, soft, stretch și FABRIK; limite, constrângeri, arcuri; skinning cu instrumente pentru ponderi; deformatoare lattice, spine, morph, wobble și cage; trasarea plasei din canalul alfa; pivoți de warp și lipire (glue); drivere (slidere, joystickuri, schimbarea vederii); seturi de piele (skin sets); auto-rig după numele straturilor; decuparea ochilor; containere de aranjare și regiuni de derulare.
+* **Animație.** Chei cu easing Bézier/pas/arc/bounce, expresii și canale conduse, straturi comutator, preluări (takes) și o stivă de clipuri pe straturi, conversie în buclă și pe loc, blocarea piciorului, magneți, urmărirea unei căi, generatoare de repaus și de suprapunere, fizică de lanț/păr/pânză, sincronizare labială din audio sau din transcriere, mișcare a capului conștientă de vorbire, retargetare BVH, intrare live (MIDI, mouse, gamepad, repere faciale furnizate de tine), piste audio cu tăiere, fade și mixaj.
+* **Runtime.** Mașini de stări cu arbori de amestec 1-D, legare de date, fizică de derulare, nivel de detaliu cu eroare declarată, un sandbox de scripting Rhai, un server pentru agenți (MCP) peste operații de tip patch.
+* **Ieșire.** SVG, PNG, secvențe PNG și sprite sheet, GIF, APNG, MP4/WebM (prin ffmpeg), player HTML autonom, Lottie și dotLottie, glTF 2.0 binar, OpenEXR/PNG pe 16 biți, OCA; export cu țintă de dimensiune (`export-fit`). Import: SVG, OpenRaster, Lottie, BVH, secvențe PNG/GIF/APNG.
+* **Instrumente de calitate.** `check`, `lint`, `diff` semantic, fuzzing de poze cu hărți termice, CI de animație cu diferență perceptuală și cadre de referință ([docs/CI.md](docs/CI.md)), control de versiuni cu îmbinare semantică (`vcs`), verificări de siguranță pentru străluciri și mișcare.
+* **Studio.** Editor în browser servit de CLI: gizmo-uri pe canvas, cronologie, dope sheet și editor de grafice, suprapuneri, paletă de comenzi și scurtături, undo/redo, editare multiutilizator în timp real cu token opțional și jurnal persistent ([docs/STUDIO.md](docs/STUDIO.md)).
+* **Biblioteci.** Fațadă Rust stabilă ([docs/API.md](docs/API.md)), ABI C ([docs/C_ABI.md](docs/C_ABI.md)), modul WebAssembly și învelitoare JavaScript (neconstruit; [docs/WASM.md](docs/WASM.md)), randor wgpu opțional.
+
+## Pornire rapidă
+
+Cerințe: un lanț de unelte Rust stabil, recent. `ffmpeg` este necesar doar pentru exportul MP4/WebM și pentru audio mp3/ogg; nu este niciodată inclus în pachet. Fiecare comandă de mai jos a fost rulată pentru acest README (build de depanare, Linux). Build-urile de lansare (`cargo build --release`) sunt mult mai rapide la randare și se folosesc la fel, cu `target/release`.
+
+```sh
+cargo build -p armatura-cli                       # construiește target/debug/armatura
+export PATH="$PWD/target/debug:$PATH"             # ca `armatura` să fie găsit
+
+armatura --version                                # versiune, licență, oferta sursei, linkuri de sprijin
+armatura demo demo.json                           # scrie demo-ul de rig încorporat (640x480, 48 de cadre)
+armatura check demo.json                          # validează: ok: 'ARMATURA demo' 640x480 @ 24 fps, 48 frames, 6 bones...
+armatura lint demo.json                           # verificări statice de rig/animație: 0 finding(s), 0 error(s)
+armatura render demo.json 12 frame12.png --bones  # un cadru, cu suprapunerea scheletului
+armatura render demo.json 12 frame12.svg          # același cadru ca ieșire vectorială
+armatura frames demo.json frames_out --png        # toate cadrele ca PNG
+armatura export demo.json demo.gif                # și .html (player), .json (Lottie), .lottie, .mp4 (ffmpeg)
+armatura demo-fx fx.json                          # al doilea demo: lichide, booleene, particule
+armatura lipsync demo.json voice.wav mouth out.json   # forme ale gurii dintr-un fișier WAV (stratul comutator „mouth”)
+armatura studio demo.json --port 8080             # editor în browser la http://127.0.0.1:8080
+armatura ci init demo.json && armatura ci run     # CI de animație: cadre de referință + verificări (circa 40 s într-un build de depanare)
+```
+
+`voice.wav` este orice fișier WAV (mono sau stereo) pe care îl furnizezi tu. Studioul ascultă doar pe `127.0.0.1` și refuză cererile pentru alte nume de gazdă; înainte să îl expui altora, citește [docs/SECURITY.md](docs/SECURITY.md).
+
+Folosirea bibliotecilor:
+
+```sh
+cargo build -p armatura-capi                      # target/debug/libarmatura_capi.so și .a
+gcc -std=c99 -o smoke armatura-capi/tests/smoke.c -Ltarget/debug -larmatura_capi
+LD_LIBRARY_PATH=target/debug ./smoke demo.json    # abi 1, 48 frames, 320x240, rc=0, checksum=...
+```
+
+Fațada Rust este `armatura_core::prelude` ([docs/API.md](docs/API.md)); mai multe exemple în C și Python sunt în [docs/C_ABI.md](docs/C_ABI.md).
+
+Teste (circa 14 minute într-un build de depanare pe o mașină partajată; vezi [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)):
+
+```sh
+cargo test --workspace
+cargo test --doc -p armatura-core
+cargo test -p armatura-cli --test spdx_audit
+```
+
+## Structura depozitului
+
+| Cale | Conținut | Licență |
+|---|---|---|
+| `armatura-core/` | motorul, formatele, instrumentele, fațada stabilă `api` | MPL-2.0 |
+| `armatura-cli/` | binarul `armatura`, serverul studioului și al colaborării, teste end-to-end și de fum | AGPL-3.0-or-later |
+| `armatura-capi/` | ABI C (`armatura.h`, bibliotecă dinamică și statică) | MPL-2.0 |
+| `armatura-wasm/` | ABI WebAssembly, învelitoare JavaScript, pagină demo (neconstruit) | MPL-2.0 |
+| `armatura-gpu/` | randor wgpu opțional (nu este membru implicit al workspace-ului) | MPL-2.0 |
+| `docs/` | documentație (CC-BY-4.0) și fișiere generate despre terți | CC-BY-4.0 |
+| `scripts/` | `e2e.sh`, `licence-audit.sh` | MPL-2.0 |
+| `LICENSES/`, `REUSE.toml`, `deny.toml` | texte de licență, metadate de licență, politica dependențelor | - |
+| `ROADMAP.md`, `FEATURES.md`, `CLEANROOM.md`, `LICENSING.md`, `TRADEMARK.md`, `CONTRIBUTING.md`, `CHANGELOG.md` | documentele proiectului | CC-BY-4.0 |
+
+## Harta documentației
+
+Începe de la [docs/INDEX.md](docs/INDEX.md) (toate documentele, publicul țintă, trasee de lectură). Documentele din `docs/` sunt în engleză.
+
+| Pagină | Pentru |
+|---|---|
+| [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) | primul proiect, randare, export |
+| [docs/CLI_REFERENCE.md](docs/CLI_REFERENCE.md) | fiecare comandă și opțiune |
+| [docs/STUDIO.md](docs/STUDIO.md) | editorul din browser |
+| [docs/RIGGING_GUIDE.md](docs/RIGGING_GUIDE.md) | construirea rig-urilor |
+| [docs/ANIMATION_GUIDE.md](docs/ANIMATION_GUIDE.md) | animație, clipuri, fizică, audio |
+| [docs/PROJECT_FORMAT.md](docs/PROJECT_FORMAT.md) | formatul JSON al proiectului |
+| [docs/EXPORT_FORMATS.md](docs/EXPORT_FORMATS.md) | ce păstrează și ce pierde fiecare format |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | proiectare și module |
+| [docs/GLOSSARY.md](docs/GLOSSARY.md) | termeni |
+| [docs/FAQ.md](docs/FAQ.md) | întrebări frecvente |
+| [docs/API.md](docs/API.md) | fațada Rust 1.4 |
+| [docs/C_ABI.md](docs/C_ABI.md) | interfața C |
+| [docs/WASM.md](docs/WASM.md) | WebAssembly (niciodată construit) |
+| [docs/CI.md](docs/CI.md) | CI de animație |
+| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | construire, teste, convenții, lansare |
+| [docs/SECURITY.md](docs/SECURITY.md) | model de amenințări și întărire |
+| [docs/LIMITATIONS.md](docs/LIMITATIONS.md) | limite cunoscute |
+| [docs/PATENT_NOTES.md](docs/PATENT_NOTES.md), [docs/THIRD_PARTY.md](docs/THIRD_PARTY.md), [docs/THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md) | brevete, licențele dependențelor |
+| [CHANGELOG.md](CHANGELOG.md), [ROADMAP.md](ROADMAP.md), [FEATURES.md](FEATURES.md) | istoric, plan și stare detaliată, matricea de funcții |
+| [CLEANROOM.md](CLEANROOM.md), [LICENSING.md](LICENSING.md), [TRADEMARK.md](TRADEMARK.md), [CONTRIBUTING.md](CONTRIBUTING.md) | proveniență, licențe, politica numelui, reguli de contribuție |
+
+## Rezumatul licențelor
+
+* **MPL-2.0** pentru bibliotecile `armatura-core`, `armatura-capi`, `armatura-wasm`, `armatura-gpu` și pentru `scripts/`: le poți lega în propriul program, deschis sau închis; modificările aduse acelor fișiere trebuie publicate sub MPL.
+* **AGPL-3.0-or-later** pentru `armatura-cli` (linia de comandă și studioul). Dacă îl modifici și lași alte persoane să interacționeze cu el prin rețea, secțiunea 13 te obligă să le oferi sursa ta: `armatura studio --source-url URL` publică locul unde se află; `/source` și `armatura --version` conțin oferta.
+* **CC-BY-4.0** pentru documentație și resurse sintetice (inclusiv modelul sintetic de detecție a fețelor).
+* **Proiectele și randările tale rămân ale tale.**
+* Numele și sigla nu sunt acoperite de aceste licențe ([TRADEMARK.md](TRADEMARK.md)). Situația brevetelor nu a fost evaluată ([docs/PATENT_NOTES.md](docs/PATENT_NOTES.md)). O licență comercială sau duală pentru codul contribuit nu este posibilă fără un acord de licență al contribuitorilor (CLA), iar un astfel de acord nu există.
+* Crate-uri terțe: 160 la ultimul audit, toate permisive, cu excepția unui crate cu copyleft slab aflat în spatele funcției opționale `scripting` ([docs/THIRD_PARTY.md](docs/THIRD_PARTY.md)). ffmpeg nu este niciodată inclus în pachet.
+
+Vezi [LICENSE](LICENSE), [LICENSES/](LICENSES/) și [LICENSING.md](LICENSING.md). Nimic din toate acestea nu este consultanță juridică; revizuirea de către un avocat este încă de făcut.
+
+## Contribuții
+
+Contribuțiile sunt binevenite, sub licența părții pe care o modifică. Citește [CONTRIBUTING.md](CONTRIBUTING.md) (fiecare commit are nevoie de o linie `Signed-off-by`, DCO 1.1), [CLEANROOM.md](CLEANROOM.md) (implementează doar din surse publice; nu copia cod proprietar sau cu licență incompatibilă) și [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) (convenții, listă de verificare pentru un modul nou, teste). Contribuții bune pentru început: o corectură dintre cele din [docs/LIMITATIONS.md](docs/LIMITATIONS.md), o rulare reală a listei de verificare WebAssembly, teste pe Windows sau macOS, un benchmark pe un GPU real.
+
+Probleme de securitate: nu deschide un issue public; urmează [docs/SECURITY.md](docs/SECURITY.md) secțiunea 10.
+
+## Sprijin
+
+ARMATURA este dezvoltat de Alexandru-Ionuț Chiuță (Alexio). Dacă îți este de folos, poți sprijini munca:
+
+* Buy Me a Coffee: <https://buymeacoffee.com/echo.of.the.strings>
+* Patreon: <https://patreon.com/c/alexio_tf>
+
+Contactul responsabilului (afișat și de `armatura --version`): alexio@trom.tf.
+
+## Mulțumiri
+
+* Autorilor articolelor științifice și ai manualelor publice pe care le urmează algoritmii, numite pe module în [CLEANROOM.md](CLEANROOM.md) (matematica curbelor Bézier și a spline-urilor, cinematica inversă, skinning liniar, coordonate de valoare medie, potrivirea curbelor și altele).
+* Specificațiilor deschise pe care ARMATURA le citește și le scrie: SVG, OpenRaster, OCA, Lottie/dotLottie, glTF, APNG, WebM, OpenEXR, BVH, PNG, GIF.
+* Crate-urilor Rust pe care se sprijină, listate cu licențele lor în [docs/THIRD_PARTY.md](docs/THIRD_PARTY.md), în special `tiny-skia`, `serde`, `png`, `zip`, `rhai` și `wgpu`.
+* Tuturor celor care sprijină proiectul prin linkurile de mai sus.

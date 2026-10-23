@@ -1,0 +1,13 @@
+[package]
+name = "armatura-wasm"
+version = "0.1.0"
+edition = "2021"
+description = "ARMATURA WebAssembly module: plain extern C ABI (no wasm-bindgen) over armatura-core"
+license = "MPL-2.0"
+
+[lib]
+name = "armatura_wasm"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+armatura-core = { path = "../armatura-core", default-features = false }

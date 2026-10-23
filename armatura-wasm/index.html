@@ -1,0 +1,26 @@
+<!doctype html>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ARMATURA wasm demo</title>
+<style>body{font:16px system-ui;margin:16px}canvas{border:1px solid #888;max-width:100%}</style>
+<h1>ARMATURA wasm demo</h1>
+<p>Build first with <code>./build-wasm.sh</code>, then serve this folder over http (for example <code>python3 -m http.server</code>) and pick a project JSON.</p>
+<input type="file" id="f" accept=".json"> <button id="s">Stop</button> <span id="m"></span>
+<div><canvas id="c"></canvas></div>
+<script type="module">
+import { Armatura } from './js/armatura.js';
+const m = document.getElementById('m');
+let a;
+try {
+  const x = await Armatura.instantiate('./armatura_wasm.wasm');
+  document.getElementById('f').onchange = async (e) => {
+    try {
+      const text = await e.target.files[0].text();
+      if (a) a.close();
+      a = await Armatura.create(x, text);
+      m.textContent = `${a.width}x${a.height}, ${a.frames} frames @ ${a.fps} fps`;
+      a.play(document.getElementById('c'));
+    } catch (err) { m.textContent = String(err.message || err); }
+  };
+  document.getElementById('s').onclick = () => a && a.stop();
+} catch (err) { m.textContent = 'wasm not found (not built yet): ' + err.message; }
+</script>

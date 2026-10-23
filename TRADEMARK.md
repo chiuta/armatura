@@ -1,0 +1,7 @@
+# ARMATURA name and logo policy
+
+The licences in LICENSE cover the code, not the name "ARMATURA" or any logo. (Check trademark availability before launch; "armatura" is also an ordinary Romanian/Italian word.)
+
+Allowed without asking: saying that your software is "compatible with ARMATURA" or "made with ARMATURA"; redistributing an unmodified build under the original name; linking to the project.
+
+Not allowed without permission: distributing a modified build under the name ARMATURA or in a way that suggests it is official; using the name or logo as your own product or company name.
