@@ -11,7 +11,7 @@ Tot ce se află aici a fost verificat pe binarul real (`armatura 0.1.0`, build d
 Doar **Chromium** a fost testat; vezi secțiunea 11.
 
 Licența acestui document: CC-BY-4.0. Pentru linia de comandă vezi [GETTING_STARTED.md](GETTING_STARTED.md) și
-[CLI_REFERENCE.md](../../CLI_REFERENCE.md); pentru securitatea serverului vezi și [SECURITY.md](SECURITY.md).
+[CLI_REFERENCE.md](CLI_REFERENCE.md); pentru securitatea serverului vezi și [SECURITY.md](SECURITY.md).
 
 ![Studio cu proiectul demo: bara de instrumente sus, canvasul cu un strat de braț selectat și oasele lui desenate, panoul Layers în dreapta și timeline-ul dedesubt, cu romburi pentru chei.](../../img/studio-overview.png)
 

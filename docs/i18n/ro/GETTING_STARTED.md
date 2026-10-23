@@ -4,7 +4,7 @@ Acest ghid te duce de la un checkout proaspăt până la un mic personaj animat 
 
 Cum a fost verificat: Linux, `rustc 1.97.0`, `ffmpeg 6.1.1` și build-ul **debug** al binarului (`cargo build -p armatura-cli`). Un build release rulează același cod mai rapid. Repository-ul nu declară nicio versiune minimă acceptată de Rust; 1.97.0 este pur și simplu compilatorul care a fost testat.
 
-Licența documentației: CC-BY-4.0. Vezi și [RIGGING_GUIDE.md](RIGGING_GUIDE.md), [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md), [STUDIO.md](STUDIO.md), [FAQ.md](FAQ.md) și lista completă de comenzi din [CLI_REFERENCE.md](../../CLI_REFERENCE.md).
+Licența documentației: CC-BY-4.0. Vezi și [RIGGING_GUIDE.md](RIGGING_GUIDE.md), [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md), [STUDIO.md](STUDIO.md), [FAQ.md](FAQ.md) și lista completă de comenzi din [CLI_REFERENCE.md](CLI_REFERENCE.md).
 
 ## 1. Ce îți trebuie
 
@@ -295,4 +295,4 @@ Un proiect poate face referire la fișiere de imagine și de sunet doar **din pr
 * Cicluri de mers, stive de clipuri, lip-sync, mocap, mașini de stări, QA și bugete de dimensiune: [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md).
 * Editorul din browser, scurtăturile lui și API-ul HTTP: [STUDIO.md](STUDIO.md).
 * Întrebări și mesaje de eroare: [FAQ.md](FAQ.md). Limite cunoscute: [LIMITATIONS.md](LIMITATIONS.md).
-* Fiecare comandă și opțiune: [CLI_REFERENCE.md](../../CLI_REFERENCE.md); formatul fișierului: [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
+* Fiecare comandă și opțiune: [CLI_REFERENCE.md](CLI_REFERENCE.md); formatul fișierului: [PROJECT_FORMAT.md](PROJECT_FORMAT.md).

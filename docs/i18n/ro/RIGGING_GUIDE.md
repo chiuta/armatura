@@ -5,7 +5,7 @@ skinning, deformatoare, fizică, auto-rigging, oglindire, schimbarea vederilor, 
 Fiecare exemplu a fost rulat cu binarul real (`armatura 0.1.0`, build de debug, Linux), iar cifrele
 citate sunt cele afișate de acesta. Dacă nu ai construit încă un prim proiect, parcurge mai întâi
 [GETTING_STARTED.md](GETTING_STARTED.md). Opțiunile fiecărei comenzi se găsesc în
-[CLI_REFERENCE.md](../../CLI_REFERENCE.md); formatul de fișier este descris în [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
+[CLI_REFERENCE.md](CLI_REFERENCE.md); formatul de fișier este descris în [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
 
 Licența acestui document: CC-BY-4.0.
 
@@ -243,7 +243,7 @@ nevoie de un mesh: pe un strat de imagine fără mesh se oprește cu `layer 'fla
 fiecare vertex primește greutatea 1.0 pe el (steagul are un singur os, `mast`), ceea ce este corect și nu prea
 interesant; folosește cel puțin două oase ca să vezi un amestec. `mesh-trace` are și `hotspot=x,y,r` pentru a face mesh-ul mai
 dens acolo unde te aștepți la îndoire, precum și opțiuni pentru a face skin în timpul urmăririi (`bones=R`, `skin=1`; vezi
-[CLI_REFERENCE.md](../../CLI_REFERENCE.md)).
+[CLI_REFERENCE.md](CLI_REFERENCE.md)).
 
 ### 5.3 Seturi de skin (ținute, expresii, stări de deteriorare)
 

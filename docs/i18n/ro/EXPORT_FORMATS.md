@@ -11,7 +11,7 @@ verifică rezultatul. Acest text este licențiat CC-BY-4.0. Versiunea documentat
 Fiecare linie de comandă de mai jos a fost rulată pe proiectul demo încorporat (`armatura demo demo.json`) sau pe o copie de 8 cadre a acestuia
 (`small.json`, același proiect cu `"frames": 8`). Dimensiunile citate provin din acel proiect de 8 cadre, 640x480, și au doar rol
 orientativ: ele cresc odată cu cadrele, ancorele și straturile, nu sunt valori fixe. Detaliile comenzilor (fiecare opțiune,
-fiecare eroare) se află în [CLI_REFERENCE.md](../../CLI_REFERENCE.md); formatul de fișier al proiectului în sine este descris în
+fiecare eroare) se află în [CLI_REFERENCE.md](CLI_REFERENCE.md); formatul de fișier al proiectului în sine este descris în
 [PROJECT_FORMAT.md](PROJECT_FORMAT.md); starea codec-urilor și a brevetelor este în [PATENT_NOTES.md](PATENT_NOTES.md) (nu reprezintă sfat juridic).
 
 ## Cuprins
@@ -541,4 +541,4 @@ Pentru verificări vizuale ale unui export cu pierderi față de original, `arma
   funcționalităților sărite din secțiunea 9 este cea despre care comanda avertizează în realitate.
 * `docs/LIMITATIONS.md` L-32 listează OCA printre formatele de import; CLI are un **export** OCA (`export-oca`) și nicio comandă `import-oca`.
 * Textul de utilizare al lui `export` numește doar `.gif .html .json .mp4` plus „formatele deschise”; lista completă de extensii este cea din secțiunea 2.
-* Alte neconcordanțe între textul de utilizare și comportament sunt adunate la sfârșitul [CLI_REFERENCE.md](../../CLI_REFERENCE.md).
+* Alte neconcordanțe între textul de utilizare și comportament sunt adunate la sfârșitul [CLI_REFERENCE.md](CLI_REFERENCE.md).

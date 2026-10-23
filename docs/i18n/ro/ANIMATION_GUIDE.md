@@ -3,7 +3,7 @@
 Cum să pui lucrurile în mișcare, să reutilizezi mișcarea, să o comanzi din audio, fețe, mocap și intrare live, să o verifici și
 să o livrezi la dimensiuni mici. Fiecare comandă de aici a fost rulată cu binarul real (`armatura 0.1.0`, build de debug, Linux);
 ieșirile sunt copiate din aceste rulări. Rigging-ul se găsește în [RIGGING_GUIDE.md](RIGGING_GUIDE.md); primul proiect în
-[GETTING_STARTED.md](GETTING_STARTED.md); fiecare opțiune în [CLI_REFERENCE.md](../../CLI_REFERENCE.md).
+[GETTING_STARTED.md](GETTING_STARTED.md); fiecare opțiune în [CLI_REFERENCE.md](CLI_REFERENCE.md).
 
 Licența acestui document: CC-BY-4.0.
 
@@ -403,7 +403,7 @@ wrote fl3.json
   și adaugă canale compensatorii (mod `add`) astfel încât să nu alunece. Fără un controler fără părinte, se oprește:
   `foot lock needs a root controller bone (no parent)`.
 * **Bake-uri înrudite:** `stretch <in> <out> <follower> <leader>` (urmăritorul țintește și se întinde spre lider), `magnet <in> <out> <ctrl>
-  <bone:NAME|x,y> <radius> <strength>` (proximity pull), `bone-vis` (vizibilitate în overlay).
+  <bone:NAME|x,y> <radius> <strength>` (atracție de proximitate), `bone-vis` (vizibilitate în overlay).
 
 ## 10. Face tracking și limitele lui
 
@@ -524,7 +524,7 @@ wrote lp.svg (800x360, 1 containers, 2 layers placed)
 ```
 
 `dx`/`dy` sunt offseturi aplicate peste animație. Detalii despre containere, `scroll add|list|remove|eval` (limite elastice, puncte de snap, simulare
-de fling) se găsesc în [CLI_REFERENCE.md](../../CLI_REFERENCE.md#scroll-add-list-remove-eval). Layout-ul este aplicat de runtime și de previzualizări;
+de fling) se găsesc în [CLI_REFERENCE.md](CLI_REFERENCE.md#scroll-add-list-remove-eval). Layout-ul este aplicat de runtime și de previzualizări;
 **fișierele exportate conțin layout-ul rezolvat pentru dimensiunea proprie a proiectului.**
 
 ## 14. Cameră, shot-uri, adâncime de câmp

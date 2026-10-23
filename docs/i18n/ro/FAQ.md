@@ -36,7 +36,7 @@ Nu. Programul nu are nevoie de cont și nici de rețea pentru a funcționa (stud
 ## ffmpeg
 
 **8. Am nevoie de ffmpeg?**
-Doar pentru exportul MP4 și WebM, pentru `sound mix`, pentru audio mp3/ogg și pentru `face-track` pe un fișier video. Exportul GIF, APNG, HTML, secvențe PNG, SVG, glTF și JSON nu necesită nimic în plus. Lista completă se află în [CLI_REFERENCE.md](../../CLI_REFERENCE.md), secțiunea 1.6.
+Doar pentru exportul MP4 și WebM, pentru `sound mix`, pentru audio mp3/ogg și pentru `face-track` pe un fișier video. Exportul GIF, APNG, HTML, secvențe PNG, SVG, glTF și JSON nu necesită nimic în plus. Lista completă se află în [CLI_REFERENCE.md](CLI_REFERENCE.md), secțiunea 1.6.
 
 **9. Este ffmpeg inclus în pachet?**
 Niciodată. ARMATURA pornește `ffmpeg` din `PATH`-ul tău ca program separat și nu se execută nimic altceva. Ce licență și ce situație a brevetelor are build-ul tău de ffmpeg rămâne să verifici tu; vezi [PATENT_NOTES.md](PATENT_NOTES.md).
@@ -52,7 +52,7 @@ Niciodată. ARMATURA pornește `ffmpeg` din `PATH`-ul tău ca program separat ș
 ## Performanță
 
 **12. De ce este atât de lent?**
-Probabil rulezi un build debug. Cifrele din documente provin dintr-un build debug și sunt de 10 până la 30 de ori mai lente decât un build release ([CLI_REFERENCE.md](../../CLI_REFERENCE.md), secțiunea 1.7). Pe mașina de test cu 2 nuclee, un build debug a avut nevoie de 46 s pentru a scrie cele 48 de cadre ale proiectului demo ca PNG și de 57 s pentru a-l exporta ca GIF. Un build release proaspăt a făcut aceleași două lucrări în 1,5 s și 2,2 s. Compilează cu `cargo build --release` și folosește `target/release/armatura`.
+Probabil rulezi un build debug. Cifrele din documente provin dintr-un build debug și sunt de 10 până la 30 de ori mai lente decât un build release ([CLI_REFERENCE.md](CLI_REFERENCE.md), secțiunea 1.7). Pe mașina de test cu 2 nuclee, un build debug a avut nevoie de 46 s pentru a scrie cele 48 de cadre ale proiectului demo ca PNG și de 57 s pentru a-l exporta ca GIF. Un build release proaspăt a făcut aceleași două lucrări în 1,5 s și 2,2 s. Compilează cu `cargo build --release` și folosește `target/release/armatura`.
 
 **13. Folosește GPU-ul?**
 Randatorul implicit este cel pe CPU. Există un crate `gpu` și o comandă `render-gpu` în spatele unui flag de funcționalitate, dar în timpul dezvoltării nu a fost disponibil niciun GPU real: pe un GPU software (llvmpipe), un cadru de 640x480 a durat între 253 și 295 ms, față de 13,8 ms pe calea CPU. Tratează randarea pe GPU ca netestată pe hardware ([LIMITATIONS.md](LIMITATIONS.md)).
@@ -149,7 +149,7 @@ Nu: se afișează `warning: unknown field bogus (ignored)`, iar starea de ieșir
 Pentru comenzile care citesc un proiect și scriu o imagine, un video sau alt fișier care nu este proiect, numele rezultatului nu poate fi numele intrării. Mesajul este `refusing to overwrite the input project X with output of the same name`. Previne greșeala clasică de a exporta peste unica ta copie a proiectului.
 
 **38. Atunci de ce pot `script` și `autorig` să scrie peste propria intrare?**
-Protecția acoperă rezultatele care nu sunt proiecte. Comenzile care citesc un proiect și scriu un proiect (`script`, `autorig`, `loop-solve` și altele) pot indica același fișier pentru intrare și rezultat; scrierea este atomică, iar dacă comanda eșuează nu se schimbă nimic. Dacă vrei să păstrezi originalul, dă un nume nou sau folosește `armatura vcs` pentru a păstra istoricul ([CI.md](CI.md) și [CLI_REFERENCE.md](../../CLI_REFERENCE.md)).
+Protecția acoperă rezultatele care nu sunt proiecte. Comenzile care citesc un proiect și scriu un proiect (`script`, `autorig`, `loop-solve` și altele) pot indica același fișier pentru intrare și rezultat; scrierea este atomică, iar dacă comanda eșuează nu se schimbă nimic. Dacă vrei să păstrezi originalul, dă un nume nou sau folosește `armatura vcs` pentru a păstra istoricul ([CI.md](CI.md) și [CLI_REFERENCE.md](CLI_REFERENCE.md)).
 
 **39. De ce refuză `render` valoarea `out.jpg`?**
 `render` scrie doar `.png` sau `.svg`: `render writes .png or .svg; 'out.jpg' has another extension (nothing was written)`. Pentru alte formate folosește `export`; lista se află în [EXPORT_FORMATS.md](EXPORT_FORMATS.md).

@@ -13,7 +13,7 @@ Cuprins: [Toate documentele](#toate-documentele) - [Trasee de lectură în func�
 | Document | Ce este | Public |
 |---|---|---|
 | [GETTING_STARTED.md](GETTING_STARTED.md) | Instalare, primul proiect, prima randare și primul export, prima sesiune în studio | toată lumea, prima lectură |
-| [CLI_REFERENCE.md](../../CLI_REFERENCE.md) | Fiecare comandă `armatura`, opțiune, cod de ieșire și exemplu | utilizatori, autori de scripturi, autori de CI |
+| [CLI_REFERENCE.md](CLI_REFERENCE.md) | Fiecare comandă `armatura`, opțiune, cod de ieșire și exemplu | utilizatori, autori de scripturi, autori de CI |
 | [STUDIO.md](STUDIO.md) | Editorul din browser: panouri, scurtături, colaborare, previzualizări scrub | animatori, riggeri |
 | [RIGGING_GUIDE.md](RIGGING_GUIDE.md) | Construirea unui rig: oase, IK, skinning, deformatori, drivere, mașini de stări, layout | riggeri, artiști tehnici |
 | [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md) | Chei, easing, clipuri și take-uri, fizică, lip-sync, audio, alegeri de export | animatori |
@@ -40,7 +40,7 @@ Fiecare traseu este o ordine, nu o cerință. Oprește-te când ai găsit ce î�
 
 **Utilizator nou (vrea să vadă că funcționează).** [../README.md](../../../README.ro.md) (pornire rapidă) -> [GETTING_STARTED.md](GETTING_STARTED.md) -> [STUDIO.md](STUDIO.md) -> [FAQ.md](FAQ.md) -> [LIMITATIONS.md](LIMITATIONS.md).
 
-**Rigger.** GETTING_STARTED -> [RIGGING_GUIDE.md](RIGGING_GUIDE.md) -> [PROJECT_FORMAT.md](PROJECT_FORMAT.md) (pentru câmpurile pe care le editezi manual) -> [GLOSSARY.md](GLOSSARY.md) -> [CLI_REFERENCE.md](../../CLI_REFERENCE.md) (comenzile `lint`, `check`, `fuzz`, `autorig`, `machine`) -> [CI.md](CI.md) pentru a proteja rig-ul.
+**Rigger.** GETTING_STARTED -> [RIGGING_GUIDE.md](RIGGING_GUIDE.md) -> [PROJECT_FORMAT.md](PROJECT_FORMAT.md) (pentru câmpurile pe care le editezi manual) -> [GLOSSARY.md](GLOSSARY.md) -> [CLI_REFERENCE.md](CLI_REFERENCE.md) (comenzile `lint`, `check`, `fuzz`, `autorig`, `machine`) -> [CI.md](CI.md) pentru a proteja rig-ul.
 
 **Animator.** GETTING_STARTED -> STUDIO -> [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md) -> [EXPORT_FORMATS.md](EXPORT_FORMATS.md) (alege formatul de ieșire) -> CLI_REFERENCE (`export`, `export-fit`).
 
