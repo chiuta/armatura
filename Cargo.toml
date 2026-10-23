@@ -3,3 +3,6 @@ resolver = "2"
 members = ["armatura-core", "armatura-cli", "armatura-capi", "armatura-wasm", "armatura-gpu"]
 # armatura-gpu (wgpu) is opt-in: plain `cargo test` / `cargo build` skip it. Use `-p armatura-gpu` or `--features gpu` on the CLI.
 default-members = ["armatura-core", "armatura-cli", "armatura-capi", "armatura-wasm"]
+
+[profile.release]
+strip = "symbols"
