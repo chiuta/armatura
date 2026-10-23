@@ -37,7 +37,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.97.0
       - uses: Swatinem/rust-cache@v2
       - name: Build release binaries (CLI + studio, C ABI)
-        run: cargo build --release --locked -p armatura-cli -p armatura-capi
+        run: cargo build --release --locked -p armatura-cli -p armatura-capi -p armatura-gui
       - name: Smoke test the release binary
         shell: bash
         run: |
@@ -46,12 +46,14 @@ jobs:
           ./target/release/${{ matrix.exe }} check smoke.json
           ./target/release/${{ matrix.exe }} render smoke.json 0 smoke.png
           test -s smoke.png
+          if [ "${{ runner.os }}" != "Linux" ]; then ./target/release/armatura-studio --selftest; fi
       - name: Package
         shell: bash
         run: |
           d=armatura-${{ matrix.name }}
           mkdir -p $d/lib $d/include
           cp target/release/${{ matrix.exe }} $d/
+          if [ "${{ runner.os }}" != "Linux" ]; then cp target/release/armatura-studio* $d/ ; fi
           cp target/release/${{ matrix.lib }} $d/lib/ || true
           cp target/release/${{ matrix.slib }} $d/lib/ || true
           cp armatura-capi/armatura.h $d/include/

@@ -1,0 +1,15 @@
+[package]
+name = "armatura-gui"
+version = "0.1.0"
+edition = "2021"
+description = "ARMATURA Studio as a native window (WebView2 on Windows, WKWebView on macOS); starts the armatura studio server and shows it"
+license = "AGPL-3.0-or-later"
+
+[[bin]]
+name = "armatura-studio"
+path = "src/main.rs"
+
+# The window toolkit is only built where a native web view exists without extra system packages.
+[target.'cfg(any(windows, target_os = "macos"))'.dependencies]
+tao = "0.37"
+wry = "0.57"
