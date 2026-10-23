@@ -39,13 +39,13 @@ jobs:
         shell: bash
         run: |
           set +e
-          cargo test --workspace --locked --no-fail-fast 2>&1 | tee test.log
+          cargo test --workspace --exclude armatura-gpu --locked --no-fail-fast 2>&1 | tee test.log
           code=${PIPESTATUS[0]}
           # Surface the failing tests as annotations (readable without log access).
-          grep -E '^test .* FAILED|^---- |panicked at|^error(\[|:)' test.log | head -40 | while IFS= read -r l; do echo "::error title=test-failure::${l:0:900}"; done
+          grep -E -A3 '^test .* FAILED|^---- |panicked at|^error(\[|:)' test.log | grep -v '^--$' | head -60 | while IFS= read -r l; do echo "::error title=test-failure::${l:0:900}"; done
           exit $code
       - name: Clippy (warnings are errors)
-        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+        run: cargo clippy --workspace --exclude armatura-gpu --all-targets --locked -- -D warnings
 
   wasm32:
     name: wasm32 build
@@ -67,9 +67,31 @@ jobs:
         shell: bash
         run: |
           set +e
-          node armatura-wasm/js/test.mjs 2>&1 | tee js.log
+          cargo run -q -p armatura-cli --locked -- demo demo-ci.json
+          node armatura-wasm/js/test.mjs demo-ci.json 2>&1 | tee js.log
           code=${PIPESTATUS[0]}
           head -30 js.log | while IFS= read -r l; do echo "::error title=js-test::${l:0:900}"; done
+          exit $code
+
+  gpu-parity:
+    name: gpu parity (${{ matrix.os }}, informational)
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: GPU parity tests (skip when no adapter is available)
+        shell: bash
+        run: |
+          set +e
+          cargo test -p armatura-gpu --locked --no-fail-fast -- --nocapture 2>&1 | tee gpu.log
+          code=${PIPESTATUS[0]}
+          grep -E -A3 'adapter|FAILED|panicked at|SKIP' gpu.log | grep -v '^--$' | head -60 | while IFS= read -r l; do echo "::warning title=gpu::${l:0:900}"; done
           exit $code
 
   licences:
@@ -77,8 +99,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: EmbarkStudios/cargo-deny-action@v2
-        with:
-          command: check
+      - uses: dtolnay/rust-toolchain@stable
+      - name: cargo-deny
+        shell: bash
+        run: |
+          set +e
+          cargo install cargo-deny --locked
+          cargo deny check 2>&1 | tee deny.log
+          code=${PIPESTATUS[0]}
+          grep -E '^(error|warning)' -A4 deny.log | head -60 | while IFS= read -r l; do echo "::error title=deny::${l:0:900}"; done
+          exit $code
       - name: REUSE lint
+        if: always()
         uses: fsfe/reuse-action@v5

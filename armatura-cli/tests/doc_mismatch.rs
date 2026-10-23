@@ -25,6 +25,10 @@ impl Out {
     }
 }
 
+fn have_ffmpeg() -> bool {
+    Command::new("ffmpeg").arg("-version").output().map(|o| o.status.success()).unwrap_or(false)
+}
+
 fn run_in(dir: &Path, args: &[&str]) -> Out {
     let o = Command::new(BIN).current_dir(dir).args(args).output().expect("cannot start armatura");
     Out { ok: o.status.success(), stdout: String::from_utf8_lossy(&o.stdout).into_owned(), stderr: String::from_utf8_lossy(&o.stderr).into_owned() }
@@ -120,6 +124,10 @@ fn every_user_addressed_output_refuses_a_symlink() {
         ("studio --collab-log", vec![], "link", vec!["studio", "p.json", "--port", "0", "--ui-config", "ui.json", "--collab-log", "link"]),
     ];
     for (label, pre, plant, args) in cases {
+        if (plant.ends_with(".mp4") || plant.ends_with(".webm")) && !have_ffmpeg() {
+            eprintln!("SKIP {label}: ffmpeg is not on PATH");
+            continue;
+        }
         let d = setup("sym");
         fs::write(d.join("cim.json"), r#"{"schema":"armatura-ci/1","project":"p.json","goldens":"goldens","checks":[{"kind":"validate","name":"v"},{"kind":"render","name":"f","frames":[0,2]}]}"#).unwrap();
         for c in &pre {
