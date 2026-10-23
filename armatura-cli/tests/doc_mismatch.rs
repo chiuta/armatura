@@ -25,6 +25,7 @@ impl Out {
     }
 }
 
+#[cfg_attr(not(unix), allow(dead_code))]
 fn have_ffmpeg() -> bool {
     Command::new("ffmpeg").arg("-version").output().map(|o| o.status.success()).unwrap_or(false)
 }
