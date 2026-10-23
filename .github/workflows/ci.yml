@@ -122,7 +122,7 @@ jobs:
           cargo deny check 2>&1 | tee deny.log
           code=${PIPESTATUS[0]}
           sed 's/\x1b\[[0-9;]*m//g' deny.log > deny.plain
-          msg=$( { grep -E -A14 '^(error|warning)' deny.plain | head -60; tail -10 deny.plain; } | head -c 6000 | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')
+          msg=$( { grep -E '^ *(├|└) [A-Za-z0-9_.-]+ v[0-9]' deny.plain | sort -u | head -40; grep -E -A14 '^(error|warning)\[' deny.plain | head -70; tail -10 deny.plain; } | head -c 6000 | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')
           if [ "$code" != 0 ]; then echo "::error title=deny::$msg"; fi
           exit $code
       - name: REUSE lint

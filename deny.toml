@@ -2,6 +2,9 @@
 # Not legal advice. This file only polices third-party dependencies; the workspace crates themselves are MPL-2.0 (libraries) and AGPL-3.0-or-later (armatura-cli).
 [graph]
 all-features = true
+# The window toolkit (wry / tao) is only a dependency on Windows and macOS (see armatura-gui/Cargo.toml); its Linux-only
+# GTK dependencies are therefore not part of what ships. Judge the three platforms that are built.
+targets = ["x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc", "aarch64-apple-darwin"]
 
 [licenses]
 confidence-threshold = 0.9
@@ -19,6 +22,13 @@ exceptions = [
   { allow = ["MPL-2.0"], crate = "armatura-wasm" },
   { allow = ["MPL-2.0"], crate = "armatura-gpu" },
   { allow = ["AGPL-3.0-or-later"], crate = "armatura-cli" },
+  { allow = ["AGPL-3.0-or-later"], crate = "armatura-gui" },
+  # Servo / Mozilla crates pulled in by wry (Windows and macOS window only): file-level copyleft, MPL-2.0, compatible with AGPL-3.0-or-later.
+  { allow = ["MPL-2.0"], crate = "cssparser" },
+  { allow = ["MPL-2.0"], crate = "cssparser-macros" },
+  { allow = ["MPL-2.0"], crate = "dtoa-short" },
+  { allow = ["MPL-2.0"], crate = "selectors" },
+  { allow = ["MPL-2.0"], crate = "servo_arc" },
   { allow = ["MPL-2.0"], crate = "smartstring" },
 ]
 # Anything else (GPL, LGPL, AGPL, EUPL, ...) is denied by default because it is not in `allow`.
