@@ -13,6 +13,10 @@ Related versions that **are** real and independent of the above: the Rust facade
 ### Added
 - Documentation set (CC-BY-4.0): [README.md](README.md) and [README.ro.md](README.ro.md) (full Romanian translation), [docs/INDEX.md](docs/INDEX.md), [docs/API.md](docs/API.md) (extended to facade 1.3), [docs/C_ABI.md](docs/C_ABI.md), [docs/WASM.md](docs/WASM.md) (with an explicit "never built, never run" status box and a verification checklist), [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md), [docs/SECURITY.md](docs/SECURITY.md), [docs/LIMITATIONS.md](docs/LIMITATIONS.md) and this file. Other documents of the set (command reference, export formats, project format, architecture, glossary, guides, studio, FAQ) are listed in the INDEX. All code samples in API.md and C_ABI.md were compiled and run; the WASM samples were run only against the JavaScript mock.
 
+### Fixed
+- Studio HTTP server: a control character in a request header value (stray CR, NUL, DEL) is now refused with 400 instead of being passed on (RFC 9110); unit test `control_characters_in_header_values_are_refused`.
+- WebAssembly wrapper (`armatura-wasm/js/armatura.js`): `play()` / `playMachine()` stop, clear their frame id and report an engine error through `onError` instead of dying silently inside `requestAnimationFrame`.
+
 ### Documentation corrections found while writing (code left untouched)
 The documentation follows the behaviour of the code. These places where comments or older text disagree with the code are recorded for the maintainers:
 - `api.rs`: the doc comment of `ci_init` names the default manifest `ci.json`; the code uses `armatura-ci.json`.

@@ -179,6 +179,10 @@ pub fn parse_head(head: &[u8]) -> Result<(Method, String, Vec<Header>), Fail> {
         if headers.len() >= 100 {
             return Err((431, "too many headers"));
         }
+        // RFC 9110: no control characters in a field value (a stray CR/NUL could be read differently by a proxy in front)
+        if val.bytes().any(|c| (c < 0x20 && c != b'\t') || c == 0x7f) {
+            return Err((400, "control character in a header value"));
+        }
         headers.push((k.to_string(), val.trim().to_string()));
     }
     Ok((method, u.to_string(), headers))
@@ -436,6 +440,16 @@ mod tests {
         let addr = li.local_addr().unwrap();
         std::thread::spawn(move || serve_loop(li, lim(), |r| Reply::Full(Resp::from_string(format!("peer={}", r.peer)))));
         assert!(roundtrip(addr, b"GET /x HTTP/1.1\r\n\r\n").ends_with("peer=127.0.0.1"));
+    }
+
+    #[test]
+    fn control_characters_in_header_values_are_refused() {
+        let a = start(lim());
+        for bad in [&b"GET /x HTTP/1.1\r\nHost: a.example\r\nX: a\x00b\r\n\r\n"[..], b"GET /x HTTP/1.1\r\nHost: a.example\r\nX: a\rb\r\n\r\n", b"GET /x HTTP/1.1\r\nHost: a.example\r\nX: a\x7fb\r\n\r\n"] {
+            assert!(roundtrip(a, bad).starts_with("HTTP/1.1 400"), "{:?}", String::from_utf8_lossy(bad));
+        }
+        // a horizontal tab inside a value is legal
+        assert!(roundtrip(a, b"GET /x HTTP/1.1\r\nHost: a.example\r\nX: a\tb\r\n\r\n").starts_with("HTTP/1.1 200"));
     }
 
     #[test]
