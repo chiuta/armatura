@@ -290,6 +290,7 @@ mod tests {
         assert!(resolve_with(&d.join("img"), "../img/a.png", true).is_ok());
     }
 
+    #[cfg(unix)] // asserts POSIX path separators
     #[test]
     fn a_missing_file_resolves_to_the_joined_path_and_an_empty_base_means_dot() {
         let p = resolve_with(Path::new(""), "http://example.invalid/x.wav", false).unwrap();

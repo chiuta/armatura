@@ -205,6 +205,7 @@ fn h1_other_commands_resolve_assets_against_the_input_directory() {
     }
 }
 
+#[cfg(unix)] // uses /dev/zero
 #[test]
 fn input_size_cap_and_special_files_are_refused() {
     let s = ScratchDir::new("armatura-w4-cap");

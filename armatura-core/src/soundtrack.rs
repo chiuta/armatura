@@ -297,6 +297,7 @@ mod tests {
         assert!(!j.contains("sounds"), "empty list is not serialised");
     }
 
+    #[cfg(unix)] // asserts POSIX path separators
     #[test]
     fn filter_graph() {
         let mut p = Project::new("s", 10.0, 10.0, 24.0, 48);
@@ -310,6 +311,7 @@ mod tests {
         assert!(m.filter.contains("amix=inputs=2") && m.inputs[7] == "/d/sub/y.wav");
     }
 
+    #[cfg(unix)] // asserts POSIX path separators
     #[test]
     fn files_outside_the_project_directory_are_refused_and_an_empty_base_never_yields_a_url() {
         let mut p = Project::new("s", 10.0, 10.0, 24.0, 48);
