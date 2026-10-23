@@ -165,7 +165,8 @@ def check_pair(src, tr):
         bad.append(f"table rows: {table_rows(src)} in source, {table_rows(tr)} in translation")
     if list_items(src) != list_items(tr):
         bad.append(f"list items: {list_items(src)} in source, {list_items(tr)} in translation")
-    sl, tl = [x for x in prose(src).split("\n") if x.strip()], [x for x in prose(tr).split("\n") if x.strip()]
+    keep = lambda t: [x for x in prose(t).split("\n") if x.strip() and not x.lstrip().startswith("|")]
+    sl, tl = keep(src), keep(tr)
     if len(sl) > 8 and sum(1 for x in tl if x in set(sl)) > 0.6 * len(tl):
         bad.append("most prose lines are identical to the source: the text does not look translated")
     return bad
