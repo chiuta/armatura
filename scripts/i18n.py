@@ -104,16 +104,30 @@ def prose(text):
     return "\n".join("\n".join(lines) for code, lines in split_fences(text) if not code)
 
 
+def backtick_runs(text):
+    return [len(m.group(0)) for m in re.finditer(r"`+", prose(text))]
+
+
 def inline_code(text):
-    """Inline code spans, found line by line (a backtick run closes only at a run of the same length)."""
-    out = []
-    for ln in prose(text).split("\n"):
-        out += [m.group(0) for m in re.finditer(r"(?<!`)(`+)(?!`)(.+?)(?<!`)\1(?!`)", ln)]
-    return sorted(out)
+    """Single-word inline code spans (commands, options, identifiers, file names), sorted.
+    Spans that contain spaces are not compared one by one: a stray backtick in a source table row can
+    shift the pairing of the spans in the lines around it. backtick_runs() still covers every backtick."""
+    return sorted(re.findall(r"(?<!`)`([^`\s]+)`(?!`)", prose(text)))
+
+
+def norm_target(t):
+    """A link target reduced to what a translation must keep: external URL, same-page anchor, or file name."""
+    if re.match(r"^(https?:|mailto:)", t):
+        return t
+    path, _, anchor = t.partition("#")
+    if not path:
+        return "#"
+    base = os.path.basename(path.rstrip("/")) + ("/" if path.endswith("/") else "")
+    return re.sub(r"\.(?:" + "|".join(LANGS) + r")\.md$", ".md", base)
 
 
 def link_targets(text):
-    return [m.group(1) for m in re.finditer(r"\]\(([^)\s]+)", prose(text))]
+    return [norm_target(m.group(1)) for m in re.finditer(r"\]\(([^)\s]+)", prose(text))]
 
 
 def table_rows(text):
@@ -138,6 +152,8 @@ def check_pair(src, tr):
             if a != b:
                 bad.append(f"code block #{k + 1} differs from the source (it must be copied verbatim)")
                 break
+    if backtick_runs(src) != backtick_runs(tr):
+        bad.append("backtick runs differ: a code span was added, removed or altered")
     a, b = inline_code(src), inline_code(tr)
     if a != b:
         sa, sb = set(a) - set(b), set(b) - set(a)
