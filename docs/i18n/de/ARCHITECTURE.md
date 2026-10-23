@@ -488,7 +488,8 @@ Beispiel: eine neue Zahl pro Ebene.
 | CLI mit GPU | `cargo build -p armatura-cli --features gpu` | wgpu 30 nur mit Vulkan und GL. Nur auf Mesa llvmpipe verifiziert. |
 | Bibliothek | `cargo build -p armatura-core` | Rust-API. |
 | C-Bibliothek | `cargo build -p armatura-capi` | `cdylib`, `staticlib` und der Header `armatura-capi/armatura.h`; `ABI_VERSION` 1. |
-| WebAssembly | `armatura-wasm/build-wasm.sh` (erfordert `rustup target add wasm32-unknown-unknown`) | Einfache extern-"C"-Schnittstelle, mit `index.html` und Hilfsdateien in `js/`. Die Entwicklungsumgebung konnte das Target nicht installieren, daher wurde das Skript noch nie ausgeführt und die `.wasm` noch nie gebaut. |
+| WebAssembly | `armatura-wasm/build-wasm.sh` (erfordert `rustup target add wasm32-unknown-unknown`) | Einfache extern-"C"-Schnittstelle, mit `index.html` und Hilfsdateien in `js/`. Die Entwicklungsumgebung konnte das Target nicht installieren; das Modul wird (Release-Profil) von `.github/workflows/release.yml` gebaut, und ein Debug-Build wird von `ci.yml` unter Node getestet. Das Skript selbst führt CI nicht aus. |
+| Fenster-App (Windows, macOS) | `cargo build --release -p armatura-gui` | Binärdatei `armatura-studio`: Fenster mit `tao` + Webview mit `wry` um das Studio; unter Linux ein Platzhalter. |
 | Tests | `cargo test --workspace` | End-to-End-Shell-Ablauf in `scripts/e2e.sh`; Lizenzprüfung in `scripts/licence-audit.sh`. |
 
 Die Standard-Mitglieder des Workspace enthalten `armatura-gpu` nicht.

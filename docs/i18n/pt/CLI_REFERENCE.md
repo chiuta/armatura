@@ -162,6 +162,7 @@ cannot write link.svg: link.svg: refusing to write through a symbolic link; pass
   O código de saída **2** é usado somente por `ci` (nada pôde ser avaliado: projeto/manifesto ausente, golden adulterado).
 * Sem argumentos, com um comando desconhecido, com o número errado de argumentos posicionais ou com `armatura --help`, o uso completo é impresso na
   **stderr** e o exit é **1**. `armatura <command> --help` imprime as linhas de uso desse comando na stdout e termina com exit 0.
+  **Exceção (Windows, desde 0.1.0-alpha.2):** quando `armatura.exe` é iniciado por um duplo clique no Explorer (a janela de console foi criada para ele e nenhum outro processo a compartilha) e não tem argumentos, ele não imprime o uso: cria `Documents\ARMATURA\first-rig.json` se não existir, executa `studio` sobre esse arquivo em `127.0.0.1:8080`, abre o navegador e mantém o console aberto até você fechá-lo ou pressionar Enter após um erro. Iniciado a partir de um terminal, ele se comporta como descrito acima. O restante do programa roda em uma thread com 256 MiB de pilha (a thread principal do Windows tem apenas 1 MiB).
 
 ### 1.6 Programas externos
 

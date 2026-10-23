@@ -511,7 +511,8 @@ non portano con sé il motore di scripting.
 | CLI con GPU | `cargo build -p armatura-cli --features gpu` | wgpu 30 solo con Vulkan e GL. Verificato soltanto su Mesa llvmpipe. |
 | Libreria | `cargo build -p armatura-core` | API Rust. |
 | Libreria C | `cargo build -p armatura-capi` | `cdylib`, `staticlib` e l'header `armatura-capi/armatura.h`; `ABI_VERSION` 1. |
-| WebAssembly | `armatura-wasm/build-wasm.sh` (richiede `rustup target add wasm32-unknown-unknown`) | Interfaccia extern "C" semplice, con `index.html` e gli helper in `js/`. L'ambiente di sviluppo non ha potuto installare il target, quindi lo script non è mai stato eseguito e il `.wasm` non è mai stato compilato. |
+| WebAssembly | `armatura-wasm/build-wasm.sh` (richiede `rustup target add wasm32-unknown-unknown`) | Interfaccia extern "C" semplice, con `index.html` e gli helper in `js/`. L'ambiente di sviluppo non ha potuto installare il target; il modulo viene compilato (profilo release) da `.github/workflows/release.yml` e una build di debug viene testata sotto Node da `ci.yml`. Lo script in sé non è ciò che esegue la CI. |
+| App a finestra (Windows, macOS) | `cargo build --release -p armatura-gui` | Binario `armatura-studio`: finestra `tao` + web view `wry` attorno allo studio; uno stub su Linux. |
 | Test | `cargo test --workspace` | Flusso shell end-to-end in `scripts/e2e.sh`; audit delle licenze in `scripts/licence-audit.sh`. |
 
 I membri predefiniti del workspace non includono `armatura-gpu`.

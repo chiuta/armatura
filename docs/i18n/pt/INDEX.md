@@ -4,7 +4,7 @@
 
 *Comece aqui para encontrar a página certa. Todos os documentos são Markdown em inglês sob CC-BY-4.0, exceto os arquivos de terceiros gerados (veja seus cabeçalhos). O README em romeno é [../README.ro.md](../../../README.pt.md).*
 
-O ARMATURA é um motor de rigging e animação vetorial 2D em Rust. É um projeto em pré-lançamento (crates 0.1.0); leia [LIMITATIONS.md](LIMITATIONS.md) antes de depender de um recurso.
+O ARMATURA é um motor de rigging e animação vetorial 2D em Rust. É um projeto alpha (os primeiros builds são preparados como o pré-lançamento em rascunho `v0.1.0-alpha.2`; os crates continuam em 0.1.0); leia [LIMITATIONS.md](LIMITATIONS.md) antes de depender de um recurso.
 
 Conteúdo: [Todos os documentos](#todos-os-documentos) - [Trilhas de leitura por público](#trilhas-de-leitura-por-público) - [Documentos na raiz do repositório](#documentos-na-raiz-do-repositório) - [Onde cada pergunta é respondida](#onde-cada-pergunta-é-respondida) - [Convenções](#convenções-usadas-nos-documentos)
 
@@ -24,10 +24,10 @@ Conteúdo: [Todos os documentos](#todos-os-documentos) - [Trilhas de leitura por
 | [FAQ.md](FAQ.md) | Respostas curtas para perguntas comuns | todos |
 | [API.md](API.md) | A facade Rust estável (versão 1.4.0): chamadas, erros, limites, exemplos | integradores Rust |
 | [C_ABI.md](C_ABI.md) | A interface C (`armatura-capi`): funções, regras de memória, exemplos em C e Python | integradores C, C++, Python, Go, C# |
-| [WASM.md](WASM.md) | Módulo WebAssembly e wrapper JavaScript. **Status: nunca compilado nem executado**; inclui o checklist para quem o compilar pela primeira vez | desenvolvedores web |
+| [WASM.md](WASM.md) | Módulo WebAssembly e wrapper JavaScript. **Status: compilado e testado sob o Node no CI, nunca executado em um navegador**; inclui o checklist para a primeira execução em um navegador | desenvolvedores web |
 | [CI.md](CI.md) | CI de animação (`armatura ci`): manifesto, limiares, quadros de referência, relatórios, exemplos de pipeline | artistas técnicos, engenheiros de build |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Compilação, testes, convenções, checklist de novo módulo, checklist de lançamento, depuração | contribuidores, mantenedores |
-| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Passos do lado do proprietário antes e depois de um primeiro lançamento público | proprietário |
+| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Passos do lado do proprietário antes e depois de publicar o lançamento em rascunho | proprietário |
 | [SECURITY.md](SECURITY.md) | Modelo de ameaças, proteções integradas, lacunas conhecidas, relato de problemas, checklist de reforço de segurança | revisores de segurança, responsáveis por implantação |
 | [LIMITATIONS.md](LIMITATIONS.md) | Lista numerada de limitações conhecidas com gravidade, alternativa e id do roadmap | todos que avaliam o ARMATURA |
 | [PATENT_NOTES.md](PATENT_NOTES.md) | Nota sobre o status de patentes (não é aconselhamento jurídico) | licenciados, advogados |

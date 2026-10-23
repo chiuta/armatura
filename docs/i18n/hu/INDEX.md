@@ -4,7 +4,7 @@
 
 *Itt kezdj, hogy megtaláld a megfelelő oldalt. Minden dokumentum angol nyelvű Markdown CC-BY-4.0 licenc alatt, kivéve a generált harmadik féltől származó fájlokat (lásd a fejlécüket). A román README itt található: [../README.ro.md](../../../README.hu.md).*
 
-Az ARMATURA egy Rustban írt 2D vektoros riggelő és animációs motor. Előzetes kiadású projekt (crate-ek: 0.1.0); mielőtt egy funkcióra támaszkodnál, olvasd el a [LIMITATIONS.md](LIMITATIONS.md) fájlt.
+Az ARMATURA egy Rustban írt 2D vektoros riggelő és animációs motor. Alfa projekt (az első buildek a `v0.1.0-alpha.2` előzetes kiadás-vázlatként készülnek; a crate-ek továbbra is 0.1.0); mielőtt egy funkcióra támaszkodnál, olvasd el a [LIMITATIONS.md](LIMITATIONS.md) fájlt.
 
 Tartalom: [Minden dokumentum](#minden-dokumentum) - [Olvasási útvonalak célközönség szerint](#olvasási-útvonalak-célközönség-szerint) - [A tároló gyökerében lévő dokumentumok](#a-tároló-gyökerében-lévő-dokumentumok) - [Hol található válasz az egyes kérdésekre](#hol-található-válasz-az-egyes-kérdésekre) - [Konvenciók](#a-dokumentumokban-használt-konvenciók)
 
@@ -24,10 +24,10 @@ Tartalom: [Minden dokumentum](#minden-dokumentum) - [Olvasási útvonalak célk�
 | [FAQ.md](FAQ.md) | Rövid válaszok gyakori kérdésekre | mindenki |
 | [API.md](API.md) | A stabil Rust homlokzat (1.4.0-s verzió): hívások, hibák, korlátok, példák | Rust-integrátorok |
 | [C_ABI.md](C_ABI.md) | A C interfész (`armatura-capi`): függvények, memóriaszabályok, C- és Python-példák | C, C++, Python, Go, C# integrátorok |
-| [WASM.md](WASM.md) | WebAssembly modul és JavaScript wrapper. **Állapot: soha nem fordították le, és nem futtatták**; tartalmazza az első építő ellenőrzőlistáját | webfejlesztők |
+| [WASM.md](WASM.md) | WebAssembly modul és JavaScript wrapper. **Állapot: a CI-ben lefordítva és Node alatt tesztelve, böngészőben soha nem futtatva**; tartalmazza az első böngészős futtatás ellenőrzőlistáját | webfejlesztők |
 | [CI.md](CI.md) | Animációs CI (`armatura ci`): manifeszt, küszöbök, referenciaképek, jelentések, pipeline-példák | technikai művészek, build-mérnökök |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Fordítás, tesztek, konvenciók, új modul ellenőrzőlistája, kiadási ellenőrzőlista, hibakeresés | közreműködők, karbantartók |
-| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | A tulajdonosi lépések az első nyilvános kiadás előtt és után | tulajdonos |
+| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | A tulajdonosi lépések a vázlatkiadás közzététele előtt és után | tulajdonos |
 | [SECURITY.md](SECURITY.md) | Fenyegetésmodell, beépített védelmek, ismert hiányosságok, bejelentés, megerősítési ellenőrzőlista | biztonsági átnézők, telepítők |
 | [LIMITATIONS.md](LIMITATIONS.md) | Az ismert korlátok számozott listája súlyossággal, kerülőmegoldással és ütemterv-azonosítóval | mindenki, aki az ARMATURA-t értékeli |
 | [PATENT_NOTES.md](PATENT_NOTES.md) | Szabadalmi állapotjegyzet (nem jogi tanács) | licencbirtokosok, jogászok |

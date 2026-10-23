@@ -556,7 +556,7 @@ A fachada é a única fonte de verdade para os demais bindings. Cobertura:
 | Layout, rolagem, nível de detalhe | sim | `armatura_player_set_canvas`, `_scroll_*`, `_set_screen`, `_lod_level` | `arm_player_set_canvas / layout / scroll_* / set_screen` |
 | Ferramentas, controle de versão, CI | sim | não | não |
 
-A versão da C ABI continua em 1 porque todas as adições até agora foram aditivas. O binário wasm nunca foi compilado nem executado; veja [WASM.md](WASM.md).
+A versão da C ABI continua em 1 porque todas as adições até agora foram aditivas. O binário wasm é compilado e testado sob o Node no CI, mas não foi executado em um navegador; veja [WASM.md](WASM.md).
 
 ## Apêndice: JSON de máquina e JSON de binding
 

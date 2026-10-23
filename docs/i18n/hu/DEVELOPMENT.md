@@ -17,7 +17,7 @@ Tartalom: [Környezet](#1-környezet) - [Build- és tesztparancsok](#2-build--é
 | `cargo-deny` | licenc-, tiltás- és forráspolitika | a `scripts/licence-audit.sh` futtatja, ha telepítve van (`--no-deny` kihagyja) |
 | `python3` | a `scripts/licence-audit.sh` egy beágyazott szkripttel generál dokumentumokat | `python3 -I` módban fut |
 | Vulkan vagy GL adapter | csak az `armatura-gpu` valódi GPU-s méréseihez | a tesztek szoftveres adapterre térnek vissza; lásd a 2. szakaszt |
-| `rustup target wasm32-unknown-unknown`, `wasm-opt` | csak a [WASM.md](WASM.md) miatt | **a fejlesztői környezetben soha nem volt telepítve** |
+| `rustup target wasm32-unknown-unknown`, `wasm-opt` | csak a [WASM.md](WASM.md) miatt | a fejlesztői környezetben soha nem volt telepítve; a CI telepíti |
 
 A workspace felépítése (a tervezést lásd az [ARCHITECTURE.md](ARCHITECTURE.md) fájlban):
 
@@ -28,6 +28,7 @@ A workspace felépítése (a tervezést lásd az [ARCHITECTURE.md](ARCHITECTURE.
 | `armatura-capi` | MPL-2.0 | C ABI ([C_ABI.md](C_ABI.md)) |
 | `armatura-wasm` | MPL-2.0 | WebAssembly ABI + JS-burkoló ([WASM.md](WASM.md)) |
 | `armatura-gpu` | MPL-2.0 | opcionális wgpu renderer; **nem** alapértelmezett tagja a workspace-nek |
+| `armatura-gui` | AGPL-3.0-or-later | az `armatura-studio`, a stúdió natív ablakban (`tao` + `wry`, csak Windowson és macOS-en; máshol csonk); **nem** alapértelmezett tag, `publish = false` |
 
 Repository-szintű fájlok: `ROADMAP.md` (a 9. szakasz a dátumozott funkció- és review-napló), `FEATURES.md`, `CLEANROOM.md`, `LICENSING.md`, `REUSE.toml`, `deny.toml`, `LICENSES/`, `scripts/`.
 
@@ -35,7 +36,7 @@ Repository-szintű fájlok: `ROADMAP.md` (a 9. szakasz a dátumozott funkció- �
 
 ```sh
 cargo build                                  # default members: core, cli, capi, wasm (gpu is opt-in)
-cargo test --workspace                       # run: 1368 tests + doc-tests (section 3)
+cargo test --workspace                       # run: 1338 tests + 19 doc-tests without gpu and gui (section 3)
 cargo test -p armatura-core                  # one crate (the engine and the facade tests)
 cargo test -p armatura-core api::            # a module or a name filter
 cargo test -p armatura-cli --test e2e        # one integration test file
@@ -80,7 +81,7 @@ A számok a `ROADMAP.md` 9. szakaszából és egy teljes `cargo test --workspace
 | `armatura-gpu` unit + `tests/parity.rs` | 18 + 13 | 0.2 s + 6.5 s | GPU és CPU paritása (szoftveres adapter, ha nincs GPU) |
 | Doc-tesztek (`armatura-core`) | 19 | 171 s (mindegyik egy programot fordít) | a homlokzat példái (`api.rs`, `lib.rs`); az `armatura-capi` és az `armatura-wasm` crate-nek nincs |
 
-Összesen: 1368 teszt a unit- és integrációs binárisokban (a ROADMAP száma; a 7. hullám után, 2026. október 22-én egy teljes `cargo test --workspace` futásból újraszámolva, a fenti csomagonkénti időmérések egy korábbi futásból származnak), plusz 19 doc-teszt; a teljes `cargo test --workspace --offline` 836 s-ig tartott a megosztott gépen.
+Összesen: 1338 teszt a unit- és integrációs binárisokban és 19 doc-teszt, 2026. október 24-én megszámolva a `cargo test --workspace --exclude armatura-gpu --exclude armatura-gui` paranccsal (a következő mondat 1368-as száma a GPU crate tesztjeit is tartalmazta; a 7. hullám után, 2026. október 22-én egy teljes `cargo test --workspace` futásból újraszámolva, a fenti csomagonkénti időmérések egy korábbi futásból származnak), plusz 19 doc-teszt; a teljes `cargo test --workspace --offline` 836 s-ig tartott a megosztott gépen.
 
 A `cargo test`-en kívüli csomagok:
 
@@ -139,7 +140,7 @@ A projekt független megvalósítás. Röviden (a kötelező érvényű szöveg 
 
 ## 7. Kiadási ellenőrzőlista
 
-Még semmit nem adtak ki (minden crate 0.1.0; a „v0.5/v0.6/v0.7" verziócímkék a README-ben, a FEATURES-ben és a ROADMAP-ben funkciószintek, nem crate-verziók; lásd [CHANGELOG.md](CHANGELOG.md)). Amikor eljön az ideje:
+Az első buildek a `v0.1.0-alpha.2` előzetes kiadás-vázlatként készülnek (minden crate továbbra is 0.1.0; a „v0.5/v0.6/v0.7" verziócímkék a README-ben, a FEATURES-ben és a ROADMAP-ben funkciószintek, nem crate-verziók; lásd [CHANGELOG.md](CHANGELOG.md)). Egy kiadás elkészítéséhez:
 
 1. **Verzió.** Döntsd el az egyes crate-ek verzióját. A homlokzatnak saját verziója van (`API_VERSION`, ma 1.4.0: főverzió egy felületi sor eltávolításakor vagy módosításakor, alverzió hozzáadáskor), az `ARMATURA_ABI_VERSION` / `arm_abi_version()` (mindkettő 1) pedig csak a C vagy wasm ABI törő változásakor módosul. Igazítsd egymáshoz a `Cargo.toml` verzióit, az `armatura --version` kimenetét, a README állapotdobozát és a CHANGELOG-ot.
 2. **Zöld kapuk.** `cargo test --workspace`, `cargo test --doc -p armatura-core`, `cargo test -p armatura-cli --test spdx_audit`, `cargo clippy --workspace --all-targets -- -D warnings`, a négy Chromium smoke-teszt, `scripts/e2e.sh` (release), `cargo test -p armatura-gpu`, ha a GPU-kód változott.
@@ -148,14 +149,15 @@ Még semmit nem adtak ki (minden crate 0.1.0; a „v0.5/v0.6/v0.7" verziócímk�
 5. **Nincs ffmpeg.** Ne csomagold, ne linkeld és ne töltsd le az ffmpeg-et a kiadási artefaktumokban. Futásidőben a `PATH`-on észleljük, és a dokumentáció kimondja, hogy a felhasználó telepíti.
 6. **AGPL forrásajánlat.** Az `armatura-cli` binárisa a `/source` címen kiszolgálja a saját forrásajánlatát (AGPL 13. szakasz), és a `--version` kapcsolóval közleményt ír ki; a módosított stúdiószerverek üzemeltetői a `--source-url` opciót arra a helyre állítják, ahol a módosított forrásuk van. Tesztek: `tests/source_offer.rs`. Bináris kiadáshoz a megfelelő forrást (tag, tarball) a felhasználók által elérhető URL-en kell biztosítani.
 7. **Dokumentáció.** Frissítsd a README állapotdobozát, a [LIMITATIONS.md](LIMITATIONS.md) fájlt és a CHANGELOG-ot (az *Unreleased* szakaszt told át az új verzió alá dátummal).
-8. **Címkézés és közzététel** aláírt taggel; csatolj ellenőrzőösszegeket. Ne tegyél közzé crate-eket olyan néven, amely nem a tiéd; a forkokra a TRADEMARK.md szabályai vonatkoznak.
+8. **A vázlat felépítése a GitHubon.** A `.github/workflows/release.yml` a `main` minden pushánál megépíti a Windows, macOS és Linux archívumokat és a webes modult; az a `main`-beli commit, amelynek üzenete tartalmazza a `[release vX.Y.Z-label]` jelölést (vagy egy pusholt `v*` tag), egy *előzetes kiadás-vázlatot* is létrehoz az archívumokkal és a `SHA256SUMS.txt` fájllal (az azonos című régebbi vázlat lecserélődik). Nézd át a vázlatot, majd tedd közzé kézzel.
+9. **Címkézés és közzététel** aláírt taggel; csatolj ellenőrzőösszegeket. Ne tegyél közzé crate-eket olyan néven, amely nem a tiéd; a forkokra a TRADEMARK.md szabályai vonatkoznak.
 
 ## 8. Folyamatos integráció
 
-Két különböző dolog osztozik ezen a szón:
+Két különböző dolog osztozik ezen a szón (egy harmadik munkafolyamat, a `.github/workflows/release.yml` a kiadási archívumokat és a vázlatkiadást építi, lásd a 7. szakaszt):
 
 * **Animációs CI** (`armatura ci`): *projektek* ellenőrzése (lint, golden renderek, teljesítmény, determinizmus). Teljes leírása a [CI.md](CI.md) fájlban: `armatura-ci.json` manifest, küszöbértékek, golden képek (`--update` kontra `bless`), jelentések, GitHub Actions és egyszerű shell példák (ott „example, not run" jelöléssel).
-* **Kód-CI** ehhez a repository-hoz: a `.github/workflows/ci.yml` négyféle jobot tartalmaz: `test` (mátrix ubuntu / windows / macos: `cargo test --workspace --exclude armatura-gpu --locked` és clippy `-D warnings`-szal), `wasm32` (megépíti az `armatura-wasm`-ot `wasm32-unknown-unknown` célra, a modult az `armatura.js` mellé másolja, és lefuttatja a `node armatura-wasm/js/test.mjs` parancsot egy demóprojekttel, a valódi-modul részét is beleértve), `gpu parity` (tájékoztató jellegű; adapter hiányában kihagyja magát, a Windows szoftveres DX12 adapterén fut) és `licences` (`cargo-deny check` és `reuse lint`). A toolchain rögzített (1.97.0), hogy az új clippy-lintek ne törjék el a buildet. **Az első teljesen zöld futás: 2026-10-24** GitHub-hosztolt runnereken. Hiba esetén a lépések a hibás teszteket workflow-annotációként írják ki (naplóhozzáférés nélkül is olvashatók). A Windows kihagyja a csak POSIX-en futó teszteket (symlinkek, jogosultságok, `/dev/zero`, POSIX útvonalelválasztók). A parancsok, amelyekből felépül, ahogy a dokumentáció írása közben futtattuk őket:
+* **Kód-CI** ehhez a repository-hoz: a `.github/workflows/ci.yml` négyféle jobot tartalmaz: `test` (mátrix ubuntu / windows / macos: `cargo test --workspace --exclude armatura-gpu --locked` és clippy `-D warnings`-szal), `wasm32` (megépíti az `armatura-wasm`-ot `wasm32-unknown-unknown` célra, a modult az `armatura.js` mellé másolja, és lefuttatja a `node armatura-wasm/js/test.mjs` parancsot egy demóprojekttel, a valódi-modul részét is beleértve), `gpu parity` (tájékoztató jellegű; adapter hiányában kihagyja magát, a Windows szoftveres DX12 adapterén fut) és `licences` (`cargo-deny check` és `reuse lint`). A toolchain rögzített (1.97.0), hogy az új clippy-lintek ne törjék el a buildet. A `test` job az `armatura-gui`-t is megépíti, és lefuttatja az `armatura-studio --selftest` parancsot (Windowson és macOS-en valódi önteszt). **Az első teljesen zöld futás: 2026-10-24** GitHub-hosztolt runnereken. Hiba esetén a lépések a hibás teszteket workflow-annotációként írják ki (naplóhozzáférés nélkül is olvashatók). A Windows kihagyja a csak POSIX-en futó teszteket (symlinkek, jogosultságok, `/dev/zero`, POSIX útvonalelválasztók). A parancsok, amelyekből felépül, ahogy a dokumentáció írása közben futtattuk őket:
 
   ```sh
   cargo test --workspace --locked

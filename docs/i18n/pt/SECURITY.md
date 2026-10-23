@@ -38,6 +38,7 @@ Fora do escopo: proteção contra um administrador local malicioso, uma cadeia d
 | Conexões simultâneas | 128 | 503 |
 | Corpos de requisição em chunks | não suportados | 411 |
 | Cabeçalho `Host` duplicado | recusado | 400 |
+| Caractere de controle (CR, NUL, DEL…) em um valor de cabeçalho | recusado (um tab é permitido) | 400 |
 
 Toda resposta traz `Connection: close` (sem estado de keep-alive a esgotar), `Cache-Control: no-store`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer` e um `Content-Security-Policy`.
 
@@ -87,7 +88,8 @@ A opção `--collab-token T` (ou o token exigido por um `--bind` não local) hab
 * **Gravações atômicas.** As saídas são gravadas com `fsutil::write_atomic`: um arquivo temporário no mesmo diretório (nome `.<name>.tmp-<pid>-<random>`), `fsync`, `rename`. Uma queda deixa o arquivo antigo ou o novo. **Links simbólicos fornecidos como saída são recusados**, indicando `--follow-symlinks` (isso agora cobre toda saída endereçada pelo usuário: relatórios e goldens de `ci run`, `export-fit`, `lod`, `fuzz`, `fuzz-grid`, `face-*`, arquivos de pose, snapshots, `vcs`, o log de colaboração e os arquivos de vídeo gravados pelo ffmpeg, que são pré-verificados), de modo que um link plantado não consegue redirecionar uma gravação. Se o diretório não é gravável mas o arquivo é, o recurso alternativo é uma sobrescrita no lugar com `fsync`, que **não é atômica** (documentado).
 * **Dados privados.** Os logs de colaboração e outros arquivos que apenas o dono deve ler são criados com modo 0600 (`write_atomic_private`). Os diretórios temporários são criados de forma exclusiva com modo 0700 (`private_temp_dir`), de modo que um nome previsível em um `/tmp` compartilhado não possa ser criado antecipadamente por outro usuário. Os valores aleatórios (tokens para novos participantes, nomes temporários) vêm de `/dev/urandom` (`fsutil::random_bytes`); o gerador determinístico com seed do motor nunca é usado para segredos.
 * **Configurações da interface.** O `ui.json` do studio ignora chaves desconhecidas com um aviso e é copiado para `ui.json.bak` (depois `.bak.1`, ...) antes do primeiro salvamento.
-* **Windows / não Unix.** Os modos de permissão acima valem em Unix. O comportamento em outros sistemas não foi testado.
+* **Windows / não Unix.** Os modos de permissão acima valem em Unix. No Windows e no macOS a suíte de testes passa no CI (as verificações exclusivas de POSIX são ignoradas no Windows), mas as verificações de links simbólicos, permissões e `/dev/urandom` rodam apenas no Linux e no macOS, e ninguém revisou à mão o comportamento no Windows.
+* **Binários não assinados e o aplicativo de janela.** Os executáveis de release não são assinados digitalmente; confira os downloads com `SHA256SUMS.txt`. O `armatura-studio` inicia o mesmo servidor local (somente `127.0.0.1`, porta livre aleatória) e o mostra na web view do sistema (WebView2 / WKWebView); sua web view é tão exposta quanto uma aba de navegador nesse endereço e não teve uma revisão de segurança separada.
 
 ## 7. Programas externos (ffmpeg)
 
@@ -104,7 +106,7 @@ O próprio ffmpeg analisa formatos de mídia complexos e já teve vulnerabilidad
 
 * A **fachada** valida todos os argumentos, retorna `ApiError` e converte panics em `ApiError::Internal` onde o alvo faz unwinding. `Animation` e `Player` são `Send + Sync` (verificado em tempo de compilação).
 * A **ABI C** ([C_ABI.md](C_ABI.md)) verifica ponteiros nulos, comprimentos e UTF-8 e retorna códigos; o chamador ainda precisa passar ponteiros válidos e respeitar as regras de buffer. A string do último erro é por thread. A ABI foi exercitada sob AddressSanitizer e UndefinedBehaviorSanitizer com os exemplos documentados (sem problemas). Ela não está endurecida contra um chamador que viole os contratos documentados (double close, uso após close, comprimentos errados).
-* O **módulo WASM** ([WASM.md](WASM.md)) **nunca foi compilado nem executado**, portanto suas propriedades de segurança são desconhecidas além da leitura do código. Por construção, não tem acesso a sistema de arquivos nem à rede; um panic ali aborta a instância.
+* O **módulo WASM** ([WASM.md](WASM.md)) compila no CI e passa no teste do wrapper sob o Node, mas **nunca foi executado em um navegador nem revisado como tal**, portanto suas propriedades de segurança são conhecidas apenas pela leitura do código e por esse teste. Por construção, não tem acesso a sistema de arquivos nem à rede; um panic ali aborta a instância.
 * Nenhuma das duas camadas isola o *projeto* em sandbox: a renderização de um projeto hostil é limitada pelos limites acima, mas um projeto ainda pode pedir muito trabalho dentro deles (muitas camadas, imagens grandes, timelines longas).
 
 ## 9. Lacunas conhecidas
@@ -120,7 +122,7 @@ Lista honesta; veja [LIMITATIONS.md](LIMITATIONS.md) para a lista mais ampla de 
 7. **Alternativa não atômica** quando o diretório de saída não é gravável.
 8. **As verificações de caminho usam caminhos canônicos.** `assets::resolve` canoniza os arquivos existentes e recusa um arquivo cuja localização real esteja fora do diretório do projeto, de modo que um link simbólico dentro da pasta do projeto que aponte para fora dela é recusado (testado em `assets.rs`); links que permanecem dentro da pasta funcionam. Não se exclui uma condição de corrida entre a verificação e a leitura posterior (time-of-check to time-of-use) por alguém que possa modificar a pasta do projeto simultaneamente.
 9. **O ffmpeg** está fora do nosso controle (seção 7).
-10. **O WASM** não foi testado em um motor real; o modelo de ameaças de navegador de uma página que o incorpore (CSP, limites de memória) não foi examinado.
+10. **O WASM** não foi testado em um motor de navegador (ele só roda sob o Node no CI); o modelo de ameaças de navegador de uma página que o incorpore (CSP, limites de memória) não foi examinado.
 11. **Negação de serviço por tamanho.** Os limites restringem requisições e arquivos individuais, não o trabalho total: um projeto válido, mas muito pesado, pode ocupar uma CPU por muito tempo (o limite de conexões acima restringe a concorrência, não o custo de uma requisição).
 
 ## 10. Reportando uma vulnerabilidade
@@ -128,7 +130,7 @@ Lista honesta; veja [LIMITATIONS.md](LIMITATIONS.md) para a lista mais ampla de 
 * **Não abra uma issue pública** para uma vulnerabilidade. Envie um relatório privado ao mantenedor: **`alexio@trom.tf`**. *(Provisório: o endereço aparece no aviso de `--version` do programa e nos documentos de licença; o dono deve confirmá-lo como contato de segurança e pode substituí-lo por um endereço dedicado ou por um canal de advisory privado antes do primeiro lançamento.)*
 * Inclua: a versão (`armatura --version`) e a plataforma, o projeto ou a requisição que provoca o problema (um arquivo mínimo é o melhor), o que você esperava e o que aconteceu, e se deseja receber crédito.
 * O que esperar *(intenção, não um contrato: este é um projeto de uma pessoa só)*: uma confirmação de recebimento em prazo razoável, uma correção desenvolvida em privado, um teste de regressão adicionado à suíte, uma nota em [CHANGELOG.md](CHANGELOG.md) e crédito, se você desejar. Por favor, dê tempo para uma correção antes de publicar detalhes.
-* Versões suportadas: ainda não houve nenhum lançamento; a árvore atual é a única versão suportada.
+* Versões suportadas: apenas o pré-lançamento mais recente (`v0.1.0-alpha.2` depois de publicado) e a árvore atual em `main` são suportados.
 * Relatos sobre a exposição de rede do studio quando ele é deliberadamente colocado em um endereço público sem proxy reverso são, antes de tudo, problemas de documentação: veja a seção 11.
 
 ## 11. Checklist de endurecimento para quem implanta

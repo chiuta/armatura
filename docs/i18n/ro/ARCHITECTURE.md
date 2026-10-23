@@ -511,7 +511,8 @@ nu includ motorul de scripting.
 | CLI cu GPU | `cargo build -p armatura-cli --features gpu` | wgpu 30 doar cu Vulkan și GL. Verificat doar pe Mesa llvmpipe. |
 | Bibliotecă | `cargo build -p armatura-core` | API Rust. |
 | Bibliotecă C | `cargo build -p armatura-capi` | `cdylib`, `staticlib` și header-ul `armatura-capi/armatura.h`; `ABI_VERSION` 1. |
-| WebAssembly | `armatura-wasm/build-wasm.sh` (necesită `rustup target add wasm32-unknown-unknown`) | Interfață extern "C" simplă, cu `index.html` și utilitarele din `js/`. Mediul de creație nu a putut instala ținta, deci scriptul nu a fost rulat niciodată, iar `.wasm` nu a fost construit niciodată. |
+| WebAssembly | `armatura-wasm/build-wasm.sh` (necesită `rustup target add wasm32-unknown-unknown`) | Interfață extern "C" simplă, cu `index.html` și utilitarele din `js/`. Mediul de creație nu a putut instala ținta; modulul este construit (profil release) de `.github/workflows/release.yml`, iar o compilare debug este testată sub Node de `ci.yml`. Scriptul în sine nu este ceea ce rulează CI. |
+| Aplicație cu fereastră (Windows, macOS) | `cargo build --release -p armatura-gui` | Binarul `armatura-studio`: fereastră `tao` + web view `wry` în jurul studioului; stub pe Linux. |
 | Teste | `cargo test --workspace` | Flux shell end-to-end în `scripts/e2e.sh`; audit de licențe în `scripts/licence-audit.sh`. |
 
 Membrii impliciți ai workspace-ului nu includ `armatura-gpu`.

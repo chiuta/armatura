@@ -4,7 +4,7 @@
 
 *Beginne hier, um die richtige Seite zu finden. Alle Dokumente sind englisches Markdown unter CC-BY-4.0, mit Ausnahme der generierten Dateien zu Drittanbietern (siehe deren Header). Die rumänische README ist [../README.ro.md](../../../README.de.md).*
 
-ARMATURA ist eine 2D-Vektor-Rigging- und Animations-Engine in Rust. Es ist ein Projekt in der Vorabversion (Crates 0.1.0); lies [LIMITATIONS.md](LIMITATIONS.md), bevor du dich auf eine Funktion verlässt.
+ARMATURA ist eine 2D-Vektor-Rigging- und Animations-Engine in Rust. Es ist ein Alpha-Projekt (die ersten Builds sind als Entwurfs-Vorabversion `v0.1.0-alpha.2` vorbereitet; die Crates stehen weiterhin auf 0.1.0); lies [LIMITATIONS.md](LIMITATIONS.md), bevor du dich auf eine Funktion verlässt.
 
 Inhalt: [Alle Dokumente](#alle-dokumente) - [Lesepfade nach Zielgruppe](#lesepfade-nach-zielgruppe) - [Dokumente im Stammverzeichnis des Repositorys](#dokumente-im-stammverzeichnis-des-repositorys) - [Wo jede Frage beantwortet wird](#wo-jede-frage-beantwortet-wird) - [Konventionen](#in-den-dokumenten-verwendete-konventionen)
 
@@ -24,10 +24,10 @@ Inhalt: [Alle Dokumente](#alle-dokumente) - [Lesepfade nach Zielgruppe](#lesepfa
 | [FAQ.md](FAQ.md) | Kurze Antworten auf häufige Fragen | alle |
 | [API.md](API.md) | Die stabile Rust-Fassade (Version 1.4.0): Aufrufe, Fehler, Grenzen, Beispiele | Rust-Integratoren |
 | [C_ABI.md](C_ABI.md) | Die C-Schnittstelle (`armatura-capi`): Funktionen, Speicherregeln, C- und Python-Beispiele | Integratoren für C, C++, Python, Go, C# |
-| [WASM.md](WASM.md) | WebAssembly-Modul und JavaScript-Wrapper. **Status: nie gebaut oder ausgeführt**; enthält die Checkliste für den ersten Builder | Webentwickler |
+| [WASM.md](WASM.md) | WebAssembly-Modul und JavaScript-Wrapper. **Status: in CI gebaut und unter Node getestet, nie in einem Browser ausgeführt**; enthält die Checkliste für den ersten Lauf im Browser | Webentwickler |
 | [CI.md](CI.md) | Animations-CI (`armatura ci`): Manifest, Schwellwerte, Goldens, Berichte, Pipeline-Beispiele | Technical Artists, Build-Ingenieure |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Bauen, Tests, Konventionen, Checkliste für neue Module, Release-Checkliste, Debugging | Mitwirkende, Maintainer |
-| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Schritte auf Eigentümerseite vor und nach einem ersten öffentlichen Release | Eigentümer |
+| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Schritte auf Eigentümerseite vor und nach der Veröffentlichung der Entwurfsversion | Eigentümer |
 | [SECURITY.md](SECURITY.md) | Bedrohungsmodell, eingebaute Schutzmaßnahmen, bekannte Lücken, Meldung, Härtungs-Checkliste | Sicherheits-Reviewer, Betreiber |
 | [LIMITATIONS.md](LIMITATIONS.md) | Nummerierte Liste bekannter Einschränkungen mit Schweregrad, Umgehung und Roadmap-ID | alle, die ARMATURA bewerten |
 | [PATENT_NOTES.md](PATENT_NOTES.md) | Hinweis zum Patentstatus (keine Rechtsberatung) | Lizenznehmer, Juristen |

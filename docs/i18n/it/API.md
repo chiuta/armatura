@@ -556,7 +556,7 @@ La facciata è l'unica fonte di verità per gli altri binding. Copertura:
 | Layout, scorrimento, livello di dettaglio | sì | `armatura_player_set_canvas`, `_scroll_*`, `_set_screen`, `_lod_level` | `arm_player_set_canvas / layout / scroll_* / set_screen` |
 | Strumenti, controllo di versione, CI | sì | no | no |
 
-La versione dell'ABI C resta 1 perché ogni aggiunta finora è stata additiva. Il binario wasm non è mai stato compilato né eseguito; vedi [WASM.md](WASM.md).
+La versione dell'ABI C resta 1 perché ogni aggiunta finora è stata additiva. Il binario wasm è compilato e testato sotto Node in CI ma non è stato eseguito in un browser; vedi [WASM.md](WASM.md).
 
 ## Appendice: JSON delle macchine e JSON dei binding
 

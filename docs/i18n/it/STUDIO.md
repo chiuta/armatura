@@ -8,7 +8,7 @@ database: è un piccolo server HTTP basato sulla sola libreria standard, posto d
 
 Tutto ciò che è scritto qui è stato verificato con il binario reale (`armatura 0.1.0`, build di debug, Linux) e, per l'interfaccia
 utente, in Chromium headless pilotato da Playwright. Gli screenshot sono stati realizzati così (1400x900, il progetto demo
-integrato). È stato provato solo **Chromium**; vedi la sezione 11.
+integrato). È stato provato solo **Chromium**; vedi la sezione 11. Su Windows e macOS gli archivi di release contengono anche `armatura-studio`, lo stesso studio in una finestra nativa (compilato e auto-testato in CI, non ancora usato da una persona; vedi [GETTING_STARTED.md](GETTING_STARTED.md) e [LIMITATIONS.md](LIMITATIONS.md) L-75), e su Windows un doppio clic su `armatura.exe` avvia lo studio e apre il browser (L-76).
 
 Licenza di questo documento: CC-BY-4.0. Per la riga di comando vedi [GETTING_STARTED.md](GETTING_STARTED.md) e
 [CLI_REFERENCE.md](CLI_REFERENCE.md); per la sicurezza del server vedi anche [SECURITY.md](SECURITY.md).

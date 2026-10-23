@@ -162,6 +162,7 @@ cannot write link.svg: link.svg: refusing to write through a symbolic link; pass
   Exit-Code **2** wird nur von `ci` verwendet (nichts konnte ausgewertet werden: fehlendes Projekt/Manifest, manipuliertes Golden).
 * Keine Argumente, ein unbekannter Befehl, die falsche Anzahl von Positionsargumenten oder `armatura --help` geben die vollständige Usage auf
   **stderr** aus und beenden mit **1**. `armatura <command> --help` gibt die Usage-Zeilen dieses Befehls auf stdout aus und beendet mit 0.
+  **Ausnahme (Windows, seit 0.1.0-alpha.2):** Wird `armatura.exe` per Doppelklick im Explorer gestartet (das Konsolenfenster wurde dafür angelegt, und kein anderer Prozess teilt es) und hat keine Argumente, gibt es die Usage nicht aus: Es legt `Documents\ARMATURA\first-rig.json` an, falls die Datei fehlt, führt `studio` mit dieser Datei auf `127.0.0.1:8080` aus, öffnet den Browser und hält die Konsole offen, bis du sie schließt oder nach einem Fehler die Eingabetaste drückst. Aus einem Terminal gestartet, verhält es sich wie oben beschrieben. Der Rest des Programms läuft auf einem Thread mit 256 MiB Stack (der Hauptthread unter Windows hat nur 1 MiB).
 
 ### 1.6 Externe Programme
 

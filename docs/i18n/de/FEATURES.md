@@ -1,6 +1,6 @@
 # ARMATURA — Feature-Matrix + Checklisten zu Referenz- und Konkurrenzprodukten
 
-> Hinweis zu Versionsangaben: Alle Crates haben die Version `0.1.0` (Vorabversion); „v0.5 / v0.6 / v0.7" bezeichnen in diesem Repository *Funktionsstufen* (siehe [CHANGELOG.md](CHANGELOG.md)), und `ROADMAP.md` Abschnitt 9 ist maßgeblich dafür, was gebaut ist.
+> Hinweis zu Versionsangaben: Alle Crates haben die Version `0.1.0` (die ersten Builds sind die Entwurfs-Vorabversion `v0.1.0-alpha.2`); „v0.5 / v0.6 / v0.7" bezeichnen in diesem Repository *Funktionsstufen* (siehe [CHANGELOG.md](CHANGELOG.md)), und `ROADMAP.md` Abschnitt 9 ist maßgeblich dafür, was gebaut ist.
 
 Ehrlicher Stand dessen, was existiert. **✅ fertig & getestet · 🟡 teilweise · ❌ nicht implementiert.**
 
@@ -96,7 +96,7 @@ Er ersetzt die verstreuten „Kandidat #"-Listen weiter unten; Details und IDs s
 | Feature | Status | IP | Unbedenkliche Grundlage / Bedingung |
 |---|---|---|---|
 | Browser-Studio mit Rückgängig/Wiederholen | 🟡 | 🟢 | eigene UI; keine Kopie von Layouts oder Namen anderer Hersteller |
-| WASM-Laufzeitumgebung, stabile Rust-API + C-ABI, Scripting in der Sandbox (R-090…R-093) | 🟡 (R-091, R-092, R-093 fertig; R-090: WASM-Modul geschrieben, aber nie ein .wasm gebaut oder ausgeführt: hier gibt es kein wasm32-Target) | 🟢 | eigene API |
+| WASM-Laufzeitumgebung, stabile Rust-API + C-ABI, Scripting in der Sandbox (R-090…R-093) | 🟡 (R-091, R-092, R-093 fertig; R-090: das WASM-Modul wird in CI gebaut und besteht den Test des Wrappers unter Node, wurde aber nie in einem Browser ausgeführt) | 🟢 | eigene API |
 | **Agent-/MCP-Server** über Patch-Ops: inspizieren, bearbeiten (atomar, rückgängig machbar), linten, Sicherheit, rendern, nur in die eigene Datei speichern (R-094) | ✅ | 🟢 | offenes JSON-RPC-Protokoll |
 | Vollständige GUI: Gizmos, Timeline, Kurveneditor (R-100…R-103) | 🟡 (R-101, R-102 fertig; R-100 und R-103: die Seiten existieren, wurden vom Autor aber nie in einem echten Browser ausgeführt) | 🟢 | allgemeine Widgets; eigene Optik |
 | Versionskontrolle für Animationen mit semantischem Merge, perzeptuellem CI-Diff, Explain-this-pixel (I-01, I-06, I-07) | ✅ (I-01 `armatura vcs`, I-06 `armatura ci`, I-07 `explain`) | 🟢 | eigene Ideen |
@@ -118,7 +118,7 @@ Er ersetzt die verstreuten „Kandidat #"-Listen weiter unten; Details und IDs s
 - **H.264-/H.265-/AAC-Encoder** mitliefern.
 
 ## Bedingungen, die für jede 🟢-Zeile gelten
-Provenienzprotokoll wird geführt (`CLEANROOM.md`; unabhängige Implementierung, kein strenger Clean Room); nur permissive Abhängigkeiten (neu erzeugen mit `scripts/licence-audit.sh`; derzeit 160 Fremd-Crates, alle der Klasse MIT / Apache-2.0 / BSD / Zlib / Unlicense bis auf ein MPL-2.0+-Crate (smartstring, über das Feature `scripting`, das standardmäßig aktiv ist; `--no-default-features` entfernt es); siehe docs/THIRD_PARTY.md); keine fremden Grafiken oder Audiodateien ohne eigene Lizenzdatei ausgeliefert; der Name **ARMATURA** vor dem Launch in einer Markenrecherche freigegeben.
+Provenienzprotokoll wird geführt (`CLEANROOM.md`; unabhängige Implementierung, kein strenger Clean Room); nur permissive Abhängigkeiten (neu erzeugen mit `scripts/licence-audit.sh`; derzeit 362 Fremd-Crates über alle Plattformen, alle der Klasse MIT / Apache-2.0 / BSD / Zlib / Unlicense bis auf sechs MPL-2.0-Crates (smartstring über das Feature `scripting`, das standardmäßig aktiv ist, und fünf über die Fenster-App `armatura-gui`); siehe docs/THIRD_PARTY.md); keine fremden Grafiken oder Audiodateien ohne eigene Lizenzdatei ausgeliefert; der Name **ARMATURA** vor dem Launch in einer Markenrecherche freigegeben.
 
 
 # Detaillierte Fähigkeitstabellen
@@ -380,7 +380,7 @@ allgemeine Historie abgedeckt. Der Status bezieht sich auf ARMATURA: ✅ Äquiva
 | Framerate mit 3 Nachkommastellen (z. B. 23.976) | ✅ |
 | SVG-Export behandelt Konturen mit variabler Breite & Liquid Shapes | ✅ (Konturen werden zu Umrissen, Liquids zu Pfaden) |
 | Liquid Hide-Edge, reine Kontur-Liquid-Shapes, Stroke Exposure | ❌ |
-| Linux über Wine/Proton | ✅ natives Rust (Linux/macOS/Windows) |
+| Linux über Wine/Proton | ✅ natives Rust (Linux/macOS/Windows); fertige Archive für Windows x86-64, macOS arm64 und Linux x86-64 in der Entwurfs-Vorabversion; von CI auf allen dreien getestet, von einer Person nur unter Linux |
 
 ## Zusammenfassung (nur Referenzprodukt; Konkurrenten folgen unten)
 Von den dokumentierten Funktionen des Referenzprodukts deckt ARMATURA den Kern aus **Rigging, Deformation,

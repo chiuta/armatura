@@ -38,6 +38,7 @@ Hors périmètre : la protection contre un administrateur local malveillant, une
 | Connexions simultanées | 128 | 503 |
 | Corps de requête en transfert fragmenté (chunked) | non pris en charge | 411 |
 | En-tête `Host` en double | refusé | 400 |
+| Caractère de contrôle (CR, NUL, DEL…) dans la valeur d'un en-tête | refusé (une tabulation est autorisée) | 400 |
 
 Chaque réponse porte `Connection: close` (aucun état keep-alive à épuiser), `Cache-Control: no-store`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer` et un `Content-Security-Policy`.
 
@@ -87,7 +88,8 @@ L'option `--collab-token T` (ou le jeton exigé par un `--bind` non local) activ
 * **Écritures atomiques.** Les sorties sont écrites avec `fsutil::write_atomic` : un fichier temporaire dans le même répertoire (nom `.<name>.tmp-<pid>-<random>`), `fsync`, `rename`. Un plantage laisse l'ancien fichier ou le nouveau. **Les liens symboliques donnés comme sortie sont refusés**, en nommant `--follow-symlinks` (cela couvre désormais toute sortie adressée par l'utilisateur : rapports et images de référence de `ci run`, `export-fit`, `lod`, `fuzz`, `fuzz-grid`, `face-*`, fichiers de pose, instantanés, `vcs`, le journal de collaboration, et les fichiers vidéo écrits par ffmpeg, qui sont pré-vérifiés), de sorte qu'un lien planté ne peut pas rediriger une écriture. Si le répertoire n'est pas accessible en écriture mais que le fichier l'est, le repli est un écrasement sur place avec `fsync`, qui n'est **pas atomique** (documenté).
 * **Données privées.** Les journaux de collaboration et les autres fichiers que seul le propriétaire doit lire sont créés avec le mode 0600 (`write_atomic_private`). Les répertoires temporaires sont créés en exclusivité avec le mode 0700 (`private_temp_dir`), de sorte qu'un nom prévisible dans un `/tmp` partagé ne peut pas être créé à l'avance par un autre utilisateur. Les valeurs aléatoires (jetons des nouveaux participants, noms temporaires) proviennent de `/dev/urandom` (`fsutil::random_bytes`) ; le générateur déterministe à graine du moteur n'est jamais utilisé pour des secrets.
 * **Réglages de l'interface.** Le `ui.json` du studio ignore les clés inconnues en émettant un avertissement et est copié dans `ui.json.bak` (puis `.bak.1`, ...) avant la première sauvegarde.
-* **Windows / hors Unix.** Les modes de permission ci-dessus s'appliquent sous Unix. Le comportement sur les autres systèmes n'a pas été testé.
+* **Windows / hors Unix.** Les modes de permission ci-dessus s'appliquent sous Unix. Sous Windows et macOS, la suite de tests passe en CI (les vérifications propres à POSIX sont ignorées sous Windows), mais les vérifications des liens symboliques, des permissions et de `/dev/urandom` ne s'exécutent que sous Linux et macOS et personne n'a relu à la main le comportement sous Windows.
+* **Binaires non signés et application à fenêtre.** Les exécutables de release ne sont pas signés ; vérifiez les téléchargements avec `SHA256SUMS.txt`. `armatura-studio` démarre le même serveur local (`127.0.0.1` uniquement, port libre aléatoire) et l'affiche dans la vue web du système (WebView2 / WKWebView) ; cette vue web est aussi exposée qu'un onglet de navigateur sur cette adresse et n'a fait l'objet d'aucune revue de sécurité séparée.
 
 ## 7. Programmes externes (ffmpeg)
 
@@ -104,7 +106,7 @@ ffmpeg analyse lui-même des formats médias complexes et a connu ses propres vu
 
 * La **façade** valide chaque argument, renvoie `ApiError` et convertit les paniques en `ApiError::Internal` là où la cible déroule la pile. `Animation` et `Player` sont `Send + Sync` (vérifié à la compilation).
 * L'**ABI C** ([C_ABI.md](C_ABI.md)) vérifie les pointeurs nuls, les longueurs et l'UTF-8 et renvoie des codes ; l'appelant doit toujours passer des pointeurs valides et respecter les règles de tampon. La chaîne de dernière erreur est propre à chaque thread. L'ABI a été exercée sous AddressSanitizer et UndefinedBehaviorSanitizer avec les exemples documentés (sans problème). Elle n'est pas durcie contre un appelant qui viole les contrats documentés (double fermeture, utilisation après fermeture, longueurs erronées).
-* Le **module WASM** ([WASM.md](WASM.md)) n'a **jamais été compilé ni exécuté** ; ses propriétés de sécurité sont donc inconnues au-delà de la lecture du code. Il n'a par construction aucun accès au système de fichiers ni au réseau ; une panique y fait trapper l'instance.
+* Le **module WASM** ([WASM.md](WASM.md)) se compile en CI et passe le test du wrapper sous Node, mais **n'a jamais été exécuté dans un navigateur ni examiné comme tel** ; ses propriétés de sécurité ne sont donc connues que par la lecture du code et ce test. Il n'a par construction aucun accès au système de fichiers ni au réseau ; une panique y fait trapper l'instance.
 * Aucune des deux couches ne place le *projet* dans un bac à sable : le rendu d'un projet hostile est borné par les limites ci-dessus, mais un projet peut encore demander beaucoup de travail dans ces limites (nombreux calques, grandes images, longues timelines).
 
 ## 9. Lacunes connues
@@ -120,7 +122,7 @@ Liste franche ; voir [LIMITATIONS.md](LIMITATIONS.md) pour la liste plus large d
 7. **Repli non atomique** lorsque le répertoire de sortie n'est pas accessible en écriture.
 8. **Les vérifications de chemin utilisent des chemins canoniques.** `assets::resolve` canonicalise les fichiers existants et refuse un fichier dont l'emplacement réel est en dehors du répertoire du projet : un lien symbolique situé dans un dossier de projet et pointant à l'extérieur est donc refusé (testé dans `assets.rs`) ; les liens qui restent à l'intérieur du dossier fonctionnent. Une course entre la vérification et la lecture qui suit (time-of-check to time-of-use) par quelqu'un pouvant modifier le dossier du projet en parallèle n'est pas exclue.
 9. **ffmpeg** échappe à notre contrôle (section 7).
-10. **WASM** n'est pas testé dans un vrai moteur ; le modèle de menaces navigateur d'une page qui l'intègre (CSP, limites mémoire) n'a pas été examiné.
+10. **WASM** n'est pas testé dans un moteur de navigateur (il ne tourne que sous Node en CI) ; le modèle de menaces navigateur d'une page qui l'intègre (CSP, limites mémoire) n'a pas été examiné.
 11. **Déni de service par la taille.** Les limites bornent les requêtes et fichiers pris isolément, pas le travail total : un projet valide mais très lourd peut occuper un CPU longtemps (le plafond de connexions ci-dessus limite la concurrence, pas le coût d'une requête).
 
 ## 10. Signaler une vulnérabilité
@@ -128,7 +130,7 @@ Liste franche ; voir [LIMITATIONS.md](LIMITATIONS.md) pour la liste plus large d
 * **N'ouvrez pas de ticket public** pour une vulnérabilité. Envoyez un rapport privé au mainteneur : **`alexio@trom.tf`**. *(Espace réservé : l'adresse figure dans l'avis affiché par `--version` du programme et dans les documents de licence ; le propriétaire doit la confirmer comme contact de sécurité et peut la remplacer par une adresse dédiée ou un canal d'avis privé avant la première publication.)*
 * Indiquez : la version (`armatura --version`) et la plateforme, le projet ou la requête qui déclenche le problème (un fichier minimal est idéal), ce que vous attendiez et ce qui s'est passé, et si vous souhaitez être crédité.
 * À quoi s'attendre *(intention, pas contrat : c'est un projet mené par une seule personne)* : un accusé de réception dans un délai raisonnable, un correctif développé en privé, un test de régression ajouté à la suite, une note dans [CHANGELOG.md](CHANGELOG.md), et un crédit si vous le souhaitez. Laissez le temps d'un correctif avant de publier les détails.
-* Versions prises en charge : il n'y a pas encore eu de publication ; l'arborescence actuelle est la seule version prise en charge.
+* Versions prises en charge : seules la dernière préversion (`v0.1.0-alpha.2` une fois publiée) et l'arborescence actuelle sur `main` sont prises en charge.
 * Les signalements concernant l'exposition réseau du studio lorsqu'il est délibérément lié à une adresse publique sans proxy inverse relèvent d'abord de la documentation : voir la section 11.
 
 ## 11. Liste de durcissement pour le déployeur

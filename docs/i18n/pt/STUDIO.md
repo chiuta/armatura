@@ -8,7 +8,7 @@ banco de dados: é um pequeno servidor HTTP de biblioteca padrão na frente do m
 
 Tudo aqui foi conferido com o binário real (`armatura 0.1.0`, build de depuração, Linux) e, quanto à interface do
 usuário, no Chromium headless controlado pelo Playwright. As capturas de tela foram feitas dessa forma (1400x900, o projeto de demonstração
-integrado). Apenas o **Chromium** foi testado; veja a seção 11.
+integrado). Apenas o **Chromium** foi testado; veja a seção 11. No Windows e no macOS, os arquivos de release também contêm `armatura-studio`, o mesmo estúdio em uma janela nativa (compilado e autotestado no CI, ainda não usado por uma pessoa; veja [GETTING_STARTED.md](GETTING_STARTED.md) e [LIMITATIONS.md](LIMITATIONS.md) L-75), e no Windows um duplo clique em `armatura.exe` inicia o estúdio e abre o navegador (L-76).
 
 Licença deste documento: CC-BY-4.0. Para a linha de comando, veja [GETTING_STARTED.md](GETTING_STARTED.md) e
 [CLI_REFERENCE.md](CLI_REFERENCE.md); para a segurança do servidor, veja também [SECURITY.md](SECURITY.md).

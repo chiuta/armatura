@@ -162,6 +162,7 @@ cannot write link.svg: link.svg: refusing to write through a symbolic link; pass
   Codul de ieșire **2** este folosit doar de `ci` (nu s-a putut evalua nimic: proiect/manifest lipsă, golden alterat).
 * Nicio argumentare, o comandă necunoscută, un număr greșit de argumente poziționale sau `armatura --help` afișează utilizarea completă pe
   **stderr** și ies cu **1**. `armatura <command> --help` afișează pe stdout liniile de utilizare ale comenzii și iese cu 0.
+  **Excepție (Windows, începând cu 0.1.0-alpha.2):** când `armatura.exe` este pornit prin dublu clic din Explorer (fereastra de consolă a fost creată pentru el și niciun alt proces nu o împarte) și nu are argumente, nu afișează utilizarea: creează `Documents\ARMATURA\first-rig.json` dacă lipsește, rulează `studio` pe acel fișier la `127.0.0.1:8080`, deschide browserul și ține consola deschisă până o închizi sau apeși Enter după o eroare. Pornit dintr-un terminal, se comportă ca mai sus. Restul programului rulează pe un fir cu stivă de 256 MiB (firul principal de pe Windows are doar 1 MiB).
 
 ### 1.6 Programe externe
 

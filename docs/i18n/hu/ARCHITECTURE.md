@@ -485,7 +485,8 @@ Az `armatura-capi`, az `armatura-wasm` és az `armatura-gpu` a core-t `default-f
 | CLI GPU-val | `cargo build -p armatura-cli --features gpu` | wgpu 30, csak Vulkannal és GL-lel. Csak Mesa llvmpipe-on ellenőrizve. |
 | Könyvtár | `cargo build -p armatura-core` | Rust API. |
 | C könyvtár | `cargo build -p armatura-capi` | `cdylib`, `staticlib` és az `armatura-capi/armatura.h` header; `ABI_VERSION` 1. |
-| WebAssembly | `armatura-wasm/build-wasm.sh` (szükséges hozzá: `rustup target add wasm32-unknown-unknown`) | Egyszerű extern "C" felület, `index.html` és `js/` segédfájlokkal. A fejlesztői környezetben nem lehetett telepíteni a célt, ezért a szkriptet még sosem futtatták, és a `.wasm` fájl még sosem készült el. |
+| WebAssembly | `armatura-wasm/build-wasm.sh` (szükséges hozzá: `rustup target add wasm32-unknown-unknown`) | Egyszerű extern "C" felület, `index.html` és `js/` segédfájlokkal. A fejlesztői környezetben nem lehetett telepíteni a célt; a modult (release profillal) a `.github/workflows/release.yml` építi, a debug buildet pedig a `ci.yml` teszteli Node alatt. Magát a szkriptet nem a CI futtatja. |
+| Ablakos alkalmazás (Windows, macOS) | `cargo build --release -p armatura-gui` | Az `armatura-studio` bináris: `tao` ablak + `wry` webnézet a stúdió körül; Linuxon csonk. |
 | Tesztek | `cargo test --workspace` | Végpontok közötti shell-folyamat a `scripts/e2e.sh` fájlban; licenc-audit a `scripts/licence-audit.sh` fájlban. |
 
 A workspace alapértelmezett tagjai nem tartalmazzák az `armatura-gpu` crate-et.

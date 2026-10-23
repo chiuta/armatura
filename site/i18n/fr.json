@@ -5,7 +5,7 @@
  "n4": "Formats",
  "n5": "État",
  "n6": "Licences",
- "pill": "préversion · 0.1.0 · Rust · formats ouverts",
+ "pill": "alpha · brouillon v0.1.0-alpha.2 · Rust · formats ouverts",
  "sub": "Rigging et animation vectorielle 2D comme du code : os, IK, skinning, déformateurs, un runtime et un studio dans le navigateur — déterministes et scriptables.",
  "cta1": "Essayer le rig",
  "cta3": "Lire la documentation",
@@ -74,19 +74,19 @@
  "ste": "État honnête",
  "sth": "Ce qui est vérifié, et ce qui ne l'est pas",
  "stp": "Le projet énonce ses limites à côté de ses fonctions. Lisez LIMITATIONS.md avant de dépendre de quoi que ce soit.",
- "k1": "tests dans cargo test --workspace (plus 19 doc-tests), 22 oct. 2026, Linux x86-64",
+ "k1": "tests dans cargo test --workspace sans les crates GPU et fenêtre (plus 19 doc-tests), 24 oct. 2026, Linux x86-64 ; la CI passe aussi sur macOS et Windows",
  "k2": "limitations numérotées, avec gravité et contournement",
- "k3": "crates tierces lors du dernier audit de licences",
- "k4": "versions publiées à ce jour — « 0.7 » est un niveau de fonctions, pas une version",
+ "k3": "crates tierces dans l’inventaire du 24 oct. 2026 (toutes plateformes confondues)",
+ "k4": "versions publiées à ce jour — v0.1.0-alpha.2 est construite en brouillon ; « 0.7 » est un niveau de fonctions, pas une version",
  "vyh": "Vérifié",
  "vxh": "Non vérifié",
  "ai": "<b>Transparence :</b> le code a été écrit en grande partie avec un modèle d'IA, et le projet est une implémentation indépendante à partir de spécifications publiques ; voir CLEANROOM.md. Il n'est ni affilié à, ni dérivé de, ni compatible avec un produit commercial d'animation.",
  "ae": "Architecture",
- "ah": "Cinq crates, un workspace",
+ "ah": "Six crates, un workspace",
  "a1": "Moteur, formats, outils et façade Rust stable.",
  "a2": "Le binaire armatura, le studio dans le navigateur et le serveur de collaboration.",
  "a3": "ABI C : en-tête, bibliothèque partagée et statique ; également exécutée sous ASan/UBSan.",
- "a4": "ABI WebAssembly et wrapper JS. Écrit, jamais compilé ni exécuté.",
+ "a4": "ABI WebAssembly et wrapper JS. Construit en CI et testé sous Node ; pas encore exécuté dans un navigateur.",
  "a5": "Moteur de rendu wgpu facultatif, pas un membre par défaut.",
  "le": "Licences",
  "lh": "Des bibliothèques que l'on peut lier, un studio qui reste ouvert",
@@ -103,15 +103,16 @@
  "sup": "Si cela vous est utile :",
  "foot": "Page de présentation du projet ARMATURA. Nom et logo : voir TRADEMARK.md.",
  "vy": [
-  "1368 tests et 19 doc-tests réussissent (22 oct. 2026, Linux x86-64)",
-  "4 tests de fumée du studio sous Chromium sans interface réussissent (124, 60, 89 et 35 vérifications)",
-  "La CLI, la façade Rust et l'ABI C ont été exécutées avec les exemples de la documentation, y compris sous ASan/UBSan"
+  "1338 tests plus 19 doc-tests passent en local (24 oct. 2026, Linux x86-64) ; la même suite et clippy passent sur GitHub Actions pour Linux, macOS et Windows",
+  "Le module WebAssembly se construit en CI et le test du wrapper passe dessus sous Node ; cargo-deny et REUSE passent",
+  "4 tests de fumée du studio dans Chromium sans interface passent (124, 60, 89 et 35 vérifications)",
+  "La CLI, la façade Rust et l’ABI C ont été exécutées avec les exemples de la documentation, aussi sous ASan/UBSan"
  ],
  "vx": [
-  "Le module WebAssembly n'a jamais été compilé ni exécuté",
-  "Le studio n'a jamais été utilisé en production par une personne, ni dans un autre navigateur que Chromium",
-  "Aucun vrai GPU, webcam, photographie ni fichier de capture de mouvement n'a jamais été utilisé",
-  "Windows et macOS non testés ; ni audit de sécurité, ni relecture juridique, ni recherche de brevets"
+  "Le module WebAssembly n’a jamais été exécuté dans un navigateur ; sa vitesse et sa mémoire ne sont pas mesurées",
+  "Personne n’a utilisé les exécutables Windows ou macOS, le lanceur par double-clic ou l’application à fenêtre sur un vrai bureau ; les binaires ne sont pas signés",
+  "Le studio n’a jamais été utilisé par une personne en production, ni dans un autre navigateur que Chromium",
+  "Aucun vrai GPU, webcam, photographie ou fichier de capture de mouvement n’a été utilisé ; ni audit de sécurité, ni revue juridique, ni recherche de brevets"
  ],
  "nDocs": "Docs",
  "nStudio": "Studio",
@@ -193,5 +194,7 @@
  "trView": "Voir l'original anglais",
  "trShow": "Afficher la traduction",
  "trMissing": "Pas encore traduit — l'original anglais est affiché.",
- "langLabel": "Langue"
+ "langLabel": "Langue",
+ "a6": "Le studio dans une fenêtre native (Windows, macOS). Compilé et auto-testé en CI ; pas encore utilisé par une personne.",
+ "cta4": "Télécharger (versions)"
 }

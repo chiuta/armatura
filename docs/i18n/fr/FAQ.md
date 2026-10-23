@@ -11,13 +11,13 @@ Sommaire : [Installation et configuration](#installation-et-configuration) - [ff
 ## Installation et configuration
 
 **1. Comment installer ARMATURA ?**
-Il n'existe pas encore de version publiée (tous les crates sont en 0.1.0) ; il n'y a donc ni installateur ni binaire précompilé. Vous le compilez depuis les sources avec une chaîne d'outils Rust stable récente : `cargo build -p armatura-cli` produit `target/debug/armatura` ; ajoutez `--release` pour obtenir `target/release/armatura`. Voir [DEVELOPMENT.md](DEVELOPMENT.md).
+Des archives précompilées (Windows x86-64, macOS arm64, Linux x86-64, et le module WebAssembly) sont préparées comme la préversion en brouillon `v0.1.0-alpha.2` sur <https://github.com/chiuta/armatura/releases> ; elles deviennent téléchargeables quand le propriétaire publie le brouillon, et elles ne sont pas signées (SmartScreen affiche « Éditeur inconnu » ; macOS demande une approbation). Il n'y a pas d'installateur : décompressez l'archive et lancez `armatura`. Ou compilez-le depuis les sources avec une chaîne d'outils Rust stable récente : `cargo build -p armatura-cli` produit `target/debug/armatura` ; ajoutez `--release` pour obtenir `target/release/armatura`. Voir [DEVELOPMENT.md](DEVELOPMENT.md).
 
 **2. Quelles plateformes fonctionnent ?**
-Seul Linux x86-64 a été compilé et éprouvé. On s'attend à ce que les autres cibles compilent, puisque le code est du Rust standard, mais elles sont « non testées », pas « prises en charge » ([LIMITATIONS.md](LIMITATIONS.md), section 1).
+Linux x86-64 est l'endroit où le projet a été développé et éprouvé. Sur GitHub Actions, la suite de tests et clippy passent aussi sous macOS (arm64) et Windows (x86-64), et les binaires de release pour ces trois plateformes y sont construits ; mais personne n'a encore utilisé les exécutables Windows ou macOS sur un vrai bureau, ils sont donc « testés par la CI », pas « pris en charge » ([LIMITATIONS.md](LIMITATIONS.md), section 1).
 
 **3. Existe-t-il un installateur graphique ou une application ?**
-Non. La ligne de commande est le produit. Le studio est une page web locale servie par `armatura studio` ; voir [STUDIO.md](STUDIO.md).
+Il n'y a pas d'installateur. La ligne de commande est le produit. Le studio est une page web locale servie par `armatura studio` ; sous Windows, un double-clic sur `armatura.exe` le démarre et ouvre votre navigateur. Les archives Windows et macOS contiennent aussi `armatura-studio`, une petite fenêtre native autour du même studio (elle n'a été que compilée et auto-testée en CI) ; voir [STUDIO.md](STUDIO.md) et [GETTING_STARTED.md](GETTING_STARTED.md).
 
 **4. Comment démarrer rapidement ?**
 Suivez [GETTING_STARTED.md](GETTING_STARTED.md) : il construit un personnage animé à partir d'un projet vide, chaque étape ayant été exécutée, et se termine par un GIF.
@@ -110,7 +110,7 @@ Oui : « compatible avec ARMATURA » et « réalisé avec ARMATURA » sont autor
 Il n'existe pas d'accord de licence de contributeur. Les contributions sont acceptées sous la licence du projet avec une signature DCO (`git commit -s`) ; il n'y a donc aucun propriétaire qui pourrait les relicencier. Détails dans [CONTRIBUTING.md](CONTRIBUTING.md).
 
 **28. Et le code tiers ?**
-Environ 160 crates tiers, tous sous des licences permissives sauf smartstring (MPL-2.0 ou ultérieure, uniquement avec la fonctionnalité `scripting`). Les listes figurent dans [THIRD_PARTY.md](THIRD_PARTY.md) et [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md).
+Environ 360 crates tiers (comptés toutes plateformes confondues ; l'application à fenêtre ajoute la boîte à outils Windows / macOS), tous sous des licences permissives sauf six sous MPL-2.0 : smartstring (MPL-2.0 ou ultérieure, uniquement avec la fonctionnalité `scripting`) et cinq que seule l'application à fenêtre peut faire intervenir. Les listes figurent dans [THIRD_PARTY.md](THIRD_PARTY.md) et [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md).
 
 **29. Y a-t-il des préoccupations liées aux brevets ?**
 Voir [PATENT_NOTES.md](PATENT_NOTES.md). Ce sont des notes d'ingénierie, pas un avis juridique.
@@ -231,7 +231,7 @@ Ouvrez un ticket avec la ligne de commande, la sortie exacte (stderr aussi), le 
 En privé, pas dans un ticket public ; voir [SECURITY.md](SECURITY.md). L'adresse indiquée dans le dépôt est `alexio@trom.tf` ; c'est la même que celle du contact du mainteneur et elle n'a pas été remplacée par une boîte aux lettres d'équipe de sécurité.
 
 **60. Existe-t-il une liste de diffusion, un chat ou un contrat de support ?**
-Non. Les documents indiquent un seul contact de mainteneur et il n'existe pas encore de version publiée.
+Non. Les documents indiquent un seul contact de mainteneur ; la première version est encore une préversion en brouillon.
 
 **61. Comment contribuer ?**
 Signez chaque commit (`git commit -s`), maintenez les tests au vert (`cargo test`, et `armatura ci` pour le travail d'animation) et lisez [DEVELOPMENT.md](DEVELOPMENT.md). La documentation est sous CC-BY-4.0 et accueille volontiers les corrections, surtout là où une page et le programme divergent.
@@ -247,13 +247,13 @@ Il a été construit et testé par un seul projet dans un seul environnement. To
 La vidéo nécessite ffmpeg. Lottie et glTF couvrent un sous-ensemble de ce qu'ARMATURA sait dessiner et animer ; vérifiez donc ce qui est perdu dans [EXPORT_FORMATS.md](EXPORT_FORMATS.md). L'erreur d'`export` pour une extension inconnue énumère `.gif .html .json .mp4 .apng .webm .png .glb`, ce qui omet `.lottie` ; `.lottie` (dotLottie) est une cible valide, voir [EXPORT_FORMATS.md](EXPORT_FORMATS.md), section 6.
 
 **64. Le build WASM est-il utilisable ?**
-Il n'a jamais été compilé dans cet environnement ([WASM.md](WASM.md), [LIMITATIONS.md](LIMITATIONS.md)). Considérez-le comme non vérifié.
+Il se compile pour `wasm32-unknown-unknown` sur GitHub Actions et le test du wrapper passe sur le vrai module sous Node 20 ; il est joint au brouillon de version sous le nom `armatura-web.tar.gz`. Il n'a pas été exécuté dans un navigateur, et sa vitesse et sa mémoire n'ont pas été mesurées ([WASM.md](WASM.md), [LIMITATIONS.md](LIMITATIONS.md)). Considérez-le comme partiellement vérifié.
 
 **65. Importe-t-il les fichiers de projet d'autres outils ?**
 Il importe SVG, OpenRaster, JSON Lottie, images, GIF/APNG, capture de mouvement BVH et MIDI ([EXPORT_FORMATS.md](EXPORT_FORMATS.md), sections 9 et 10). Il n'importe ni PSD, ni fichiers zip `.lottie`, ni dossiers OCA. Les imports créent un nouveau projet. Notez que `import-lottie in.json in.json` n'a pas de protection contre l'écrasement et remplace son entrée. Ne vous attendez pas à ce qu'un fichier importé corresponde pixel pour pixel à l'original.
 
 **66. Le JSON de projet est-il stable ?**
-C'est le « format 1 ». Un fichier plus récent est refusé : `project format 2 is newer than this build supports (1); update ARMATURA`. Comme il n'existe pas encore de version publiée, le format 1 lui-même peut encore changer avant qu'il y en ait une ; voir [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
+C'est le « format 1 ». Un fichier plus récent est refusé : `project format 2 is newer than this build supports (1); update ARMATURA`. Comme seule une préversion alpha existe, le format 1 lui-même peut encore changer avant une version stable ; voir [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
 
 ---
 
@@ -269,7 +269,7 @@ Ces outils se concentrent sur les maillages, les skins et les bibliothèques run
 Un compositeur est construit autour de calques avec effets et expressions sur des séquences vidéo. ARMATURA a des effets de calque et des expressions, mais son centre est le rigging de personnages et le dessin vectoriel, et il ne fait ni compositing vidéo, ni 3D, ni étalonnage de séquences.
 
 **70. Quand ARMATURA est-il le mauvais choix ?**
-Lorsque vous avez besoin dès aujourd'hui de performances temps réel sur GPU, d'un flux de travail abouti avec tablette graphique, d'animation image par image dessinée à la main, d'un produit pris en charge par un éditeur avec version publiée et support, ou d'un comportement confirmé hors de Linux x86-64.
+Lorsque vous avez besoin dès aujourd'hui de performances temps réel sur GPU, d'un flux de travail abouti avec tablette graphique, d'animation image par image dessinée à la main, d'un produit pris en charge par un éditeur avec version stable et support, ou d'un comportement confirmé hors de Linux x86-64.
 
 ---
 

@@ -18,13 +18,29 @@ Prinzipien, die das Projekt prägen:
 
 ## Status
 
-> **Vorabversion, eine Umgebung.** Alle Crates tragen die Version `0.1.0`, und nichts wurde veröffentlicht; „v0.5 / v0.6 / v0.7“ sind *Funktionsstufen* in der Historie, keine Release-Nummern ([CHANGELOG.md](docs/i18n/de/CHANGELOG.md)).
+> **Alpha. Erste Builds als Entwurf einer Vorabversion vorbereitet: `v0.1.0-alpha.2`.** Die Programme für Windows x86-64, macOS arm64 und Linux x86-64 sowie das WebAssembly-Modul werden von GitHub Actions gebaut und an eine *Entwurfs*-Vorabversion auf <https://github.com/chiuta/armatura/releases> angehängt (ein Entwurf ist nur für den Eigentümer sichtbar, bis er von Hand veröffentlicht wird). Alle Crates tragen weiterhin die Version `0.1.0`; „v0.5 / v0.6 / v0.7“ sind *Funktionsstufen* in der Historie, keine Release-Nummern ([CHANGELOG.md](docs/i18n/de/CHANGELOG.md)).
 >
 > | Verifiziert | Nicht verifiziert |
 > |---|---|
-> | 1368 Tests in `cargo test --workspace` plus 19 Doc-Tests bestehen (22. Okt. 2026, Linux x86-64); vier Headless-Chromium-Smoke-Tests des Studios bestehen (124, 60, 89, 35 Prüfungen für die Skripte ui, collab, overlays und suggest); die CLI, die Rust-Fassade und die C-ABI (auch unter ASan/UBSan) wurden mit den Beispielen aus der Dokumentation ausgeführt | **Das WebAssembly-Modul wurde nie gebaut oder ausgeführt** (das wasm32-Target ließ sich nicht installieren; [docs/WASM.md](docs/i18n/de/WASM.md)); das Studio wurde nie von einer Person produktiv genutzt, auch nicht in einem anderen Browser als Chromium; es wurden nie eine echte GPU (nur ein Software-Adapter), eine Webcam, ein Foto oder eine Motion-Capture-Datei verwendet; Windows und macOS ungetestet; kein Security-Audit, keine anwaltliche Prüfung und keine Patentrecherche |
+> | **Lokal (Linux x86-64, 24. Okt. 2026):** 1338 Tests von `cargo test --workspace --exclude armatura-gpu --exclude armatura-gui` plus 19 Doc-Tests bestehen (das GPU-Crate braucht einen Adapter und das Fenster-Crate einen Desktop; davor lag die Zahl einschließlich des GPU-Crates bei 1368). **Auf GitHub Actions (24. Okt. 2026, Toolchain 1.97.0):** Die Testsuite und `clippy -D warnings` bestehen unter Linux, macOS (arm64) und Windows; `cargo deny` und `reuse lint` bestehen; das WebAssembly-Modul lässt sich für `wasm32-unknown-unknown` bauen, und der Test des Wrappers besteht gegen das echte Modul unter Node 20; die Release-Binärdateien bestehen einen Smoke-Test (`--version`, `demo`, `check`, `render`), und `armatura-studio --selftest` läuft unter Windows und macOS. Vier Headless-Chromium-Smoke-Tests des Studios bestehen; die CLI, die Rust-Fassade und die C-ABI (auch unter ASan/UBSan) wurden mit den Beispielen aus der Dokumentation ausgeführt | **Keine Person hat die Programme auf einem echten Windows- oder macOS-Desktop benutzt**: Der Windows-Doppelklick-Starter und die Fenster-App `armatura-studio` (WebView2 / WKWebView) wurden in CI nur kompiliert und selbstgetestet; die Binärdateien sind **nicht codesigniert** (SmartScreen „Unbekannter Herausgeber“, macOS Gatekeeper); die Linux-Binärdatei wurde nur auf einem Ubuntu-Runner gebaut; **das WebAssembly-Modul wurde nie in einem Browser ausgeführt**, und seine Geschwindigkeit und sein Speicherbedarf sind nicht gemessen; das Studio wurde nie von einer Person produktiv genutzt, auch nicht in einem anderen Browser als Chromium; es wurden nie eine echte GPU (nur ein Software-Adapter), eine Webcam, ein Foto oder eine Motion-Capture-Datei verwendet; kein Security-Audit, keine anwaltliche Prüfung und keine Patentrecherche |
 >
-> Lies [docs/LIMITATIONS.md](docs/i18n/de/LIMITATIONS.md) (73 nummerierte Einschränkungen mit Schweregrad und Umgehung), bevor du dich auf irgendetwas verlässt.
+> Lies [docs/LIMITATIONS.md](docs/i18n/de/LIMITATIONS.md) (77 nummerierte Einschränkungen mit Schweregrad und Umgehung), bevor du dich auf irgendetwas verlässt.
+
+## Download
+
+Fertige Archive findest du, sobald der Eigentümer die Entwurfsversion veröffentlicht hat, auf der [Releases-Seite](https://github.com/chiuta/armatura/releases) des Projekts:
+
+| Archiv | Inhalt |
+|---|---|
+| `armatura-windows-x86_64.zip` | `armatura.exe` (Kommandozeile + Studio-Server), `armatura-studio.exe` (Fenster-App), C-Bibliothek und Header, Lizenzen, Hinweise zu Drittanbietern |
+| `armatura-macos-arm64.tar.gz` | `armatura`, `armatura-studio` (nur Apple Silicon), C-Bibliothek und Header, Lizenzen, Hinweise |
+| `armatura-linux-x86_64.tar.gz` | `armatura`, C-Bibliothek und Header, Lizenzen, Hinweise (keine Fenster-App: nutze `armatura studio` und einen Browser) |
+| `armatura-web.tar.gz` | `armatura_wasm.wasm`, `armatura.js`, Demo `index.html` (in Browsern nicht verifiziert, siehe [docs/WASM.md](docs/i18n/de/WASM.md)) |
+| `SHA256SUMS.txt` | prüfe jeden Download dagegen |
+
+* **Windows:** Doppelklicke auf `armatura.exe`, um `Documents\ARMATURA\first-rig.json` anzulegen und das Studio in deinem Browser zu öffnen, oder doppelklicke auf `armatura-studio.exe` für ein eigenes Fenster. Beide Programme sind unsigniert: Wähle in SmartScreen *Weitere Informationen* und dann *Trotzdem ausführen*. Siehe [docs/GETTING_STARTED.md](docs/i18n/de/GETTING_STARTED.md).
+* **macOS:** Bestätige das Programm beim ersten Mal unter *Systemeinstellungen > Datenschutz & Sicherheit*.
+* **Quellcode:** Jedes Archiv nennt den Commit, aus dem es gebaut wurde; die AGPL-Teile werden mit ihrem Quellcode-Angebot ausgeliefert (`armatura --version`, `/source`).
 
 ## Funktionen nach Bereichen
 
@@ -37,11 +53,11 @@ Details und genaue Optionen: [docs/CLI_REFERENCE.md](docs/i18n/de/CLI_REFERENCE.
 * **Ausgabe.** SVG, PNG, PNG-Sequenzen und Sprite-Sheets, GIF, APNG, MP4/WebM (über ffmpeg), eigenständiger HTML-Player, Lottie und dotLottie, glTF-2.0-Binärformat, OpenEXR/16-Bit-PNG, OCA; größenorientierter Export (`export-fit`). Import: SVG, OpenRaster, Lottie, BVH, PNG-/GIF-/APNG-Sequenzen.
 * **Qualitätswerkzeuge.** `check`, `lint`, semantischer `diff`, Pose-Fuzzing mit Heatmaps, Animations-CI mit Wahrnehmungs-Diff und Referenzbildern ([docs/CI.md](docs/i18n/de/CI.md)), Versionskontrolle mit semantischem Merge (`vcs`), Sicherheitsprüfungen für Flackern und Bewegung.
 * **Studio.** Vom CLI bereitgestellter Browser-Editor: Gizmos auf der Zeichenfläche, Timeline, Dope Sheet und Kurveneditor, Overlays, Befehlspalette und Tastenkürzel, Rückgängig/Wiederholen, Mehrbenutzerbearbeitung in Echtzeit mit optionalem Token und persistentem Log ([docs/STUDIO.md](docs/i18n/de/STUDIO.md)).
-* **Bibliotheken.** Stabile Rust-Fassade ([docs/API.md](docs/i18n/de/API.md)), C-ABI ([docs/C_ABI.md](docs/i18n/de/C_ABI.md)), WebAssembly-Modul und JavaScript-Wrapper (ungebaut; [docs/WASM.md](docs/i18n/de/WASM.md)), optionaler wgpu-Renderer.
+* **Bibliotheken.** Stabile Rust-Fassade ([docs/API.md](docs/i18n/de/API.md)), C-ABI ([docs/C_ABI.md](docs/i18n/de/C_ABI.md)), WebAssembly-Modul und JavaScript-Wrapper (in CI gebaut und unter Node getestet, noch nicht in einem Browser ausgeführt; [docs/WASM.md](docs/i18n/de/WASM.md)), optionaler wgpu-Renderer.
 
 ## Schnellstart
 
-Voraussetzungen: eine aktuelle stabile Rust-Toolchain. `ffmpeg` wird nur für den MP4/WebM-Export und für mp3/ogg-Audio benötigt; es wird nie mitgeliefert. Jeder der folgenden Befehle wurde für diese README ausgeführt (Debug-Build, Linux). Release-Builds (`cargo build --release`) sind beim Rendern deutlich schneller und werden genauso mit `target/release` verwendet.
+Voraussetzungen: eine aktuelle stabile Rust-Toolchain (oder ein fertiges Archiv aus dem Abschnitt [Download](#download): überspringe die Zeile mit `cargo build` und nutze das entpackte `armatura`). `ffmpeg` wird nur für den MP4/WebM-Export und für mp3/ogg-Audio benötigt; es wird nie mitgeliefert. Jeder der folgenden Befehle wurde für diese README ausgeführt (Debug-Build, Linux). Release-Builds (`cargo build --release`) sind beim Rendern deutlich schneller und werden genauso mit `target/release` verwendet.
 
 ```sh
 cargo build -p armatura-cli                       # builds target/debug/armatura
@@ -87,10 +103,12 @@ cargo test -p armatura-cli --test spdx_audit
 |---|---|---|
 | `armatura-core/` | Engine, Formate, Werkzeuge, stabile Fassade `api` | MPL-2.0 |
 | `armatura-cli/` | die `armatura`-Binärdatei, Studio und Kollaborationsserver, End-to-End- und Smoke-Tests | AGPL-3.0-or-later |
+| `armatura-gui/` | `armatura-studio`, das Studio in einem nativen Fenster (Windows und macOS; unter Linux ein Platzhalter) | AGPL-3.0-or-later |
 | `armatura-capi/` | C-ABI (`armatura.h`, dynamische und statische Bibliothek) | MPL-2.0 |
-| `armatura-wasm/` | WebAssembly-ABI, JavaScript-Wrapper, Demoseite (ungebaut) | MPL-2.0 |
+| `armatura-wasm/` | WebAssembly-ABI, JavaScript-Wrapper, Demoseite (in CI gebaut) | MPL-2.0 |
 | `armatura-gpu/` | optionaler wgpu-Renderer (kein Standardmitglied) | MPL-2.0 |
 | `docs/` | Dokumentation (CC-BY-4.0) und generierte Dateien zu Drittanbietern | CC-BY-4.0 |
+| `.github/workflows/` | CI (`ci.yml`) und Release-Builds (`release.yml`) | MPL-2.0 |
 | `scripts/` | `e2e.sh`, `licence-audit.sh` | MPL-2.0 |
 | `LICENSES/`, `REUSE.toml`, `deny.toml` | Lizenztexte, Lizenz-Metadaten, Dependency-Richtlinie | - |
 | `ROADMAP.md`, `FEATURES.md`, `CLEANROOM.md`, `LICENSING.md`, `TRADEMARK.md`, `CONTRIBUTING.md`, `CHANGELOG.md` | Projektdokumente | CC-BY-4.0 |
@@ -113,7 +131,7 @@ Beginne bei [docs/INDEX.md](docs/i18n/de/INDEX.md) (alle Dokumente, Zielgruppen,
 | [docs/FAQ.md](docs/i18n/de/FAQ.md) | häufige Fragen |
 | [docs/API.md](docs/i18n/de/API.md) | Rust-Fassade 1.4 |
 | [docs/C_ABI.md](docs/i18n/de/C_ABI.md) | C-Schnittstelle |
-| [docs/WASM.md](docs/i18n/de/WASM.md) | WebAssembly (nie gebaut) |
+| [docs/WASM.md](docs/i18n/de/WASM.md) | WebAssembly (in CI gebaut, nicht in einem Browser ausgeführt) |
 | [docs/CI.md](docs/i18n/de/CI.md) | Animations-CI |
 | [docs/DEVELOPMENT.md](docs/i18n/de/DEVELOPMENT.md) | Build, Test, Konventionen, Release |
 | [docs/SECURITY.md](docs/i18n/de/SECURITY.md) | Bedrohungsmodell und Härtung |
@@ -125,17 +143,17 @@ Beginne bei [docs/INDEX.md](docs/i18n/de/INDEX.md) (alle Dokumente, Zielgruppen,
 ## Lizenzübersicht
 
 * **MPL-2.0** für die Bibliotheken `armatura-core`, `armatura-capi`, `armatura-wasm`, `armatura-gpu` und für `scripts/`: Du darfst sie in dein eigenes Programm einbinden, ob offen oder geschlossen; Änderungen an diesen Dateien müssen unter der MPL veröffentlicht werden.
-* **AGPL-3.0-or-later** für `armatura-cli` (die Kommandozeile und das Studio). Wenn du es änderst und anderen die Interaktion damit über ein Netzwerk ermöglichst, verpflichtet dich Abschnitt 13 dazu, ihnen deinen Quellcode anzubieten: `armatura studio --source-url URL` veröffentlicht, wo er zu finden ist; `/source` und `armatura --version` enthalten das Angebot.
+* **AGPL-3.0-or-later** für `armatura-cli` (die Kommandozeile und das Studio) und `armatura-gui` (das Fenster darum herum). Wenn du es änderst und anderen die Interaktion damit über ein Netzwerk ermöglichst, verpflichtet dich Abschnitt 13 dazu, ihnen deinen Quellcode anzubieten: `armatura studio --source-url URL` veröffentlicht, wo er zu finden ist; `/source` und `armatura --version` enthalten das Angebot.
 * **CC-BY-4.0** für die Dokumentation und synthetische Assets (einschließlich des synthetischen Gesichtserkennungsmodells).
 * **Deine Projekte und Renderings bleiben deine.**
 * Name und Logo fallen nicht unter diese Lizenzen ([TRADEMARK.md](docs/i18n/de/TRADEMARK.md)). Der Patentstatus wurde nicht geprüft ([docs/PATENT_NOTES.md](docs/i18n/de/PATENT_NOTES.md)). Eine kommerzielle oder Dual-Lizenz für beigesteuerten Code ist ohne Contributor-Lizenzvereinbarung nicht möglich, und es gibt keine.
-* Crates von Drittanbietern: 160 beim letzten Audit, alle permissiv bis auf ein Crate mit schwachem Copyleft hinter dem optionalen Feature `scripting` ([docs/THIRD_PARTY.md](docs/i18n/de/THIRD_PARTY.md)). ffmpeg wird nie mitgeliefert.
+* Crates von Drittanbietern: 362 im Inventar vom 24. Okt. 2026 (alle Plattformen und Targets zusammen, einschließlich der nur unter Windows / macOS / Linux genutzten Crates der Fenster-App; eine einzelne Binärdatei enthält eine Teilmenge), alle permissiv bis auf sechs MPL-2.0-Crates mit schwachem Copyleft: `smartstring` hinter dem optionalen Feature `scripting` und fünf (`cssparser`, `cssparser-macros`, `dtoa-short`, `selectors`, `option-ext`), die nur die Fenster-App `armatura-gui` einbinden kann ([docs/THIRD_PARTY.md](docs/i18n/de/THIRD_PARTY.md)). ffmpeg wird nie mitgeliefert.
 
 Siehe [LICENSE](LICENSE), [LICENSES/](LICENSES/) und [LICENSING.md](docs/i18n/de/LICENSING.md). Nichts davon ist Rechtsberatung; eine anwaltliche Prüfung steht noch aus.
 
 ## Mitwirken
 
-Beiträge sind willkommen, und zwar unter der Lizenz des Teils, den sie ändern. Lies [CONTRIBUTING.md](docs/i18n/de/CONTRIBUTING.md) (jeder Commit braucht eine `Signed-off-by`-Zeile, DCO 1.1), [CLEANROOM.md](docs/i18n/de/CLEANROOM.md) (nur aus öffentlichen Quellen implementieren; nichts aus proprietärem oder inkompatibel lizenziertem Code kopieren) und [docs/DEVELOPMENT.md](docs/i18n/de/DEVELOPMENT.md) (Konventionen, Checkliste für ein neues Modul, Tests). Gute erste Beiträge: eine Korrektur zu einem Punkt aus [docs/LIMITATIONS.md](docs/i18n/de/LIMITATIONS.md), ein echter Durchlauf der WebAssembly-Checkliste, Tests unter Windows oder macOS, ein Benchmark auf einer echten GPU.
+Beiträge sind willkommen, und zwar unter der Lizenz des Teils, den sie ändern. Lies [CONTRIBUTING.md](docs/i18n/de/CONTRIBUTING.md) (jeder Commit braucht eine `Signed-off-by`-Zeile, DCO 1.1), [CLEANROOM.md](docs/i18n/de/CLEANROOM.md) (nur aus öffentlichen Quellen implementieren; nichts aus proprietärem oder inkompatibel lizenziertem Code kopieren) und [docs/DEVELOPMENT.md](docs/i18n/de/DEVELOPMENT.md) (Konventionen, Checkliste für ein neues Modul, Tests). Gute erste Beiträge: eine Korrektur zu einem Punkt aus [docs/LIMITATIONS.md](docs/i18n/de/LIMITATIONS.md), ein echter Durchlauf der WebAssembly-Checkliste, ein Test der Windows- / macOS-Programme auf einem echten Desktop, ein Benchmark auf einer echten GPU.
 
 Sicherheitsprobleme: Eröffne kein öffentliches Issue; folge [docs/SECURITY.md](docs/i18n/de/SECURITY.md) Abschnitt 10.
 

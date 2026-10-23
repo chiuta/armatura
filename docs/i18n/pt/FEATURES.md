@@ -1,6 +1,6 @@
 # ARMATURA — matriz de recursos + listas de verificação de referência e da concorrência
 
-> Redação das versões: todos os crates estão em `0.1.0` (pré-lançamento); "v0.5 / v0.6 / v0.7" neste repositório são *níveis de recursos* (veja [CHANGELOG.md](CHANGELOG.md)), e a seção 9 de `ROADMAP.md` é a autoridade sobre o que está construído.
+> Redação das versões: todos os crates estão em `0.1.0` (os primeiros builds são o pré-lançamento em rascunho `v0.1.0-alpha.2`); "v0.5 / v0.6 / v0.7" neste repositório são *níveis de recursos* (veja [CHANGELOG.md](CHANGELOG.md)), e a seção 9 de `ROADMAP.md` é a autoridade sobre o que está construído.
 
 Estado honesto do que existe. **✅ pronto e testado · 🟡 parcial · ❌ não implementado.**
 
@@ -96,7 +96,7 @@ Ela substitui as listas dispersas de "candidatos n.º" mais adiante; os detalhes
 | Recurso | Estado | PI | Base segura / condição |
 |---|---|---|---|
 | Studio no navegador com desfazer/refazer | 🟡 | 🟢 | UI própria; sem copiar layouts ou nomes de fornecedores |
-| Runtime WASM, API Rust estável + ABI C, scripting em sandbox (R-090…R-093) | 🟡 (R-091, R-092, R-093 concluídos; R-090: módulo wasm escrito, mas nenhum .wasm foi construído ou executado: sem alvo wasm32 aqui) | 🟢 | API própria |
+| Runtime WASM, API Rust estável + ABI C, scripting em sandbox (R-090…R-093) | 🟡 (R-091, R-092, R-093 concluídos; R-090: o módulo wasm compila e passa no teste do wrapper sob o Node no CI, mas nunca foi executado em um navegador) | 🟢 | API própria |
 | **Servidor de agente / MCP** sobre patch ops: inspecionar, editar (atômico, desfazível), lint, segurança, renderizar, salvar somente no próprio arquivo (R-094) | ✅ | 🟢 | protocolo JSON-RPC aberto |
 | GUI completa: gizmos, timeline, editor de curvas (R-100…R-103) | 🟡 (R-101, R-102 concluídos; as páginas de R-100 e R-103 existem, mas o autor nunca as executou em um navegador real) | 🟢 | widgets genéricos; visual próprio |
 | Controle de versão de animação com merge semântico, diff perceptual de CI, explique-este-pixel (I-01, I-06, I-07) | ✅ (I-01 `armatura vcs`, I-06 `armatura ci`, I-07 `explain`) | 🟢 | ideias próprias |
@@ -118,7 +118,7 @@ Ela substitui as listas dispersas de "candidatos n.º" mais adiante; os detalhes
 - Incluir **encoders H.264/H.265/AAC**.
 
 ## Condições que se aplicam a toda linha 🟢
-Log de proveniência mantido (`CLEANROOM.md`; implementação independente, não um clean-room estrito); somente dependências permissivas (regenere com `scripts/licence-audit.sh`; atualmente 160 crates de terceiros, todos da classe MIT / Apache-2.0 / BSD / Zlib / Unlicense, exceto um crate MPL-2.0+ (smartstring, via o recurso `scripting`, ativado por padrão; `--no-default-features` o remove); veja docs/THIRD_PARTY.md); nenhuma arte ou áudio de terceiros distribuído sem o respectivo arquivo de licença; o nome **ARMATURA** liberado em uma busca de marca registrada antes do lançamento.
+Log de proveniência mantido (`CLEANROOM.md`; implementação independente, não um clean-room estrito); somente dependências permissivas (regenere com `scripts/licence-audit.sh`; atualmente 362 crates de terceiros em todas as plataformas, todos da classe MIT / Apache-2.0 / BSD / Zlib / Unlicense, exceto seis crates MPL-2.0 (smartstring, via o recurso `scripting`, ativado por padrão, e cinco via o aplicativo de janela `armatura-gui`); veja docs/THIRD_PARTY.md); nenhuma arte ou áudio de terceiros distribuído sem o respectivo arquivo de licença; o nome **ARMATURA** liberado em uma busca de marca registrada antes do lançamento.
 
 
 # Tabelas detalhadas de capacidades
@@ -380,7 +380,7 @@ histórico geral. O estado é o do ARMATURA: ✅ existe equivalente · 🟡 parc
 | Taxa de quadros com 3 casas decimais (p. ex. 23,976) | ✅ |
 | A exportação SVG trata traços de largura variável e formas líquidas | ✅ (os traços viram contornos, os líquidos viram caminhos) |
 | Liquid hide-edge, formas líquidas somente de traço, exposição de traço | ❌ |
-| Linux via Wine/Proton | ✅ Rust nativo (Linux/macOS/Windows) |
+| Linux via Wine/Proton | ✅ Rust nativo (Linux/macOS/Windows); arquivos pré-compilados para Windows x86-64, macOS arm64 e Linux x86-64 no pré-lançamento em rascunho; testado pelo CI nos três, por uma pessoa apenas no Linux |
 
 ## Resumo (somente o produto de referência; a concorrência vem a seguir)
 Dos recursos documentados do produto de referência, o ARMATURA cobre o núcleo de **rigging, deformação,

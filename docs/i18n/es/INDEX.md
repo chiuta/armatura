@@ -4,7 +4,7 @@
 
 *Empieza aquí para encontrar la página adecuada. Todos los documentos son Markdown en inglés bajo CC-BY-4.0, salvo los archivos generados de terceros (véanse sus cabeceras). El README en rumano es [../README.ro.md](../../../README.es.md).*
 
-ARMATURA es un motor de rigging y animación vectorial 2D en Rust. Es un proyecto en versión preliminar (crates 0.1.0); lee [LIMITATIONS.md](LIMITATIONS.md) antes de depender de una función.
+ARMATURA es un motor de rigging y animación vectorial 2D en Rust. Es un proyecto alfa (las primeras compilaciones se preparan como la versión preliminar en borrador `v0.1.0-alpha.2`; los crates siguen en 0.1.0); lee [LIMITATIONS.md](LIMITATIONS.md) antes de depender de una función.
 
 Contenido: [Todos los documentos](#todos-los-documentos) - [Rutas de lectura por destinatario](#rutas-de-lectura-por-destinatario) - [Documentos en la raíz del repositorio](#documentos-en-la-raíz-del-repositorio) - [Dónde se responde cada pregunta](#dónde-se-responde-cada-pregunta) - [Convenciones](#convenciones-usadas-en-los-documentos)
 
@@ -24,10 +24,10 @@ Contenido: [Todos los documentos](#todos-los-documentos) - [Rutas de lectura por
 | [FAQ.md](FAQ.md) | Respuestas breves a preguntas frecuentes | todos |
 | [API.md](API.md) | La fachada estable de Rust (versión 1.4.0): llamadas, errores, límites, ejemplos | integradores de Rust |
 | [C_ABI.md](C_ABI.md) | La interfaz de C (`armatura-capi`): funciones, reglas de memoria, ejemplos en C y Python | integradores de C, C++, Python, Go y C# |
-| [WASM.md](WASM.md) | Módulo WebAssembly y envoltorio de JavaScript. **Estado: nunca compilado ni ejecutado**; incluye la lista de comprobación para quien lo compile por primera vez | desarrolladores web |
+| [WASM.md](WASM.md) | Módulo WebAssembly y envoltorio de JavaScript. **Estado: compilado y probado con Node en CI, nunca ejecutado en un navegador**; incluye la lista de comprobación para la primera ejecución en un navegador | desarrolladores web |
 | [CI.md](CI.md) | CI de animación (`armatura ci`): manifiesto, umbrales, fotogramas de referencia, informes, ejemplos de pipeline | artistas técnicos, ingenieros de compilación |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Compilación, pruebas, convenciones, lista de comprobación de módulos nuevos, lista de comprobación de publicación, depuración | colaboradores, mantenedores |
-| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Pasos del propietario antes y después de una primera publicación pública | propietario |
+| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Pasos del propietario antes y después de publicar la versión en borrador | propietario |
 | [SECURITY.md](SECURITY.md) | Modelo de amenazas, protecciones integradas, carencias conocidas, notificación, lista de comprobación de refuerzo | revisores de seguridad, responsables de despliegue |
 | [LIMITATIONS.md](LIMITATIONS.md) | Lista numerada de limitaciones conocidas con gravedad, alternativa e id de la hoja de ruta | todos los que evalúan ARMATURA |
 | [PATENT_NOTES.md](PATENT_NOTES.md) | Nota sobre el estado de las patentes (no es asesoramiento jurídico) | licenciatarios, abogados |

@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # Kiadási ellenőrzőlista (tulajdonosi oldal)
 
-*Olyan lépések, amelyeket csak a tulajdonos végezhet el, sorrendben. A projekt eszközei semmit sem hajtottak végre belőlük: a build környezetnek nem volt GitHub-hozzáférése, wasm32 targetje, valódi GPU-ja és jogásza. Nem jogi tanács. A **[blocker]** jelölésű tételeket nyilvános bejelentés előtt el kell végezni.*
+*Olyan lépések, amelyeket csak a tulajdonos végezhet el, sorrendben. Állapot 2026. okt. 24-én: a <https://github.com/chiuta/armatura> repository létezik, a GitHub Actions zöld (tesztek Linuxon, macOS-en és Windowson, clippy, wasm32, cargo-deny, REUSE), és a `v0.1.0-alpha.2` előzetes kiadás-vázlat megépült (Windows, macOS és Linux archívumok, a webes modul és a `SHA256SUMS.txt`); **még semmi nincs közzétéve**. Az alábbi lépések közül azokat, amelyeket a CI már elvégzett, kipipáltuk; a többihez ember, jogász vagy fiók kell. Nem jogi tanács. A **[blocker]** jelölésű tételeket nyilvános bejelentés előtt el kell végezni.*
 
 ## 1. Bármi közzététele előtt
 
@@ -10,26 +10,27 @@
 - [ ] **[blocker]** Keresd meg az „ARMATURA” nevet a számodra fontos védjegynyilvántartásokban (EUIPO, USPTO, OSIM), valamint az alkalmazásboltokban / csomagnyilvántartókban. Lásd `TRADEMARK.md`. Ha ütközik, nevezd át az első kiadás előtt (a név megjelenik a binárisban, a crate-ekben, a dokumentációban).
 - [ ] **[blocker]** Kérj meg egy jogászt, hogy vizsgálja át a `LICENSING.md`-t, az MPL-2.0 / AGPL-3.0 felosztást, a `docs/THIRD_PARTY.md`-t és a `docs/PATENT_NOTES.md`-t. Döntsd el, szeretnél-e kettős licencelést; ha igen, CLA kell *mielőtt* külső hozzájárulásokat fogadsz el (ma: csak DCO).
 - [ ] Ellenőrizd a Graphics Gems görbeillesztési hivatkozás feltételeit (a `CLEANROOM.md`-ben emlékezetből idézve); a független megvalósításra vonatkozó megfogalmazást csak akkor tartsd meg, ha pontos.
-- [ ] Futtasd a `reuse lint`-et és a `cargo deny check`-et a saját gépeden (a projektnek csak a saját `spdx_audit` tesztje van).
+- [x] A `reuse lint` és a `cargo deny check` sikeres a CI-ben (a `licences` job); egyszer futtasd le őket a saját gépeden is.
 - [ ] Ellenőrizd, hogy a fában nincs személyes adat, helyi útvonal vagy token (`grep -r "/home/" .`, `grep -ri token`), és hogy a mellékelt modell és a demó asset-ek mind saját generálásúak.
 
 ## 2. Repó
 
-- [ ] Hozd létre a GitHub (vagy Codeberg / saját Forgejo) repót; told fel a fát a `target/` és az `out/` **nélkül**.
+- [x] A GitHub repository létezik, és a fát a `target/` és az `out/` nélkül töltötték fel (`.gitignore`).
 - [ ] Tartsd meg a `LICENSE`, `LICENSES/`, `REUSE.toml`, `.github/FUNDING.yml` fájlokat (Buy Me a Coffee `echo.of.the.strings`, Patreon `alexio_tf`).
 - [ ] Kapcsold be a privát sebezhetőség-bejelentést (Security fül), és irányítsd rá a `docs/SECURITY.md`-t.
 - [ ] A studio indításakor add meg a repó URL-jét a `--source-url` kapcsolóval (AGPL forrásajánlat, `/source` útvonal), és teszteld az ajánlatot friss telepítésből.
 
-## 3. Az első CI-futás (eddig soha nem futott)
+## 3. Az első CI-futás (megtörtént 2026-10-24)
 
-- [ ] Told fel és kövesd a `.github/workflows/ci.yml`-t: Linux, Windows, macOS tesztek és `clippy -D warnings`; a wasm32 build job; a cargo-deny és REUSE job.
-- [ ] Számíts első futásos hibákra Windowson/macOS-en (útvonalak, jogosultságok, pixelkülönbségek az élsimított éleken, L-04 / L-26). Javítsd vagy lazítsd toleranciákkal, majd jegyezd fel az eredményt a `docs/LIMITATIONS.md`-ben.
-- [ ] Ha a wasm32 job átmegy, futtasd le a `docs/WASM.md` ellenőrzőlistáját egy valódi böngészőben, és frissítsd az L-01 / L-02 tételt.
+- [x] A `.github/workflows/ci.yml` zöld: Linux, Windows, macOS tesztek és `clippy -D warnings`; a wasm32 build job; a cargo-deny és REUSE job.
+- [x] A Windowson történt első futásos hibákat kijavították (veremméret, csak POSIX-en futó tesztek, collab napló hozzáférés), és feljegyezték a `docs/LIMITATIONS.md`-ben (L-04).
+- [x] A wasm32 job átmegy (build és a Node valódi-modul teszt). **Nyitott:** futtasd le a `docs/WASM.md` ellenőrzőlistáját egy valódi böngészőben, és frissítsd az L-01 / L-02 tételt.
 
 ## 4. Emberi tesztelés
 
 - [ ] Add oda a studiót 3–5 animátornak egy hétre egy rövid feladattal (rigelj meg egy karaktert, készíts járásciklust, exportálj egy GIF-et). Jegyezd fel, hol akadnak el; mindegyikből nyiss egy issue-t.
 - [ ] Teszteld valódi böngészőkben (Chrome, Firefox, Safari), érintőképernyős eszközön és csak billentyűzettel.
+- [ ] Egy valódi **Windows 11** és egy valódi **Mac** gépen: csomagold ki az archívumot, kattints duplán az `armatura.exe` (Windows) és az `armatura-studio` fájlra, rigelj meg és exportálj egy projektet, és jelentsd, mi hibázik (L-74–L-76).
 - [ ] Próbáld ki az arcdetektor / mocap / hang funkciókat valódi adatokkal; őszintén jelezd, hogy korlátozottak (L-12, L-13).
 
 ## 5. Üzemeltetési biztonság (ha te üzemelteted a studiót vagy az együttműködést)
@@ -40,9 +41,10 @@
 
 ## 6. Kiadási artefaktumok
 
-- [ ] Címkézz fel egy verziót, frissítsd a `CHANGELOG.md`-t, építs release binárisokat a saját gépeiden (a projekt környezete soha nem épített `--release` módban), tegyél közzé ellenőrzőösszegeket.
+- [x] A kiadási binárisokat GitHub-hosztolt runnerek építik (`release.yml`), és a `SHA256SUMS.txt` a vázlatban generálódik. **Nyitott:** nézd át a `v0.1.0-alpha.2` vázlatot, jelöld be az „előzetes kiadás” mezőt, tedd közzé, és címkézd fel a commitot (a címke a kiadással jön létre).
+- [ ] Döntsd el a kódaláírást (Windows Authenticode tanúsítvány, Apple Developer ID és hitelesítés); addig a letöltéseket aláíratlanként jelöli a rendszer (L-74).
 - [ ] Mellékeld az AGPL-es részekhez tartozó forrást (maga a címke elég; tartsd elérhetően, amíg binárisokat terjesztesz).
-- [ ] Minden binárishoz mellékeld a `docs/THIRD_PARTY_NOTICES.md`-t (generáld újra a `scripts/licence-audit.sh`-val).
+- [x] A `docs/THIRD_PARTY_NOTICES.md` újragenerálva (2026. okt. 24.), és minden archívum tartalmazza; minden későbbi kiadás előtt generáld újra a `scripts/licence-audit.sh`-val.
 - [ ] Crates.io / npm / csomagnyilvántartók: ellenőrizd, hogy a nevek szabadok, és a licencmezők egyeznek a `LICENSING.md`-vel.
 
 ## 7. Bejelentés és adományok

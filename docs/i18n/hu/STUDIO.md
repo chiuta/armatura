@@ -8,7 +8,7 @@ nincs adatbázisa: egy kis, csak a szabványos könyvtárat használó HTTP-szer
 
 Itt minden a valódi binárison (`armatura 0.1.0`, debug build, Linux) lett ellenőrizve, a felhasználói
 felület pedig Playwright által vezérelt headless Chromiumban. A képernyőképek is így készültek (1400x900, a beépített demó
-projekt). Csak **Chromiumot** teszteltünk; lásd a 11. szakaszt.
+projekt). Csak **Chromiumot** teszteltünk; lásd a 11. szakaszt. Windowson és macOS-en a kiadási archívumok az `armatura-studio` programot is tartalmazzák, ugyanezt a stúdiót natív ablakban (a CI-ben lefordítva és önteszttel ellenőrizve, ember még nem használta; lásd [GETTING_STARTED.md](GETTING_STARTED.md) és [LIMITATIONS.md](LIMITATIONS.md) L-75), Windowson pedig az `armatura.exe` dupla kattintása elindítja a stúdiót, és megnyitja a böngészőt (L-76).
 
 A dokumentum licence: CC-BY-4.0. A parancssorhoz lásd a [GETTING_STARTED.md](GETTING_STARTED.md) és a
 [CLI_REFERENCE.md](CLI_REFERENCE.md) fájlt; a szerver biztonságához lásd még a [SECURITY.md](SECURITY.md) fájlt.

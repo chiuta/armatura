@@ -38,6 +38,7 @@ Ce procesează ARMATURA: **fișiere de proiect** (JSON), imagini, audio, fișier
 | Conexiuni simultane | 128 | 503 |
 | Corpuri de cerere chunked | nesuportate | 411 |
 | Antet `Host` duplicat | refuzat | 400 |
+| Caracter de control (CR, NUL, DEL…) într-o valoare de antet | refuzat (tab-ul este permis) | 400 |
 
 Fiecare răspuns poartă `Connection: close` (nicio stare keep-alive de epuizat), `Cache-Control: no-store`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer` și un `Content-Security-Policy`.
 
@@ -87,7 +88,8 @@ Opțiunea `--collab-token T` (sau tokenul cerut de un `--bind` non-local) active
 * **Scrieri atomice.** Ieșirile sunt scrise cu `fsutil::write_atomic`: un fișier temporar în același director (nume `.<name>.tmp-<pid>-<random>`), `fsync`, `rename`. O cădere lasă fie fișierul vechi, fie pe cel nou. **Legăturile simbolice date ca ieșire sunt refuzate**, indicând `--follow-symlinks` (aceasta acoperă acum fiecare ieșire adresată de utilizator: rapoartele și goldens din `ci run`, `export-fit`, `lod`, `fuzz`, `fuzz-grid`, `face-*`, fișierele de poze, snapshot-urile, `vcs`, jurnalul de colaborare și fișierele video scrise de ffmpeg, care sunt pre-verificate), deci o legătură plantată nu poate redirecționa o scriere. Dacă directorul nu poate fi scris, dar fișierul poate, soluția de rezervă este o suprascriere pe loc cu `fsync`, care **nu este atomică** (documentat).
 * **Date private.** Jurnalele collab și alte fișiere pe care trebuie să le citească doar proprietarul sunt create cu modul 0600 (`write_atomic_private`). Directoarele temporare sunt create exclusiv cu modul 0700 (`private_temp_dir`), astfel încât un nume previzibil într-un `/tmp` partajat nu poate fi creat în prealabil de alt utilizator. Valorile aleatorii (tokenuri pentru participanți noi, nume temporare) vin din `/dev/urandom` (`fsutil::random_bytes`); generatorul determinist cu seed al motorului nu este folosit niciodată pentru secrete.
 * **Setările UI.** `ui.json` al studioului ignoră cheile necunoscute cu un avertisment și este copiat în `ui.json.bak` (apoi `.bak.1`, ...) înainte de prima salvare.
-* **Windows / non-Unix.** Modurile de permisiuni de mai sus se aplică pe Unix. Comportamentul pe alte sisteme nu a fost testat.
+* **Windows / non-Unix.** Modurile de permisiuni de mai sus se aplică pe Unix. Pe Windows și macOS suita de teste trece în CI (verificările doar-POSIX sunt omise pe Windows), dar verificările pentru symlink-uri, permisiuni și `/dev/urandom` rulează doar pe Linux și macOS, iar comportamentul pe Windows nu a fost revizuit manual de nimeni.
+* **Binare nesemnate și aplicația cu fereastră.** Executabilele de lansare nu sunt semnate cu cod; verifică descărcările față de `SHA256SUMS.txt`. `armatura-studio` pornește același server local (doar `127.0.0.1`, port liber aleatoriu) și îl afișează în web view-ul sistemului (WebView2 / WKWebView); web view-ul său este la fel de expus ca o filă de browser pe acea adresă și nu a avut o revizuire de securitate separată.
 
 ## 7. Programe externe (ffmpeg)
 
@@ -104,7 +106,7 @@ ffmpeg însuși parsează formate media complexe și a avut propriile vulnerabil
 
 * **Fațada** validează fiecare argument, returnează `ApiError` și convertește panicile în `ApiError::Internal` acolo unde ținta face unwinding. `Animation` și `Player` sunt `Send + Sync` (verificat la compilare).
 * **C ABI** ([C_ABI.md](C_ABI.md)) verifică pointerii nuli, lungimile și UTF-8 și returnează coduri; apelantul trebuie totuși să dea pointeri valizi și să respecte regulile de buffer. Șirul ultimei erori este per thread. ABI-ul a fost exersat sub AddressSanitizer și UndefinedBehaviorSanitizer cu exemplele documentate (curat). Nu este întărit împotriva unui apelant care încalcă contractele documentate (double close, use after close, lungimi greșite).
-* **Modulul WASM** ([WASM.md](WASM.md)) **nu a fost niciodată construit sau rulat**, deci proprietățile lui de securitate sunt necunoscute dincolo de citirea codului. Nu are acces la sistemul de fișiere sau la rețea prin construcție; o panică acolo oprește instanța printr-un trap.
+* **Modulul WASM** ([WASM.md](WASM.md)) se construiește în CI și trece testul wrapper-ului sub Node, dar **nu a fost niciodată rulat într-un browser și nici revizuit ca atare**, deci proprietățile lui de securitate sunt cunoscute doar din citirea codului și din acel test. Nu are acces la sistemul de fișiere sau la rețea prin construcție; o panică acolo oprește instanța printr-un trap.
 * Niciun strat nu izolează *proiectul* în sandbox: randarea unui proiect ostil este mărginită de limitele de mai sus, dar un proiect poate totuși cere multă muncă în interiorul lor (multe straturi, imagini mari, timeline-uri lungi).
 
 ## 9. Lacune cunoscute
@@ -120,7 +122,7 @@ Listă sinceră; vezi [LIMITATIONS.md](LIMITATIONS.md) pentru lista mai largă d
 7. **Soluția de rezervă neatomică** când directorul de ieșire nu poate fi scris.
 8. **Verificările de cale folosesc căi canonice.** `assets::resolve` canonicalizează fișierele existente și refuză un fișier a cărui locație reală este în afara directorului proiectului, deci o legătură simbolică din folderul unui proiect care indică în afara lui este refuzată (testat în `assets.rs`); legăturile care rămân în folder funcționează. O cursă între verificare și citirea ulterioară (time-of-check to time-of-use), făcută de cineva care poate modifica simultan folderul proiectului, nu este exclusă.
 9. **ffmpeg** este în afara controlului nostru (secțiunea 7).
-10. **WASM** este netestat într-un motor real; modelul de amenințări din browser al unei pagini care îl încorporează (CSP, limite de memorie) nu a fost examinat.
+10. **WASM** este netestat într-un motor de browser (rulează doar sub Node în CI); modelul de amenințări din browser al unei pagini care îl încorporează (CSP, limite de memorie) nu a fost examinat.
 11. **Denial of service prin dimensiune.** Limitele mărginesc cererile și fișierele individuale, nu munca totală: un proiect valid, dar foarte greu, poate ocupa un CPU mult timp (plafonul de conexiuni de mai sus limitează concurența, nu costul unei cereri).
 
 ## 10. Raportarea unei vulnerabilități
@@ -128,7 +130,7 @@ Listă sinceră; vezi [LIMITATIONS.md](LIMITATIONS.md) pentru lista mai largă d
 * **Nu deschide un issue public** pentru o vulnerabilitate. Trimite un raport privat către mentenanță: **`alexio@trom.tf`**. *(Substituent: adresa apare în notificarea `--version` a programului și în documentele de licență; proprietarul trebuie să o confirme drept contact de securitate și o poate înlocui cu o adresă dedicată sau cu un canal privat de advisory înainte de prima lansare.)*
 * Include: versiunea (`armatura --version`) și platforma, proiectul sau cererea care declanșează problema (un fișier minimal este cel mai bun), ce te așteptai să se întâmple și ce s-a întâmplat, și dacă dorești să fii menționat.
 * La ce să te aștepți *(intenție, nu contract: acesta este un proiect al unei singure persoane)*: o confirmare într-un timp rezonabil, o remediere dezvoltată în privat, un test de regresie adăugat în suită, o notă în [CHANGELOG.md](CHANGELOG.md) și menționare dacă dorești. Te rugăm să lași timp pentru o remediere înainte de a publica detalii.
-* Versiuni suportate: nu a existat încă nicio lansare; arborele curent este singura versiune suportată.
+* Versiuni suportate: este suportată doar cea mai nouă pre-lansare (`v0.1.0-alpha.2` după publicare) și arborele curent de pe `main`.
 * Rapoartele despre expunerea în rețea a studioului când este legat în mod deliberat la o adresă publică fără reverse proxy sunt mai întâi probleme de documentație: vezi secțiunea 11.
 
 ## 11. Listă de consolidare pentru cel care implementează

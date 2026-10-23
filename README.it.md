@@ -18,13 +18,29 @@ Principi che danno forma al progetto:
 
 ## Stato
 
-> **Pre-release, un solo ambiente.** Tutti i crate sono alla versione `0.1.0` e nulla è stato rilasciato; "v0.5 / v0.6 / v0.7" sono *livelli di funzionalità* nella cronologia, non numeri di release ([CHANGELOG.md](docs/i18n/it/CHANGELOG.md)).
+> **Alpha. Prime build preparate come pre-release in bozza: `v0.1.0-alpha.2`.** Gli eseguibili per Windows x86-64, macOS arm64 e Linux x86-64 e il modulo WebAssembly sono compilati da GitHub Actions e allegati a una pre-release *in bozza* su <https://github.com/chiuta/armatura/releases> (una bozza è visibile solo al proprietario finché non viene pubblicata a mano). Tutti i crate sono ancora alla versione `0.1.0`; "v0.5 / v0.6 / v0.7" sono *livelli di funzionalità* nella cronologia, non numeri di release ([CHANGELOG.md](docs/i18n/it/CHANGELOG.md)).
 >
 > | Verificato | Non verificato |
 > |---|---|
-> | 1368 test in `cargo test --workspace` più 19 doc-test superati (22 ott 2026, Linux x86-64); quattro smoke test dello studio in Chromium headless superati (124, 60, 89, 35 controlli per gli script ui, collab, overlays e suggest); la CLI, la facciata Rust e la C ABI (anche con ASan/UBSan) sono state eseguite con gli esempi della documentazione | **Il modulo WebAssembly non è mai stato compilato né eseguito** (non è stato possibile installare il target wasm32; [docs/WASM.md](docs/i18n/it/WASM.md)); lo studio non è mai stato usato in produzione da una persona né in un browser diverso da Chromium; non è mai stata usata una vera GPU (solo un adattatore software), né una webcam, una fotografia o un file di motion capture reali; Windows e macOS non testati; nessun audit di sicurezza, revisione legale o ricerca di brevetti |
+> | **In locale (Linux x86-64, 24 ott 2026):** 1338 test di `cargo test --workspace --exclude armatura-gpu --exclude armatura-gui` più 19 doc-test superati (il crate GPU richiede un adattatore e il crate della finestra un desktop; prima il conteggio che includeva il crate GPU era 1368). **Su GitHub Actions (24 ott 2026, toolchain 1.97.0):** la suite di test e `clippy -D warnings` passano su Linux, macOS (arm64) e Windows; `cargo deny` e `reuse lint` passano; il modulo WebAssembly viene compilato per `wasm32-unknown-unknown` e il test del wrapper passa sul modulo reale con Node 20; i binari di release superano uno smoke test (`--version`, `demo`, `check`, `render`) e `armatura-studio --selftest` viene eseguito su Windows e macOS. Quattro smoke test dello studio in Chromium headless superati; la CLI, la facciata Rust e la C ABI (anche con ASan/UBSan) sono state eseguite con gli esempi della documentazione | **Nessuna persona ha usato gli eseguibili su un vero desktop Windows o macOS**: il launcher a doppio clic di Windows e l'app a finestra `armatura-studio` (WebView2 / WKWebView) sono stati solo compilati e auto-testati in CI; i binari **non sono firmati** (SmartScreen "Editore sconosciuto", Gatekeeper di macOS); il binario Linux è stato compilato solo su un runner Ubuntu; **il modulo WebAssembly non è mai stato eseguito in un browser** e velocità e memoria non sono state misurate; lo studio non è mai stato usato in produzione da una persona né in un browser diverso da Chromium; non è mai stata usata una vera GPU (solo un adattatore software), né una webcam, una fotografia o un file di motion capture reali; nessun audit di sicurezza, revisione legale o ricerca di brevetti |
 >
-> Leggi [docs/LIMITATIONS.md](docs/i18n/it/LIMITATIONS.md) (73 limiti numerati, con gravità e soluzione alternativa) prima di fare affidamento su qualsiasi cosa.
+> Leggi [docs/LIMITATIONS.md](docs/i18n/it/LIMITATIONS.md) (77 limiti numerati, con gravità e soluzione alternativa) prima di fare affidamento su qualsiasi cosa.
+
+## Download
+
+Gli archivi precompilati, una volta che il proprietario avrà pubblicato la release in bozza, si trovano nella [pagina Releases](https://github.com/chiuta/armatura/releases) del progetto:
+
+| Archivio | Contenuto |
+|---|---|
+| `armatura-windows-x86_64.zip` | `armatura.exe` (riga di comando + server dello studio), `armatura-studio.exe` (app a finestra), libreria C e header, licenze, avvisi di terze parti |
+| `armatura-macos-arm64.tar.gz` | `armatura`, `armatura-studio` (solo Apple silicon), libreria C e header, licenze, avvisi |
+| `armatura-linux-x86_64.tar.gz` | `armatura`, libreria C e header, licenze, avvisi (nessuna app a finestra: usa `armatura studio` e un browser) |
+| `armatura-web.tar.gz` | `armatura_wasm.wasm`, `armatura.js`, `index.html` demo (non verificato nei browser, vedi [docs/WASM.md](docs/i18n/it/WASM.md)) |
+| `SHA256SUMS.txt` | verifica ogni download con questo file |
+
+* **Windows:** fai doppio clic su `armatura.exe` per creare `Documents\ARMATURA\first-rig.json` e aprire lo studio nel browser, oppure doppio clic su `armatura-studio.exe` per una finestra tutta sua. Entrambi i programmi non sono firmati: in SmartScreen scegli *Ulteriori informazioni* e poi *Esegui comunque*. Vedi [docs/GETTING_STARTED.md](docs/i18n/it/GETTING_STARTED.md).
+* **macOS:** la prima volta approva il programma in *Impostazioni di Sistema > Privacy e sicurezza*.
+* **Sorgenti:** ogni archivio indica il commit da cui è stato compilato; le parti AGPL sono servite con la relativa offerta dei sorgenti (`armatura --version`, `/source`).
 
 ## Funzionalità per area
 
@@ -37,11 +53,11 @@ Dettagli e opzioni esatte: [docs/CLI_REFERENCE.md](docs/i18n/it/CLI_REFERENCE.md
 * **Output.** SVG, PNG, sequenze PNG e sprite sheet, GIF, APNG, MP4/WebM (tramite ffmpeg), player HTML autonomo, Lottie e dotLottie, glTF 2.0 binario, OpenEXR/PNG a 16 bit, OCA; esportazione con dimensione obiettivo (`export-fit`). Importazione: SVG, OpenRaster, Lottie, BVH, sequenze PNG/GIF/APNG.
 * **Strumenti per la qualità.** `check`, `lint`, `diff` semantico, pose fuzzing con heat map, CI dell'animazione con diff percettivo e fotogrammi di riferimento ([docs/CI.md](docs/i18n/it/CI.md)), controllo di versione con merge semantico (`vcs`), controlli di sicurezza per lampeggi e movimento.
 * **Studio.** Editor nel browser servito dalla CLI: gizmo sul canvas, timeline, dope sheet ed editor di curve, overlay, palette dei comandi e scorciatoie, annulla/ripeti, modifica collaborativa in tempo reale con token opzionale e log persistente ([docs/STUDIO.md](docs/i18n/it/STUDIO.md)).
-* **Librerie.** Facciata Rust stabile ([docs/API.md](docs/i18n/it/API.md)), C ABI ([docs/C_ABI.md](docs/i18n/it/C_ABI.md)), modulo WebAssembly e wrapper JavaScript (non compilati; [docs/WASM.md](docs/i18n/it/WASM.md)), renderer wgpu opzionale.
+* **Librerie.** Facciata Rust stabile ([docs/API.md](docs/i18n/it/API.md)), C ABI ([docs/C_ABI.md](docs/i18n/it/C_ABI.md)), modulo WebAssembly e wrapper JavaScript (compilati e testati con Node in CI, non ancora eseguiti in un browser; [docs/WASM.md](docs/i18n/it/WASM.md)), renderer wgpu opzionale.
 
 ## Avvio rapido
 
-Requisiti: una toolchain Rust stabile recente. `ffmpeg` serve solo per l'esportazione MP4/WebM e per l'audio mp3/ogg; non viene mai incluso. Ogni comando qui sotto è stato eseguito per questo README (build di debug, Linux). Le build di release (`cargo build --release`) sono molto più veloci per il rendering e si usano allo stesso modo con `target/release`.
+Requisiti: una toolchain Rust stabile recente (oppure un archivio precompilato dalla sezione [Download](#download): salta la riga `cargo build` e usa l'`armatura` estratto). `ffmpeg` serve solo per l'esportazione MP4/WebM e per l'audio mp3/ogg; non viene mai incluso. Ogni comando qui sotto è stato eseguito per questo README (build di debug, Linux). Le build di release (`cargo build --release`) sono molto più veloci per il rendering e si usano allo stesso modo con `target/release`.
 
 ```sh
 cargo build -p armatura-cli                       # builds target/debug/armatura
@@ -87,10 +103,12 @@ cargo test -p armatura-cli --test spdx_audit
 |---|---|---|
 | `armatura-core/` | motore, formati, strumenti, facciata stabile `api` | MPL-2.0 |
 | `armatura-cli/` | il binario `armatura`, studio e server di collaborazione, test end-to-end e smoke test | AGPL-3.0-or-later |
+| `armatura-gui/` | `armatura-studio`, lo studio in una finestra nativa (Windows e macOS; uno stub su Linux) | AGPL-3.0-or-later |
 | `armatura-capi/` | C ABI (`armatura.h`, libreria condivisa e statica) | MPL-2.0 |
-| `armatura-wasm/` | ABI WebAssembly, wrapper JavaScript, pagina demo (non compilata) | MPL-2.0 |
+| `armatura-wasm/` | ABI WebAssembly, wrapper JavaScript, pagina demo (compilata in CI) | MPL-2.0 |
 | `armatura-gpu/` | renderer wgpu opzionale (non è un membro predefinito) | MPL-2.0 |
 | `docs/` | documentazione (CC-BY-4.0) e file di terze parti generati | CC-BY-4.0 |
+| `.github/workflows/` | CI (`ci.yml`) e build di release (`release.yml`) | MPL-2.0 |
 | `scripts/` | `e2e.sh`, `licence-audit.sh` | MPL-2.0 |
 | `LICENSES/`, `REUSE.toml`, `deny.toml` | testi delle licenze, metadati di licenza, politica sulle dipendenze | - |
 | `ROADMAP.md`, `FEATURES.md`, `CLEANROOM.md`, `LICENSING.md`, `TRADEMARK.md`, `CONTRIBUTING.md`, `CHANGELOG.md` | documenti di progetto | CC-BY-4.0 |
@@ -113,7 +131,7 @@ Parti da [docs/INDEX.md](docs/i18n/it/INDEX.md) (tutti i documenti, i destinatar
 | [docs/FAQ.md](docs/i18n/it/FAQ.md) | domande frequenti |
 | [docs/API.md](docs/i18n/it/API.md) | facciata Rust 1.4 |
 | [docs/C_ABI.md](docs/i18n/it/C_ABI.md) | interfaccia C |
-| [docs/WASM.md](docs/i18n/it/WASM.md) | WebAssembly (mai compilato) |
+| [docs/WASM.md](docs/i18n/it/WASM.md) | WebAssembly (compilato in CI, non eseguito in un browser) |
 | [docs/CI.md](docs/i18n/it/CI.md) | CI dell'animazione |
 | [docs/DEVELOPMENT.md](docs/i18n/it/DEVELOPMENT.md) | build, test, convenzioni, release |
 | [docs/SECURITY.md](docs/i18n/it/SECURITY.md) | modello delle minacce e hardening |
@@ -125,17 +143,17 @@ Parti da [docs/INDEX.md](docs/i18n/it/INDEX.md) (tutti i documenti, i destinatar
 ## Riepilogo delle licenze
 
 * **MPL-2.0** per le librerie `armatura-core`, `armatura-capi`, `armatura-wasm`, `armatura-gpu` e per `scripts/`: puoi collegarle al tuo programma, aperto o chiuso; le modifiche a quei file devono essere pubblicate sotto MPL.
-* **AGPL-3.0-or-later** per `armatura-cli` (la riga di comando e lo studio). Se lo modifichi e permetti ad altri di interagire con esso tramite una rete, la sezione 13 ti impone di offrire loro il tuo codice sorgente: `armatura studio --source-url URL` pubblica dove si trova; `/source` e `armatura --version` riportano l'offerta.
+* **AGPL-3.0-or-later** per `armatura-cli` (la riga di comando e lo studio) e `armatura-gui` (la finestra che lo contiene). Se lo modifichi e permetti ad altri di interagire con esso tramite una rete, la sezione 13 ti impone di offrire loro il tuo codice sorgente: `armatura studio --source-url URL` pubblica dove si trova; `/source` e `armatura --version` riportano l'offerta.
 * **CC-BY-4.0** per la documentazione e gli asset sintetici (compreso il modello sintetico di rilevamento dei volti).
 * **I tuoi progetti e i tuoi render restano tuoi.**
 * Il nome e il logo non sono coperti da queste licenze ([TRADEMARK.md](docs/i18n/it/TRADEMARK.md)). Lo stato dei brevetti non è stato valutato ([docs/PATENT_NOTES.md](docs/i18n/it/PATENT_NOTES.md)). Una licenza commerciale o duale per il codice contribuito non è possibile senza un contributor licence agreement, e non ne esiste alcuno.
-* Crate di terze parti: 160 all'ultimo audit, tutti permissivi tranne un crate a copyleft debole dietro la funzionalità opzionale `scripting` ([docs/THIRD_PARTY.md](docs/i18n/it/THIRD_PARTY.md)). ffmpeg non viene mai incluso.
+* Crate di terze parti: 362 nell'inventario del 24 ott 2026 (tutte le piattaforme e i target insieme, inclusi i crate della sola app a finestra per Windows / macOS / Linux; un dato binario ne contiene un sottoinsieme), tutti permissivi tranne sei crate MPL-2.0 a copyleft debole: `smartstring` dietro la funzionalità opzionale `scripting`, e cinque (`cssparser`, `cssparser-macros`, `dtoa-short`, `selectors`, `option-ext`) che solo l'app a finestra `armatura-gui` può includere ([docs/THIRD_PARTY.md](docs/i18n/it/THIRD_PARTY.md)). ffmpeg non viene mai incluso.
 
 Vedi [LICENSE](LICENSE), [LICENSES/](LICENSES/) e [LICENSING.md](docs/i18n/it/LICENSING.md). Nulla di tutto ciò è consulenza legale; la revisione di un avvocato è ancora in sospeso.
 
 ## Contribuire
 
-I contributi sono benvenuti, con la licenza della parte che modificano. Leggi [CONTRIBUTING.md](docs/i18n/it/CONTRIBUTING.md) (ogni commit richiede una riga `Signed-off-by`, DCO 1.1), [CLEANROOM.md](docs/i18n/it/CLEANROOM.md) (implementa solo da fonti pubbliche; non copiare da codice proprietario o con licenza incompatibile) e [docs/DEVELOPMENT.md](docs/i18n/it/DEVELOPMENT.md) (convenzioni, checklist per un nuovo modulo, test). Buoni primi contributi: una correzione tratta da [docs/LIMITATIONS.md](docs/i18n/it/LIMITATIONS.md), un'esecuzione reale della checklist WebAssembly, test su Windows o macOS, un benchmark su GPU reale.
+I contributi sono benvenuti, con la licenza della parte che modificano. Leggi [CONTRIBUTING.md](docs/i18n/it/CONTRIBUTING.md) (ogni commit richiede una riga `Signed-off-by`, DCO 1.1), [CLEANROOM.md](docs/i18n/it/CLEANROOM.md) (implementa solo da fonti pubbliche; non copiare da codice proprietario o con licenza incompatibile) e [docs/DEVELOPMENT.md](docs/i18n/it/DEVELOPMENT.md) (convenzioni, checklist per un nuovo modulo, test). Buoni primi contributi: una correzione tratta da [docs/LIMITATIONS.md](docs/i18n/it/LIMITATIONS.md), un'esecuzione reale della checklist WebAssembly, un test reale su desktop degli eseguibili Windows / macOS, un benchmark su GPU reale.
 
 Problemi di sicurezza: non aprire una issue pubblica; segui [docs/SECURITY.md](docs/i18n/it/SECURITY.md) sezione 10.
 

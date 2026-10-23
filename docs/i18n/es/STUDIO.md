@@ -7,7 +7,7 @@ de rostro, botones de exportación a GIF/HTML/Lottie y una sesión de edición c
 base de datos: es un pequeño servidor HTTP de biblioteca estándar delante del mismo editor que usa la línea de comandos.
 
 Todo lo que aparece aquí se comprobó con el binario real (`armatura 0.1.0`, compilación debug, Linux) y, para la interfaz
-de usuario, en Chromium sin interfaz controlado con Playwright. Las capturas de pantalla se tomaron así (1400x900, el proyecto de demostración integrado). Solo se probó **Chromium**; véase la sección 11.
+de usuario, en Chromium sin interfaz controlado con Playwright. Las capturas de pantalla se tomaron así (1400x900, el proyecto de demostración integrado). Solo se probó **Chromium**; véase la sección 11. En Windows y macOS los archivos de la versión también contienen `armatura-studio`, el mismo estudio en una ventana nativa (compilado y autoprobado en CI, aún no usado por una persona; véanse [GETTING_STARTED.md](GETTING_STARTED.md) y [LIMITATIONS.md](LIMITATIONS.md) L-75), y en Windows un doble clic en `armatura.exe` inicia el estudio y abre el navegador (L-76).
 
 Licencia de este documento: CC-BY-4.0. Para la línea de comandos véanse [GETTING_STARTED.md](GETTING_STARTED.md) y
 [CLI_REFERENCE.md](CLI_REFERENCE.md); para la seguridad del servidor véase también [SECURITY.md](SECURITY.md).

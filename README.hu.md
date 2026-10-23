@@ -18,13 +18,29 @@ A projektet alakító alapelvek:
 
 ## Állapot
 
-> **Előzetes kiadás, egyetlen környezet.** Minden crate verziója `0.1.0`, és semmi sem jelent még meg; a „v0.5 / v0.6 / v0.7” a történetben *funkciószintet* jelöl, nem kiadási számot ([CHANGELOG.md](docs/i18n/hu/CHANGELOG.md)).
+> **Alfa. Az első buildek előzetes kiadás-vázlatként készültek: `v0.1.0-alpha.2`.** A Windows x86-64, macOS arm64 és Linux x86-64 futtatható fájlokat, valamint a WebAssembly modult a GitHub Actions építi, és egy *vázlat* előzetes kiadáshoz csatolja a <https://github.com/chiuta/armatura/releases> oldalon (a vázlatot csak a tulajdonos látja, amíg kézzel közzé nem teszi). Minden crate verziója továbbra is `0.1.0`; a „v0.5 / v0.6 / v0.7” a történetben *funkciószintet* jelöl, nem kiadási számot ([CHANGELOG.md](docs/i18n/hu/CHANGELOG.md)).
 >
 > | Ellenőrizve | Nem ellenőrizve |
 > |---|---|
-> | A `cargo test --workspace` 1368 tesztje és 19 doc-tesztje sikeres (2026. okt. 22., Linux x86-64); a stúdió négy headless Chromium füstteszje sikeres (124, 60, 89, illetve 35 ellenőrzés az ui, collab, overlays és suggest szkriptekhez); a CLI-t, a Rust homlokzatot és a C ABI-t (ASan/UBSan alatt is) lefuttattuk a dokumentációban szereplő példákkal | **A WebAssembly modult még soha nem fordították le és nem futtatták** (a wasm32 target telepítése nem sikerült; [docs/WASM.md](docs/i18n/hu/WASM.md)); a stúdiót ember még nem használta éles környezetben, és Chromiumtól eltérő böngészőben sem; valódi GPU-val (csak szoftveres adapterrel), webkamerával, fényképpel vagy mozgásrögzítő fájllal még nem próbálták; Windows és macOS nincs tesztelve; nem volt biztonsági audit, jogi felülvizsgálat és szabadalmi keresés |
+> | **Helyben (Linux x86-64, 2026. okt. 24.):** a `cargo test --workspace --exclude armatura-gpu --exclude armatura-gui` 1338 tesztje és 19 doc-tesztje sikeres (a GPU crate-hez adapter, az ablak crate-hez asztali környezet kell; korábban a GPU crate-et is beleszámítva 1368 volt). **A GitHub Actionsön (2026. okt. 24., eszközlánc 1.97.0):** a tesztkészlet és a `clippy -D warnings` sikeres Linuxon, macOS-en (arm64) és Windowson; a `cargo deny` és a `reuse lint` sikeres; a WebAssembly modul lefordul `wasm32-unknown-unknown` célra, és a wrapper tesztje a valódi modul ellen sikeres Node 20 alatt; a kiadási binárisok füstteszten átmennek (`--version`, `demo`, `check`, `render`), és az `armatura-studio --selftest` lefut Windowson és macOS-en. A stúdió négy headless Chromium füstteszje sikeres; a CLI-t, a Rust homlokzatot és a C ABI-t (ASan/UBSan alatt is) lefuttattuk a dokumentációban szereplő példákkal | **A futtatható fájlokat ember még nem használta valódi Windows vagy macOS asztalon**: a Windows dupla kattintásos indítóját és az `armatura-studio` ablakos alkalmazást (WebView2 / WKWebView) a CI-ben csak lefordították és önteszttel ellenőrizték; a binárisok **nincsenek kódaláírással ellátva** (SmartScreen „Ismeretlen közzétevő”, macOS Gatekeeper); a Linux binárist csak Ubuntu runneren építették; **a WebAssembly modult böngészőben még soha nem futtatták**, sebessége és memóriahasználata nincs megmérve; a stúdiót ember még nem használta éles környezetben, és Chromiumtól eltérő böngészőben sem; valódi GPU-val (csak szoftveres adapterrel), webkamerával, fényképpel vagy mozgásrögzítő fájllal még nem próbálták; nem volt biztonsági audit, jogi felülvizsgálat és szabadalmi keresés |
 >
-> Mielőtt bármire ráépítenél, olvasd el a [docs/LIMITATIONS.md](docs/i18n/hu/LIMITATIONS.md) fájlt (73 számozott korlát súlyossággal és kerülőmegoldással).
+> Mielőtt bármire ráépítenél, olvasd el a [docs/LIMITATIONS.md](docs/i18n/hu/LIMITATIONS.md) fájlt (77 számozott korlát súlyossággal és kerülőmegoldással).
+
+## Letöltés
+
+Az előre elkészített archívumok – miután a tulajdonos közzétette a vázlat kiadást – a projekt [Releases oldalán](https://github.com/chiuta/armatura/releases) találhatók:
+
+| Archívum | Tartalom |
+|---|---|
+| `armatura-windows-x86_64.zip` | `armatura.exe` (parancssor + stúdiószerver), `armatura-studio.exe` (ablakos alkalmazás), C könyvtár és fejléc, licencek, harmadik féltől származó közlemények |
+| `armatura-macos-arm64.tar.gz` | `armatura`, `armatura-studio` (csak Apple silicon), C könyvtár és fejléc, licencek, közlemények |
+| `armatura-linux-x86_64.tar.gz` | `armatura`, C könyvtár és fejléc, licencek, közlemények (nincs ablakos alkalmazás: használd az `armatura studio` parancsot és egy böngészőt) |
+| `armatura-web.tar.gz` | `armatura_wasm.wasm`, `armatura.js`, demó `index.html` (böngészőkben nem ellenőrizve, lásd [docs/WASM.md](docs/i18n/hu/WASM.md)) |
+| `SHA256SUMS.txt` | minden letöltést ellenőrizz ezzel |
+
+* **Windows:** kattints duplán az `armatura.exe` fájlra, hogy létrejöjjön a `Documents\ARMATURA\first-rig.json`, és megnyíljon a stúdió a böngésződben, vagy kattints duplán az `armatura-studio.exe` fájlra egy saját ablakért. Mindkét program aláíratlan: a SmartScreenben válaszd a *További információ*, majd a *Futtatás mindenképpen* lehetőséget. Lásd [docs/GETTING_STARTED.md](docs/i18n/hu/GETTING_STARTED.md).
+* **macOS:** első alkalommal hagyd jóvá a programot a *Rendszerbeállítások > Adatvédelem és biztonság* alatt.
+* **Forrás:** minden archívum megnevezi azt a commitot, amelyből készült; az AGPL alá tartozó részekhez a forrásajánlat tartozik (`armatura --version`, `/source`).
 
 ## Funkciók területenként
 
@@ -37,11 +53,11 @@ A részletek és a pontos opciók: [docs/CLI_REFERENCE.md](docs/i18n/hu/CLI_REFE
 * **Kimenet.** SVG, PNG, PNG-sorozatok és sprite sheetek, GIF, APNG, MP4/WebM (ffmpeg-gel), önálló HTML-lejátszó, Lottie és dotLottie, glTF 2.0 bináris, OpenEXR/16 bites PNG, OCA; méretre célzott export (`export-fit`). Import: SVG, OpenRaster, Lottie, BVH, PNG/GIF/APNG-sorozatok.
 * **Minőségbiztosítási eszközök.** `check`, `lint`, szemantikus `diff`, póz-fuzzing hőtérképekkel, animációs CI észlelési diff-fel és referenciakockákkal ([docs/CI.md](docs/i18n/hu/CI.md)), verziókezelés szemantikus merge-dzsel (`vcs`), villogás- és mozgásbiztonsági ellenőrzések.
 * **Stúdió.** A CLI által kiszolgált böngészős szerkesztő: vászon-gizmók, idővonal, dope sheet és görbeszerkesztő, overlayek, parancspaletta és gyorsbillentyűk, visszavonás/újra, valós idejű többfelhasználós szerkesztés opcionális tokennel és tartós naplóval ([docs/STUDIO.md](docs/i18n/hu/STUDIO.md)).
-* **Könyvtárak.** Stabil Rust homlokzat ([docs/API.md](docs/i18n/hu/API.md)), C ABI ([docs/C_ABI.md](docs/i18n/hu/C_ABI.md)), WebAssembly modul és JavaScript wrapper (lefordítatlan; [docs/WASM.md](docs/i18n/hu/WASM.md)), opcionális wgpu renderer.
+* **Könyvtárak.** Stabil Rust homlokzat ([docs/API.md](docs/i18n/hu/API.md)), C ABI ([docs/C_ABI.md](docs/i18n/hu/C_ABI.md)), WebAssembly modul és JavaScript wrapper (a CI-ben lefordítva és Node alatt tesztelve, böngészőben még nem futtatva; [docs/WASM.md](docs/i18n/hu/WASM.md)), opcionális wgpu renderer.
 
 ## Gyors kezdés
 
-Követelmények: egy friss stabil Rust eszközlánc. Az `ffmpeg` csak az MP4/WebM exporthoz és az mp3/ogg hanghoz kell; soha nem csomagoljuk vele. Az alábbi összes parancsot lefuttattuk ehhez a README-hez (debug build, Linux). A kiadási buildek (`cargo build --release`) renderelésnél sokkal gyorsabbak, és ugyanígy használhatók a `target/release` mappával.
+Követelmények: egy friss stabil Rust eszközlánc (vagy egy előre elkészített archívum a [Letöltés](#letöltés) szakaszból: hagyd ki a `cargo build` sort, és használd a kicsomagolt `armatura` fájlt). Az `ffmpeg` csak az MP4/WebM exporthoz és az mp3/ogg hanghoz kell; soha nem csomagoljuk vele. Az alábbi összes parancsot lefuttattuk ehhez a README-hez (debug build, Linux). A kiadási buildek (`cargo build --release`) renderelésnél sokkal gyorsabbak, és ugyanígy használhatók a `target/release` mappával.
 
 ```sh
 cargo build -p armatura-cli                       # builds target/debug/armatura
@@ -87,10 +103,12 @@ cargo test -p armatura-cli --test spdx_audit
 |---|---|---|
 | `armatura-core/` | motor, formátumok, eszközök, a stabil `api` homlokzat | MPL-2.0 |
 | `armatura-cli/` | az `armatura` bináris, a stúdió- és együttműködési szerver, végpontok közötti és füsttesztek | AGPL-3.0-or-later |
+| `armatura-gui/` | az `armatura-studio`, a stúdió natív ablakban (Windows és macOS; Linuxon csonk) | AGPL-3.0-or-later |
 | `armatura-capi/` | C ABI (`armatura.h`, megosztott és statikus könyvtár) | MPL-2.0 |
-| `armatura-wasm/` | WebAssembly ABI, JavaScript wrapper, demóoldal (lefordítatlan) | MPL-2.0 |
+| `armatura-wasm/` | WebAssembly ABI, JavaScript wrapper, demóoldal (a CI-ben lefordítva) | MPL-2.0 |
 | `armatura-gpu/` | opcionális wgpu renderer (nem alapértelmezett tag) | MPL-2.0 |
 | `docs/` | dokumentáció (CC-BY-4.0) és generált harmadik féltől származó fájlok | CC-BY-4.0 |
+| `.github/workflows/` | CI (`ci.yml`) és kiadási buildek (`release.yml`) | MPL-2.0 |
 | `scripts/` | `e2e.sh`, `licence-audit.sh` | MPL-2.0 |
 | `LICENSES/`, `REUSE.toml`, `deny.toml` | licencszövegek, licenc-metaadatok, függőségi szabályzat | - |
 | `ROADMAP.md`, `FEATURES.md`, `CLEANROOM.md`, `LICENSING.md`, `TRADEMARK.md`, `CONTRIBUTING.md`, `CHANGELOG.md` | projektdokumentumok | CC-BY-4.0 |
@@ -113,7 +131,7 @@ Kezdd a [docs/INDEX.md](docs/i18n/hu/INDEX.md) fájlnál (minden dokumentum, cé
 | [docs/FAQ.md](docs/i18n/hu/FAQ.md) | gyakori kérdések |
 | [docs/API.md](docs/i18n/hu/API.md) | Rust homlokzat 1.4 |
 | [docs/C_ABI.md](docs/i18n/hu/C_ABI.md) | C interfész |
-| [docs/WASM.md](docs/i18n/hu/WASM.md) | WebAssembly (soha nem fordították le) |
+| [docs/WASM.md](docs/i18n/hu/WASM.md) | WebAssembly (a CI-ben lefordítva, böngészőben nem futtatva) |
 | [docs/CI.md](docs/i18n/hu/CI.md) | animációs CI |
 | [docs/DEVELOPMENT.md](docs/i18n/hu/DEVELOPMENT.md) | build, teszt, konvenciók, kiadás |
 | [docs/SECURITY.md](docs/i18n/hu/SECURITY.md) | fenyegetésmodell és megerősítés |
@@ -125,17 +143,17 @@ Kezdd a [docs/INDEX.md](docs/i18n/hu/INDEX.md) fájlnál (minden dokumentum, cé
 ## Licencösszefoglaló
 
 * **MPL-2.0** az `armatura-core`, `armatura-capi`, `armatura-wasm`, `armatura-gpu` könyvtárakra és a `scripts/` mappára: beleköthetők a saját programodba, nyílt vagy zárt forrásúba egyaránt; az ezekben a fájlokban végzett módosításokat MPL alatt kell közzétenni.
-* **AGPL-3.0-or-later** az `armatura-cli`-re (a parancssor és a stúdió). Ha módosítod, és másoknak hálózaton keresztül hozzáférést adsz hozzá, a 13. szakasz előírja, hogy fel kell kínálnod nekik a forráskódodat: az `armatura studio --source-url URL` közzéteszi, hol található; a `/source` és az `armatura --version` tartalmazza az ajánlatot.
+* **AGPL-3.0-or-later** az `armatura-cli`-re (a parancssor és a stúdió) és az `armatura-gui`-ra (az azt körülvevő ablak). Ha módosítod, és másoknak hálózaton keresztül hozzáférést adsz hozzá, a 13. szakasz előírja, hogy fel kell kínálnod nekik a forráskódodat: az `armatura studio --source-url URL` közzéteszi, hol található; a `/source` és az `armatura --version` tartalmazza az ajánlatot.
 * **CC-BY-4.0** a dokumentációra és a szintetikus eszközökre (a mellékelt szintetikus arcfelismerő modellt is beleértve).
 * **A projektjeid és a renderek a tieid maradnak.**
 * A név és a logó nem tartozik ezen licencek hatálya alá ([TRADEMARK.md](docs/i18n/hu/TRADEMARK.md)). A szabadalmi helyzetet nem értékeltük ([docs/PATENT_NOTES.md](docs/i18n/hu/PATENT_NOTES.md)). A beküldött kód kereskedelmi vagy kettős licencelése közreműködői licencszerződés nélkül nem lehetséges, és ilyen nincs.
-* Harmadik féltől származó crate-ek: 160 az utolsó auditkor, mind megengedő licencű, kivéve egy gyenge copyleft crate-et az opcionális `scripting` funkció mögött ([docs/THIRD_PARTY.md](docs/i18n/hu/THIRD_PARTY.md)). Az ffmpeg-et soha nem csomagoljuk.
+* Harmadik féltől származó crate-ek: 362 a 2026. okt. 24-i leltárban (minden platform és target együtt, ami az ablakos alkalmazás csak Windowson / macOS-en / Linuxon használt crate-jeit is tartalmazza; egy adott bináris ennek egy részhalmazát tartalmazza), mind megengedő licencű, kivéve hat gyenge copyleft MPL-2.0 crate-et: a `smartstring` az opcionális `scripting` funkció mögött, valamint öt (`cssparser`, `cssparser-macros`, `dtoa-short`, `selectors`, `option-ext`), amelyeket csak az `armatura-gui` ablakos alkalmazás húzhat be ([docs/THIRD_PARTY.md](docs/i18n/hu/THIRD_PARTY.md)). Az ffmpeg-et soha nem csomagoljuk.
 
 Lásd: [LICENSE](LICENSE), [LICENSES/](LICENSES/) és [LICENSING.md](docs/i18n/hu/LICENSING.md). Mindez nem jogi tanács; a jogi felülvizsgálat még hátravan.
 
 ## Közreműködés
 
-A közreműködést szívesen fogadjuk, annak a résznek a licence alatt, amelyet módosít. Olvasd el a [CONTRIBUTING.md](docs/i18n/hu/CONTRIBUTING.md) fájlt (minden commithoz kell egy `Signed-off-by` sor, DCO 1.1), a [CLEANROOM.md](docs/i18n/hu/CLEANROOM.md) fájlt (csak nyilvános forrásokból implementálj; ne másolj zárt vagy összeférhetetlen licencű kódból) és a [docs/DEVELOPMENT.md](docs/i18n/hu/DEVELOPMENT.md) fájlt (konvenciók, új modul ellenőrzőlistája, tesztek). Jó első hozzájárulások: egy javítás a [docs/LIMITATIONS.md](docs/i18n/hu/LIMITATIONS.md) listájából, a WebAssembly-ellenőrzőlista tényleges lefuttatása, tesztek Windowson vagy macOS-en, valódi GPU-n végzett benchmark.
+A közreműködést szívesen fogadjuk, annak a résznek a licence alatt, amelyet módosít. Olvasd el a [CONTRIBUTING.md](docs/i18n/hu/CONTRIBUTING.md) fájlt (minden commithoz kell egy `Signed-off-by` sor, DCO 1.1), a [CLEANROOM.md](docs/i18n/hu/CLEANROOM.md) fájlt (csak nyilvános forrásokból implementálj; ne másolj zárt vagy összeférhetetlen licencű kódból) és a [docs/DEVELOPMENT.md](docs/i18n/hu/DEVELOPMENT.md) fájlt (konvenciók, új modul ellenőrzőlistája, tesztek). Jó első hozzájárulások: egy javítás a [docs/LIMITATIONS.md](docs/i18n/hu/LIMITATIONS.md) listájából, a WebAssembly-ellenőrzőlista tényleges lefuttatása, a Windows / macOS futtatható fájlok tesztelése valódi asztali környezetben, valódi GPU-n végzett benchmark.
 
 Biztonsági problémák: ne nyiss nyilvános issue-t; kövesd a [docs/SECURITY.md](docs/i18n/hu/SECURITY.md) 10. szakaszát.
 

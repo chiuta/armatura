@@ -5,7 +5,7 @@ használatával építesz fel, riggelsz, kulcsolsz, hurkolsz, renderelsz és exp
 mindegyikét valóban lefuttattuk az oldal írása közben; a bemutatott kimenetek a ténylegesen kiírt kimenetek.
 
 Hogyan ellenőriztük: Linux, `rustc 1.97.0`, `ffmpeg 6.1.1` és a bináris **debug** buildje
-(`cargo build -p armatura-cli`). A release build ugyanazt a kódot futtatja gyorsabban. A tárolóban nincs
+(`cargo build -p armatura-cli`). A release build ugyanazt a kódot futtatja gyorsabban. A tesztkészlet macOS-en és Windowson is sikeres a GitHub Actionsön; az ezen az oldalon szereplő parancsokat kézzel csak Linuxon futtattuk. A tárolóban nincs
 megadva minimálisan támogatott Rust-verzió; az 1.97.0 egyszerűen az a fordító, amellyel teszteltünk.
 
 A dokumentáció licence: CC-BY-4.0. Lásd még: [RIGGING_GUIDE.md](RIGGING_GUIDE.md),
@@ -28,6 +28,8 @@ cannot run ffmpeg (No such file or directory (os error 2)); install it or export
 ```
 
 GPU-t nem igényel. Az opcionális GPU-renderer (`render-gpu`) nem része az alapértelmezett buildnek.
+
+**Nincs Rustod? Használj előre elkészített archívumot.** Amikor a tulajdonos közzétette a `v0.1.0-alpha.2` előzetes kiadás-vázlatot, a [Releases oldal](https://github.com/chiuta/armatura/releases) kínálja az `armatura-windows-x86_64.zip`, `armatura-macos-arm64.tar.gz`, `armatura-linux-x86_64.tar.gz` és `SHA256SUMS.txt` fájlokat. Ellenőrizd az archívumot az összegekkel (`sha256sum -c SHA256SUMS.txt --ignore-missing`, Windowson `Get-FileHash`), csomagold ki, és futtasd az `armatura` (`armatura.exe`) programot a kicsomagolt mappából; a 2. szakasz fordítását hagyd ki, és olvasd el az oldal vége felé a „Windows: az `armatura.exe` dupla kattintása” és „A stúdió ablakban” részt. A programok nincsenek kódaláírással ellátva, ezért a rendszer az első alkalommal figyelmeztetni fog. Minden alább szereplőt ugyanennek a forrásnak helyi buildjével futtattunk.
 
 ## 2. Fordítás
 
@@ -347,3 +349,17 @@ használatát elutasítja, hacsak meg nem adod az `--allow-external-assets` kapc
 * A böngészős szerkesztő, a gyorsbillentyűi és a HTTP API: [STUDIO.md](STUDIO.md).
 * Kérdések és hibaüzenetek: [FAQ.md](FAQ.md). Ismert korlátok: [LIMITATIONS.md](LIMITATIONS.md).
 * Minden parancs és kapcsoló: [CLI_REFERENCE.md](CLI_REFERENCE.md); a fájlformátum: [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
+
+## Windows: az `armatura.exe` dupla kattintása
+
+Az `armatura.exe` parancssori program. A 0.1.0-alpha.2 óta az Intézőből megnyitva (dupla kattintással) létrehozza a `Documents\ARMATURA\first-rig.json` fájlt (meglévő fájlt soha nem ír felül), elindítja a stúdiót a `http://127.0.0.1:8080` címen, és megnyitja a böngésződben; a konzolablak a stúdió futása alatt nyitva marad, a bezárásával állítod le. Terminálból argumentumok nélkül megnyitva, mint korábban, kiírja a használati szöveget. A 0.1.0-alpha.1-ben a dupla kattintás csak kiírta a használati szöveget, és az ablak azonnal bezárult.
+
+A futtatható fájlok **nincsenek kódaláírással ellátva**: a Windows SmartScreen „Ismeretlen közzétevőt” mutat (válaszd a *További információ*, majd a *Futtatás mindenképpen* lehetőséget), a macOS Gatekeeper pedig kéri, hogy hagyd jóvá a programot a *Rendszerbeállítások > Adatvédelem és biztonság* alatt. Előbb ellenőrizd a letöltést a `SHA256SUMS.txt` fájllal. Ha a 8080-as port foglalt, futtasd terminálból az `armatura studio first-rig.json --port 8090` parancsot.
+
+## A stúdió ablakban: `armatura-studio` (Windows és macOS)
+
+A Windows és macOS archívumok tartalmaznak egy második programot, az `armatura-studio` (`armatura-studio.exe`) fájlt, egy kis natív ablakot a böngészős stúdió körül: ugyanabból a mappából elindítja az `armatura` motort `studio` módban egy szabad helyi porton, megjeleníti az oldalt egy WebView2 (a Windows 11-ben beépített; a régebbi Windowshoz az Evergreen futtatókörnyezet kell) vagy WKWebView (macOS) ablakban, és az ablak bezárásakor leállítja a szervert. Konzolablak nem jelenik meg. Tartsd ugyanabban a mappában, mint az `armatura(.exe)` fájlt.
+
+* Kattints rá duplán, hogy a `Documents/ARMATURA/first-rig.json` fájlon dolgozz (a beépített demóból jön létre, ha hiányzik), vagy indítsd `armatura-studio my-project.json` formában (például a „Megnyitás ezzel” menüből).
+* Az `armatura-studio --selftest` ablak nélkül elindítja a szervert, lekéri az oldalt, és leállítja; a kilépési kód 0, ha ez sikerült (a CI Windowson és macOS-en lefuttatja).
+* **Korlátok.** Az ablak kódját lefordították a CI-ben és ott önteszttel ellenőrizték (`--selftest`), de valódi asztali környezetben még senki nem használta. A rendszert igénylő böngészőszerű funkciók (a stúdió saját választóin túli fájlválasztók, letöltések, húzás az Intézőből) a rendszer webnézetének funkciói, és nincsenek tesztelve. Linuxos ablak nincs (GTK / WebKitGTK rendszercsomagokat igényelne): használd az `armatura studio` parancsot és egy böngészőt. A program nincs kódaláírással ellátva (lásd fent).

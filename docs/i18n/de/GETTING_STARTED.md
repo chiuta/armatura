@@ -6,7 +6,7 @@ exportiert hast. Jeder Befehl unten wurde beim Schreiben dieser Seite wirklich a
 gezeigten Ausgaben sind die Ausgaben, die tatsächlich ausgegeben wurden.
 
 So wurde es verifiziert: Linux, `rustc 1.97.0`, `ffmpeg 6.1.1` und der **Debug**-Build der Binärdatei
-(`cargo build -p armatura-cli`). Ein Release-Build führt denselben Code schneller aus. Im Repository ist
+(`cargo build -p armatura-cli`). Ein Release-Build führt denselben Code schneller aus. Die Testsuite besteht außerdem unter macOS und Windows in GitHub Actions; die Befehle auf dieser Seite wurden nur unter Linux von Hand ausgeführt. Im Repository ist
 keine minimal unterstützte Rust-Version festgelegt; 1.97.0 ist einfach der Compiler, der getestet wurde.
 
 Dokumentationslizenz: CC-BY-4.0. Siehe auch [RIGGING_GUIDE.md](RIGGING_GUIDE.md),
@@ -29,6 +29,8 @@ cannot run ffmpeg (No such file or directory (os error 2)); install it or export
 ```
 
 Eine GPU wird nicht vorausgesetzt. Der optionale GPU-Renderer (`render-gpu`) ist nicht Teil des Standard-Builds.
+
+**Kein Rust? Nimm ein fertiges Archiv.** Sobald der Eigentümer die Entwurfs-Vorabversion `v0.1.0-alpha.2` veröffentlicht hat, bietet die [Releases-Seite](https://github.com/chiuta/armatura/releases) `armatura-windows-x86_64.zip`, `armatura-macos-arm64.tar.gz`, `armatura-linux-x86_64.tar.gz` und `SHA256SUMS.txt` an. Prüfe das Archiv gegen die Summen (`sha256sum -c SHA256SUMS.txt --ignore-missing`, unter Windows `Get-FileHash`), entpacke es und starte `armatura` (`armatura.exe`) aus dem entpackten Ordner; überspringe den Build in Abschnitt 2 und lies „Windows: Doppelklick auf `armatura.exe`“ und „Das Studio als Fenster“ am Ende dieser Seite. Die Programme sind nicht codesigniert, das System warnt dich also beim ersten Mal. Alles Folgende wurde mit einem lokalen Build desselben Quellcodes ausgeführt.
 
 ## 2. Bauen
 
@@ -349,3 +351,17 @@ werden abgelehnt, es sei denn, du übergibst `--allow-external-assets` (siehe [F
 * Der Browser-Editor, seine Tastenkürzel und die HTTP-API: [STUDIO.md](STUDIO.md).
 * Fragen und Fehlermeldungen: [FAQ.md](FAQ.md). Bekannte Einschränkungen: [LIMITATIONS.md](LIMITATIONS.md).
 * Jeder Befehl und jedes Flag: [CLI_REFERENCE.md](CLI_REFERENCE.md); das Dateiformat: [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
+
+## Windows: Doppelklick auf `armatura.exe`
+
+`armatura.exe` ist ein Kommandozeilenprogramm. Seit 0.1.0-alpha.2 legt es beim Öffnen aus dem Explorer (Doppelklick) `Documents\ARMATURA\first-rig.json` an (eine vorhandene Datei wird nie überschrieben), startet das Studio auf `http://127.0.0.1:8080` und öffnet es in deinem Browser; das Konsolenfenster bleibt offen, solange das Studio läuft, schließe es zum Beenden. Aus einem Terminal ohne Argumente geöffnet, gibt es wie bisher die Usage aus. In 0.1.0-alpha.1 gab ein Doppelklick nur die Usage aus, und das Fenster schloss sich sofort wieder.
+
+Die Programme sind **nicht codesigniert**: Windows SmartScreen zeigt „Unbekannter Herausgeber“ (wähle *Weitere Informationen* und dann *Trotzdem ausführen*), und macOS Gatekeeper verlangt, dass du das Programm unter *Systemeinstellungen > Datenschutz & Sicherheit* bestätigst. Prüfe den Download zuerst gegen `SHA256SUMS.txt`. Ist Port 8080 belegt, führe `armatura studio first-rig.json --port 8090` in einem Terminal aus.
+
+## Das Studio als Fenster: `armatura-studio` (Windows und macOS)
+
+Die Archive für Windows und macOS enthalten ein zweites Programm, `armatura-studio` (`armatura-studio.exe`), ein kleines natives Fenster um das Browser-Studio: Es startet die `armatura`-Engine aus demselben Ordner als `studio` auf einem freien lokalen Port, zeigt die Seite in einem Fenster mit WebView2 (Windows 11 hat es eingebaut; ältere Windows-Versionen brauchen die Evergreen-Laufzeitumgebung) oder WKWebView (macOS) und beendet den Server, wenn das Fenster geschlossen wird. Es erscheint kein Konsolenfenster. Lege es im selben Ordner wie `armatura(.exe)` ab.
+
+* Doppelklicke darauf, um an `Documents/ARMATURA/first-rig.json` zu arbeiten (wird aus der eingebauten Demo angelegt, falls sie fehlt), oder starte es als `armatura-studio my-project.json` (zum Beispiel über „Öffnen mit“).
+* `armatura-studio --selftest` startet den Server, ruft die Seite ab und beendet ihn ohne Fenster; der Exit-Code ist 0, wenn das geklappt hat (CI führt es unter Windows und macOS aus).
+* **Einschränkungen.** Der Fenstercode wurde in CI kompiliert und dort selbstgetestet (`--selftest`), aber niemand hat ihn auf einem echten Desktop benutzt. Browser-typische Funktionen, die das System brauchen (Dateiauswahldialoge über die des Studios hinaus, Downloads, Drag-and-drop aus dem Explorer), sind die der System-Webview und ungetestet. Es gibt kein Linux-Fenster (es bräuchte die Systempakete GTK / WebKitGTK): Nutze `armatura studio` und einen Browser. Das Programm ist nicht codesigniert (siehe oben).

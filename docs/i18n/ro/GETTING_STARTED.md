@@ -2,7 +2,7 @@
 
 Acest ghid te duce de la un checkout proaspăt până la un mic personaj animat pe care l-ai construit, ai făcut rigging, ai creat chei, l-ai făcut să ruleze în buclă, l-ai randat și l-ai exportat folosind exclusiv linia de comandă. Fiecare comandă de mai jos a fost rulată cu adevărat în timp ce s-a scris această pagină; rezultatele afișate sunt cele care au fost tipărite.
 
-Cum a fost verificat: Linux, `rustc 1.97.0`, `ffmpeg 6.1.1` și build-ul **debug** al binarului (`cargo build -p armatura-cli`). Un build release rulează același cod mai rapid. Repository-ul nu declară nicio versiune minimă acceptată de Rust; 1.97.0 este pur și simplu compilatorul care a fost testat.
+Cum a fost verificat: Linux, `rustc 1.97.0`, `ffmpeg 6.1.1` și build-ul **debug** al binarului (`cargo build -p armatura-cli`). Un build release rulează același cod mai rapid. Suita de teste trece și pe macOS și Windows în GitHub Actions; comenzile de pe această pagină au fost rulate manual doar pe Linux. Repository-ul nu declară nicio versiune minimă acceptată de Rust; 1.97.0 este pur și simplu compilatorul care a fost testat.
 
 Licența documentației: CC-BY-4.0. Vezi și [RIGGING_GUIDE.md](RIGGING_GUIDE.md), [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md), [STUDIO.md](STUDIO.md), [FAQ.md](FAQ.md) și lista completă de comenzi din [CLI_REFERENCE.md](CLI_REFERENCE.md).
 
@@ -22,6 +22,8 @@ cannot run ffmpeg (No such file or directory (os error 2)); install it or export
 ```
 
 Nu există nicio cerință de GPU. Randarea opțională pe GPU (`render-gpu`) nu face parte din build-ul implicit.
+
+**Nu ai Rust? Folosește o arhivă precompilată.** După ce proprietarul publică pre-lansarea ciornă `v0.1.0-alpha.2`, [pagina Releases](https://github.com/chiuta/armatura/releases) oferă `armatura-windows-x86_64.zip`, `armatura-macos-arm64.tar.gz`, `armatura-linux-x86_64.tar.gz` și `SHA256SUMS.txt`. Verifică arhiva față de sume (`sha256sum -c SHA256SUMS.txt --ignore-missing`, sau `Get-FileHash` pe Windows), despachetează-o și rulează `armatura` (`armatura.exe`) din folderul despachetat; sari peste compilarea din secțiunea 2 și citește „Windows: dublu clic pe `armatura.exe`” și „Studioul ca fereastră” spre finalul acestei pagini. Programele nu sunt semnate cu cod, deci sistemul te va avertiza prima dată. Tot ce urmează a fost rulat cu un build local al aceleiași surse.
 
 ## 2. Compilează-l
 
@@ -296,3 +298,17 @@ Un proiect poate face referire la fișiere de imagine și de sunet doar **din pr
 * Editorul din browser, scurtăturile lui și API-ul HTTP: [STUDIO.md](STUDIO.md).
 * Întrebări și mesaje de eroare: [FAQ.md](FAQ.md). Limite cunoscute: [LIMITATIONS.md](LIMITATIONS.md).
 * Fiecare comandă și opțiune: [CLI_REFERENCE.md](CLI_REFERENCE.md); formatul fișierului: [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
+
+## Windows: dublu clic pe `armatura.exe`
+
+`armatura.exe` este un program în linia de comandă. Începând cu 0.1.0-alpha.2, deschiderea lui din Explorer (dublu clic) creează `Documents\ARMATURA\first-rig.json` (un fișier existent nu este niciodată suprascris), pornește studioul pe `http://127.0.0.1:8080` și îl deschide în browser; fereastra de consolă rămâne deschisă cât timp rulează studioul, închide-o pentru a-l opri. Deschis dintr-un terminal fără argumente, afișează utilizarea ca înainte. În 0.1.0-alpha.1 un dublu clic afișa doar utilizarea, iar fereastra se închidea imediat.
+
+Executabilele **nu sunt semnate cu cod**: Windows SmartScreen afișează „Unknown publisher” (alege *More info*, apoi *Run anyway*), iar macOS Gatekeeper îți cere să aprobi programul în *System Settings > Privacy & Security*. Verifică mai întâi descărcarea față de `SHA256SUMS.txt`. Dacă portul 8080 este ocupat, rulează `armatura studio first-rig.json --port 8090` dintr-un terminal.
+
+## Studioul ca fereastră: `armatura-studio` (Windows și macOS)
+
+Arhivele pentru Windows și macOS conțin un al doilea program, `armatura-studio` (`armatura-studio.exe`), o mică fereastră nativă în jurul studioului din browser: pornește motorul `armatura` din același folder ca `studio` pe un port local liber, afișează pagina într-o fereastră WebView2 (Windows 11 îl are încorporat; Windows mai vechi necesită runtime-ul Evergreen) sau WKWebView (macOS) și oprește serverul când fereastra este închisă. Nu apare nicio fereastră de consolă. Păstrează-l în același folder cu `armatura(.exe)`.
+
+* Fă dublu clic pe el pentru a lucra la `Documents/ARMATURA/first-rig.json` (creat din demo-ul încorporat dacă lipsește) sau pornește-l ca `armatura-studio my-project.json` (de exemplu prin „Open with”).
+* `armatura-studio --selftest` pornește serverul, descarcă pagina și îl oprește fără fereastră; codul de ieșire este 0 când a mers (CI îl rulează pe Windows și macOS).
+* **Limite.** Codul ferestrei a fost compilat în CI și autotestat acolo (`--selftest`), dar nimeni nu l-a folosit încă pe un desktop real. Funcțiile în stil browser care au nevoie de sistem (selectoare de fișiere în afara celor proprii studioului, descărcări, drag-and-drop din Explorer) sunt cele ale web view-ului sistemului și sunt netestate. Nu există fereastră pe Linux (ar necesita pachete de sistem GTK / WebKitGTK): folosește `armatura studio` și un browser. Programul nu este semnat cu cod (vezi mai sus).

@@ -159,6 +159,7 @@ cannot write link.svg: link.svg: refusing to write through a symbolic link; pass
   A **2** kilépési kódot csak a `ci` használja (semmit nem lehetett kiértékelni: hiányzó projekt/manifest, meghamisított golden).
 * Argumentumok nélkül, ismeretlen parancsnál, hibás számú pozicionális argumentumnál vagy az `armatura --help` esetén a teljes használati szöveg a
   **stderrre** kerül, és a kilépési kód **1**. Az `armatura <command> --help` a parancs használati sorait a stdoutra írja, és 0-val lép ki.
+  **Kivétel (Windows, a 0.1.0-alpha.2 óta):** ha az `armatura.exe` fájlt dupla kattintással indítják az Intézőből (a konzolablakot neki hozták létre, és más folyamat nem osztozik rajta), és nincs argumentuma, nem írja ki a használati szöveget: létrehozza a `Documents\ARMATURA\first-rig.json` fájlt, ha hiányzik, lefuttatja a `studio` parancsot ezen a fájlon a `127.0.0.1:8080` címen, megnyitja a böngészőt, és nyitva tartja a konzolt, amíg be nem zárod, vagy hiba után Entert nem nyomsz. Terminálból indítva a fent leírtak szerint viselkedik. A program többi része 256 MiB vermű szálon fut (a Windows főszálának csak 1 MiB-ja van).
 
 ### 1.6 Külső programok
 

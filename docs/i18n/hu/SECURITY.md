@@ -38,6 +38,7 @@ Az `armatura studio` a szerkesztőt saját, kis HTTP/1.1-megvalósításból szo
 | Párhuzamos kapcsolatok | 128 | 503 |
 | Chunked kéréstörzsek | nem támogatottak | 411 |
 | Ismétlődő `Host` fejléc | elutasítva | 400 |
+| Vezérlőkarakter (CR, NUL, DEL…) a fejléc értékében | elutasítva (a tabulátor megengedett) | 400 |
 
 Minden válasz tartalmazza a `Connection: close` (nincs kimeríthető keep-alive állapot), a `Cache-Control: no-store`, az `X-Content-Type-Options: nosniff`, az `X-Frame-Options: DENY`, a `Referrer-Policy: no-referrer` és egy `Content-Security-Policy` fejlécet.
 
@@ -87,7 +88,8 @@ A `--collab-token T` opció (vagy a nem helyi `--bind` által megkövetelt token
 * **Atomi írás.** A kimeneteket az `fsutil::write_atomic` írja: ideiglenes fájl ugyanabban a könyvtárban (név: `.<name>.tmp-<pid>-<random>`), `fsync`, `rename`. Összeomlás esetén vagy a régi, vagy az új fájl marad. **A kimenetként megadott szimbolikus linkeket elutasítja**, megnevezve a `--follow-symlinks` kapcsolót (ez most minden felhasználó által megcímzett kimenetre kiterjed: `ci run` jelentések és golden képek, `export-fit`, `lod`, `fuzz`, `fuzz-grid`, `face-*`, póz-fájlok, pillanatképek, `vcs`, a collab-napló és az ffmpeg által írt videófájlok, amelyeket előzetesen ellenőriz), így egy elhelyezett link nem tud átirányítani egy írást. Ha a könyvtár nem írható, de a fájl igen, a tartalék megoldás a helyben felülírás `fsync`-kel, ami **nem atomi** (dokumentált).
 * **Privát adatok.** A collab-naplók és más, csak a tulajdonos által olvasható fájlok 0600-as móddal jönnek létre (`write_atomic_private`). Az ideiglenes könyvtárak kizárólagosan, 0700-as móddal jönnek létre (`private_temp_dir`), így egy megosztott `/tmp`-ben egy kiszámítható nevet nem hozhat létre előre másik felhasználó. A véletlen értékek (új résztvevők tokenjei, ideiglenes nevek) a `/dev/urandom`-ból jönnek (`fsutil::random_bytes`); a motor seedelt determinisztikus generátorát titkokhoz soha nem használják.
 * **UI-beállítások.** A stúdió `ui.json` fájlja figyelmeztetéssel figyelmen kívül hagyja az ismeretlen kulcsokat, és az első mentés előtt átmásolódik az `ui.json.bak` fájlba (majd `.bak.1`, ...).
-* **Windows / nem Unix.** A fenti jogosultsági módok Unixon érvényesek. A viselkedést más rendszereken nem tesztelték.
+* **Windows / nem Unix.** A fenti jogosultsági módok Unixon érvényesek. Windowson és macOS-en a tesztkészlet sikeres a CI-ben (a csak POSIX-en futó ellenőrzéseket a Windows kihagyja), de a symlink-, jogosultsági és `/dev/urandom` ellenőrzések csak Linuxon és macOS-en futnak, és a Windows-viselkedést senki nem vizsgálta át kézzel.
+* **Aláíratlan binárisok és az ablakos alkalmazás.** A kiadási futtatható fájlok nincsenek kódaláírással ellátva; ellenőrizd a letöltéseket a `SHA256SUMS.txt` fájllal. Az `armatura-studio` ugyanazt a helyi szervert indítja el (csak `127.0.0.1`, véletlenszerű szabad port), és a rendszer webnézetében (WebView2 / WKWebView) jeleníti meg; webnézete ugyanúgy ki van téve, mint egy böngészőfül azon a címen, és külön biztonsági felülvizsgálaton nem esett át.
 
 ## 7. Külső programok (ffmpeg)
 
@@ -104,7 +106,7 @@ Maga az ffmpeg összetett médiaformátumokat dolgoz fel, és voltak saját sebe
 
 * A **homlokzat** minden argumentumot validál, `ApiError` hibát ad vissza, és a pánikokat `ApiError::Internal` hibává alakítja, ahol a cél unwindol. Az `Animation` és a `Player` `Send + Sync` (fordításkor ellenőrizve).
 * A **C ABI** ([C_ABI.md](C_ABI.md)) ellenőrzi a null mutatókat, a hosszakat és az UTF-8-at, és kódokat ad vissza; a hívónak továbbra is érvényes mutatókat kell átadnia, és be kell tartania a pufferszabályokat. Az utolsó hiba sztringje szálanként külön van. Az ABI-t AddressSanitizer és UndefinedBehaviorSanitizer alatt próbálták ki a dokumentált példákkal (tiszta). Nincs megerősítve olyan hívó ellen, amely megsérti a dokumentált szerződéseket (dupla zárás, zárás utáni használat, rossz hosszak).
-* A **WASM modult** ([WASM.md](WASM.md)) **még soha nem építették meg és nem futtatták**, így biztonsági tulajdonságai a kód olvasásán túl ismeretlenek. Konstrukciója szerint nincs fájlrendszer- vagy hálózati hozzáférése; egy pánik ott csapdába ejti a példányt.
+* A **WASM modul** ([WASM.md](WASM.md)) lefordul a CI-ben, és átmegy a wrapper tesztjén Node alatt, de **böngészőben soha nem futtatták, és nem is vizsgálták ilyenként**, így biztonsági tulajdonságai csak a kód olvasásából és abból a tesztből ismertek. Konstrukciója szerint nincs fájlrendszer- vagy hálózati hozzáférése; egy pánik ott csapdába ejti a példányt.
 * Egyik réteg sem sandboxolja a *projektet*: egy ártalmas projekt renderelését a fenti korlátok határolják, de a projekt a korlátokon belül is sok munkát kérhet (sok réteg, nagy képek, hosszú idővonalak).
 
 ## 9. Ismert hiányosságok
@@ -120,7 +122,7 @@ Maga az ffmpeg összetett médiaformátumokat dolgoz fel, és voltak saját sebe
 7. **Nem atomi tartalék**, ha a kimeneti könyvtár nem írható.
 8. **Az útvonal-ellenőrzések kanonikus útvonalakat használnak.** Az `assets::resolve` kanonizálja a létező fájlokat, és elutasít minden fájlt, amelynek tényleges helye a projektkönyvtáron kívül van, így a projektmappán belüli, kifelé mutató szimbolikus linket elutasítja (az `assets.rs` tesztelte); a mappán belül maradó linkek működnek. Az ellenőrzés és a későbbi olvasás közötti versenyhelyzet (time-of-check to time-of-use) olyasvalaki által, aki egyidejűleg módosíthatja a projektmappát, nem kizárt.
 9. **Az ffmpeg** kívül esik az ellenőrzésünkön (7. szakasz).
-10. **A WASM** nincs tesztelve valódi motorban; az azt beágyazó oldal böngészős fenyegetési modelljét (CSP, memóriakorlátok) nem vizsgálták.
+10. **A WASM** nincs tesztelve böngészőmotorban (a CI-ben csak Node alatt fut); az azt beágyazó oldal böngészős fenyegetési modelljét (CSP, memóriakorlátok) nem vizsgálták.
 11. **Szolgáltatásmegtagadás mérettel.** A korlátok az egyes kéréseket és fájlokat határolják, nem az összes munkát: egy érvényes, de nagyon nehéz projekt hosszú ideig foglalhat egy CPU-t (a fenti kapcsolatkorlát a párhuzamosságot korlátozza, nem egy kérés költségét).
 
 ## 10. Sebezhetőség bejelentése
@@ -128,7 +130,7 @@ Maga az ffmpeg összetett médiaformátumokat dolgoz fel, és voltak saját sebe
 * **Sebezhetőség miatt ne nyiss nyilvános issue-t.** Küldj privát jelentést a karbantartónak: **`alexio@trom.tf`**. *(Helyőrző: a cím megjelenik a program `--version` közleményében és a licencdokumentumokban; a tulajdonosnak kell biztonsági elérhetőségként megerősítenie, és az első kiadás előtt lecserélheti dedikált címre vagy privát advisory csatornára.)*
 * Tartalmazza: a verziót (`armatura --version`) és a platformot, a problémát kiváltó projektet vagy kérést (a minimális fájl a legjobb), hogy mit vártál és mi történt, és hogy kérsz-e említést.
 * Mire számíthatsz *(szándék, nem szerződés: ez egy egyszemélyes projekt)*: észszerű időn belüli visszaigazolás, privátban kidolgozott javítás, a csomaghoz hozzáadott regressziós teszt, egy megjegyzés a [CHANGELOG.md](CHANGELOG.md) fájlban, és kívánságra említés. Kérjük, hagyj időt a javításra, mielőtt részleteket közzéteszel.
-* Támogatott verziók: még nem volt kiadás; az aktuális fa az egyetlen támogatott verzió.
+* Támogatott verziók: csak a legújabb előzetes kiadás (a `v0.1.0-alpha.2`, a közzététele után) és a `main` aktuális fája támogatott.
 * A stúdió hálózati kitettségéről szóló jelentések, ha szándékosan nyilvános címhez van kötve reverse proxy nélkül, először dokumentációs problémák: lásd a 11. szakaszt.
 
 ## 11. Üzemeltetői keményítési ellenőrzőlista

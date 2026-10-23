@@ -17,7 +17,7 @@ Contenido: [Entorno](#1-entorno) - [Comandos de compilación y prueba](#2-comand
 | `cargo-deny` | política de licencias/prohibiciones/fuentes | `scripts/licence-audit.sh` lo ejecuta si está instalado (`--no-deny` lo omite) |
 | `python3` | `scripts/licence-audit.sh` genera la documentación con un script en línea | se ejecuta con `python3 -I` |
 | Un adaptador Vulkan o GL | solo para obtener cifras con GPU real de `armatura-gpu` | las pruebas recurren a un adaptador por software; véase la sección 2 |
-| `rustup target wasm32-unknown-unknown`, `wasm-opt` | solo para [WASM.md](WASM.md) | **nunca se instalaron en el entorno de desarrollo** |
+| `rustup target wasm32-unknown-unknown`, `wasm-opt` | solo para [WASM.md](WASM.md) | nunca se instalaron en el entorno de desarrollo; la CI los instala |
 
 Estructura del workspace (el diseño se describe en [ARCHITECTURE.md](ARCHITECTURE.md)):
 
@@ -28,6 +28,7 @@ Estructura del workspace (el diseño se describe en [ARCHITECTURE.md](ARCHITECTU
 | `armatura-capi` | MPL-2.0 | ABI de C ([C_ABI.md](C_ABI.md)) |
 | `armatura-wasm` | MPL-2.0 | ABI de WebAssembly + wrapper de JS ([WASM.md](WASM.md)) |
 | `armatura-gpu` | MPL-2.0 | renderizador wgpu opcional; **no** es miembro por defecto |
+| `armatura-gui` | AGPL-3.0-or-later | `armatura-studio`, el estudio en una ventana nativa (`tao` + `wry`, solo Windows y macOS; un stub en el resto); **no** es miembro por defecto, `publish = false` |
 
 Archivos del nivel del repositorio: `ROADMAP.md` (la sección 9 es el registro fechado de funciones y revisiones), `FEATURES.md`, `CLEANROOM.md`, `LICENSING.md`, `REUSE.toml`, `deny.toml`, `LICENSES/`, `scripts/`.
 
@@ -35,7 +36,7 @@ Archivos del nivel del repositorio: `ROADMAP.md` (la sección 9 es el registro f
 
 ```sh
 cargo build                                  # default members: core, cli, capi, wasm (gpu is opt-in)
-cargo test --workspace                       # run: 1368 tests + doc-tests (section 3)
+cargo test --workspace                       # run: 1338 tests + 19 doc-tests without gpu and gui (section 3)
 cargo test -p armatura-core                  # one crate (the engine and the facade tests)
 cargo test -p armatura-core api::            # a module or a name filter
 cargo test -p armatura-cli --test e2e        # one integration test file
@@ -80,7 +81,7 @@ Cifras de la sección 9 de `ROADMAP.md` y de una ejecución completa de `cargo t
 | `armatura-gpu` unit + `tests/parity.rs` | 18 + 13 | 0.2 s + 6.5 s | paridad GPU frente a CPU (adaptador por software cuando no hay GPU) |
 | Doc-tests (`armatura-core`) | 19 | 171 s (cada uno compila un programa) | los ejemplos de la fachada (`api.rs`, `lib.rs`); `armatura-capi` y `armatura-wasm` no tienen ninguno |
 
-Total: 1368 pruebas en los binarios unitarios y de integración (la cifra del ROADMAP; recontada a partir de una ejecución completa de `cargo test --workspace` el 22 de octubre de 2026 tras la oleada 7; los tiempos por suite de arriba proceden de una ejecución anterior), más 19 doc-tests; el conjunto de `cargo test --workspace --offline` tardó 836 s en la máquina compartida.
+Total: 1338 pruebas en los binarios unitarios y de integración y 19 doc-tests, contadas el 24 de octubre de 2026 con `cargo test --workspace --exclude armatura-gpu --exclude armatura-gui` (las 1368 de la frase siguiente incluían también las pruebas del crate de GPU; recontada a partir de una ejecución completa de `cargo test --workspace` el 22 de octubre de 2026 tras la oleada 7; los tiempos por suite de arriba proceden de una ejecución anterior), más 19 doc-tests; el conjunto de `cargo test --workspace --offline` tardó 836 s en la máquina compartida.
 
 Suites fuera de `cargo test`:
 
@@ -139,7 +140,7 @@ El proyecto es una implementación independiente. En resumen (el texto vinculant
 
 ## 7. Lista de comprobación de publicación
 
-Todavía no se ha publicado nada (todos los crates están en 0.1.0; las etiquetas de versión "v0.5/v0.6/v0.7" de README, FEATURES y ROADMAP son niveles de funciones, no versiones de crates; véase [CHANGELOG.md](CHANGELOG.md)). Cuando lo hagas:
+Las primeras compilaciones se preparan como la versión preliminar en borrador `v0.1.0-alpha.2` (todos los crates siguen en 0.1.0; las etiquetas de versión "v0.5/v0.6/v0.7" de README, FEATURES y ROADMAP son niveles de funciones, no versiones de crates; véase [CHANGELOG.md](CHANGELOG.md)). Para preparar una:
 
 1. **Versión.** Decide la versión de cada crate. La fachada tiene su propia versión (`API_VERSION`, hoy 1.4.0: mayor al eliminar o cambiar una línea de la superficie, menor al añadir) y `ARMATURA_ABI_VERSION` / `arm_abi_version()` (ambas 1) cambian únicamente ante un cambio incompatible de la ABI de C o de wasm. Alinea las versiones de `Cargo.toml`, la salida de `armatura --version`, el recuadro de estado del README y el CHANGELOG.
 2. **Controles en verde.** `cargo test --workspace`, `cargo test --doc -p armatura-core`, `cargo test -p armatura-cli --test spdx_audit`, `cargo clippy --workspace --all-targets -- -D warnings`, las cuatro pruebas de humo de Chromium, `scripts/e2e.sh` (release), `cargo test -p armatura-gpu` si cambió el código de GPU.
@@ -148,14 +149,15 @@ Todavía no se ha publicado nada (todos los crates están en 0.1.0; las etiqueta
 5. **Sin ffmpeg.** No incluyas, enlaces ni descargues ffmpeg en los artefactos de publicación. Se detecta en el `PATH` en tiempo de ejecución y la documentación indica que lo instala el usuario.
 6. **Oferta de código fuente AGPL.** El binario de `armatura-cli` sirve su propia oferta de código fuente en `/source` (sección 13 de la AGPL) e imprime un aviso con `--version`; quienes operen servidores del studio modificados fijan `--source-url` a la dirección donde esté su código fuente modificado. Pruebas: `tests/source_offer.rs`. Para una publicación binaria, proporciona el código fuente correspondiente (etiqueta, tarball) en la URL a la que puedan acceder los usuarios.
 7. **Documentación.** Actualiza el recuadro de estado del README, [LIMITATIONS.md](LIMITATIONS.md) y el CHANGELOG (traslada *Unreleased* bajo la nueva versión con una fecha).
-8. **Etiqueta y publicación** con una etiqueta firmada; adjunta sumas de comprobación. No publiques crates con nombres que no sean tuyos; las reglas de TRADEMARK.md se aplican a los forks.
+8. **Compila el borrador en GitHub.** `.github/workflows/release.yml` compila los archivos de Windows, macOS y Linux y el módulo web en cada push a `main`; un commit en `main` cuyo mensaje contenga `[release vX.Y.Z-label]` (o una etiqueta `v*` enviada) crea además una *versión preliminar en borrador* con los archivos y `SHA256SUMS.txt` (un borrador anterior con la misma etiqueta se sustituye). Revisa el borrador y luego publícalo a mano.
+9. **Etiqueta y publicación** con una etiqueta firmada; adjunta sumas de comprobación. No publiques crates con nombres que no sean tuyos; las reglas de TRADEMARK.md se aplican a los forks.
 
 ## 8. Integración continua
 
-Dos cosas distintas comparten la palabra:
+Dos cosas distintas comparten la palabra (un tercer workflow, `.github/workflows/release.yml`, compila los archivos de la versión y el borrador de la publicación, véase la sección 7):
 
 * **CI de animación** (`armatura ci`): comprobaciones de *proyectos* (lint, goldens de renderizado, rendimiento, determinismo). Se describe por completo en [CI.md](CI.md): manifiesto `armatura-ci.json`, umbrales, goldens (`--update` frente a `bless`), informes, ejemplos de GitHub Actions y de shell simple (marcados allí como "example, not run").
-* **CI del código** de este repositorio: `.github/workflows/ci.yml` tiene cuatro tipos de trabajo: `test` (matriz ubuntu / windows / macos: `cargo test --workspace --exclude armatura-gpu --locked` y clippy con `-D warnings`), `wasm32` (compila `armatura-wasm` para `wasm32-unknown-unknown`, copia el módulo junto a `armatura.js` y ejecuta `node armatura-wasm/js/test.mjs` con un proyecto de demostración, incluida su parte con el módulo real), `gpu parity` (informativo; se omite si no existe ningún adaptador, se ejecuta en el adaptador de software DX12 de Windows) y `licences` (`cargo-deny check` y `reuse lint`). El toolchain está fijado (1.97.0) para que los nuevos lints de clippy no rompan la compilación. **Primera ejecución completamente verde: 2026-10-24** en runners alojados en GitHub. Si hay un fallo, los pasos imprimen las pruebas fallidas como anotaciones del workflow (legibles sin acceso a los registros). Windows omite las pruebas exclusivas de POSIX (enlaces simbólicos, permisos, `/dev/zero`, separadores de ruta POSIX).
+* **CI del código** de este repositorio: `.github/workflows/ci.yml` tiene cuatro tipos de trabajo: `test` (matriz ubuntu / windows / macos: `cargo test --workspace --exclude armatura-gpu --locked` y clippy con `-D warnings`), `wasm32` (compila `armatura-wasm` para `wasm32-unknown-unknown`, copia el módulo junto a `armatura.js` y ejecuta `node armatura-wasm/js/test.mjs` con un proyecto de demostración, incluida su parte con el módulo real), `gpu parity` (informativo; se omite si no existe ningún adaptador, se ejecuta en el adaptador de software DX12 de Windows) y `licences` (`cargo-deny check` y `reuse lint`). El toolchain está fijado (1.97.0) para que los nuevos lints de clippy no rompan la compilación. El trabajo `test` también compila `armatura-gui` y ejecuta `armatura-studio --selftest` (una autoprueba real en Windows y macOS). **Primera ejecución completamente verde: 2026-10-24** en runners alojados en GitHub. Si hay un fallo, los pasos imprimen las pruebas fallidas como anotaciones del workflow (legibles sin acceso a los registros). Windows omite las pruebas exclusivas de POSIX (enlaces simbólicos, permisos, `/dev/zero`, separadores de ruta POSIX).
 
   ```sh
   cargo test --workspace --locked

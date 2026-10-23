@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # Lista de comprobación de publicación (lado del titular)
 
-*Pasos que solo puede dar el titular, en orden. Las herramientas del proyecto no ejecutaron nada de esto: el entorno de compilación no tenía acceso a GitHub, ni destino wasm32, ni GPU real, ni abogado. Esto no es asesoramiento jurídico. Los elementos marcados con **[blocker]** deben hacerse antes de un anuncio público.*
+*Pasos que solo puede dar el titular, en orden. Estado a 24 oct 2026: el repositorio <https://github.com/chiuta/armatura> existe, GitHub Actions está en verde (pruebas en Linux, macOS y Windows, clippy, wasm32, cargo-deny, REUSE) y se ha compilado la versión preliminar en borrador `v0.1.0-alpha.2` (archivos de Windows, macOS y Linux, el módulo web y `SHA256SUMS.txt`); **todavía no se ha publicado nada**. Los pasos de abajo que la CI ya hizo están marcados; el resto necesita una persona, un abogado o una cuenta. Esto no es asesoramiento jurídico. Los elementos marcados con **[blocker]** deben hacerse antes de un anuncio público.*
 
 ## 1. Antes de publicar nada
 
@@ -10,26 +10,27 @@
 - [ ] **[blocker]** Busca el nombre «ARMATURA» en los registros de marcas que te interesen (EUIPO, USPTO, OSIM) y en tiendas de aplicaciones / registros de paquetes. Véase `TRADEMARK.md`. Si hay conflicto, cambia el nombre antes de la primera versión (el nombre aparece en el binario, los crates y la documentación).
 - [ ] **[blocker]** Pide a un abogado que revise `LICENSING.md`, la división MPL-2.0 / AGPL-3.0, `docs/THIRD_PARTY.md` y `docs/PATENT_NOTES.md`. Decide si quieres doble licencia; si es así, hace falta un CLA *antes* de aceptar contribuciones externas (hoy: solo DCO).
 - [ ] Comprueba las condiciones de la referencia de ajuste de curvas de Graphics Gems (citada de memoria en `CLEANROOM.md`); conserva la redacción de implementación independiente solo si es exacta.
-- [ ] Ejecuta `reuse lint` y `cargo deny check` en tu máquina (el proyecto solo tiene su propia prueba `spdx_audit`).
+- [x] `reuse lint` y `cargo deny check` pasan en CI (el trabajo `licences`); ejecútalos también una vez en tu máquina.
 - [ ] Comprueba que en el árbol no haya datos personales, rutas locales ni tokens (`grep -r "/home/" .`, `grep -ri token`), y que el modelo incluido y los recursos de la demo sean todos autogenerados.
 
 ## 2. Repositorio
 
-- [ ] Crea el repositorio en GitHub (o Codeberg / tu propio Forgejo); sube el árbol **sin** `target/` ni `out/`.
+- [x] El repositorio de GitHub existe y el árbol se subió sin `target/` ni `out/` (`.gitignore`).
 - [ ] Conserva `LICENSE`, `LICENSES/`, `REUSE.toml`, `.github/FUNDING.yml` (Buy Me a Coffee `echo.of.the.strings`, Patreon `alexio_tf`).
 - [ ] Activa la notificación privada de vulnerabilidades (pestaña Security) y haz que `docs/SECURITY.md` apunte a ella.
 - [ ] Pasa la URL del repositorio con `--source-url` al ejecutar el estudio (oferta de código fuente de la AGPL, ruta `/source`) y prueba la oferta desde una instalación limpia.
 
-## 3. Primera ejecución de CI (nunca ejecutada hasta ahora)
+## 3. Primera ejecución de CI (hecha el 2026-10-24)
 
-- [ ] Sube el código y vigila `.github/workflows/ci.yml`: pruebas en Linux, Windows, macOS y `clippy -D warnings`; el trabajo de compilación wasm32; el trabajo de cargo-deny y REUSE.
-- [ ] Espera fallos en la primera ejecución en Windows/macOS (rutas, permisos, diferencias de píxeles en bordes con antialiasing, L-04 / L-26). Corrígelos o relájalos con tolerancias, y luego anota el resultado en `docs/LIMITATIONS.md`.
-- [ ] Si el trabajo wasm32 pasa, ejecuta la lista de verificación de `docs/WASM.md` en un navegador real y actualiza L-01 / L-02.
+- [x] `.github/workflows/ci.yml` está en verde: pruebas en Linux, Windows, macOS y `clippy -D warnings`; el trabajo de compilación wasm32; el trabajo de cargo-deny y REUSE.
+- [x] Los fallos de la primera ejecución en Windows se corrigieron (tamaño de pila, pruebas exclusivas de POSIX, acceso al registro de colaboración) y se anotaron en `docs/LIMITATIONS.md` (L-04).
+- [x] El trabajo wasm32 pasa (compilación y prueba con Node del módulo real). **Pendiente:** ejecutar la lista de verificación de `docs/WASM.md` en un navegador real y actualizar L-01 / L-02.
 
 ## 4. Pruebas con personas
 
 - [ ] Entrega el estudio a entre 3 y 5 animadores durante una semana con una tarea corta (hacer el rig de un personaje, crear un ciclo de caminar, exportar un GIF). Anota dónde se atascan; registra cada caso como una incidencia.
 - [ ] Prueba en navegadores reales (Chrome, Firefox, Safari), en un dispositivo táctil y en una sesión solo con teclado.
+- [ ] En un **Windows 11** real y en un **Mac** real: descomprime el archivo, haz doble clic en `armatura.exe` (Windows) y en `armatura-studio`, haz el rig y exporta un proyecto, e informa de lo que falle (L-74 a L-76).
 - [ ] Prueba las funciones de detector de rostros / mocap / voz con datos reales; informa con honestidad de que son limitadas (L-12, L-13).
 
 ## 5. Seguridad del despliegue (si alojas el estudio o la colaboración)
@@ -40,9 +41,10 @@
 
 ## 6. Artefactos de la versión
 
-- [ ] Etiqueta una versión, actualiza `CHANGELOG.md`, compila los binarios de la versión en tus propias máquinas (el entorno del proyecto nunca compiló con `--release`), publica las sumas de comprobación.
+- [x] Los binarios de la versión se compilan en runners alojados en GitHub (`release.yml`) y `SHA256SUMS.txt` se genera en el borrador. **Pendiente:** revisar el borrador `v0.1.0-alpha.2`, marcar "pre-release", publicarlo y etiquetar el commit (la etiqueta se crea con la publicación).
+- [ ] Decide sobre la firma de código (certificado Authenticode de Windows, Apple Developer ID y notarización); hasta entonces las descargas se marcan como sin firmar (L-74).
 - [ ] Adjunta el código fuente correspondiente de las partes AGPL (basta con la propia etiqueta; mantenla disponible mientras distribuyas binarios).
-- [ ] Incluye `docs/THIRD_PARTY_NOTICES.md` (regenéralo con `scripts/licence-audit.sh`) con cada binario.
+- [x] `docs/THIRD_PARTY_NOTICES.md` está regenerado (24 oct 2026) y cada archivo lo incluye; regenéralo de nuevo con `scripts/licence-audit.sh` antes de cada versión posterior.
 - [ ] Crates.io / npm / registros de paquetes: comprueba que los nombres estén libres y que los campos de licencia coincidan con `LICENSING.md`.
 
 ## 7. Anuncio y donaciones

@@ -162,6 +162,7 @@ cannot write link.svg: link.svg: refusing to write through a symbolic link; pass
   Il codice di uscita **2** è usato solo da `ci` (non è stato possibile valutare nulla: progetto/manifest mancante, golden manomesso).
 * Nessun argomento, un comando sconosciuto, un numero errato di argomenti posizionali o `armatura --help` stampano l'uso completo su
   **stderr** e terminano con **1**. `armatura <command> --help` stampa su stdout le righe d'uso di quel comando e termina con 0.
+  **Eccezione (Windows, dalla 0.1.0-alpha.2):** quando `armatura.exe` viene avviato con un doppio clic da Esplora file (la finestra della console è stata creata per lui e nessun altro processo la condivide) e non ha argomenti, non stampa l'uso: crea `Documents\ARMATURA\first-rig.json` se manca, esegue `studio` su quel file su `127.0.0.1:8080`, apre il browser e tiene aperta la console finché non la chiudi o premi Invio dopo un errore. Avviato da un terminale, si comporta come descritto sopra. Il resto del programma gira su un thread con uno stack da 256 MiB (il thread principale di Windows ne ha solo 1 MiB).
 
 ### 1.6 Programmi esterni
 

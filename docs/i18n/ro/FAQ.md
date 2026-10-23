@@ -11,13 +11,13 @@ Cuprins: [Instalare și configurare](#instalare-și-configurare) - [ffmpeg](#ffm
 ## Instalare și configurare
 
 **1. Cum instalez ARMATURA?**
-Nu există încă nicio lansare (toate crate-urile sunt 0.1.0), deci nu există installer sau binar precompilat. Îl compilezi din sursă cu un toolchain Rust stable recent: `cargo build -p armatura-cli` produce `target/debug/armatura`; adaugă `--release` pentru `target/release/armatura`. Vezi [DEVELOPMENT.md](DEVELOPMENT.md).
+Arhivele precompilate (Windows x86-64, macOS arm64, Linux x86-64 și modulul WebAssembly) sunt pregătite ca pre-lansare ciornă `v0.1.0-alpha.2` pe <https://github.com/chiuta/armatura/releases>; devin descărcabile când proprietarul publică ciorna și nu sunt semnate cu cod (SmartScreen afișează „Unknown publisher”; macOS cere aprobare). Nu există installer: despachetează arhiva și rulează `armatura`. Sau îl compilezi din sursă cu un toolchain Rust stable recent: `cargo build -p armatura-cli` produce `target/debug/armatura`; adaugă `--release` pentru `target/release/armatura`. Vezi [DEVELOPMENT.md](DEVELOPMENT.md).
 
 **2. Ce platforme funcționează?**
-Doar Linux x86-64 a fost compilat și exersat. Se așteaptă ca celelalte ținte să se compileze, deoarece codul este Rust simplu, dar sunt „netestate”, nu „acceptate” ([LIMITATIONS.md](LIMITATIONS.md), secțiunea 1).
+Linux x86-64 este locul unde proiectul a fost dezvoltat și exersat. Pe GitHub Actions, suita de teste și clippy trec și pe macOS (arm64) și Windows (x86-64), iar binarele de lansare pentru cele trei sunt construite acolo; dar nicio persoană nu a folosit încă executabilele pentru Windows sau macOS pe un desktop real, deci sunt „testate de CI”, nu „acceptate” ([LIMITATIONS.md](LIMITATIONS.md), secțiunea 1).
 
 **3. Există un installer grafic sau o aplicație?**
-Nu. Linia de comandă este produsul. Studio este o pagină web locală servită de `armatura studio`; vezi [STUDIO.md](STUDIO.md).
+Nu există installer. Linia de comandă este produsul. Studio este o pagină web locală servită de `armatura studio`; pe Windows, dublu clic pe `armatura.exe` îl pornește și deschide browserul. Arhivele pentru Windows și macOS conțin și `armatura-studio`, o mică fereastră nativă în jurul aceluiași studio (a fost doar compilată și autotestată în CI); vezi [STUDIO.md](STUDIO.md) și [GETTING_STARTED.md](GETTING_STARTED.md).
 
 **4. Cum încep rapid?**
 Urmează [GETTING_STARTED.md](GETTING_STARTED.md): construiește un personaj animat pornind de la un proiect gol, fiecare pas fiind rulat, și se termină cu un GIF.
@@ -110,7 +110,7 @@ Da: „compatibil cu ARMATURA” și „realizat cu ARMATURA” sunt permise. Un
 Nu există un acord de licență pentru contribuitori. Contribuțiile sunt acceptate sub licența proiectului, cu semnătură DCO (`git commit -s`), deci nu există un proprietar care să le poată relicenția. Detalii în [CONTRIBUTING.md](CONTRIBUTING.md).
 
 **28. Ce se întâmplă cu codul terților?**
-Aproximativ 160 de crate-uri ale terților, toate sub licențe permisive, cu excepția smartstring (MPL-2.0 sau ulterioară, doar cu funcționalitatea `scripting`). Listele se află în [THIRD_PARTY.md](THIRD_PARTY.md) și [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md).
+Aproximativ 360 de crate-uri ale terților (numărate pentru toate platformele; aplicația cu fereastră adaugă toolkitul Windows / macOS), toate sub licențe permisive, cu excepția a șase crate-uri MPL-2.0: smartstring (MPL-2.0 sau ulterioară, doar cu funcționalitatea `scripting`) și cinci pe care doar aplicația cu fereastră le poate aduce. Listele se află în [THIRD_PARTY.md](THIRD_PARTY.md) și [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md).
 
 **29. Există probleme legate de brevete?**
 Vezi [PATENT_NOTES.md](PATENT_NOTES.md). Sunt note de inginerie, nu o opinie juridică.
@@ -231,7 +231,7 @@ Deschide un issue cu linia de comandă, rezultatul exact (și stderr), starea de
 În privat, nu într-un issue public; vezi [SECURITY.md](SECURITY.md). Adresa din repository este `alexio@trom.tf`; este aceeași adresă ca a contactului maintainerului și nu a fost înlocuită de o căsuță a unei echipe de securitate.
 
 **60. Există o listă de discuții, un chat sau un contract de suport?**
-Nu. Documentele numesc un singur contact al maintainerului și nu există încă nicio lansare.
+Nu. Documentele numesc un singur contact al maintainerului; prima lansare este încă o pre-lansare ciornă.
 
 **61. Cum contribui?**
 Semnează fiecare commit (`git commit -s`), păstrează testele trecute (`cargo test` și `armatura ci` pentru munca de animație) și citește [DEVELOPMENT.md](DEVELOPMENT.md). Documentația este CC-BY-4.0 și primește cu plăcere corecturi, mai ales acolo unde o pagină și programul nu concordă.
@@ -247,13 +247,13 @@ A fost construit și testat de un singur proiect într-un singur mediu. Tot ce n
 Video necesită ffmpeg. Lottie și glTF acoperă un subset din ce poate ARMATURA să deseneze și să anime, deci verifică ce se pierde în [EXPORT_FORMATS.md](EXPORT_FORMATS.md). Eroarea `export` pentru o extensie necunoscută enumeră `.gif .html .json .mp4 .apng .webm .png .glb`, ceea ce omite `.lottie`; `.lottie` (dotLottie) este o țintă validă, vezi [EXPORT_FORMATS.md](EXPORT_FORMATS.md), secțiunea 6.
 
 **64. Este utilizabil build-ul WASM?**
-Nu a fost niciodată compilat în acest mediu ([WASM.md](WASM.md), [LIMITATIONS.md](LIMITATIONS.md)). Tratează-l ca neverificat.
+Se compilează pentru `wasm32-unknown-unknown` pe GitHub Actions, iar testul wrapper-ului trece față de modulul real sub Node 20, și este atașat la lansarea ciornă ca `armatura-web.tar.gz`. Nu a fost rulat într-un browser, iar viteza și memoria lui nu sunt măsurate ([WASM.md](WASM.md), [LIMITATIONS.md](LIMITATIONS.md)). Tratează-l ca parțial verificat.
 
 **65. Importă fișierele de proiect ale altor instrumente?**
 Importă SVG, OpenRaster, Lottie JSON, imagini, GIF/APNG, motion capture BVH și MIDI ([EXPORT_FORMATS.md](EXPORT_FORMATS.md), secțiunile 9 și 10). Nu importă PSD, fișiere zip `.lottie` sau foldere OCA. Importurile creează un proiect nou. Reține că `import-lottie in.json in.json` nu are protecție la suprascriere și își înlocuiește intrarea. Nu te aștepta ca un fișier importat să se potrivească cu originalul pixel cu pixel.
 
 **66. Este JSON-ul proiectului stabil?**
-Este „format 1”. Un fișier mai nou este refuzat: `project format 2 is newer than this build supports (1); update ARMATURA`. Cum nu există nicio lansare, formatul 1 însuși se poate schimba încă înaintea uneia; vezi [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
+Este „format 1”. Un fișier mai nou este refuzat: `project format 2 is newer than this build supports (1); update ARMATURA`. Cum există doar o pre-lansare alpha, formatul 1 însuși se poate schimba încă înaintea unei lansări stabile; vezi [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
 
 ---
 
@@ -269,7 +269,7 @@ Acele instrumente se concentrează pe mesh-uri, skin-uri și biblioteci runtime 
 Un compositor este construit în jurul straturilor cu efecte și expresii pe filmări video. ARMATURA are efecte de strat și expresii, dar centrul ei este rigging-ul personajelor și grafica vectorială și nu face compoziție video, 3D sau etalonare a culorii filmărilor.
 
 **70. Când este ARMATURA alegerea greșită?**
-Când ai nevoie astăzi de performanță în timp real pe GPU, de un flux de lucru șlefuit cu tabletă grafică, de animație desenată manual cadru cu cadru, de un produs susținut de un furnizor, cu lansare și suport, sau de comportament confirmat în afara Linux x86-64.
+Când ai nevoie astăzi de performanță în timp real pe GPU, de un flux de lucru șlefuit cu tabletă grafică, de animație desenată manual cadru cu cadru, de un produs susținut de un furnizor, cu lansare stabilă și suport, sau de comportament confirmat în afara Linux x86-64.
 
 ---
 

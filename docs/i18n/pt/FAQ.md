@@ -11,13 +11,13 @@ Conteúdo: [Instalação e configuração](#instalação-e-configuração) - [ff
 ## Instalação e configuração
 
 **1. Como instalo o ARMATURA?**
-Ainda não há uma versão lançada (todos os crates estão na 0.1.0), portanto não há instalador nem binário pré-compilado. Você o compila a partir do código-fonte com uma toolchain Rust stable recente: `cargo build -p armatura-cli` gera `target/debug/armatura`; acrescente `--release` para `target/release/armatura`. Veja [DEVELOPMENT.md](DEVELOPMENT.md).
+Arquivos pré-compilados (Windows x86-64, macOS arm64, Linux x86-64 e o módulo WebAssembly) estão preparados como o pré-lançamento em rascunho `v0.1.0-alpha.2` em <https://github.com/chiuta/armatura/releases>; eles ficam disponíveis para download quando o dono publicar o rascunho, e não são assinados digitalmente (o SmartScreen mostra "Editor desconhecido"; o macOS pede aprovação). Não há instalador: descompacte o arquivo e execute `armatura`. Ou compile a partir do código-fonte com uma toolchain Rust stable recente: `cargo build -p armatura-cli` gera `target/debug/armatura`; acrescente `--release` para `target/release/armatura`. Veja [DEVELOPMENT.md](DEVELOPMENT.md).
 
 **2. Quais plataformas funcionam?**
-Apenas o Linux x86-64 foi compilado e exercitado. Espera-se que outros alvos compilem porque o código é Rust puro, mas eles são "não testados", e não "suportados" ([LIMITATIONS.md](LIMITATIONS.md), seção 1).
+O Linux x86-64 é onde o projeto foi desenvolvido e exercitado. No GitHub Actions, a suíte de testes e o clippy também passam em macOS (arm64) e Windows (x86-64), e os binários de release para esses três são compilados lá; mas nenhuma pessoa usou ainda os executáveis de Windows ou macOS em um desktop real, então eles são "testados pelo CI", e não "suportados" ([LIMITATIONS.md](LIMITATIONS.md), seção 1).
 
 **3. Existe um instalador gráfico ou um aplicativo?**
-Não. A linha de comando é o produto. O estúdio é uma página web local servida por `armatura studio`; veja [STUDIO.md](STUDIO.md).
+Não há instalador. A linha de comando é o produto. O estúdio é uma página web local servida por `armatura studio`; no Windows, um duplo clique em `armatura.exe` o inicia e abre o seu navegador. Os arquivos para Windows e macOS também contêm `armatura-studio`, uma pequena janela nativa em torno do mesmo estúdio (ela só foi compilada e autotestada no CI); veja [STUDIO.md](STUDIO.md) e [GETTING_STARTED.md](GETTING_STARTED.md).
 
 **4. Como começo rapidamente?**
 Siga [GETTING_STARTED.md](GETTING_STARTED.md): ele constrói um personagem animado a partir de um projeto vazio, com todos os passos executados, e termina com um GIF.
@@ -110,7 +110,7 @@ Sim: "compatível com o ARMATURA" e "feito com o ARMATURA" são permitidos. Um b
 Não existe contrato de licença de contribuidor. As contribuições são aceitas sob a licença do projeto com uma assinatura DCO (`git commit -s`), portanto não há um dono que possa relicenciá-las. Detalhes em [CONTRIBUTING.md](CONTRIBUTING.md).
 
 **28. E o código de terceiros?**
-Cerca de 160 crates de terceiros, todos com licenças permissivas, exceto o smartstring (MPL-2.0 ou posterior, apenas com o recurso `scripting`). As listas estão em [THIRD_PARTY.md](THIRD_PARTY.md) e [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md).
+Cerca de 360 crates de terceiros (contados em todas as plataformas; o aplicativo de janela acrescenta o toolkit de Windows / macOS), todos com licenças permissivas, exceto seis MPL-2.0: o smartstring (MPL-2.0 ou posterior, apenas com o recurso `scripting`) e cinco que somente o aplicativo de janela pode trazer. As listas estão em [THIRD_PARTY.md](THIRD_PARTY.md) e [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md).
 
 **29. Há preocupações com patentes?**
 Veja [PATENT_NOTES.md](PATENT_NOTES.md). São notas de engenharia, não um parecer jurídico.
@@ -231,7 +231,7 @@ Abra uma issue com a linha de comando, a saída exata (inclusive o stderr), o st
 De forma privada, não em uma issue pública; veja [SECURITY.md](SECURITY.md). O endereço no repositório é `alexio@trom.tf`; é o mesmo endereço do contato do mantenedor e não foi substituído por uma caixa de correio de equipe de segurança.
 
 **60. Existe lista de e-mail, chat ou contrato de suporte?**
-Não. Os documentos indicam um contato do mantenedor e ainda não há versão lançada.
+Não. Os documentos indicam um contato do mantenedor; o primeiro lançamento ainda é um pré-lançamento em rascunho.
 
 **61. Como contribuo?**
 Assine cada commit (`git commit -s`), mantenha os testes passando (`cargo test` e, para trabalho de animação, `armatura ci`) e leia [DEVELOPMENT.md](DEVELOPMENT.md). A documentação é CC-BY-4.0 e aceita correções com prazer, especialmente onde uma página e o programa discordam.
@@ -247,13 +247,13 @@ Ele foi construído e testado por um único projeto em um único ambiente. Tudo 
 O vídeo precisa do ffmpeg. O Lottie e o glTF cobrem um subconjunto do que o ARMATURA consegue desenhar e animar, portanto verifique o que se perde em [EXPORT_FORMATS.md](EXPORT_FORMATS.md). O erro de `export` para uma extensão desconhecida lista `.gif .html .json .mp4 .apng .webm .png .glb`, o que omite `.lottie`; `.lottie` (dotLottie) é um destino válido, veja [EXPORT_FORMATS.md](EXPORT_FORMATS.md), seção 6.
 
 **64. O build WASM é utilizável?**
-Ele nunca foi compilado neste ambiente ([WASM.md](WASM.md), [LIMITATIONS.md](LIMITATIONS.md)). Trate-o como não verificado.
+Ele compila para `wasm32-unknown-unknown` no GitHub Actions e o teste do wrapper passa contra o módulo real sob o Node 20, e está anexado ao lançamento em rascunho como `armatura-web.tar.gz`. Ele não foi executado em um navegador, e sua velocidade e memória não foram medidas ([WASM.md](WASM.md), [LIMITATIONS.md](LIMITATIONS.md)). Trate-o como parcialmente verificado.
 
 **65. Ele importa arquivos de projeto de outras ferramentas?**
 Ele importa SVG, OpenRaster, JSON Lottie, imagens, GIF/APNG, captura de movimento BVH e MIDI ([EXPORT_FORMATS.md](EXPORT_FORMATS.md), seções 9 e 10). Não importa PSD, arquivos zip `.lottie` nem pastas OCA. As importações criam um novo projeto. Observe que `import-lottie in.json in.json` não tem proteção contra sobrescrita e substitui a sua entrada. Não espere que um arquivo importado corresponda ao original pixel a pixel.
 
 **66. O JSON do projeto é estável?**
-É o "format 1". Um arquivo mais novo é recusado: `project format 2 is newer than this build supports (1); update ARMATURA`. Como não há versão lançada, o próprio format 1 ainda pode mudar antes de uma; veja [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
+É o "format 1". Um arquivo mais novo é recusado: `project format 2 is newer than this build supports (1); update ARMATURA`. Como existe apenas um pré-lançamento alpha, o próprio format 1 ainda pode mudar antes de uma versão estável; veja [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
 
 ---
 
@@ -269,7 +269,7 @@ Essas ferramentas se concentram em malhas, skins e bibliotecas de runtime para m
 Um compositor é construído em torno de camadas com efeitos e expressões sobre filmagens de vídeo. O ARMATURA tem efeitos de camada e expressões, mas seu centro é o rigging de personagens e a arte vetorial, e ele não faz composição de vídeo, 3D nem correção de cor de filmagens.
 
 **70. Quando o ARMATURA é a escolha errada?**
-Quando você precisa hoje de desempenho em tempo real em uma GPU, de um fluxo de trabalho polido com mesa digitalizadora, de animação desenhada à mão quadro a quadro, de um produto com suporte de fornecedor, com versão lançada e suporte, ou de comportamento confirmado fora do Linux x86-64.
+Quando você precisa hoje de desempenho em tempo real em uma GPU, de um fluxo de trabalho polido com mesa digitalizadora, de animação desenhada à mão quadro a quadro, de um produto com suporte de fornecedor, com versão estável lançada e suporte, ou de comportamento confirmado fora do Linux x86-64.
 
 ---
 

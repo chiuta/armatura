@@ -8,7 +8,7 @@ nu are bază de date: este un mic server HTTP din biblioteca standard, plasat î
 
 Tot ce se află aici a fost verificat pe binarul real (`armatura 0.1.0`, build debug, Linux) și, pentru interfața cu utilizatorul,
 în Chromium headless condus de Playwright. Capturile de ecran au fost făcute astfel (1400x900, proiectul demo încorporat).
-Doar **Chromium** a fost testat; vezi secțiunea 11.
+Doar **Chromium** a fost testat; vezi secțiunea 11. Pe Windows și macOS, arhivele de lansare conțin și `armatura-studio`, același studio într-o fereastră nativă (compilat și autotestat în CI, încă nefolosit de o persoană; vezi [GETTING_STARTED.md](GETTING_STARTED.md) și [LIMITATIONS.md](LIMITATIONS.md) L-75), iar pe Windows un dublu clic pe `armatura.exe` pornește studioul și deschide browserul (L-76).
 
 Licența acestui document: CC-BY-4.0. Pentru linia de comandă vezi [GETTING_STARTED.md](GETTING_STARTED.md) și
 [CLI_REFERENCE.md](CLI_REFERENCE.md); pentru securitatea serverului vezi și [SECURITY.md](SECURITY.md).

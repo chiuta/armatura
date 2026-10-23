@@ -18,13 +18,29 @@ Principiile proiectului:
 
 ## Stare
 
-> **Pre-lansare, un singur mediu de testare.** Toate crate-urile au versiunea `0.1.0`; nimic nu a fost lansat. Denumirile „v0.5 / v0.6 / v0.7” din istoric sunt *niveluri de funcționalitate* ([CHANGELOG.md](CHANGELOG.md)).
+> **Alpha. Primele build-uri sunt pregătite ca pre-lansare ciornă: `v0.1.0-alpha.2`.** Executabilele pentru Windows x86-64, macOS arm64 și Linux x86-64 și modulul WebAssembly sunt construite de GitHub Actions și atașate la o pre-lansare *ciornă* pe <https://github.com/chiuta/armatura/releases> (o ciornă este vizibilă doar proprietarului până când este publicată manual). Toate crate-urile au în continuare versiunea `0.1.0`; „v0.5 / v0.6 / v0.7” sunt *niveluri de funcționalitate* în istoric, nu numere de lansare ([CHANGELOG.md](CHANGELOG.md)).
 >
 > | Verificat | Neverificat |
 > |---|---|
-> | 1368 de teste din `cargo test --workspace` plus 19 doc-teste trec (22 oct. 2026, Linux x86-64); patru teste de fum ale studioului în Chromium fără interfață trec (89, 35, 124, 60 de verificări); CLI-ul, fațada Rust și ABI-ul C (inclusiv sub ASan/UBSan) au fost rulate cu exemplele din documentație | **Modulul WebAssembly nu a fost construit și nici rulat niciodată** (ținta wasm32 nu a putut fi instalată; [docs/WASM.md](docs/WASM.md)); studioul nu a fost folosit de o persoană în producție și nici într-un alt browser decât Chromium; nu s-a folosit niciodată un GPU real (doar un adaptor software), o cameră web, o fotografie sau un fișier de captură de mișcare; Windows și macOS netestate; fără audit de securitate, revizuire juridică sau căutare de brevete |
+> | **Local (Linux x86-64, 24 oct. 2026):** 1338 de teste din `cargo test --workspace --exclude armatura-gpu --exclude armatura-gui` plus 19 doc-teste trec (crate-ul GPU are nevoie de un adaptor, iar crate-ul ferestrei de un desktop; înainte de aceasta, numărul incluzând crate-ul GPU era 1368). **Pe GitHub Actions (24 oct. 2026, toolchain 1.97.0):** suita de teste și `clippy -D warnings` trec pe Linux, macOS (arm64) și Windows; `cargo deny` și `reuse lint` trec; modulul WebAssembly se construiește pentru `wasm32-unknown-unknown`, iar testul wrapper-ului trece față de modulul real sub Node 20; binarele de lansare trec un test de fum (`--version`, `demo`, `check`, `render`), iar `armatura-studio --selftest` rulează pe Windows și macOS. Patru teste de fum ale studioului în Chromium fără interfață trec; CLI-ul, fațada Rust și ABI-ul C (inclusiv sub ASan/UBSan) au fost rulate cu exemplele din documentație | **Nicio persoană nu a folosit executabilele pe un desktop real Windows sau macOS**: lansatorul Windows prin dublu clic și aplicația cu fereastră `armatura-studio` (WebView2 / WKWebView) au fost doar compilate și autotestate în CI; binarele **nu sunt semnate cu cod** (SmartScreen „Unknown publisher”, macOS Gatekeeper); binarul Linux a fost construit doar pe un runner Ubuntu; **modulul WebAssembly nu a fost niciodată rulat într-un browser**, iar viteza și memoria lui nu sunt măsurate; studioul nu a fost folosit de o persoană în producție și nici într-un alt browser decât Chromium; nu s-a folosit niciodată un GPU real (doar un adaptor software), o cameră web, o fotografie sau un fișier de captură de mișcare; fără audit de securitate, revizuire juridică sau căutare de brevete |
 >
-> Citește [docs/LIMITATIONS.md](docs/LIMITATIONS.md) (69 de limite numerotate, cu gravitate și soluție ocolitoare) înainte să te bazezi pe ceva.
+> Citește [docs/LIMITATIONS.md](docs/LIMITATIONS.md) (77 de limite numerotate, cu gravitate și soluție ocolitoare) înainte să te bazezi pe ceva.
+
+## Descărcare
+
+Arhivele precompilate, după ce proprietarul publică lansarea ciornă, se găsesc pe [pagina Releases](https://github.com/chiuta/armatura/releases) a proiectului:
+
+| Arhivă | Conținut |
+|---|---|
+| `armatura-windows-x86_64.zip` | `armatura.exe` (linia de comandă + serverul studioului), `armatura-studio.exe` (aplicația cu fereastră), biblioteca C și header-ul, licențe, notificări despre terți |
+| `armatura-macos-arm64.tar.gz` | `armatura`, `armatura-studio` (doar Apple silicon), biblioteca C și header-ul, licențe, notificări |
+| `armatura-linux-x86_64.tar.gz` | `armatura`, biblioteca C și header-ul, licențe, notificări (fără aplicație cu fereastră: folosește `armatura studio` și un browser) |
+| `armatura-web.tar.gz` | `armatura_wasm.wasm`, `armatura.js`, demo `index.html` (neverificat în browsere, vezi [docs/WASM.md](docs/WASM.md)) |
+| `SHA256SUMS.txt` | verifică fiecare descărcare față de el |
+
+* **Windows:** fă dublu clic pe `armatura.exe` pentru a crea `Documents\ARMATURA\first-rig.json` și a deschide studioul în browser, sau dublu clic pe `armatura-studio.exe` pentru o fereastră proprie. Ambele programe sunt nesemnate: alege *More info*, apoi *Run anyway* în SmartScreen. Vezi [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md).
+* **macOS:** aprobă programul în *System Settings > Privacy & Security* prima dată.
+* **Sursa:** fiecare arhivă indică commit-ul din care a fost construită; părțile AGPL sunt servite cu oferta lor de sursă (`armatura --version`, `/source`).
 
 ## Funcții pe domenii
 
@@ -37,11 +53,11 @@ Detalii și opțiunile exacte: [docs/CLI_REFERENCE.md](docs/CLI_REFERENCE.md); c
 * **Ieșire.** SVG, PNG, secvențe PNG și sprite sheet, GIF, APNG, MP4/WebM (prin ffmpeg), player HTML autonom, Lottie și dotLottie, glTF 2.0 binar, OpenEXR/PNG pe 16 biți, OCA; export cu țintă de dimensiune (`export-fit`). Import: SVG, OpenRaster, Lottie, BVH, secvențe PNG/GIF/APNG.
 * **Instrumente de calitate.** `check`, `lint`, `diff` semantic, fuzzing de poze cu hărți termice, CI de animație cu diferență perceptuală și cadre de referință ([docs/CI.md](docs/CI.md)), control de versiuni cu îmbinare semantică (`vcs`), verificări de siguranță pentru străluciri și mișcare.
 * **Studio.** Editor în browser servit de CLI: gizmo-uri pe canvas, cronologie, dope sheet și editor de grafice, suprapuneri, paletă de comenzi și scurtături, undo/redo, editare multiutilizator în timp real cu token opțional și jurnal persistent ([docs/STUDIO.md](docs/STUDIO.md)).
-* **Biblioteci.** Fațadă Rust stabilă ([docs/API.md](docs/API.md)), ABI C ([docs/C_ABI.md](docs/C_ABI.md)), modul WebAssembly și învelitoare JavaScript (neconstruit; [docs/WASM.md](docs/WASM.md)), randor wgpu opțional.
+* **Biblioteci.** Fațadă Rust stabilă ([docs/API.md](docs/API.md)), ABI C ([docs/C_ABI.md](docs/C_ABI.md)), modul WebAssembly și învelitoare JavaScript (construit și testat sub Node în CI, încă nerulat într-un browser; [docs/WASM.md](docs/WASM.md)), randor wgpu opțional.
 
 ## Pornire rapidă
 
-Cerințe: un lanț de unelte Rust stabil, recent. `ffmpeg` este necesar doar pentru exportul MP4/WebM și pentru audio mp3/ogg; nu este niciodată inclus în pachet. Fiecare comandă de mai jos a fost rulată pentru acest README (build de depanare, Linux). Build-urile de lansare (`cargo build --release`) sunt mult mai rapide la randare și se folosesc la fel, cu `target/release`.
+Cerințe: un lanț de unelte Rust stabil, recent (sau o arhivă precompilată din secțiunea [Descărcare](#descărcare): sari peste linia `cargo build` și folosește `armatura` despachetat). `ffmpeg` este necesar doar pentru exportul MP4/WebM și pentru audio mp3/ogg; nu este niciodată inclus în pachet. Fiecare comandă de mai jos a fost rulată pentru acest README (build de depanare, Linux). Build-urile de lansare (`cargo build --release`) sunt mult mai rapide la randare și se folosesc la fel, cu `target/release`.
 
 ```sh
 cargo build -p armatura-cli                       # construiește target/debug/armatura
@@ -87,17 +103,19 @@ cargo test -p armatura-cli --test spdx_audit
 |---|---|---|
 | `armatura-core/` | motorul, formatele, instrumentele, fațada stabilă `api` | MPL-2.0 |
 | `armatura-cli/` | binarul `armatura`, serverul studioului și al colaborării, teste end-to-end și de fum | AGPL-3.0-or-later |
+| `armatura-gui/` | `armatura-studio`, studioul într-o fereastră nativă (Windows și macOS; stub pe Linux) | AGPL-3.0-or-later |
 | `armatura-capi/` | ABI C (`armatura.h`, bibliotecă dinamică și statică) | MPL-2.0 |
-| `armatura-wasm/` | ABI WebAssembly, învelitoare JavaScript, pagină demo (neconstruit) | MPL-2.0 |
+| `armatura-wasm/` | ABI WebAssembly, învelitoare JavaScript, pagină demo (construit în CI) | MPL-2.0 |
 | `armatura-gpu/` | randor wgpu opțional (nu este membru implicit al workspace-ului) | MPL-2.0 |
 | `docs/` | documentație (CC-BY-4.0) și fișiere generate despre terți | CC-BY-4.0 |
+| `.github/workflows/` | CI (`ci.yml`) și build-uri de lansare (`release.yml`) | MPL-2.0 |
 | `scripts/` | `e2e.sh`, `licence-audit.sh` | MPL-2.0 |
 | `LICENSES/`, `REUSE.toml`, `deny.toml` | texte de licență, metadate de licență, politica dependențelor | - |
 | `ROADMAP.md`, `FEATURES.md`, `CLEANROOM.md`, `LICENSING.md`, `TRADEMARK.md`, `CONTRIBUTING.md`, `CHANGELOG.md` | documentele proiectului | CC-BY-4.0 |
 
 ## Harta documentației
 
-Începe de la [docs/INDEX.md](docs/INDEX.md) (toate documentele, publicul țintă, trasee de lectură). Documentele din `docs/` sunt în engleză.
+Începe de la [docs/INDEX.md](docs/INDEX.md) (toate documentele, publicul țintă, trasee de lectură).
 
 | Pagină | Pentru |
 |---|---|
@@ -113,7 +131,7 @@ cargo test -p armatura-cli --test spdx_audit
 | [docs/FAQ.md](docs/FAQ.md) | întrebări frecvente |
 | [docs/API.md](docs/API.md) | fațada Rust 1.4 |
 | [docs/C_ABI.md](docs/C_ABI.md) | interfața C |
-| [docs/WASM.md](docs/WASM.md) | WebAssembly (niciodată construit) |
+| [docs/WASM.md](docs/WASM.md) | WebAssembly (construit în CI, nerulat într-un browser) |
 | [docs/CI.md](docs/CI.md) | CI de animație |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | construire, teste, convenții, lansare |
 | [docs/SECURITY.md](docs/SECURITY.md) | model de amenințări și întărire |
@@ -125,17 +143,17 @@ cargo test -p armatura-cli --test spdx_audit
 ## Rezumatul licențelor
 
 * **MPL-2.0** pentru bibliotecile `armatura-core`, `armatura-capi`, `armatura-wasm`, `armatura-gpu` și pentru `scripts/`: le poți lega în propriul program, deschis sau închis; modificările aduse acelor fișiere trebuie publicate sub MPL.
-* **AGPL-3.0-or-later** pentru `armatura-cli` (linia de comandă și studioul). Dacă îl modifici și lași alte persoane să interacționeze cu el prin rețea, secțiunea 13 te obligă să le oferi sursa ta: `armatura studio --source-url URL` publică locul unde se află; `/source` și `armatura --version` conțin oferta.
+* **AGPL-3.0-or-later** pentru `armatura-cli` (linia de comandă și studioul) și `armatura-gui` (fereastra din jurul lui). Dacă îl modifici și lași alte persoane să interacționeze cu el prin rețea, secțiunea 13 te obligă să le oferi sursa ta: `armatura studio --source-url URL` publică locul unde se află; `/source` și `armatura --version` conțin oferta.
 * **CC-BY-4.0** pentru documentație și resurse sintetice (inclusiv modelul sintetic de detecție a fețelor).
 * **Proiectele și randările tale rămân ale tale.**
 * Numele și sigla nu sunt acoperite de aceste licențe ([TRADEMARK.md](TRADEMARK.md)). Situația brevetelor nu a fost evaluată ([docs/PATENT_NOTES.md](docs/PATENT_NOTES.md)). O licență comercială sau duală pentru codul contribuit nu este posibilă fără un acord de licență al contribuitorilor (CLA), iar un astfel de acord nu există.
-* Crate-uri terțe: 160 la ultimul audit, toate permisive, cu excepția unui crate cu copyleft slab aflat în spatele funcției opționale `scripting` ([docs/THIRD_PARTY.md](docs/THIRD_PARTY.md)). ffmpeg nu este niciodată inclus în pachet.
+* Crate-uri terțe: 362 în inventarul din 24 oct. 2026 (toate platformele și țintele împreună, ceea ce include crate-urile doar-Windows / macOS / Linux ale aplicației cu fereastră; un binar dat conține un subset), toate permisive, cu excepția a șase crate-uri MPL-2.0 cu copyleft slab: `smartstring`, în spatele funcției opționale `scripting`, și cinci (`cssparser`, `cssparser-macros`, `dtoa-short`, `selectors`, `option-ext`) pe care le poate aduce doar aplicația cu fereastră `armatura-gui` ([docs/THIRD_PARTY.md](docs/THIRD_PARTY.md)). ffmpeg nu este niciodată inclus în pachet.
 
 Vezi [LICENSE](LICENSE), [LICENSES/](LICENSES/) și [LICENSING.md](LICENSING.md). Nimic din toate acestea nu este consultanță juridică; revizuirea de către un avocat este încă de făcut.
 
 ## Contribuții
 
-Contribuțiile sunt binevenite, sub licența părții pe care o modifică. Citește [CONTRIBUTING.md](CONTRIBUTING.md) (fiecare commit are nevoie de o linie `Signed-off-by`, DCO 1.1), [CLEANROOM.md](CLEANROOM.md) (implementează doar din surse publice; nu copia cod proprietar sau cu licență incompatibilă) și [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) (convenții, listă de verificare pentru un modul nou, teste). Contribuții bune pentru început: o corectură dintre cele din [docs/LIMITATIONS.md](docs/LIMITATIONS.md), o rulare reală a listei de verificare WebAssembly, teste pe Windows sau macOS, un benchmark pe un GPU real.
+Contribuțiile sunt binevenite, sub licența părții pe care o modifică. Citește [CONTRIBUTING.md](CONTRIBUTING.md) (fiecare commit are nevoie de o linie `Signed-off-by`, DCO 1.1), [CLEANROOM.md](CLEANROOM.md) (implementează doar din surse publice; nu copia cod proprietar sau cu licență incompatibilă) și [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) (convenții, listă de verificare pentru un modul nou, teste). Contribuții bune pentru început: o corectură dintre cele din [docs/LIMITATIONS.md](docs/LIMITATIONS.md), o rulare reală a listei de verificare WebAssembly, un test pe desktop real al executabilelor pentru Windows / macOS, un benchmark pe un GPU real.
 
 Probleme de securitate: nu deschide un issue public; urmează [docs/SECURITY.md](docs/SECURITY.md) secțiunea 10.
 

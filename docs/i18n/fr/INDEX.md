@@ -4,7 +4,7 @@
 
 *Commencez ici pour trouver la bonne page. Tous les documents sont en Markdown anglais sous CC-BY-4.0, à l'exception des fichiers tiers générés (voir leurs en-têtes). Le README roumain est [../README.ro.md](../../../README.fr.md).*
 
-ARMATURA est un moteur de rigging et d'animation vectoriels 2D en Rust. C'est un projet en préversion (crates 0.1.0) ; lisez [LIMITATIONS.md](LIMITATIONS.md) avant de dépendre d'une fonctionnalité.
+ARMATURA est un moteur de rigging et d'animation vectoriels 2D en Rust. C'est un projet alpha (les premiers builds sont préparés comme la préversion en brouillon `v0.1.0-alpha.2` ; les crates sont toujours en 0.1.0) ; lisez [LIMITATIONS.md](LIMITATIONS.md) avant de dépendre d'une fonctionnalité.
 
 Sommaire : [Tous les documents](#tous-les-documents) - [Parcours de lecture par public](#parcours-de-lecture-par-public) - [Documents à la racine du dépôt](#documents-à-la-racine-du-dépôt) - [Où trouver la réponse à chaque question](#où-trouver-la-réponse-à-chaque-question) - [Conventions](#conventions-utilisées-dans-les-documents)
 
@@ -24,10 +24,10 @@ Sommaire : [Tous les documents](#tous-les-documents) - [Parcours de lecture par 
 | [FAQ.md](FAQ.md) | Réponses courtes aux questions fréquentes | tout le monde |
 | [API.md](API.md) | La façade Rust stable (version 1.4.0) : appels, erreurs, limites, exemples | intégrateurs Rust |
 | [C_ABI.md](C_ABI.md) | L'interface C (`armatura-capi`) : fonctions, règles de mémoire, exemples en C et en Python | intégrateurs C, C++, Python, Go, C# |
-| [WASM.md](WASM.md) | Module WebAssembly et wrapper JavaScript. **État : jamais compilé ni exécuté** ; comprend la liste de contrôle pour le premier à le compiler | développeurs web |
+| [WASM.md](WASM.md) | Module WebAssembly et wrapper JavaScript. **État : compilé et testé sous Node en CI, jamais exécuté dans un navigateur** ; comprend la liste de contrôle pour la première exécution dans un navigateur | développeurs web |
 | [CI.md](CI.md) | CI d'animation (`armatura ci`) : manifeste, seuils, images de référence, rapports, exemples de pipelines | artistes techniques, ingénieurs de build |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Compilation, tests, conventions, liste de contrôle pour un nouveau module, liste de contrôle de release, débogage | contributeurs, mainteneurs |
-| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Étapes à la charge du propriétaire avant et après une première publication | propriétaire |
+| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Étapes à la charge du propriétaire avant et après la publication du brouillon de version | propriétaire |
 | [SECURITY.md](SECURITY.md) | Modèle de menaces, protections intégrées, lacunes connues, signalement, liste de contrôle de durcissement | relecteurs de sécurité, déployeurs |
 | [LIMITATIONS.md](LIMITATIONS.md) | Liste numérotée des limites connues avec gravité, contournement et identifiant de feuille de route | toute personne qui évalue ARMATURA |
 | [PATENT_NOTES.md](PATENT_NOTES.md) | Note sur le statut vis-à-vis des brevets (pas un avis juridique) | licenciés, juristes |

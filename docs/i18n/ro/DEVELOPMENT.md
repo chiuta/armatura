@@ -17,7 +17,7 @@ Cuprins: [Mediul](#1-mediul) - [Comenzi de build și de test](#2-comenzi-de-buil
 | `cargo-deny` | politica de licențe/interdicții/surse | `scripts/licence-audit.sh` îl rulează dacă este instalat (`--no-deny` îl omite) |
 | `python3` | `scripts/licence-audit.sh` generează documentația cu un script inline | rulează cu `python3 -I` |
 | Un adaptor Vulkan sau GL | doar pentru cifre pe GPU real din `armatura-gpu` | testele revin la un adaptor software; vezi secțiunea 2 |
-| `rustup target wasm32-unknown-unknown`, `wasm-opt` | doar pentru [WASM.md](WASM.md) | **niciodată instalate în mediul de dezvoltare** |
+| `rustup target wasm32-unknown-unknown`, `wasm-opt` | doar pentru [WASM.md](WASM.md) | niciodată instalate în mediul de dezvoltare; CI le instalează |
 
 Structura workspace-ului (vezi [ARCHITECTURE.md](ARCHITECTURE.md) pentru proiectare):
 
@@ -28,6 +28,7 @@ Structura workspace-ului (vezi [ARCHITECTURE.md](ARCHITECTURE.md) pentru proiect
 | `armatura-capi` | MPL-2.0 | C ABI ([C_ABI.md](C_ABI.md)) |
 | `armatura-wasm` | MPL-2.0 | ABI WebAssembly + wrapper JS ([WASM.md](WASM.md)) |
 | `armatura-gpu` | MPL-2.0 | renderer wgpu opțional; **nu** este membru implicit |
+| `armatura-gui` | AGPL-3.0-or-later | `armatura-studio`, studioul într-o fereastră nativă (`tao` + `wry`, doar Windows și macOS; stub în rest); **nu** este membru implicit, `publish = false` |
 
 Fișiere la nivel de repository: `ROADMAP.md` (secțiunea 9 este jurnalul datat al funcționalităților și al reviziilor), `FEATURES.md`, `CLEANROOM.md`, `LICENSING.md`, `REUSE.toml`, `deny.toml`, `LICENSES/`, `scripts/`.
 
@@ -35,7 +36,7 @@ Fișiere la nivel de repository: `ROADMAP.md` (secțiunea 9 este jurnalul datat 
 
 ```sh
 cargo build                                  # default members: core, cli, capi, wasm (gpu is opt-in)
-cargo test --workspace                       # run: 1368 tests + doc-tests (section 3)
+cargo test --workspace                       # run: 1338 tests + 19 doc-tests without gpu and gui (section 3)
 cargo test -p armatura-core                  # one crate (the engine and the facade tests)
 cargo test -p armatura-core api::            # a module or a name filter
 cargo test -p armatura-cli --test e2e        # one integration test file
@@ -80,7 +81,7 @@ Numerele provin din `ROADMAP.md` secțiunea 9 și dintr-o rulare completă `carg
 | `armatura-gpu` unit + `tests/parity.rs` | 18 + 13 | 0.2 s + 6.5 s | paritate GPU față de CPU (adaptor software când nu există GPU) |
 | Doc-tests (`armatura-core`) | 19 | 171 s (fiecare compilează un program) | exemplele fațadei (`api.rs`, `lib.rs`); `armatura-capi`, `armatura-wasm` nu au |
 
-Total: 1368 de teste în binarele de unit și de integrare (numărul din ROADMAP; renumărat dintr-o rulare completă `cargo test --workspace` din 22 oct. 2026 după valul 7, duratele pe suite de mai sus provin dintr-o rulare anterioară), plus 19 doc-tests; întregul `cargo test --workspace --offline` a durat 836 s pe mașina partajată.
+Total: 1338 de teste în binarele de unit și de integrare și 19 doc-tests, numărate pe 24 oct. 2026 cu `cargo test --workspace --exclude armatura-gpu --exclude armatura-gui` (cele 1368 din propoziția următoare includeau și testele crate-ului GPU; renumărat dintr-o rulare completă `cargo test --workspace` din 22 oct. 2026 după valul 7, duratele pe suite de mai sus provin dintr-o rulare anterioară), plus 19 doc-tests; întregul `cargo test --workspace --offline` a durat 836 s pe mașina partajată.
 
 Suite în afara `cargo test`:
 
@@ -139,7 +140,7 @@ Proiectul este o implementare independentă. Pe scurt (textul obligatoriu este [
 
 ## 7. Listă de verificare pentru lansare
 
-Nimic nu a fost lansat încă (toate crate-urile sunt 0.1.0; etichetele de versiune „v0.5/v0.6/v0.7” din README, FEATURES și ROADMAP sunt niveluri de funcționalități, nu versiuni de crate; vezi [CHANGELOG.md](CHANGELOG.md)). Când o faci:
+Primele build-uri sunt pregătite ca pre-lansare ciornă `v0.1.0-alpha.2` (toate crate-urile sunt încă 0.1.0; etichetele de versiune „v0.5/v0.6/v0.7” din README, FEATURES și ROADMAP sunt niveluri de funcționalități, nu versiuni de crate; vezi [CHANGELOG.md](CHANGELOG.md)). Pentru a face una:
 
 1. **Versiune.** Stabilește versiunea fiecărui crate. Fațada are propria versiune (`API_VERSION`, azi 1.4.0: majoră la eliminarea sau schimbarea unei linii de suprafață, minoră la adăugare), iar `ARMATURA_ABI_VERSION` / `arm_abi_version()` (ambele 1) se schimbă doar la o modificare incompatibilă a ABI-ului C sau wasm. Aliniază versiunile din `Cargo.toml`, ieșirea `armatura --version`, caseta de stare din README și CHANGELOG.
 2. **Condiții verzi.** `cargo test --workspace`, `cargo test --doc -p armatura-core`, `cargo test -p armatura-cli --test spdx_audit`, `cargo clippy --workspace --all-targets -- -D warnings`, cele patru teste smoke Chromium, `scripts/e2e.sh` (release), `cargo test -p armatura-gpu` dacă s-a schimbat codul GPU.
@@ -148,14 +149,15 @@ Nimic nu a fost lansat încă (toate crate-urile sunt 0.1.0; etichetele de versi
 5. **Fără ffmpeg.** Nu include, nu lega și nu descărca ffmpeg în artefactele de lansare. Este detectat în `PATH` la rulare, iar documentația spune că utilizatorul îl instalează.
 6. **Oferta sursei AGPL.** Binarul `armatura-cli` servește propria ofertă de sursă la `/source` (AGPL secțiunea 13) și afișează o notificare la `--version`; operatorii serverelor studio modificate stabilesc `--source-url` la adresa unde se află sursa lor modificată. Teste: `tests/source_offer.rs`. Pentru o lansare binară, oferă sursa corespunzătoare (tag, tarball) la adresa la care utilizatorii pot ajunge.
 7. **Documentație.** Actualizează caseta de stare din README, [LIMITATIONS.md](LIMITATIONS.md) și CHANGELOG (mută *Unreleased* sub noua versiune, cu dată).
-8. **Etichetează și publică** cu un tag semnat; atașează sume de control. Nu publica crate-uri sub nume care nu sunt ale tale; regulile din TRADEMARK.md se aplică fork-urilor.
+8. **Construiește ciorna pe GitHub.** `.github/workflows/release.yml` construiește arhivele pentru Windows, macOS și Linux și modulul web la fiecare push pe `main`; un commit pe `main` al cărui mesaj conține `[release vX.Y.Z-label]` (sau un tag `v*` trimis) creează și o *pre-lansare ciornă* cu arhivele și `SHA256SUMS.txt` (o ciornă mai veche cu același tag este înlocuită). Verifică ciorna, apoi publică-o manual.
+9. **Etichetează și publică** cu un tag semnat; atașează sume de control. Nu publica crate-uri sub nume care nu sunt ale tale; regulile din TRADEMARK.md se aplică fork-urilor.
 
 ## 8. Integrare continuă
 
-Două lucruri diferite folosesc același cuvânt:
+Două lucruri diferite folosesc același cuvânt (un al treilea workflow, `.github/workflows/release.yml`, construiește arhivele de lansare și lansarea ciornă, vezi secțiunea 7):
 
 * **CI de animație** (`armatura ci`): verificări ale *proiectelor* (lint, goldens de randare, performanță, determinism). Descris complet în [CI.md](CI.md): manifestul `armatura-ci.json`, praguri, goldens (`--update` față de `bless`), rapoarte, exemple GitHub Actions și shell simplu (marcate acolo „example, not run”).
-* **CI de cod** pentru acest repository: `.github/workflows/ci.yml` are patru feluri de joburi: `test` (matrice ubuntu / windows / macos: `cargo test --workspace --exclude armatura-gpu --locked` și clippy cu `-D warnings`), `wasm32` (construiește `armatura-wasm` pentru `wasm32-unknown-unknown`, copiază modulul lângă `armatura.js` și rulează `node armatura-wasm/js/test.mjs` cu un proiect demo, inclusiv partea cu modulul real), `gpu parity` (informativ; se omite când nu există adaptor, rulează pe adaptorul software DX12 de pe Windows) și `licences` (`cargo-deny check` și `reuse lint`). Toolchain-ul este fixat (1.97.0) ca lint-urile clippy noi să nu strice build-ul. **Prima rulare complet verde: 2026-10-24** pe runnere găzduite de GitHub. La eșec, pașii afișează testele eșuate ca adnotări de workflow (lizibile fără acces la loguri). Windows omite testele doar-POSIX (symlink-uri, permisiuni, `/dev/zero`, separatoare de cale POSIX). Comenzile din care este alcătuit, așa cum au fost rulate la scrierea acestei documentații:
+* **CI de cod** pentru acest repository: `.github/workflows/ci.yml` are patru feluri de joburi: `test` (matrice ubuntu / windows / macos: `cargo test --workspace --exclude armatura-gpu --locked` și clippy cu `-D warnings`), `wasm32` (construiește `armatura-wasm` pentru `wasm32-unknown-unknown`, copiază modulul lângă `armatura.js` și rulează `node armatura-wasm/js/test.mjs` cu un proiect demo, inclusiv partea cu modulul real), `gpu parity` (informativ; se omite când nu există adaptor, rulează pe adaptorul software DX12 de pe Windows) și `licences` (`cargo-deny check` și `reuse lint`). Toolchain-ul este fixat (1.97.0) ca lint-urile clippy noi să nu strice build-ul. Jobul `test` construiește și `armatura-gui` și rulează `armatura-studio --selftest` (un autotest real pe Windows și macOS). **Prima rulare complet verde: 2026-10-24** pe runnere găzduite de GitHub. La eșec, pașii afișează testele eșuate ca adnotări de workflow (lizibile fără acces la loguri). Windows omite testele doar-POSIX (symlink-uri, permisiuni, `/dev/zero`, separatoare de cale POSIX). Comenzile din care este alcătuit, așa cum au fost rulate la scrierea acestei documentații:
 
   ```sh
   cargo test --workspace --locked

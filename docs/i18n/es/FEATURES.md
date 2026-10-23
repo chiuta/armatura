@@ -1,6 +1,6 @@
 # ARMATURA — matriz de funcionalidades y listas de comprobación de referencia y competidores
 
-> Redacción de las versiones: todos los crates son `0.1.0` (versión preliminar); "v0.5 / v0.6 / v0.7" en este repositorio son *niveles de funcionalidad* (véase [CHANGELOG.md](CHANGELOG.md)), y la sección 9 de `ROADMAP.md` es la autoridad sobre lo que está construido.
+> Redacción de las versiones: todos los crates son `0.1.0` (las primeras compilaciones son la versión preliminar en borrador `v0.1.0-alpha.2`); "v0.5 / v0.6 / v0.7" en este repositorio son *niveles de funcionalidad* (véase [CHANGELOG.md](CHANGELOG.md)), y la sección 9 de `ROADMAP.md` es la autoridad sobre lo que está construido.
 
 Estado honesto de lo que existe. **✅ hecho y probado · 🟡 parcial · ❌ no implementado.**
 
@@ -96,7 +96,7 @@ Sustituye a las listas dispersas de "candidatos n.º" que aparecen más abajo; l
 | Funcionalidad | Estado | PI | Base segura / condición |
 |---|---|---|---|
 | Estudio en el navegador con deshacer/rehacer | 🟡 | 🟢 | UI propia; sin copiar diseños ni nombres de otros fabricantes |
-| Runtime WASM, API de Rust estable + C ABI, scripting en sandbox (R-090…R-093) | 🟡 (R-091, R-092, R-093 hechos; R-090 módulo wasm escrito pero nunca se compiló ni ejecutó ningún .wasm: aquí no hay target wasm32) | 🟢 | API propia |
+| Runtime WASM, API de Rust estable + C ABI, scripting en sandbox (R-090…R-093) | 🟡 (R-091, R-092, R-093 hechos; R-090 el módulo wasm se compila y supera la prueba del envoltorio con Node en CI, pero nunca se ejecutó en un navegador) | 🟢 | API propia |
 | **Servidor de agente / MCP** sobre operaciones de parche: inspeccionar, editar (atómico, deshacible), lint, seguridad, renderizar, guardar solo en su propio archivo (R-094) | ✅ | 🟢 | protocolo JSON-RPC abierto |
 | GUI completa: gizmos, línea de tiempo, editor de curvas (R-100…R-103) | 🟡 (R-101, R-102 hechos; las páginas de R-100 y R-103 existen pero el autor nunca las ejecutó en un navegador real) | 🟢 | widgets genéricos; aspecto propio |
 | Control de versiones de animación con merge semántico, diff perceptual en CI, explain-this-pixel (I-01, I-06, I-07) | ✅ (I-01 `armatura vcs`, I-06 `armatura ci`, I-07 `explain`) | 🟢 | ideas propias |
@@ -118,7 +118,7 @@ Sustituye a las listas dispersas de "candidatos n.º" que aparecen más abajo; l
 - Incluir codificadores **H.264/H.265/AAC**.
 
 ## Condiciones que se aplican a todas las filas 🟢
-Registro de procedencia mantenido (`CLEANROOM.md`; implementación independiente, no una sala limpia estricta); solo dependencias permisivas (se regenera con `scripts/licence-audit.sh`; actualmente 160 crates de terceros, todos de clase MIT / Apache-2.0 / BSD / Zlib / Unlicense salvo un crate MPL-2.0+ (smartstring, mediante la funcionalidad `scripting`, que está activada por defecto; `--no-default-features` la elimina); véase docs/THIRD_PARTY.md); sin ilustraciones ni audio de terceros incluidos sin su propio archivo de licencia; el nombre **ARMATURA** autorizado en una búsqueda de marcas antes del lanzamiento.
+Registro de procedencia mantenido (`CLEANROOM.md`; implementación independiente, no una sala limpia estricta); solo dependencias permisivas (se regenera con `scripts/licence-audit.sh`; actualmente 362 crates de terceros en todas las plataformas, todos de clase MIT / Apache-2.0 / BSD / Zlib / Unlicense salvo seis crates MPL-2.0 (smartstring mediante la funcionalidad `scripting`, que está activada por defecto, y cinco mediante la aplicación de ventana `armatura-gui`); véase docs/THIRD_PARTY.md); sin ilustraciones ni audio de terceros incluidos sin su propio archivo de licencia; el nombre **ARMATURA** autorizado en una búsqueda de marcas antes del lanzamiento.
 
 
 # Tablas detalladas de capacidades
@@ -380,7 +380,7 @@ historia general. El estado es el de ARMATURA: ✅ existe un equivalente · 🟡
 | Frecuencia de fotogramas con 3 decimales (p. ej. 23.976) | ✅ |
 | La exportación SVG gestiona trazos de ancho variable y formas líquidas | ✅ (los trazos se convierten en contornos, los líquidos en trazados) |
 | Liquid hide-edge, formas líquidas solo de trazo, exposición de trazos | ❌ |
-| Linux mediante Wine/Proton | ✅ Rust nativo (Linux/macOS/Windows) |
+| Linux mediante Wine/Proton | ✅ Rust nativo (Linux/macOS/Windows); archivos precompilados para Windows x86-64, macOS arm64 y Linux x86-64 en la versión preliminar en borrador; probado por CI en los tres, por una persona solo en Linux |
 
 ## Resumen (solo el producto de referencia; los competidores siguen más abajo)
 De las funcionalidades documentadas del producto de referencia, ARMATURA cubre el núcleo de **rigging, deformación,

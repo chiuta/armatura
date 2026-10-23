@@ -1,6 +1,6 @@
 # ARMATURA — funkciómátrix + referencia- és versenytárs-ellenőrzőlisták
 
-> Verziójelölés: az összes crate `0.1.0` (előzetes kiadás); a „v0.5 / v0.6 / v0.7” ebben a repositoryban *funkciószintet* jelent (lásd [CHANGELOG.md](CHANGELOG.md)), és hogy mi készült el, azt a `ROADMAP.md` 9. szakasza dönti el.
+> Verziójelölés: az összes crate `0.1.0` (az első buildek a `v0.1.0-alpha.2` előzetes kiadás-vázlatként készülnek); a „v0.5 / v0.6 / v0.7” ebben a repositoryban *funkciószintet* jelent (lásd [CHANGELOG.md](CHANGELOG.md)), és hogy mi készült el, azt a `ROADMAP.md` 9. szakasza dönti el.
 
 Őszinte állapotkép arról, ami létezik. **✅ kész és tesztelt · 🟡 részleges · ❌ nincs megvalósítva.**
 
@@ -95,7 +95,7 @@ Felváltja a lejjebb szétszórt „jelölt #” listákat; a részletek és az 
 | Funkció | Állapot | IP | Biztonságos alap / feltétel |
 |---|---|---|---|
 | Böngészős stúdió visszavonással/újra | 🟡 | 🟢 | saját UI; gyártói elrendezések vagy nevek másolása nélkül |
-| WASM futtatókörnyezet, stabil Rust API + C ABI, sandboxolt szkriptelés (R-090…R-093) | 🟡 (az R-091, R-092, R-093 kész; az R-090 wasm-modul megírva, de .wasm-ot soha nem építettek vagy futtattak: itt nincs wasm32 target) | 🟢 | saját API |
+| WASM futtatókörnyezet, stabil Rust API + C ABI, sandboxolt szkriptelés (R-090…R-093) | 🟡 (az R-091, R-092, R-093 kész; az R-090 wasm-modul a CI-ben lefordul és átmegy a wrapper tesztjén Node alatt, de böngészőben még soha nem futtatták) | 🟢 | saját API |
 | **Ágens / MCP-szerver** patch-opok fölött: vizsgálat, szerkesztés (atomi, visszavonható), lint, biztonság, renderelés, mentés kizárólag a saját fájljába (R-094) | ✅ | 🟢 | nyílt JSON-RPC protokoll |
 | Teljes GUI: gizmók, idővonal, görbeszerkesztő (R-100…R-103) | 🟡 (az R-101, R-102 kész; az R-100 és R-103 oldalai léteznek, de a szerző soha nem futtatta őket valódi böngészőben) | 🟢 | általános widgetek; saját megjelenés |
 | Animáció-verziókezelés szemantikus merge-dzsel, CI észlelési diff, explain-this-pixel (I-01, I-06, I-07) | ✅ (I-01 `armatura vcs`, I-06 `armatura ci`, I-07 `explain`) | 🟢 | saját ötletek |
@@ -117,7 +117,7 @@ Felváltja a lejjebb szétszórt „jelölt #” listákat; a részletek és az 
 - **H.264/H.265/AAC kódolók** bundle-ölése.
 
 ## Feltételek, amelyek minden 🟢 sorra érvényesek
-Vezetett származási napló (`CLEANROOM.md`; független megvalósítás, nem szigorú clean-room); csak megengedő függőségek (a `scripts/licence-audit.sh` újragenerálja; jelenleg 160 harmadik féltől származó crate, mind MIT / Apache-2.0 / BSD / Zlib / Unlicense jellegű, egy MPL-2.0+ crate kivételével (smartstring, a `scripting` feature-ön keresztül, amely alapértelmezetten be van kapcsolva; a `--no-default-features` eltávolítja); lásd docs/THIRD_PARTY.md); harmadik féltől származó grafika vagy hang nem szállítható saját licencfájl nélkül; az **ARMATURA** nevet az indulás előtt védjegykeresésben tisztázni kell.
+Vezetett származási napló (`CLEANROOM.md`; független megvalósítás, nem szigorú clean-room); csak megengedő függőségek (a `scripts/licence-audit.sh` újragenerálja; jelenleg 362 harmadik féltől származó crate az összes platformon együtt, mind MIT / Apache-2.0 / BSD / Zlib / Unlicense jellegű, hat MPL-2.0 crate kivételével (a smartstring a `scripting` feature-ön keresztül, amely alapértelmezetten be van kapcsolva, öt pedig az `armatura-gui` ablakos alkalmazáson keresztül); lásd docs/THIRD_PARTY.md); harmadik féltől származó grafika vagy hang nem szállítható saját licencfájl nélkül; az **ARMATURA** nevet az indulás előtt védjegykeresésben tisztázni kell.
 
 
 # Részletes képességtáblázatok
@@ -379,7 +379,7 @@ a gyártói kiadási oldalakról és a szakmai sajtóból származnak (lásd For
 | Képkockasebesség 3 tizedesjeggyel (pl. 23.976) | ✅ |
 | Az SVG-export kezeli a változó vastagságú körvonalakat és a folyadékalakzatokat | ✅ (a körvonalak kontúrokká, a folyadékok útvonalakká válnak) |
 | Liquid hide-edge, csak körvonalas folyadékalakzatok, körvonal-expozíció | ❌ |
-| Linux Wine/Proton segítségével | ✅ natív Rust (Linux/macOS/Windows) |
+| Linux Wine/Proton segítségével | ✅ natív Rust (Linux/macOS/Windows); előre elkészített Windows x86-64, macOS arm64 és Linux x86-64 archívumok az előzetes kiadás-vázlatban; a CI mindhárom rendszeren teszteli, ember csak Linuxon |
 
 ## Összegzés (csak a referenciatermék; a versenytársak lejjebb következnek)
 A referenciatermék dokumentált funkciói közül az ARMATURA a **rigging, a deformáció,

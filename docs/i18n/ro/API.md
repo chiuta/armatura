@@ -556,7 +556,7 @@ Fațada este unica sursă de adevăr pentru celelalte binding-uri. Acoperire:
 | Layout, derulare, nivel de detaliu | da | `armatura_player_set_canvas`, `_scroll_*`, `_set_screen`, `_lod_level` | `arm_player_set_canvas / layout / scroll_* / set_screen` |
 | Unelte, control al versiunilor, CI | da | nu | nu |
 
-Versiunea ABI-ului C rămâne 1, deoarece fiecare adăugire de până acum a fost aditivă. Binarul wasm nu a fost niciodată construit sau rulat; vezi [WASM.md](WASM.md).
+Versiunea ABI-ului C rămâne 1, deoarece fiecare adăugire de până acum a fost aditivă. Binarul wasm este construit și testat sub Node în CI, dar nu a fost rulat într-un browser; vezi [WASM.md](WASM.md).
 
 ## Anexă: JSON de mașină și JSON de binding
 

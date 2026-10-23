@@ -556,7 +556,7 @@ A facade az igazság egyetlen forrása a többi bindinghoz. Lefedettség:
 | Elrendezés, görgetés, részletességi szint | igen | `armatura_player_set_canvas`, `_scroll_*`, `_set_screen`, `_lod_level` | `arm_player_set_canvas / layout / scroll_* / set_screen` |
 | Eszközök, verziókezelés, CI | igen | nem | nem |
 
-A C ABI verziója 1 marad, mert eddig minden kiegészítés additív volt. A wasm binárist még sosem építették és futtatták; lásd [WASM.md](WASM.md).
+A C ABI verziója 1 marad, mert eddig minden kiegészítés additív volt. A wasm bináris a CI-ben épül és Node alatt tesztelt, de böngészőben még nem futtatták; lásd [WASM.md](WASM.md).
 
 ## Függelék: gép-JSON és kötés-JSON
 

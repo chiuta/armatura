@@ -1,6 +1,6 @@
 # ARMATURA — matricea de funcționalități + liste de verificare pentru produsul de referință și concurenți
 
-> Formularea versiunilor: toate crate-urile sunt `0.1.0` (pre-lansare); „v0.5 / v0.6 / v0.7" din acest depozit sunt *niveluri de funcționalități* (vezi [CHANGELOG.md](CHANGELOG.md)), iar secțiunea 9 din `ROADMAP.md` este autoritatea privind ceea ce este construit.
+> Formularea versiunilor: toate crate-urile sunt `0.1.0` (primele build-uri sunt pre-lansarea ciornă `v0.1.0-alpha.2`); „v0.5 / v0.6 / v0.7" din acest depozit sunt *niveluri de funcționalități* (vezi [CHANGELOG.md](CHANGELOG.md)), iar secțiunea 9 din `ROADMAP.md` este autoritatea privind ceea ce este construit.
 
 Starea sinceră a ceea ce există. **✅ gata și testat · 🟡 parțial · ❌ neimplementat.**
 
@@ -96,7 +96,7 @@ Ea înlocuiește listele răzlețe de „candidați #" de mai jos; detaliile și
 | Funcționalitate | Stare | IP | Bază sigură / condiție |
 |---|---|---|---|
 | Studio în browser cu anulare/refacere | 🟡 | 🟢 | UI propriu; fără copierea aspectului sau denumirilor furnizorilor |
-| Runtime WASM, API Rust stabil + C ABI, scripting în sandbox (R-090…R-093) | 🟡 (R-091, R-092, R-093 gata; modulul wasm R-090 este scris, dar nu a fost construit sau rulat niciun .wasm: aici nu există țintă wasm32) | 🟢 | API propriu |
+| Runtime WASM, API Rust stabil + C ABI, scripting în sandbox (R-090…R-093) | 🟡 (R-091, R-092, R-093 gata; la R-090 modulul wasm se construiește și trece testul wrapper-ului sub Node în CI, dar nu a fost niciodată rulat într-un browser) | 🟢 | API propriu |
 | **Server agent / MCP** peste operații de patch: inspectare, editare (atomică, cu anulare), lint, siguranță, randare, salvare doar în propriul fișier (R-094) | ✅ | 🟢 | protocol JSON-RPC deschis |
 | GUI complet: gizmo-uri, timeline, editor de grafice (R-100…R-103) | 🟡 (R-101, R-102 gata; paginile R-100 și R-103 există, dar autorul nu le-a rulat niciodată într-un browser real) | 🟢 | widget-uri generice; aspect propriu |
 | Control de versiuni al animației cu merge semantic, diff perceptual CI, explain-this-pixel (I-01, I-06, I-07) | ✅ (I-01 `armatura vcs`, I-06 `armatura ci`, I-07 `explain`) | 🟢 | idei proprii |
@@ -118,7 +118,7 @@ Ea înlocuiește listele răzlețe de „candidați #" de mai jos; detaliile și
 - Includerea de encodere **H.264/H.265/AAC**.
 
 ## Condiții valabile pentru fiecare rând 🟢
-Jurnal de proveniență păstrat (`CLEANROOM.md`; implementare independentă, nu clean-room strict); doar dependențe permisive (regenerează cu `scripts/licence-audit.sh`; în prezent 160 de crate-uri terțe, toate de clasă MIT / Apache-2.0 / BSD / Zlib / Unlicense, cu excepția unui crate MPL-2.0+ (smartstring, prin funcționalitatea `scripting`, activă implicit; `--no-default-features` îl elimină); vezi docs/THIRD_PARTY.md); nicio ilustrație sau audio terță livrată fără propriul fișier de licență; numele **ARMATURA** verificat într-o căutare de mărci comerciale înainte de lansare.
+Jurnal de proveniență păstrat (`CLEANROOM.md`; implementare independentă, nu clean-room strict); doar dependențe permisive (regenerează cu `scripts/licence-audit.sh`; în prezent 362 de crate-uri terțe pentru toate platformele, toate de clasă MIT / Apache-2.0 / BSD / Zlib / Unlicense, cu excepția a șase crate-uri MPL-2.0 (smartstring prin funcționalitatea `scripting`, activă implicit, și cinci prin aplicația cu fereastră `armatura-gui`); vezi docs/THIRD_PARTY.md); nicio ilustrație sau audio terță livrată fără propriul fișier de licență; numele **ARMATURA** verificat într-o căutare de mărci comerciale înainte de lansare.
 
 
 # Tabele detaliate de capabilități
@@ -380,7 +380,7 @@ istoricul general. Starea este cea a ARMATURA: ✅ există echivalent · 🟡 pa
 | Rată de cadre cu 3 zecimale (de ex. 23.976) | ✅ |
 | Exportul SVG gestionează contururile cu lățime variabilă și formele lichide | ✅ (contururile devin contururi închise, lichidele devin căi) |
 | Liquid hide-edge, forme lichide doar cu contur, expunere de contur | ❌ |
-| Linux prin Wine/Proton | ✅ Rust nativ (Linux/macOS/Windows) |
+| Linux prin Wine/Proton | ✅ Rust nativ (Linux/macOS/Windows); arhive prefabricate pentru Windows x86-64, macOS arm64 și Linux x86-64 în pre-lansarea ciornă; testat de CI pe toate trei, de o persoană doar pe Linux |
 
 ## Sinteză (doar produsul de referință; concurenții urmează mai jos)
 Din funcționalitățile documentate ale produsului de referință, ARMATURA acoperă nucleul de **rigging, deformare,

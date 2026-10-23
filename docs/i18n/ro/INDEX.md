@@ -4,7 +4,7 @@
 
 *Începe de aici pentru a găsi pagina potrivită. Toate documentele sunt în Markdown englez sub CC-BY-4.0, cu excepția fișierelor generate ale terților (vezi antetele lor). README-ul în limba română este [../README.ro.md](../../../README.ro.md).*
 
-ARMATURA este un motor de rigging și animație vectorială 2D scris în Rust. Este un proiect în pre-lansare (crate-uri 0.1.0); citește [LIMITATIONS.md](LIMITATIONS.md) înainte de a te baza pe o funcționalitate.
+ARMATURA este un motor de rigging și animație vectorială 2D scris în Rust. Este un proiect alpha (primele build-uri sunt pregătite ca pre-lansare ciornă `v0.1.0-alpha.2`; crate-urile sunt încă 0.1.0); citește [LIMITATIONS.md](LIMITATIONS.md) înainte de a te baza pe o funcționalitate.
 
 Cuprins: [Toate documentele](#toate-documentele) - [Trasee de lectură în funcție de public](#trasee-de-lectură-în-funcție-de-public) - [Documente din rădăcina repository-ului](#documente-din-rădăcina-repository-ului) - [Unde își găsește fiecare întrebare răspunsul](#unde-își-găsește-fiecare-întrebare-răspunsul) - [Convenții](#convenții-folosite-în-documente)
 
@@ -24,10 +24,10 @@ Cuprins: [Toate documentele](#toate-documentele) - [Trasee de lectură în func�
 | [FAQ.md](FAQ.md) | Răspunsuri scurte la întrebări frecvente | toată lumea |
 | [API.md](API.md) | Fațada Rust stabilă (versiunea 1.4.0): apeluri, erori, limite, exemple | integratori Rust |
 | [C_ABI.md](C_ABI.md) | Interfața C (`armatura-capi`): funcții, reguli de memorie, exemple în C și Python | integratori C, C++, Python, Go, C# |
-| [WASM.md](WASM.md) | Modulul WebAssembly și wrapper-ul JavaScript. **Stare: niciodată compilat sau rulat**; include lista de verificare pentru primul constructor | dezvoltatori web |
+| [WASM.md](WASM.md) | Modulul WebAssembly și wrapper-ul JavaScript. **Stare: construit și testat sub Node în CI, niciodată rulat într-un browser**; include lista de verificare pentru prima rulare în browser | dezvoltatori web |
 | [CI.md](CI.md) | CI de animație (`armatura ci`): manifest, praguri, goldens, rapoarte, exemple de pipeline | artiști tehnici, ingineri de build |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Compilare, teste, convenții, lista de verificare pentru module noi, lista de verificare pentru lansare, depanare | contribuitori, maintaineri |
-| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Pașii din partea proprietarului înainte și după o primă lansare publică | proprietar |
+| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Pașii din partea proprietarului înainte și după publicarea lansării ciornă | proprietar |
 | [SECURITY.md](SECURITY.md) | Model de amenințări, protecții încorporate, lacune cunoscute, raportare, lista de verificare pentru hardening | recenzori de securitate, cei care fac deploy |
 | [LIMITATIONS.md](LIMITATIONS.md) | Listă numerotată a limitelor cunoscute cu severitate, soluție ocolitoare și id din roadmap | oricine evaluează ARMATURA |
 | [PATENT_NOTES.md](PATENT_NOTES.md) | Notă despre starea brevetelor (nu este sfat juridic) | licențiați, avocați |

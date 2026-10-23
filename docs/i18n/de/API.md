@@ -556,7 +556,7 @@ Die Fassade ist die einzige Quelle der Wahrheit für die anderen Bindings. Abdec
 | Layout, Scrollen, Detailstufen | ja | `armatura_player_set_canvas`, `_scroll_*`, `_set_screen`, `_lod_level` | `arm_player_set_canvas / layout / scroll_* / set_screen` |
 | Werkzeuge, Versionskontrolle, CI | ja | nein | nein |
 
-Die C-ABI-Version bleibt bei 1, weil bisher jede Ergänzung additiv war. Das Wasm-Binary wurde noch nie gebaut oder ausgeführt; siehe [WASM.md](WASM.md).
+Die C-ABI-Version bleibt bei 1, weil bisher jede Ergänzung additiv war. Das Wasm-Binary wird in CI gebaut und unter Node getestet, wurde aber nicht in einem Browser ausgeführt; siehe [WASM.md](WASM.md).
 
 ## Anhang: Maschinen-JSON und Binding-JSON
 

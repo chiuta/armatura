@@ -5,7 +5,7 @@
  "n4": "Formats",
  "n5": "Status",
  "n6": "Licences",
- "pill": "pre-release · 0.1.0 · Rust · open formats",
+ "pill": "alpha · v0.1.0-alpha.2 draft · Rust · open formats",
  "sub": "2D vector rigging and animation as code: bones, IK, skinning, deformers, a runtime and a browser studio — deterministic and scriptable.",
  "cta1": "Try the rig",
  "cta3": "Read the docs",
@@ -74,19 +74,19 @@
  "ste": "Honest status",
  "sth": "What is verified, and what is not",
  "stp": "The project states its limits next to its features. Read LIMITATIONS.md before you depend on anything.",
- "k1": "tests in cargo test --workspace (plus 19 doc-tests), 22 Oct 2026, Linux x86-64",
+ "k1": "tests in cargo test --workspace without the GPU and window crates (plus 19 doc-tests), 24 Oct 2026, Linux x86-64; CI also passes on macOS and Windows",
  "k2": "numbered limitations, with severity and workaround",
- "k3": "third-party crates at the last licence audit",
- "k4": "releases so far — “0.7” is a feature level, not a version",
+ "k3": "third-party crates in the 24 Oct 2026 inventory (all platforms together)",
+ "k4": "published releases so far — v0.1.0-alpha.2 is built as a draft; “0.7” is a feature level, not a version",
  "vyh": "Verified",
  "vxh": "Not verified",
  "ai": "<b>Disclosure:</b> the code was largely written with an AI model, and the project is an independent implementation from public specifications; see CLEANROOM.md. It is not affiliated with, derived from or compatible with any commercial animation product.",
  "ae": "Architecture",
- "ah": "Five crates, one workspace",
+ "ah": "Six crates, one workspace",
  "a1": "Engine, formats, tools and the stable Rust facade.",
  "a2": "The armatura binary, the browser studio and the collaboration server.",
  "a3": "C ABI: header, shared and static library; also run under ASan/UBSan.",
- "a4": "WebAssembly ABI and JS wrapper. Written, never built or run.",
+ "a4": "WebAssembly ABI and JS wrapper. Built in CI and tested under Node; not yet run in a browser.",
  "a5": "Optional wgpu renderer, not a default member.",
  "le": "Licensing",
  "lh": "Libraries you can link, a studio that stays open",
@@ -103,15 +103,16 @@
  "sup": "If it is useful to you:",
  "foot": "Presentation page for the ARMATURA project. Name and logo: see TRADEMARK.md.",
  "vy": [
-  "1368 tests plus 19 doc-tests pass (22 Oct 2026, Linux x86-64)",
+  "1338 tests plus 19 doc-tests pass locally (24 Oct 2026, Linux x86-64); the same suite and clippy pass on GitHub Actions for Linux, macOS and Windows",
+  "The WebAssembly module builds in CI and the wrapper’s test passes against it under Node; cargo-deny and REUSE pass",
   "4 headless-Chromium smoke tests of the studio pass (124, 60, 89 and 35 checks)",
   "CLI, Rust facade and C ABI run with the documented examples, also under ASan/UBSan"
  ],
  "vx": [
-  "The WebAssembly module has never been built or run",
+  "The WebAssembly module has never been run in a browser; its speed and memory are unmeasured",
+  "No person has used the Windows or macOS executables, the double-click launcher or the window app on a real desktop; the binaries are not code-signed",
   "The studio was never used by a person in production, nor in a browser other than Chromium",
-  "No real GPU, webcam, photograph or motion-capture file was ever used",
-  "Windows and macOS untested; no security audit, lawyer review or patent search"
+  "No real GPU, webcam, photograph or motion-capture file was ever used; no security audit, lawyer review or patent search"
  ],
  "nDocs": "Docs",
  "nStudio": "Studio",
@@ -193,5 +194,7 @@
  "trView": "View English original",
  "trShow": "Show translation",
  "trMissing": "Not translated yet — showing the English original.",
- "langLabel": "Language"
+ "langLabel": "Language",
+ "a6": "The studio in a native window (Windows, macOS). Compiled and self-tested in CI; not yet used by a person.",
+ "cta4": "Download (releases)"
 }

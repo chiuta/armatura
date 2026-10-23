@@ -6,7 +6,7 @@ de comandos. Todos los comandos siguientes se ejecutaron de verdad mientras se e
 salidas mostradas son las que se imprimieron.
 
 Cómo se verificó: Linux, `rustc 1.97.0`, `ffmpeg 6.1.1` y la compilación **debug** del binario
-(`cargo build -p armatura-cli`). Una compilación release ejecuta el mismo código más rápido. El repositorio
+(`cargo build -p armatura-cli`). Una compilación release ejecuta el mismo código más rápido. La batería de pruebas también pasa en macOS y Windows en GitHub Actions; los comandos de esta página solo se ejecutaron a mano en Linux. El repositorio
 no declara ninguna versión mínima admitida de Rust; 1.97.0 es simplemente el compilador con el que se probó.
 
 Licencia de la documentación: CC-BY-4.0. Véanse también [RIGGING_GUIDE.md](RIGGING_GUIDE.md),
@@ -29,6 +29,8 @@ cannot run ffmpeg (No such file or directory (os error 2)); install it or export
 ```
 
 No se requiere GPU. El renderizador GPU opcional (`render-gpu`) no forma parte de la compilación por defecto.
+
+**¿Sin Rust? Usa un archivo precompilado.** Cuando el propietario haya publicado la versión preliminar en borrador `v0.1.0-alpha.2`, la [página de Releases](https://github.com/chiuta/armatura/releases) ofrece `armatura-windows-x86_64.zip`, `armatura-macos-arm64.tar.gz`, `armatura-linux-x86_64.tar.gz` y `SHA256SUMS.txt`. Comprueba el archivo con las sumas (`sha256sum -c SHA256SUMS.txt --ignore-missing`, o `Get-FileHash` en Windows), descomprímelo y ejecuta `armatura` (`armatura.exe`) desde la carpeta descomprimida; omite la compilación de la sección 2 y lee "Windows: doble clic en `armatura.exe`" y "El estudio como ventana" cerca del final de esta página. Los programas no están firmados, así que el sistema te avisará la primera vez. Todo lo que sigue se ejecutó con una compilación local del mismo código fuente.
 
 ## 2. Compílalo
 
@@ -352,3 +354,17 @@ absolutas y `..` se rechazan salvo que pases `--allow-external-assets` (véase [
 * El editor en el navegador, sus atajos y la API HTTP: [STUDIO.md](STUDIO.md).
 * Preguntas y mensajes de error: [FAQ.md](FAQ.md). Limitaciones conocidas: [LIMITATIONS.md](LIMITATIONS.md).
 * Todos los comandos y opciones: [CLI_REFERENCE.md](CLI_REFERENCE.md); el formato de archivo: [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
+
+## Windows: doble clic en `armatura.exe`
+
+`armatura.exe` es un programa de línea de comandos. Desde 0.1.0-alpha.2, abrirlo desde el Explorador (doble clic) crea `Documents\ARMATURA\first-rig.json` (un archivo existente nunca se sobrescribe), inicia el estudio en `http://127.0.0.1:8080` y lo abre en tu navegador; la ventana de consola permanece abierta mientras el estudio se ejecuta, ciérrala para detenerlo. Abierto desde un terminal sin argumentos imprime el uso como antes. En 0.1.0-alpha.1 un doble clic solo imprimía el uso y la ventana se cerraba de inmediato.
+
+Los ejecutables **no están firmados**: Windows SmartScreen muestra "Editor desconocido" (elige *Más información* y después *Ejecutar de todas formas*) y Gatekeeper de macOS te pide aprobar el programa en *Ajustes del Sistema > Privacidad y seguridad*. Comprueba antes la descarga con `SHA256SUMS.txt`. Si el puerto 8080 está ocupado, ejecuta `armatura studio first-rig.json --port 8090` desde un terminal.
+
+## El estudio como ventana: `armatura-studio` (Windows y macOS)
+
+Los archivos de Windows y macOS contienen un segundo programa, `armatura-studio` (`armatura-studio.exe`), una pequeña ventana nativa alrededor del estudio del navegador: inicia el motor `armatura` de la misma carpeta como `studio` en un puerto local libre, muestra la página en una ventana WebView2 (Windows 11 ya la incluye; Windows más antiguo necesita el runtime Evergreen) o WKWebView (macOS), y detiene el servidor al cerrar la ventana. No aparece ninguna ventana de consola. Mantenlo en la misma carpeta que `armatura(.exe)`.
+
+* Haz doble clic para trabajar en `Documents/ARMATURA/first-rig.json` (se crea a partir de la demo integrada si no existe), o inícialo como `armatura-studio my-project.json` (por ejemplo mediante "Abrir con").
+* `armatura-studio --selftest` inicia el servidor, descarga la página y lo detiene sin ventana; el código de salida es 0 si funcionó (la CI lo ejecuta en Windows y macOS).
+* **Limitaciones.** El código de la ventana se ha compilado en CI y se ha autoprobado allí (`--selftest`), pero nadie lo ha usado todavía en un escritorio real. Las funciones propias de un navegador que dependen del sistema (selectores de archivos distintos de los del propio estudio, descargas, arrastrar y soltar desde el Explorador) son las de la vista web del sistema y no se han probado. No hay ventana para Linux (necesitaría paquetes del sistema GTK / WebKitGTK): usa `armatura studio` y un navegador. El programa no está firmado (véase arriba).

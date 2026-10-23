@@ -11,13 +11,13 @@ Tartalom: [Telepítés és beállítás](#telepítés-és-beállítás) - [ffmpe
 ## Telepítés és beállítás
 
 **1. Hogyan telepítsem az ARMATURA-t?**
-Még nincs kiadás (minden crate 0.1.0), ezért nincs telepítő vagy előre fordított bináris. Forrásból fordíthatod le egy friss stabil Rust eszközlánccal: a `cargo build -p armatura-cli` a `target/debug/armatura` fájlt adja; a `--release` hozzáadásával a `target/release/armatura` készül el. Lásd [DEVELOPMENT.md](DEVELOPMENT.md).
+Előre elkészített archívumok (Windows x86-64, macOS arm64, Linux x86-64 és a WebAssembly modul) készülnek a `v0.1.0-alpha.2` előzetes kiadás-vázlatként a <https://github.com/chiuta/armatura/releases> oldalon; akkor tölthetők le, amikor a tulajdonos közzéteszi a vázlatot, és nincsenek kódaláírással ellátva (a SmartScreen „Ismeretlen közzétevőt” mutat; a macOS jóváhagyást kér). Nincs telepítő: csomagold ki az archívumot, és futtasd az `armatura` programot. Vagy fordítsd le forrásból egy friss stabil Rust eszközlánccal: a `cargo build -p armatura-cli` a `target/debug/armatura` fájlt adja; a `--release` hozzáadásával a `target/release/armatura` készül el. Lásd [DEVELOPMENT.md](DEVELOPMENT.md).
 
 **2. Mely platformokon működik?**
-Csak Linux x86-64-en fordították le és próbálták ki. A többi célplatformról azt várjuk, hogy lefordul, mert a kód egyszerű Rust, de ezek „nincs tesztelve”, nem „támogatott” státuszúak ([LIMITATIONS.md](LIMITATIONS.md), 1. szakasz).
+Linux x86-64-en fejlesztették és próbálták ki a projektet. A GitHub Actionsön a tesztkészlet és a clippy macOS-en (arm64) és Windowson (x86-64) is sikeres, és ott épülnek a kiadási binárisok mindhárom rendszerre; de a Windows vagy macOS futtatható fájlokat ember még nem használta valódi asztali környezetben, ezért ezek „CI által tesztelt”, nem „támogatott” státuszúak ([LIMITATIONS.md](LIMITATIONS.md), 1. szakasz).
 
 **3. Van grafikus telepítő vagy alkalmazás?**
-Nincs. A termék a parancssor. A stúdió egy helyi weboldal, amelyet az `armatura studio` szolgál ki; lásd [STUDIO.md](STUDIO.md).
+Telepítő nincs. A termék a parancssor. A stúdió egy helyi weboldal, amelyet az `armatura studio` szolgál ki; Windowson az `armatura.exe` dupla kattintása elindítja, és megnyitja a böngésződet. A Windows és macOS archívumok tartalmazzák az `armatura-studio` programot is, egy kis natív ablakot ugyanezen stúdió körül (csak lefordították és önteszttel ellenőrizték a CI-ben); lásd [STUDIO.md](STUDIO.md) és [GETTING_STARTED.md](GETTING_STARTED.md).
 
 **4. Hogyan kezdhetek gyorsan?**
 Kövesd a [GETTING_STARTED.md](GETTING_STARTED.md) fájlt: egy üres projektből épít fel egy animált karaktert, minden lépést lefuttatva, és egy GIF-fel zárul.
@@ -110,7 +110,7 @@ Igen: a „compatible with ARMATURA” és a „made with ARMATURA” megengedet
 Nincs közreműködői licencszerződés. A hozzájárulásokat a projekt licence alatt fogadjuk el DCO-aláírással (`git commit -s`), így nincs olyan tulajdonos, aki újralicencelhetné őket. A részletek a [CONTRIBUTING.md](CONTRIBUTING.md) fájlban.
 
 **28. Mi a helyzet a harmadik féltől származó kóddal?**
-Nagyjából 160 harmadik féltől származó crate, mind megengedő licencű, kivéve a smartstringet (MPL-2.0 vagy újabb, csak a `scripting` funkcióval). A listák a [THIRD_PARTY.md](THIRD_PARTY.md) és a [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md) fájlban vannak.
+Nagyjából 360 harmadik féltől származó crate (az összes platformon együtt számolva; az ablakos alkalmazás hozzáadja a Windows / macOS eszközkészletet), mind megengedő licencű, kivéve hat MPL-2.0 licencűt: a smartstringet (MPL-2.0 vagy újabb, csak a `scripting` funkcióval) és ötöt, amelyeket csak az ablakos alkalmazás húzhat be. A listák a [THIRD_PARTY.md](THIRD_PARTY.md) és a [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md) fájlban vannak.
 
 **29. Vannak szabadalmi aggályok?**
 Lásd [PATENT_NOTES.md](PATENT_NOTES.md). Ezek mérnöki jegyzetek, nem jogi vélemény.
@@ -231,7 +231,7 @@ Nyiss egy issue-t a parancssorral, a pontos kimenettel (a stderr-rel is), a kil�
 Privátan, nem nyilvános issue-ban; lásd [SECURITY.md](SECURITY.md). A tárolóban megadott cím `alexio@trom.tf`; ez ugyanaz a cím, mint a karbantartó elérhetősége, és nem váltotta fel biztonsági csapat postafiókja.
 
 **60. Van levelezőlista, chat vagy támogatási szerződés?**
-Nincs. A dokumentumok egyetlen karbantartói elérhetőséget neveznek meg, és még nincs kiadás.
+Nincs. A dokumentumok egyetlen karbantartói elérhetőséget neveznek meg; az első kiadás még csak előzetes kiadás-vázlat.
 
 **61. Hogyan járulhatok hozzá?**
 Írd alá a commitokat (`git commit -s`), tartsd sikeresen futva a teszteket (`cargo test`, animációs munkánál az `armatura ci`), és olvasd el a [DEVELOPMENT.md](DEVELOPMENT.md) fájlt. A dokumentáció CC-BY-4.0 licencű, és szívesen fogad javításokat, főleg ott, ahol egy oldal és a program eltér egymástól.
@@ -247,13 +247,13 @@ Egyetlen projekt építette és tesztelte egyetlen környezetben. Bármi, ami ni
 A videóhoz ffmpeg kell. A Lottie és a glTF az ARMATURA által rajzolható és animálható dolgok egy részhalmazát fedi le, ezért az [EXPORT_FORMATS.md](EXPORT_FORMATS.md) fájlban nézd meg, mi vész el. Az ismeretlen kiterjesztésre adott `export` hiba a `.gif .html .json .mp4 .apng .webm .png .glb` listát adja, amely kihagyja a `.lottie`-t; a `.lottie` (dotLottie) érvényes cél, lásd [EXPORT_FORMATS.md](EXPORT_FORMATS.md), 6. szakasz.
 
 **64. Használható a WASM build?**
-Ebben a környezetben még soha nem fordították le ([WASM.md](WASM.md), [LIMITATIONS.md](LIMITATIONS.md)). Tekintsd ellenőrizetlennek.
+A GitHub Actionsön lefordul `wasm32-unknown-unknown` célra, a wrapper tesztje pedig sikeres a valódi modul ellen Node 20 alatt, és `armatura-web.tar.gz` néven csatolva van a vázlatkiadáshoz. Böngészőben még nem futtatták, sebessége és memóriahasználata nincs megmérve ([WASM.md](WASM.md), [LIMITATIONS.md](LIMITATIONS.md)). Tekintsd részben ellenőrzöttnek.
 
 **65. Importálja más eszközök projektfájljait?**
 Importál SVG-t, OpenRastert, Lottie JSON-t, képeket, GIF/APNG-t, BVH mozgásrögzítést és MIDI-t ([EXPORT_FORMATS.md](EXPORT_FORMATS.md), 9. és 10. szakasz). PSD-t, `.lottie` zip-fájlokat és OCA mappákat nem importál. Az importok új projektet hoznak létre. Vedd figyelembe, hogy az `import-lottie in.json in.json` parancsnak nincs felülírásvédelme, és lecseréli a bemenetét. Ne várd, hogy egy importált fájl pixelre megegyezzen az eredetivel.
 
 **66. Stabil a projekt JSON-ja?**
-„1-es formátum”. Az újabb fájlt elutasítja: `project format 2 is newer than this build supports (1); update ARMATURA`. Mivel nincs kiadás, maga az 1-es formátum még változhat egy kiadás előtt; lásd [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
+„1-es formátum”. Az újabb fájlt elutasítja: `project format 2 is newer than this build supports (1); update ARMATURA`. Mivel csak alfa előzetes kiadás létezik, maga az 1-es formátum még változhat egy stabil kiadás előtt; lásd [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
 
 ---
 
@@ -269,7 +269,7 @@ Azok az eszközök meshekre, skinekre és adott játékmotorokhoz készült futt
 A kompozitor effektekkel és kifejezésekkel ellátott rétegek köré épül videófelvételeken. Az ARMATURA-ban vannak rétegeffektek és kifejezések, de a középpontja a karakterriggelés és a vektoros grafika, és nem végez videókompozitálást, 3D-t vagy felvételek színkorrekcióját.
 
 **70. Mikor rossz választás az ARMATURA?**
-Ha ma valós idejű GPU-teljesítményre, kiforrott rajztábla-munkafolyamatra, képkockánkénti kézzel rajzolt animációra, kiadással és támogatással rendelkező, gyártó által támogatott termékre vagy a Linux x86-64-en kívüli igazolt viselkedésre van szükséged.
+Ha ma valós idejű GPU-teljesítményre, kiforrott rajztábla-munkafolyamatra, képkockánkénti kézzel rajzolt animációra, stabil kiadással és támogatással rendelkező, gyártó által támogatott termékre vagy a Linux x86-64-en kívüli igazolt viselkedésre van szükséged.
 
 ---
 

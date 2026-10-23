@@ -4,7 +4,7 @@
 
 *Parti da qui per trovare la pagina giusta. Tutti i documenti sono Markdown in inglese con licenza CC-BY-4.0, tranne i file di terze parti generati (vedi le loro intestazioni). Il README in rumeno è [../README.ro.md](../../../README.it.md).*
 
-ARMATURA è un motore di rigging e animazione vettoriale 2D in Rust. È un progetto pre-release (crate 0.1.0); leggi [LIMITATIONS.md](LIMITATIONS.md) prima di fare affidamento su una funzionalità.
+ARMATURA è un motore di rigging e animazione vettoriale 2D in Rust. È un progetto alpha (le prime build sono preparate come pre-release in bozza `v0.1.0-alpha.2`; i crate sono ancora 0.1.0); leggi [LIMITATIONS.md](LIMITATIONS.md) prima di fare affidamento su una funzionalità.
 
 Indice: [Tutti i documenti](#tutti-i-documenti) - [Percorsi di lettura per destinatario](#percorsi-di-lettura-per-destinatario) - [Documenti nella radice del repository](#documenti-nella-radice-del-repository) - [Dove trovare la risposta a ogni domanda](#dove-trovare-la-risposta-a-ogni-domanda) - [Convenzioni](#convenzioni-usate-nei-documenti)
 
@@ -24,10 +24,10 @@ Indice: [Tutti i documenti](#tutti-i-documenti) - [Percorsi di lettura per desti
 | [FAQ.md](FAQ.md) | Risposte brevi alle domande frequenti | tutti |
 | [API.md](API.md) | La facciata Rust stabile (versione 1.4.0): chiamate, errori, limiti, esempi | integratori Rust |
 | [C_ABI.md](C_ABI.md) | L'interfaccia C (`armatura-capi`): funzioni, regole di memoria, esempi in C e Python | integratori C, C++, Python, Go, C# |
-| [WASM.md](WASM.md) | Modulo WebAssembly e wrapper JavaScript. **Stato: mai compilato né eseguito**; include la checklist per chi lo compilerà per primo | sviluppatori web |
+| [WASM.md](WASM.md) | Modulo WebAssembly e wrapper JavaScript. **Stato: compilato e testato sotto Node in CI, mai eseguito in un browser**; include la checklist per la prima esecuzione in un browser | sviluppatori web |
 | [CI.md](CI.md) | CI dell'animazione (`armatura ci`): manifest, soglie, fotogrammi di riferimento, report, esempi di pipeline | technical artist, build engineer |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Compilazione, test, convenzioni, checklist per un nuovo modulo, checklist di release, debug | contributori, maintainer |
-| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Passi a carico del titolare prima e dopo una prima release pubblica | titolare |
+| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Passi a carico del titolare prima e dopo la pubblicazione della release in bozza | titolare |
 | [SECURITY.md](SECURITY.md) | Modello delle minacce, protezioni integrate, lacune note, segnalazione, checklist di hardening | revisori della sicurezza, chi installa in produzione |
 | [LIMITATIONS.md](LIMITATIONS.md) | Elenco numerato dei limiti noti con gravità, soluzione alternativa e id della roadmap | chiunque valuti ARMATURA |
 | [PATENT_NOTES.md](PATENT_NOTES.md) | Nota sullo stato dei brevetti (non è consulenza legale) | licenziatari, avvocati |
