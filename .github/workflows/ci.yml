@@ -36,7 +36,14 @@ jobs:
       # armatura-gpu is outside the default members on purpose (it needs a GPU adapter); the workspace
       # commands below therefore cover core, cli, capi and wasm (host build).
       - name: Tests
-        run: cargo test --workspace --locked
+        shell: bash
+        run: |
+          set +e
+          cargo test --workspace --locked --no-fail-fast 2>&1 | tee test.log
+          code=${PIPESTATUS[0]}
+          # Surface the failing tests as annotations (readable without log access).
+          grep -E '^test .* FAILED|^---- |panicked at|^error(\[|:)' test.log | head -40 | while IFS= read -r l; do echo "::error title=test-failure::${l:0:900}"; done
+          exit $code
       - name: Clippy (warnings are errors)
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
 
@@ -57,7 +64,13 @@ jobs:
         with:
           node-version: 20
       - name: JavaScript wrapper tests (host-side mock of the module)
-        run: node armatura-wasm/js/test.mjs
+        shell: bash
+        run: |
+          set +e
+          node armatura-wasm/js/test.mjs 2>&1 | tee js.log
+          code=${PIPESTATUS[0]}
+          head -30 js.log | while IFS= read -r l; do echo "::error title=js-test::${l:0:900}"; done
+          exit $code
 
   licences:
     name: cargo-deny and REUSE
