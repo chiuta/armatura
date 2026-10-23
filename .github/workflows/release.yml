@@ -80,18 +80,18 @@ jobs:
         run: cargo build --release --target wasm32-unknown-unknown -p armatura-wasm --locked
       - name: Package
         run: |
-          d=armatura-wasm
+          d=armatura-web
           mkdir -p $d
           cp target/wasm32-unknown-unknown/release/armatura_wasm.wasm $d/
           cp armatura-wasm/js/armatura.js armatura-wasm/index.html $d/
           cp -r LICENSES $d/ && cp LICENSE $d/
           printf 'Module: MPL-2.0. Source: https://github.com/chiuta/armatura at %s\n' "$GITHUB_SHA" > $d/SOURCE.txt
           ls -la $d/armatura_wasm.wasm | tee wasm-size.txt
-          tar czf armatura-wasm.tar.gz $d
+          tar czf armatura-web.tar.gz $d
       - uses: actions/upload-artifact@v4
         with:
-          name: armatura-wasm
-          path: armatura-wasm.tar.gz
+          name: armatura-web
+          path: armatura-web.tar.gz
           retention-days: 30
 
   draft-release:
