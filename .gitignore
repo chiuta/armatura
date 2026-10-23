@@ -4,3 +4,4 @@ out/
 *.log
 demo-ci.json
 armatura-wasm/armatura_wasm.wasm
+*.plain

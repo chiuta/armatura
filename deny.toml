@@ -31,3 +31,9 @@ wildcards = "allow"
 unknown-registry = "deny"
 unknown-git = "deny"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+
+[advisories]
+# RUSTSEC-2026-0249: `smartstring` is unmaintained (repository archived 2026-05-03); it is a dependency of
+# `rhai`, the optional scripting engine (cargo feature `scripting`, default-on, can be disabled). It is a
+# maintenance notice, not a vulnerability. Revisit when rhai drops it or when the scripting feature is replaced.
+ignore = ["RUSTSEC-2026-0249"]
