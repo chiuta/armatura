@@ -10,6 +10,10 @@ Versiuni înrudite care **sunt** reale și independente de cele de mai sus: `API
 
 ## [Nepublicat]
 
+### CI pe GitHub (2026-10-24)
+* Primele rulări reale GitHub Actions (ubuntu, windows, macos; wasm32; cargo-deny; REUSE) și corecturile pe care le-au impus: CLI-ul rulează acum pe un fir cu stivă de 256 MiB (firul principal de pe Windows se depășea), jurnalele collab rupte sunt trunchiate printr-un handle de scriere (Windows „Access denied”), `.gitattributes` forțează LF, testele doar-POSIX sunt condiționate, testele care au nevoie de `ffmpeg` se omit fără el, `zip` 2 -> 9 (advisory), RUSTSEC-2026-0249 (`smartstring`, nemenținut, prin `rhai` opțional) recunoscut în `deny.toml`, backend-urile `wgpu` Metal / DX12 activate, toolchain fixat la 1.97.0.
+* Modulul wasm32 se construiește, iar testul său Node cu modulul real trece în CI (LIMITATIONS L-01 / L-02 actualizate).
+
 ### Adăugat
 - Setul de documentație (CC-BY-4.0): [README.md](../../../README.ro.md) și [README.ro.md](../../../README.ro.md) (traducere completă în română), [docs/INDEX.md](INDEX.md), [docs/API.md](API.md) (extins până la fațada 1.3), [docs/C_ABI.md](C_ABI.md), [docs/WASM.md](WASM.md) (cu o casetă explicită de stare „never built, never run" și o listă de verificare), [docs/DEVELOPMENT.md](DEVELOPMENT.md), [docs/SECURITY.md](SECURITY.md), [docs/LIMITATIONS.md](LIMITATIONS.md) și acest fișier. Celelalte documente ale setului (referința comenzilor, formate de export, formatul proiectului, arhitectură, glosar, ghiduri, studio, FAQ) sunt listate în INDEX. Toate exemplele de cod din API.md și C_ABI.md au fost compilate și rulate; exemplele WASM au fost rulate doar față de mock-ul JavaScript.
 

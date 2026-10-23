@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # Index de la documentation d'ARMATURA
 
-*Commencez ici pour trouver la bonne page. Tous les documents sont en Markdown anglais sous CC-BY-4.0, à l'exception des fichiers tiers générés (voir leurs en-têtes). Le README roumain est [../README.ro.md](../../../README.ro.md).*
+*Commencez ici pour trouver la bonne page. Tous les documents sont en Markdown anglais sous CC-BY-4.0, à l'exception des fichiers tiers générés (voir leurs en-têtes). Le README roumain est [../README.ro.md](../../../README.fr.md).*
 
 ARMATURA est un moteur de rigging et d'animation vectoriels 2D en Rust. C'est un projet en préversion (crates 0.1.0) ; lisez [LIMITATIONS.md](LIMITATIONS.md) avant de dépendre d'une fonctionnalité.
 
@@ -60,7 +60,7 @@ Chaque parcours est un ordre, pas une obligation. Arrêtez-vous quand vous avez 
 
 | Fichier | Rôle |
 |---|---|
-| [../README.md](../../../README.fr.md), [../README.ro.md](../../../README.ro.md) | Vue d'ensemble, état d'avancement, démarrage rapide, résumé des licences (anglais et roumain) |
+| [../README.md](../../../README.fr.md), [../README.ro.md](../../../README.fr.md) | Vue d'ensemble, état d'avancement, démarrage rapide, résumé des licences (anglais et roumain) |
 | [../CHANGELOG.md](CHANGELOG.md) | Historique reconstitué ; format Keep-a-Changelog |
 | [../ROADMAP.md](ROADMAP.md) | Plan ordonné ; **la section 9 est le journal daté de ce que fait et ne fait pas chaque élément** et fait autorité lorsque les documents divergent |
 | [../FEATURES.md](FEATURES.md) | Matrice des fonctionnalités par rapport à d'autres outils (certaines parties sont périmées, voir LIMITATIONS) |

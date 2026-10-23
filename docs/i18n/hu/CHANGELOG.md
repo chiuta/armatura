@@ -10,6 +10,10 @@ Kapcsolódó verziók, amelyek **valódiak**, és függetlenek a fentiektől: a 
 
 ## [Unreleased]
 
+### CI a GitHubon (2026-10-24)
+* Az első valódi GitHub Actions futások (ubuntu, windows, macos; wasm32; cargo-deny; REUSE) és a javítások, amelyeket kikényszerítettek: a CLI mostantól egy 256 MiB-os veremmel rendelkező szálon fut (a Windows főszála túlcsordult), a megszakadt collab naplókat írási kezelőn keresztül csonkoljuk (Windows „Access denied”), a `.gitattributes` LF-et kényszerít, a csak POSIX-en futó teszteket kapuzzuk, az `ffmpeg`-et igénylő tesztek nélküle kihagyják magukat, `zip` 2 -> 9 (biztonsági tanács), a RUSTSEC-2026-0249 (`smartstring`, karbantartatlan, az opcionális `rhai`-n keresztül) tudomásul véve a `deny.toml`-ban, a `wgpu` Metal / DX12 backendjei engedélyezve, a toolchain 1.97.0-ra rögzítve.
+* A wasm32 modul megépül, és a Node valódi-modul tesztje átmegy a CI-ben (LIMITATIONS L-01 / L-02 frissítve).
+
 ### Added
 - Dokumentációs készlet (CC-BY-4.0): [README.md](../../../README.hu.md) és [README.ro.md](../../../README.ro.md) (teljes román fordítás), [docs/INDEX.md](INDEX.md), [docs/API.md](API.md) (a 1.3-as homlokzatig bővítve), [docs/C_ABI.md](C_ABI.md), [docs/WASM.md](WASM.md) (kifejezett „soha nem épült, soha nem futott” állapotdobozzal és ellenőrző listával), [docs/DEVELOPMENT.md](DEVELOPMENT.md), [docs/SECURITY.md](SECURITY.md), [docs/LIMITATIONS.md](LIMITATIONS.md) és ez a fájl. A készlet további dokumentumai (parancsreferencia, exportformátumok, projektformátum, architektúra, szójegyzék, útmutatók, stúdió, GYIK) az INDEX-ben vannak felsorolva. Az API.md és a C_ABI.md minden kódmintáját lefordítottuk és lefuttattuk; a WASM-mintákat csak a JavaScript mock ellen futtattuk.
 

@@ -10,6 +10,10 @@ Versions associées qui **sont** réelles et indépendantes de ce qui précède 
 
 ## [Unreleased]
 
+### CI sur GitHub (2026-10-24)
+* Premières vraies exécutions de GitHub Actions (ubuntu, windows, macos ; wasm32 ; cargo-deny ; REUSE) et les corrections qu'elles ont imposées : le CLI s'exécute désormais dans un thread à pile de 256 MiB (le thread principal de Windows débordait), les journaux de collaboration tronqués sont raccourcis via un handle d'écriture (« Access denied » sous Windows), `.gitattributes` force LF, les tests réservés à POSIX sont conditionnés, les tests qui ont besoin de `ffmpeg` sont ignorés en son absence, `zip` 2 -> 9 (avis de sécurité), RUSTSEC-2026-0249 (`smartstring`, non maintenu, via `rhai` optionnel) reconnu dans `deny.toml`, backends `wgpu` Metal / DX12 activés, toolchain figée à 1.97.0.
+* Le module wasm32 se compile et son test Node avec le vrai module réussit en CI (LIMITATIONS L-01 / L-02 mises à jour).
+
 ### Ajouté
 - Ensemble de documentation (CC-BY-4.0) : [README.md](../../../README.fr.md) et [README.ro.md](../../../README.ro.md) (traduction roumaine complète), [docs/INDEX.md](INDEX.md), [docs/API.md](API.md) (étendu à la façade 1.3), [docs/C_ABI.md](C_ABI.md), [docs/WASM.md](WASM.md) (avec un encadré d'état explicite « jamais construit, jamais exécuté » et une liste de vérification), [docs/DEVELOPMENT.md](DEVELOPMENT.md), [docs/SECURITY.md](SECURITY.md), [docs/LIMITATIONS.md](LIMITATIONS.md) et ce fichier. Les autres documents de l'ensemble (référence des commandes, formats d'export, format de projet, architecture, glossaire, guides, studio, FAQ) sont listés dans l'INDEX. Tous les exemples de code de API.md et C_ABI.md ont été compilés et exécutés ; les exemples WASM n'ont été exécutés que contre la maquette JavaScript.
 

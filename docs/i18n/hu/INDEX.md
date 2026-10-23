@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # Az ARMATURA dokumentációjának tartalomjegyzéke
 
-*Itt kezdj, hogy megtaláld a megfelelő oldalt. Minden dokumentum angol nyelvű Markdown CC-BY-4.0 licenc alatt, kivéve a generált harmadik féltől származó fájlokat (lásd a fejlécüket). A román README itt található: [../README.ro.md](../../../README.ro.md).*
+*Itt kezdj, hogy megtaláld a megfelelő oldalt. Minden dokumentum angol nyelvű Markdown CC-BY-4.0 licenc alatt, kivéve a generált harmadik féltől származó fájlokat (lásd a fejlécüket). A román README itt található: [../README.ro.md](../../../README.hu.md).*
 
 Az ARMATURA egy Rustban írt 2D vektoros riggelő és animációs motor. Előzetes kiadású projekt (crate-ek: 0.1.0); mielőtt egy funkcióra támaszkodnál, olvasd el a [LIMITATIONS.md](LIMITATIONS.md) fájlt.
 
@@ -60,7 +60,7 @@ Minden útvonal egy sorrend, nem követelmény. Állj meg, ha megvan, amire szü
 
 | Fájl | Cél |
 |---|---|
-| [../README.md](../../../README.hu.md), [../README.ro.md](../../../README.ro.md) | Áttekintés, állapot, gyors kezdés, licencösszefoglaló (angol és román) |
+| [../README.md](../../../README.hu.md), [../README.ro.md](../../../README.hu.md) | Áttekintés, állapot, gyors kezdés, licencösszefoglaló (angol és román) |
 | [../CHANGELOG.md](CHANGELOG.md) | Rekonstruált előzmények; Keep-a-Changelog formátum |
 | [../ROADMAP.md](ROADMAP.md) | Rendezett terv; **a 9. szakasz a keltezett napló arról, hogy az egyes tételek mit tudnak és mit nem**, és ez az irányadó, ha a dokumentumok eltérnek |
 | [../FEATURES.md](FEATURES.md) | Funkciómátrix más eszközökkel szemben (részei elavultak, lásd LIMITATIONS) |

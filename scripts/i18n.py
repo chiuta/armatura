@@ -193,23 +193,55 @@ def fix_text(doc_id, lang, tr):
                         if t.exists() and len(headings(s)) == len(headings(t.read_text(encoding="utf-8"))) else {})
         return cache[i]
 
+    by_base = {pathlib.PurePath(str(p)).name: str(p) for p in DOCS.values()}
+
+    def semantic_path(p):
+        """The repository-relative path a link points at, whether it is still written relative to the
+        source document (as translators copy it) or was already rewritten for the translated location."""
+        here = os.path.normpath(os.path.join(dest.parent, p))
+        rel = os.path.relpath(here, ROOT)
+        if not rel.startswith("..") and os.path.exists(here):
+            return rel                                    # already valid from the translated location
+        stripped = re.sub(r"^(?:\.{1,2}/)+", "", p)
+        if stripped.startswith("img/"):
+            return "docs/" + stripped
+        if os.path.exists(ROOT / stripped):
+            return stripped
+        if os.path.exists(ROOT / "docs" / stripped):
+            return "docs/" + stripped
+        if stripped in by_base:                           # a document, however many ../ were stacked in front
+            return by_base[stripped]
+        return os.path.normpath(os.path.join(os.path.dirname(src_path), p))   # as written in the source
+
     def fix_target(t):
         if re.match(r"^(https?:|mailto:)", t):
             return t
         if t.startswith("#"):
             return "#" + amap.get(t[1:], t[1:])
         p, _, a = t.partition("#")
-        target = os.path.normpath(os.path.join(os.path.dirname(src_path), p)) if p else str(src_path)
+        if not p:
+            return t
         is_dir = p.endswith("/")
-        did = BY_PATH.get(target)
+        target = semantic_path(p.rstrip("/") if is_dir else p)
+        m = re.match(r"docs/i18n/[a-z]{2}/([^/]+)\.md$", target)
+        did = BY_PATH.get(target) or (m.group(1) if m and m.group(1) in DOCS else None)
+        if not did:
+            m = re.match(r"README\.([a-z]{2})\.md$", target)
+            did = "README" if m else None
         if did and tr_path(did, lang).exists():
             new = os.path.relpath(tr_path(did, lang), dest.parent)
             a = slugs_for(did).get(a, a) if a else a
         else:
-            new = os.path.relpath(ROOT / target, dest.parent)
+            new = os.path.relpath(ROOT / (str(DOCS[did]) if did else target), dest.parent)
         if is_dir and not new.endswith("/"):
             new += "/"
         return new + ("#" + a if a else "")
+
+    def fix_link(head, t):
+        other = re.search(r"\[README\.([a-z]{2})\.md\]\($", head)      # an explicit link to another language's README
+        if other and other.group(1) != lang and not t.startswith(("http", "#")):
+            return os.path.relpath(ROOT / f"README.{other.group(1)}.md", dest.parent)
+        return fix_target(t)
 
     out = []
     for code, lines in split_fences(tr):
@@ -217,7 +249,7 @@ def fix_text(doc_id, lang, tr):
             out.append("\n".join(lines))
         else:
             seg = "\n".join(lines)
-            out.append(LINK.sub(lambda m: m.group(1) + fix_target(m.group(2)) + m.group(3), seg))
+            out.append(LINK.sub(lambda m: m.group(1) + fix_link(m.group(1), m.group(2)) + m.group(3), seg))
     return "\n".join(out)
 
 
