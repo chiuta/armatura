@@ -18,13 +18,29 @@ Principles that shape the project:
 
 ## Status
 
-> **Pre-release, one environment.** All crates are version `0.1.0` and nothing has been released; "v0.5 / v0.6 / v0.7" are *feature levels* in the history, not release numbers ([CHANGELOG.md](CHANGELOG.md)).
+> **Alpha. First builds prepared as a draft pre-release: `v0.1.0-alpha.2`.** The executables for Windows x86-64, macOS arm64 and Linux x86-64 and the WebAssembly module are built by GitHub Actions and attached to a *draft* pre-release on <https://github.com/chiuta/armatura/releases> (a draft is visible only to the owner until it is published by hand). All crates are still version `0.1.0`; "v0.5 / v0.6 / v0.7" are *feature levels* in the history, not release numbers ([CHANGELOG.md](CHANGELOG.md)).
 >
 > | Verified | Not verified |
 > |---|---|
-> | 1368 tests in `cargo test --workspace` plus 19 doc-tests pass (22 Oct 2026, Linux x86-64); four headless-Chromium smoke tests of the studio pass (124, 60, 89, 35 checks for the ui, collab, overlays and suggest scripts); the CLI, the Rust facade and the C ABI (also under ASan/UBSan) were run with the examples in the docs | **The WebAssembly module has never been built or run** (the wasm32 target could not be installed; [docs/WASM.md](docs/WASM.md)); the studio was never used by a person in production, nor in a browser other than Chromium; no real GPU (only a software adapter), webcam, photograph or motion-capture file was ever used; Windows and macOS untested; no security audit, lawyer review or patent search |
+> | **Local (Linux x86-64, 24 Oct 2026):** 1338 tests of `cargo test --workspace --exclude armatura-gpu --exclude armatura-gui` plus 19 doc-tests pass (the GPU crate needs an adapter and the window crate a desktop; before this the count including the GPU crate was 1368). **On GitHub Actions (24 Oct 2026, toolchain 1.97.0):** the test suite and `clippy -D warnings` pass on Linux, macOS (arm64) and Windows; `cargo deny` and `reuse lint` pass; the WebAssembly module builds for `wasm32-unknown-unknown` and the wrapper's test passes against the real module under Node 20; the release binaries pass a smoke test (`--version`, `demo`, `check`, `render`) and `armatura-studio --selftest` runs on Windows and macOS. Four headless-Chromium smoke tests of the studio pass; the CLI, the Rust facade and the C ABI (also under ASan/UBSan) were run with the examples in the docs | **No person has used the executables on a real Windows or macOS desktop**: the Windows double-click launcher and the `armatura-studio` window app (WebView2 / WKWebView) were only compiled and self-tested in CI; the binaries are **not code-signed** (SmartScreen "Unknown publisher", macOS Gatekeeper); the Linux binary was built on an Ubuntu runner only; **the WebAssembly module has never been run in a browser** and its speed and memory are unmeasured; the studio was never used by a person in production, nor in a browser other than Chromium; no real GPU (only a software adapter), webcam, photograph or motion-capture file was ever used; no security audit, lawyer review or patent search |
 >
-> Read [docs/LIMITATIONS.md](docs/LIMITATIONS.md) (73 numbered limits with severity and workaround) before you depend on anything.
+> Read [docs/LIMITATIONS.md](docs/LIMITATIONS.md) (77 numbered limits with severity and workaround) before you depend on anything.
+
+## Download
+
+Prebuilt archives, once the owner has published the draft release, are on the project's [Releases page](https://github.com/chiuta/armatura/releases):
+
+| Archive | Contents |
+|---|---|
+| `armatura-windows-x86_64.zip` | `armatura.exe` (command line + studio server), `armatura-studio.exe` (window app), C library and header, licences, third-party notices |
+| `armatura-macos-arm64.tar.gz` | `armatura`, `armatura-studio` (Apple-silicon only), C library and header, licences, notices |
+| `armatura-linux-x86_64.tar.gz` | `armatura`, C library and header, licences, notices (no window app: use `armatura studio` and a browser) |
+| `armatura-web.tar.gz` | `armatura_wasm.wasm`, `armatura.js`, demo `index.html` (unverified in browsers, see [docs/WASM.md](docs/WASM.md)) |
+| `SHA256SUMS.txt` | check every download against it |
+
+* **Windows:** double-click `armatura.exe` to create `Documents\ARMATURA\first-rig.json` and open the studio in your browser, or double-click `armatura-studio.exe` for a window of its own. Both programs are unsigned: choose *More info* then *Run anyway* in SmartScreen. See [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md).
+* **macOS:** approve the program in *System Settings > Privacy & Security* the first time.
+* **Source:** each archive names the commit it was built from; the AGPL parts are served with their source offer (`armatura --version`, `/source`).
 
 ## Features by area
 
@@ -37,11 +53,11 @@ Details and exact options: [docs/CLI_REFERENCE.md](docs/CLI_REFERENCE.md); what 
 * **Output.** SVG, PNG, PNG sequences and sprite sheets, GIF, APNG, MP4/WebM (through ffmpeg), self-contained HTML player, Lottie and dotLottie, glTF 2.0 binary, OpenEXR/16-bit PNG, OCA; size-targeted export (`export-fit`). Import: SVG, OpenRaster, Lottie, BVH, PNG/GIF/APNG sequences.
 * **Quality tooling.** `check`, `lint`, semantic `diff`, pose fuzzing with heat maps, animation CI with perceptual diff and golden frames ([docs/CI.md](docs/CI.md)), version control with semantic merge (`vcs`), safety checks for flashing and motion.
 * **Studio.** Browser editor served by the CLI: canvas gizmos, timeline, dope sheet and graph editor, overlays, command palette and shortcuts, undo/redo, real-time multi-user editing with an optional token and a persistent log ([docs/STUDIO.md](docs/STUDIO.md)).
-* **Libraries.** Stable Rust facade ([docs/API.md](docs/API.md)), C ABI ([docs/C_ABI.md](docs/C_ABI.md)), WebAssembly module and JavaScript wrapper (unbuilt; [docs/WASM.md](docs/WASM.md)), optional wgpu renderer.
+* **Libraries.** Stable Rust facade ([docs/API.md](docs/API.md)), C ABI ([docs/C_ABI.md](docs/C_ABI.md)), WebAssembly module and JavaScript wrapper (built and tested under Node in CI, not yet run in a browser; [docs/WASM.md](docs/WASM.md)), optional wgpu renderer.
 
 ## Quick start
 
-Requirements: a recent stable Rust toolchain. `ffmpeg` is needed only for MP4/WebM export and for mp3/ogg audio; it is never bundled. Every command below was run for this README (debug build, Linux). Release builds (`cargo build --release`) are much faster for rendering and are used the same way with `target/release`.
+Requirements: a recent stable Rust toolchain (or a prebuilt archive from the [Download](#download) section: skip the `cargo build` line and use the unpacked `armatura`). `ffmpeg` is needed only for MP4/WebM export and for mp3/ogg audio; it is never bundled. Every command below was run for this README (debug build, Linux). Release builds (`cargo build --release`) are much faster for rendering and are used the same way with `target/release`.
 
 ```sh
 cargo build -p armatura-cli                       # builds target/debug/armatura
@@ -87,10 +103,12 @@ cargo test -p armatura-cli --test spdx_audit
 |---|---|---|
 | `armatura-core/` | engine, formats, tools, stable facade `api` | MPL-2.0 |
 | `armatura-cli/` | the `armatura` binary, studio and collaboration server, end-to-end and smoke tests | AGPL-3.0-or-later |
+| `armatura-gui/` | `armatura-studio`, the studio in a native window (Windows and macOS; a stub on Linux) | AGPL-3.0-or-later |
 | `armatura-capi/` | C ABI (`armatura.h`, shared and static library) | MPL-2.0 |
-| `armatura-wasm/` | WebAssembly ABI, JavaScript wrapper, demo page (unbuilt) | MPL-2.0 |
+| `armatura-wasm/` | WebAssembly ABI, JavaScript wrapper, demo page (built in CI) | MPL-2.0 |
 | `armatura-gpu/` | optional wgpu renderer (not a default member) | MPL-2.0 |
 | `docs/` | documentation (CC-BY-4.0) and generated third-party files | CC-BY-4.0 |
+| `.github/workflows/` | CI (`ci.yml`) and release builds (`release.yml`) | MPL-2.0 |
 | `scripts/` | `e2e.sh`, `licence-audit.sh` | MPL-2.0 |
 | `LICENSES/`, `REUSE.toml`, `deny.toml` | licence texts, licence metadata, dependency policy | - |
 | `ROADMAP.md`, `FEATURES.md`, `CLEANROOM.md`, `LICENSING.md`, `TRADEMARK.md`, `CONTRIBUTING.md`, `CHANGELOG.md` | project documents | CC-BY-4.0 |
@@ -113,7 +131,7 @@ Start at [docs/INDEX.md](docs/INDEX.md) (all documents, audiences, reading paths
 | [docs/FAQ.md](docs/FAQ.md) | common questions |
 | [docs/API.md](docs/API.md) | Rust facade 1.4 |
 | [docs/C_ABI.md](docs/C_ABI.md) | C interface |
-| [docs/WASM.md](docs/WASM.md) | WebAssembly (never built) |
+| [docs/WASM.md](docs/WASM.md) | WebAssembly (built in CI, not run in a browser) |
 | [docs/CI.md](docs/CI.md) | animation CI |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | build, test, conventions, release |
 | [docs/SECURITY.md](docs/SECURITY.md) | threat model and hardening |
@@ -125,17 +143,17 @@ Start at [docs/INDEX.md](docs/INDEX.md) (all documents, audiences, reading paths
 ## Licence summary
 
 * **MPL-2.0** for the libraries `armatura-core`, `armatura-capi`, `armatura-wasm`, `armatura-gpu` and for `scripts/`: you may link them into your own program, open or closed; changes to those files must be published under the MPL.
-* **AGPL-3.0-or-later** for `armatura-cli` (the command line and the studio). If you modify it and let others interact with it over a network, section 13 requires you to offer them your source: `armatura studio --source-url URL` publishes where it is; `/source` and `armatura --version` carry the offer.
+* **AGPL-3.0-or-later** for `armatura-cli` (the command line and the studio) and `armatura-gui` (the window around it). If you modify it and let others interact with it over a network, section 13 requires you to offer them your source: `armatura studio --source-url URL` publishes where it is; `/source` and `armatura --version` carry the offer.
 * **CC-BY-4.0** for documentation and synthetic assets (the synthetic face-detector model included).
 * **Your projects and renders stay yours.**
 * The name and logo are not covered by these licences ([TRADEMARK.md](TRADEMARK.md)). Patent status is not assessed ([docs/PATENT_NOTES.md](docs/PATENT_NOTES.md)). A commercial or dual licence for contributed code is not possible without a contributor licence agreement, and none exists.
-* Third-party crates: 160 at the last audit, all permissive except one weak-copyleft crate behind the optional `scripting` feature ([docs/THIRD_PARTY.md](docs/THIRD_PARTY.md)). ffmpeg is never bundled.
+* Third-party crates: 362 in the 24 Oct 2026 inventory (all platforms and targets together, which includes the window app's Windows / macOS / Linux-only crates; a given binary contains a subset), all permissive except six weak-copyleft MPL-2.0 crates: `smartstring` behind the optional `scripting` feature, and five (`cssparser`, `cssparser-macros`, `dtoa-short`, `selectors`, `option-ext`) that only the window app `armatura-gui` can pull in ([docs/THIRD_PARTY.md](docs/THIRD_PARTY.md)). ffmpeg is never bundled.
 
 See [LICENSE](LICENSE), [LICENSES/](LICENSES/) and [LICENSING.md](LICENSING.md). None of this is legal advice; a lawyer review is still outstanding.
 
 ## Contributing
 
-Contributions are welcome under the licence of the part they change. Read [CONTRIBUTING.md](CONTRIBUTING.md) (every commit needs a `Signed-off-by` line, DCO 1.1), [CLEANROOM.md](CLEANROOM.md) (implement from public sources only; do not copy from proprietary or incompatibly licensed code) and [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) (conventions, checklist for a new module, tests). Good first contributions: a fix from [docs/LIMITATIONS.md](docs/LIMITATIONS.md), a real run of the WebAssembly checklist, tests on Windows or macOS, a real-GPU benchmark.
+Contributions are welcome under the licence of the part they change. Read [CONTRIBUTING.md](CONTRIBUTING.md) (every commit needs a `Signed-off-by` line, DCO 1.1), [CLEANROOM.md](CLEANROOM.md) (implement from public sources only; do not copy from proprietary or incompatibly licensed code) and [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) (conventions, checklist for a new module, tests). Good first contributions: a fix from [docs/LIMITATIONS.md](docs/LIMITATIONS.md), a real run of the WebAssembly checklist, a real-desktop test of the Windows / macOS executables, a real-GPU benchmark.
 
 Security issues: do not open a public issue; follow [docs/SECURITY.md](docs/SECURITY.md) section 10.
 

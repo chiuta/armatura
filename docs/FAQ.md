@@ -11,13 +11,13 @@ Contents: [Installation and setup](#installation-and-setup) - [ffmpeg](#ffmpeg) 
 ## Installation and setup
 
 **1. How do I install ARMATURA?**
-There is no release yet (all crates are 0.1.0), so there is no installer or prebuilt binary. You build it from source with a recent stable Rust toolchain: `cargo build -p armatura-cli` gives `target/debug/armatura`; add `--release` for `target/release/armatura`. See [DEVELOPMENT.md](DEVELOPMENT.md).
+Prebuilt archives (Windows x86-64, macOS arm64, Linux x86-64, and the WebAssembly module) are prepared as the draft pre-release `v0.1.0-alpha.2` on <https://github.com/chiuta/armatura/releases>; they become downloadable when the owner publishes the draft, and they are not code-signed (SmartScreen shows "Unknown publisher"; macOS asks for approval). There is no installer: unpack the archive and run `armatura`. Or build it from source with a recent stable Rust toolchain: `cargo build -p armatura-cli` gives `target/debug/armatura`; add `--release` for `target/release/armatura`. See [DEVELOPMENT.md](DEVELOPMENT.md).
 
 **2. Which platforms work?**
-Only Linux x86-64 has been built and exercised. Other targets are expected to build because the code is plain Rust, but they are "not tested", not "supported" ([LIMITATIONS.md](LIMITATIONS.md), section 1).
+Linux x86-64 is where the project was developed and exercised. On GitHub Actions the test suite and clippy also pass on macOS (arm64) and Windows (x86-64), and release binaries for those three are built there; but no person has used the Windows or macOS executables on a real desktop yet, so they are "tested by CI", not "supported" ([LIMITATIONS.md](LIMITATIONS.md), section 1).
 
 **3. Is there a graphical installer or an app?**
-No. The command line is the product. The studio is a local web page served by `armatura studio`; see [STUDIO.md](STUDIO.md).
+There is no installer. The command line is the product. The studio is a local web page served by `armatura studio`; on Windows, double-clicking `armatura.exe` starts it and opens your browser. The Windows and macOS archives also contain `armatura-studio`, a small native window around the same studio (it has only been compiled and self-tested in CI); see [STUDIO.md](STUDIO.md) and [GETTING_STARTED.md](GETTING_STARTED.md).
 
 **4. How do I get started quickly?**
 Follow [GETTING_STARTED.md](GETTING_STARTED.md): it builds one animated character from an empty project, every step run, and ends with a GIF.
@@ -110,7 +110,7 @@ Yes: "compatible with ARMATURA" and "made with ARMATURA" are allowed. A modified
 There is no contributor licence agreement. Contributions are accepted under the project licence with a DCO sign-off (`git commit -s`), so there is no owner who could relicense them. Details in [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 **28. What about the third-party code?**
-About 160 third-party crates, all under permissive licences except smartstring (MPL-2.0 or later, only with the `scripting` feature). Lists are in [THIRD_PARTY.md](THIRD_PARTY.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+About 360 third-party crates (counted over all platforms; the window app adds the Windows / macOS toolkit), all under permissive licences except six MPL-2.0 ones: smartstring (MPL-2.0 or later, only with the `scripting` feature) and five that only the window app can pull in. Lists are in [THIRD_PARTY.md](THIRD_PARTY.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 **29. Are there patent concerns?**
 See [PATENT_NOTES.md](PATENT_NOTES.md). It is engineering notes, not a legal opinion.
@@ -231,7 +231,7 @@ Open an issue with the command line, the exact output (stderr too), the exit sta
 Privately, not in a public issue; see [SECURITY.md](SECURITY.md). The address in the repository is `alexio@trom.tf`; that is the same address as the maintainer contact and has not been replaced by a security-team mailbox.
 
 **60. Is there a mailing list, chat or support contract?**
-No. The documents name one maintainer contact and there is no release yet.
+No. The documents name one maintainer contact; the first release is still a draft pre-release.
 
 **61. How do I contribute?**
 Sign off each commit (`git commit -s`), keep the tests passing (`cargo test`, and `armatura ci` for animation work) and read [DEVELOPMENT.md](DEVELOPMENT.md). Documentation is CC-BY-4.0 and welcomes corrections, especially where a page and the program disagree.
@@ -247,13 +247,13 @@ It has been built and tested by one project in one environment. Anything not lis
 Video needs ffmpeg. Lottie and glTF cover a subset of what ARMATURA can draw and animate, so check what is lost in [EXPORT_FORMATS.md](EXPORT_FORMATS.md). The `export` error for an unknown extension lists `.gif .html .json .mp4 .apng .webm .png .glb`, which omits `.lottie`; `.lottie` (dotLottie) is a valid target, see [EXPORT_FORMATS.md](EXPORT_FORMATS.md), section 6.
 
 **64. Is the WASM build usable?**
-It has never been built in this environment ([WASM.md](WASM.md), [LIMITATIONS.md](LIMITATIONS.md)). Treat it as unverified.
+It builds for `wasm32-unknown-unknown` on GitHub Actions and the wrapper's test passes against the real module under Node 20, and it is attached to the draft release as `armatura-web.tar.gz`. It has not been run in a browser, and its speed and memory are unmeasured ([WASM.md](WASM.md), [LIMITATIONS.md](LIMITATIONS.md)). Treat it as partly verified.
 
 **65. Does it import other tools' project files?**
 It imports SVG, OpenRaster, Lottie JSON, images, GIF/APNG, BVH motion capture and MIDI ([EXPORT_FORMATS.md](EXPORT_FORMATS.md), sections 9 and 10). It does not import PSD, `.lottie` zip files or OCA folders. Imports create a new project. Note that `import-lottie in.json in.json` has no overwrite guard and replaces its input. Do not expect an imported file to match the original pixel for pixel.
 
 **66. Is the project JSON stable?**
-It is "format 1". A newer file is refused: `project format 2 is newer than this build supports (1); update ARMATURA`. Since there is no release, format 1 itself may still change before one; see [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
+It is "format 1". A newer file is refused: `project format 2 is newer than this build supports (1); update ARMATURA`. Since only an alpha pre-release exists, format 1 itself may still change before a stable release; see [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
 
 ---
 
@@ -269,7 +269,7 @@ Those tools focus on meshes, skins and runtime libraries for specific game engin
 A compositor is built around layers with effects and expressions on video footage. ARMATURA has layer effects and expressions, but its centre is character rigging and vector art, and it does not do video compositing, 3D or colour grading of footage.
 
 **70. When is ARMATURA the wrong choice?**
-When you need real-time performance on a GPU today, a polished drawing tablet workflow, frame-by-frame hand-drawn animation, a vendor-supported product with a release and support, or confirmed behaviour outside Linux x86-64.
+When you need real-time performance on a GPU today, a polished drawing tablet workflow, frame-by-frame hand-drawn animation, a vendor-supported product with a stable release and support, or confirmed behaviour outside Linux x86-64.
 
 ---
 

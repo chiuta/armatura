@@ -556,7 +556,7 @@ The facade is the single source of truth for the other bindings. Coverage:
 | Layout, scroll, level of detail | yes | `armatura_player_set_canvas`, `_scroll_*`, `_set_screen`, `_lod_level` | `arm_player_set_canvas / layout / scroll_* / set_screen` |
 | Tools, version control, CI | yes | no | no |
 
-The C ABI version stays 1 because every addition so far was additive. The wasm binary has never been built or run; see [WASM.md](WASM.md).
+The C ABI version stays 1 because every addition so far was additive. The wasm binary is built and tested under Node in CI but has not been run in a browser; see [WASM.md](WASM.md).
 
 ## Appendix: machine JSON and binding JSON
 

@@ -8,7 +8,7 @@ no database: it is a small standard-library HTTP server in front of the same edi
 
 Everything here was checked against the real binary (`armatura 0.1.0`, debug build, Linux) and, for the user
 interface, in headless Chromium driven by Playwright. Screenshots were taken that way (1400x900, the built-in demo
-project). Only **Chromium** was tested; see section 11.
+project). Only **Chromium** was tested; see section 11. On Windows and macOS the release archives also contain `armatura-studio`, the same studio in a native window (compiled and self-tested in CI, not yet used by a person; see [GETTING_STARTED.md](GETTING_STARTED.md) and [LIMITATIONS.md](LIMITATIONS.md) L-75), and on Windows double-clicking `armatura.exe` starts the studio and opens the browser (L-76).
 
 Licence of this document: CC-BY-4.0. For the command line see [GETTING_STARTED.md](GETTING_STARTED.md) and
 [CLI_REFERENCE.md](CLI_REFERENCE.md); for server security see also [SECURITY.md](SECURITY.md).

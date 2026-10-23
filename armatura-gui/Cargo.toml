@@ -6,6 +6,7 @@ version = "0.1.0"
 edition = "2021"
 description = "ARMATURA Studio as a native window (WebView2 on Windows, WKWebView on macOS); starts the armatura studio server and shows it"
 license = "AGPL-3.0-or-later"
+publish = false
 
 [[bin]]
 name = "armatura-studio"

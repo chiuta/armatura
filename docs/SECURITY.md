@@ -88,7 +88,8 @@ Option `--collab-token T` (or the token required by a non-local `--bind`) enable
 * **Atomic writes.** Outputs are written with `fsutil::write_atomic`: a temporary file in the same directory (name `.<name>.tmp-<pid>-<random>`), `fsync`, `rename`. A crash leaves the old file or the new one. **Symbolic links given as output are refused**, naming `--follow-symlinks` (this now covers every user-addressed output: `ci run` reports and goldens, `export-fit`, `lod`, `fuzz`, `fuzz-grid`, `face-*`, pose files, snapshots, `vcs`, the collaboration log, and the ffmpeg-written video files, which are pre-checked), so a planted link cannot redirect a write. If the directory is not writable but the file is, the fallback is an in-place overwrite with `fsync` which is **not atomic** (documented).
 * **Private data.** Collab logs and other files that only the owner should read are created with mode 0600 (`write_atomic_private`). Temporary directories are created exclusively with mode 0700 (`private_temp_dir`), so a predictable name in a shared `/tmp` cannot be pre-created by another user. Random values (tokens for new participants, temp names) come from `/dev/urandom` (`fsutil::random_bytes`); the engine's seeded deterministic generator is never used for secrets.
 * **UI settings.** The studio's `ui.json` ignores unknown keys with a warning and is copied to `ui.json.bak` (then `.bak.1`, ...) before the first save.
-* **Windows / non-Unix.** The permission modes above apply on Unix. The behaviour on other systems has not been tested.
+* **Windows / non-Unix.** The permission modes above apply on Unix. On Windows and macOS the test suite passes in CI (POSIX-only checks are skipped on Windows), but the symlink, permission and `/dev/urandom` checks run only on Linux and macOS and nobody has reviewed the Windows behaviour by hand.
+* **Unsigned binaries and the window app.** The release executables are not code-signed; verify downloads against `SHA256SUMS.txt`. `armatura-studio` starts the same local server (`127.0.0.1` only, random free port) and shows it in the system web view (WebView2 / WKWebView); its web view is as exposed as a browser tab on that address and has had no separate security review.
 
 ## 7. External programs (ffmpeg)
 
@@ -105,7 +106,7 @@ ffmpeg itself parses complex media formats and has had vulnerabilities of its ow
 
 * The **facade** validates every argument, returns `ApiError`, and converts panics to `ApiError::Internal` where the target unwinds. `Animation` and `Player` are `Send + Sync` (checked at compile time).
 * The **C ABI** ([C_ABI.md](C_ABI.md)) checks null pointers, lengths and UTF-8 and returns codes; the caller must still pass valid pointers and honour the buffer rules. The last-error string is per thread. The ABI was exercised under AddressSanitizer and UndefinedBehaviorSanitizer with the documented examples (clean). It is not hardened against a caller that violates the documented contracts (double close, use after close, wrong lengths).
-* The **WASM module** ([WASM.md](WASM.md)) has **never been built or run**, so its security properties are unknown beyond reading the code. It has no file system or network access by construction; a panic there traps the instance.
+* The **WASM module** ([WASM.md](WASM.md)) builds in CI and passes the wrapper's test under Node, but **has never been run in a browser or reviewed as one**, so its security properties are known only from reading the code and that test. It has no file system or network access by construction; a panic there traps the instance.
 * Neither layer sandboxes the *project*: rendering a hostile project is bounded by the limits above, but a project can still ask for a lot of work within them (many layers, large pictures, long timelines).
 
 ## 9. Known gaps
@@ -121,7 +122,7 @@ Honest list; see [LIMITATIONS.md](LIMITATIONS.md) for the wider list of function
 7. **Non-atomic fallback** when the output directory is not writable.
 8. **Path checks use canonical paths.** `assets::resolve` canonicalises existing files and refuses a file whose real location is outside the project directory, so a symbolic link inside a project folder that points outside it is refused (tested in `assets.rs`); links that stay inside the folder work. A race between the check and the later read (time-of-check to time-of-use) by someone who can modify the project folder concurrently is not excluded.
 9. **ffmpeg** is outside our control (section 7).
-10. **WASM** is untested in a real engine; the browser threat model of a page embedding it (CSP, memory limits) has not been examined.
+10. **WASM** is untested in a browser engine (it runs only under Node in CI); the browser threat model of a page embedding it (CSP, memory limits) has not been examined.
 11. **Denial of service by size.** Limits bound single requests and files, not total work: a project that is valid but very heavy can occupy a CPU for a long time (the connection cap above limits concurrency, not the cost of one request).
 
 ## 10. Reporting a vulnerability
@@ -129,7 +130,7 @@ Honest list; see [LIMITATIONS.md](LIMITATIONS.md) for the wider list of function
 * **Do not open a public issue** for a vulnerability. Send a private report to the maintainer: **`alexio@trom.tf`**. *(Placeholder: the address appears in the program's `--version` notice and in the licence documents; the owner must confirm it as the security contact and may replace it with a dedicated address or a private advisory channel before the first release.)*
 * Include: version (`armatura --version`) and platform, the project or request that triggers the problem (a minimal file is best), what you expected and what happened, and whether you want to be credited.
 * What to expect *(intent, not a contract: this is a one-person project)*: an acknowledgement within a reasonable time, a fix developed in private, a regression test added to the suite, a note in [CHANGELOG.md](../CHANGELOG.md), and credit if you wish. Please allow time for a fix before publishing details.
-* Supported versions: there has been no release yet; the current tree is the only supported version.
+* Supported versions: only the newest pre-release (`v0.1.0-alpha.2` once published) and the current tree on `main` are supported.
 * Reports about the studio's network exposure when it is deliberately bound to a public address without a reverse proxy are documentation issues first: see section 11.
 
 ## 11. Deployer hardening checklist

@@ -17,7 +17,7 @@ Contents: [Environment](#1-environment) - [Build and test commands](#2-build-and
 | `cargo-deny` | licence/ban/source policy | `scripts/licence-audit.sh` runs it when installed (`--no-deny` skips) |
 | `python3` | `scripts/licence-audit.sh` generates docs with an inline script | runs with `python3 -I` |
 | A Vulkan or GL adapter | only for real-GPU numbers from `armatura-gpu` | tests fall back to a software adapter; see section 2 |
-| `rustup target wasm32-unknown-unknown`, `wasm-opt` | only for [WASM.md](WASM.md) | **never installed in the development environment** |
+| `rustup target wasm32-unknown-unknown`, `wasm-opt` | only for [WASM.md](WASM.md) | never installed in the development environment; CI installs it |
 
 Workspace layout (see [ARCHITECTURE.md](ARCHITECTURE.md) for the design):
 
@@ -28,6 +28,7 @@ Workspace layout (see [ARCHITECTURE.md](ARCHITECTURE.md) for the design):
 | `armatura-capi` | MPL-2.0 | C ABI ([C_ABI.md](C_ABI.md)) |
 | `armatura-wasm` | MPL-2.0 | WebAssembly ABI + JS wrapper ([WASM.md](WASM.md)) |
 | `armatura-gpu` | MPL-2.0 | optional wgpu renderer; **not** a default member |
+| `armatura-gui` | AGPL-3.0-or-later | `armatura-studio`, the studio in a native window (`tao` + `wry`, Windows and macOS only; a stub elsewhere); **not** a default member, `publish = false` |
 
 Repository-level files: `ROADMAP.md` (section 9 is the dated feature and review log), `FEATURES.md`, `CLEANROOM.md`, `LICENSING.md`, `REUSE.toml`, `deny.toml`, `LICENSES/`, `scripts/`.
 
@@ -35,7 +36,7 @@ Repository-level files: `ROADMAP.md` (section 9 is the dated feature and review 
 
 ```sh
 cargo build                                  # default members: core, cli, capi, wasm (gpu is opt-in)
-cargo test --workspace                       # run: 1368 tests + doc-tests (section 3)
+cargo test --workspace                       # run: 1338 tests + 19 doc-tests without gpu and gui (section 3)
 cargo test -p armatura-core                  # one crate (the engine and the facade tests)
 cargo test -p armatura-core api::            # a module or a name filter
 cargo test -p armatura-cli --test e2e        # one integration test file
@@ -80,7 +81,7 @@ Counts from `ROADMAP.md` section 9 and from a full `cargo test --workspace --off
 | `armatura-gpu` unit + `tests/parity.rs` | 18 + 13 | 0.2 s + 6.5 s | GPU vs CPU parity (software adapter when no GPU) |
 | Doc-tests (`armatura-core`) | 19 | 171 s (each compiles a program) | the facade examples (`api.rs`, `lib.rs`); `armatura-capi`, `armatura-wasm` have none |
 
-Total: 1368 tests in the unit and integration binaries (the ROADMAP number; recounted from a full `cargo test --workspace` run on 22 Oct 2026 after wave 7, the per-suite timings above are from an earlier run), plus 19 doc-tests; the whole `cargo test --workspace --offline` took 836 s on the shared machine.
+Total: 1338 tests in the unit and integration binaries and 19 doc-tests, counted on 24 Oct 2026 with `cargo test --workspace --exclude armatura-gpu --exclude armatura-gui` (the 1368 of the next sentence also included the GPU crate's tests; recounted from a full `cargo test --workspace` run on 22 Oct 2026 after wave 7, the per-suite timings above are from an earlier run), plus 19 doc-tests; the whole `cargo test --workspace --offline` took 836 s on the shared machine.
 
 Suites outside `cargo test`:
 
@@ -139,7 +140,7 @@ The project is an independent implementation. In short (the binding text is [CLE
 
 ## 7. Release checklist
 
-Nothing has been released yet (all crates are 0.1.0; the version labels "v0.5/v0.6/v0.7" in README, FEATURES and ROADMAP are feature levels, not crate versions; see [CHANGELOG.md](../CHANGELOG.md)). When you do:
+The first builds are prepared as the draft pre-release `v0.1.0-alpha.2` (all crates are still 0.1.0; the version labels "v0.5/v0.6/v0.7" in README, FEATURES and ROADMAP are feature levels, not crate versions; see [CHANGELOG.md](../CHANGELOG.md)). To cut one:
 
 1. **Version.** Decide the version of each crate. The facade has its own version (`API_VERSION`, 1.4.0 today: major on removal or change of a surface line, minor on addition) and `ARMATURA_ABI_VERSION` / `arm_abi_version()` (both 1) change only on a breaking change of the C or wasm ABI. Align `Cargo.toml` versions, `armatura --version` output, README status box and CHANGELOG.
 2. **Green gates.** `cargo test --workspace`, `cargo test --doc -p armatura-core`, `cargo test -p armatura-cli --test spdx_audit`, `cargo clippy --workspace --all-targets -- -D warnings`, the four Chromium smoke tests, `scripts/e2e.sh` (release), `cargo test -p armatura-gpu` if the GPU code changed.
@@ -148,14 +149,15 @@ Nothing has been released yet (all crates are 0.1.0; the version labels "v0.5/v0
 5. **No ffmpeg.** Do not bundle, link or download ffmpeg in release artifacts. It is detected on `PATH` at run time and the documentation says the user installs it.
 6. **AGPL source offer.** The binary of `armatura-cli` serves its own source offer at `/source` (AGPL section 13) and prints a notice with `--version`; operators of modified studio servers set `--source-url` to where their modified source is. Tests: `tests/source_offer.rs`. For a binary release, provide the corresponding source (tag, tarball) at the URL users can reach.
 7. **Docs.** Update the status box in README, [LIMITATIONS.md](LIMITATIONS.md) and the CHANGELOG (move *Unreleased* under the new version with a date).
-8. **Tag and publish** with a signed tag; attach checksums. Do not publish crates under names that are not yours; the TRADEMARK.md rules apply to forks.
+8. **Build the draft on GitHub.** `.github/workflows/release.yml` builds Windows, macOS and Linux archives and the web module on every push to `main`; a commit on `main` whose message contains `[release vX.Y.Z-label]` (or a pushed tag `v*`) also creates a *draft pre-release* with the archives and `SHA256SUMS.txt` (an older draft with the same tag is replaced). Review the draft, then publish it by hand.
+9. **Tag and publish** with a signed tag; attach checksums. Do not publish crates under names that are not yours; the TRADEMARK.md rules apply to forks.
 
 ## 8. Continuous integration
 
-Two different things share the word:
+Two different things share the word (a third workflow, `.github/workflows/release.yml`, builds the release archives and the draft release, see section 7):
 
 * **Animation CI** (`armatura ci`): checks of *projects* (lint, render goldens, performance, determinism). Fully described in [CI.md](CI.md): manifest `armatura-ci.json`, thresholds, goldens (`--update` versus `bless`), reports, GitHub Actions and plain-shell examples (marked "example, not run" there).
-* **Code CI** for this repository: `.github/workflows/ci.yml` has four kinds of job: `test` (matrix ubuntu / windows / macos: `cargo test --workspace --exclude armatura-gpu --locked` and clippy with `-D warnings`), `wasm32` (builds `armatura-wasm` for `wasm32-unknown-unknown`, copies the module next to `armatura.js` and runs `node armatura-wasm/js/test.mjs` with a demo project, including its real-module part), `gpu parity` (informational; skips when no adapter exists, runs on the Windows software DX12 adapter) and `licences` (`cargo-deny check` and `reuse lint`). The toolchain is pinned (1.97.0) so that new clippy lints do not break the build. **First fully green run: 2026-10-24** on GitHub-hosted runners. On failure the steps print the failing tests as workflow annotations (readable without log access). Windows skips the POSIX-only tests (symlinks, permissions, `/dev/zero`, POSIX path separators).
+* **Code CI** for this repository: `.github/workflows/ci.yml` has four kinds of job: `test` (matrix ubuntu / windows / macos: `cargo test --workspace --exclude armatura-gpu --locked` and clippy with `-D warnings`), `wasm32` (builds `armatura-wasm` for `wasm32-unknown-unknown`, copies the module next to `armatura.js` and runs `node armatura-wasm/js/test.mjs` with a demo project, including its real-module part), `gpu parity` (informational; skips when no adapter exists, runs on the Windows software DX12 adapter) and `licences` (`cargo-deny check` and `reuse lint`). The toolchain is pinned (1.97.0) so that new clippy lints do not break the build. The `test` job also builds `armatura-gui` and runs `armatura-studio --selftest` (a real self-test on Windows and macOS). **First fully green run: 2026-10-24** on GitHub-hosted runners. On failure the steps print the failing tests as workflow annotations (readable without log access). Windows skips the POSIX-only tests (symlinks, permissions, `/dev/zero`, POSIX path separators).
 
   ```sh
   cargo test --workspace --locked

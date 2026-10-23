@@ -162,6 +162,7 @@ cannot write link.svg: link.svg: refusing to write through a symbolic link; pass
   Exit code **2** is used by `ci` only (nothing could be evaluated: missing project/manifest, tampered golden).
 * No arguments, an unknown command, the wrong number of positional arguments, or `armatura --help` print the full usage on
   **stderr** and exit **1**. `armatura <command> --help` prints that command's usage lines on stdout and exits 0.
+  **Exception (Windows, since 0.1.0-alpha.2):** when `armatura.exe` is started by a double-click from Explorer (the console window was created for it and no other process shares it) and has no arguments, it does not print the usage: it creates `Documents\ARMATURA\first-rig.json` if missing, runs `studio` on that file at `127.0.0.1:8080`, opens the browser and keeps the console open until you close it or press Enter after an error. Started from a terminal, it behaves as described above. The rest of the program runs on a thread with a 256 MiB stack (a Windows main thread has only 1 MiB).
 
 ### 1.6 External programs
 

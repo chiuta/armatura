@@ -1,6 +1,6 @@
 # ARMATURA — licensing (DECIDED: Variant A, applied 22 Oct 2026; see LICENSE and LICENSES/)
 
-**Status:** Variant A below was chosen and applied: MPL-2.0 for the libraries (core, capi, wasm, gpu), AGPL-3.0-or-later for `armatura-cli` (CLI + studio), CC-BY-4.0 for docs and synthetic assets/models, trademark policy in TRADEMARK.md, DCO in CONTRIBUTING.md, SPDX headers in all .rs/.js/.mjs/.sh files and REUSE.toml for the rest, AGPL section 13 source offer (`/source`, `--source-url`), Cargo `license` fields set. Remaining owner actions: lawyer review, trademark search (EUIPO/OSIM), patent screening (docs/PATENT_NOTES.md), a CLA if dual licensing is wanted, bundle third-party notices with binary releases.
+**Status:** Variant A below was chosen and applied: MPL-2.0 for the libraries (core, capi, wasm, gpu), AGPL-3.0-or-later for `armatura-cli` (CLI + studio) and `armatura-gui` (the studio in a native window), CC-BY-4.0 for docs and synthetic assets/models, trademark policy in TRADEMARK.md, DCO in CONTRIBUTING.md, SPDX headers in all .rs/.js/.mjs/.sh files and REUSE.toml for the rest, AGPL section 13 source offer (`/source`, `--source-url`), Cargo `license` fields set. Remaining owner actions: lawyer review, trademark search (EUIPO/OSIM), patent screening (docs/PATENT_NOTES.md), a CLA if dual licensing is wanted, bundle third-party notices with binary releases.
 
 
 *Not legal advice. The licence is DECIDED (Variant A, see LICENSE); the sections below are kept as the rationale and the alternatives that were considered. Have a lawyer (ideally one who knows Romanian/EU copyright) confirm before the first public release. Contributions: no relicensing or dual-licensing right exists for third-party contributions until a CLA is in place (CONTRIBUTING.md).*
@@ -14,7 +14,7 @@ Your income is **donations (Buy Me a Coffee)**, not licence fees. So the licence
 It must also fit your **trade-free / TROM** convictions: the software should not be crippled, ad-funded or tied to data harvesting. (Licences that forbid commercial use, e.g. CC-NC or Polyform-NC, are *not* open-source and are not the same thing as "trade-free"; check TROM's own wording before adopting any of them.)
 
 ## 2. Findings that constrain the choice
-- **Dependencies are no obstacle.** Audit of all third-party crates (160 in the 22 Oct 2026 regeneration by `scripts/licence-audit.sh`; the number changes, see docs/THIRD_PARTY.md): all are MIT, Apache-2.0, BSD, Zlib, ISC, Unlicense, CC0, Unicode or duals of those, except one weak-copyleft crate, smartstring (MPL-2.0+, file-level copyleft, reached only through the `scripting` feature, which is ON by default in `armatura-core` and `armatura-cli`; a build with `--no-default-features` has no MPL third-party crate). They can be combined with AGPL, MPL or a proprietary licence; the MPL crate needs its source/notice preserved.
+- **Dependencies are no obstacle.** Audit of all third-party crates (362 in the 24 Oct 2026 regeneration by `scripts/licence-audit.sh`, counted over all platforms together after the window app was added; it was 160 on 22 Oct; the number changes, see docs/THIRD_PARTY.md): all are MIT, Apache-2.0, BSD, Zlib, ISC, Unlicense, CC0, Unicode or duals of those, except six weak-copyleft MPL-2.0 crates with file-level copyleft: smartstring (MPL-2.0+, reached only through the `scripting` feature, which is ON by default in `armatura-core` and `armatura-cli`) and `cssparser`, `cssparser-macros`, `dtoa-short`, `selectors` and `option-ext` (reached only through the window app `armatura-gui`); a build of the libraries with `--no-default-features` has no MPL third-party crate. They can be combined with AGPL, MPL or a proprietary licence; the MPL crate needs its source/notice preserved.
 - **Copyright ownership.** Much of the code was written with Claude. Copyright generally attaches to *human* creative contribution (US Copyright Office guidance; EU/Romanian law likewise require a human author's own intellectual creation). Practical consequences: (a) you can and should license the project as its human author/compiler, but (b) don't promise exclusivity of every line, (c) keep your own design notes, selections and edits in the repo as evidence of authorship, (d) a DCO only certifies origin; to relicense contributions later (e.g. dual licensing) a CLA or explicit outbound grant is needed and is NOT in place.
 - **No licence can force donations.** Never gate code behind a donation; a fork would simply remove the gate. Sell *convenience and extras*, not permission.
 
@@ -24,7 +24,7 @@ It must also fit your **trade-free / TROM** convictions: the software should not
 | Part | Licence | Why |
 |---|---|---|
 | `armatura-core` (engine, evaluator, formats, exporters) and any future runtime/WASM/C-ABI | **MPL-2.0** | File-level copyleft: anyone may embed it in games/apps (closed or open), but changes to *our files* must be shared. Includes an explicit **patent grant** and termination on patent suit. Maximises adoption, which is what donations need. |
-| `armatura-cli`, studio (browser/GUI) | **AGPL-3.0-or-later** | Stops closed forks and "ARMATURA-as-a-paid-web-service" clones; users' own *projects and renders* stay entirely theirs. |
+| `armatura-cli`, `armatura-gui`, studio (browser/window) | **AGPL-3.0-or-later** | Stops closed forks and "ARMATURA-as-a-paid-web-service" clones; users' own *projects and renders* stay entirely theirs. |
 | Name "ARMATURA", logo | **Trademark policy** (separate file) | Forks must rename; protects supporters from imitations. Check availability (EUIPO/OSIM/WIPO) before launch. |
 | Sample rigs, art, audio you create | **CC BY 4.0** (or CC BY-SA) | Free to reuse with credit; third-party art keeps its own licence. |
 | Documentation | **CC BY 4.0** | |
@@ -60,7 +60,7 @@ Prevents commercial competition for N years. Cost: **not open source**; conflict
 
 ## 5. Checklist to apply Variant A (≈ 1 hour of work once chosen)
 - [x] `LICENSES/MPL-2.0.txt`, `LICENSES/AGPL-3.0-or-later.txt`, `LICENSES/CC-BY-4.0.txt`, `LICENSES/LicenseRef-third-party.txt` (REUSE layout) plus the summary `LICENSE`; `REUSE.toml` covers non-source files.
-- [x] `license =` set in all five `Cargo.toml` files; SPDX headers in all .rs/.js/.mjs/.sh files, checked by `armatura-cli/tests/spdx_audit.rs`.
+- [x] `license =` set in all six `Cargo.toml` files; SPDX headers in all .rs/.js/.mjs/.sh files, checked by `armatura-cli/tests/spdx_audit.rs`.
 - [x] `docs/THIRD_PARTY.md` and `docs/THIRD_PARTY_NOTICES.md`, both regenerated by `scripts/licence-audit.sh`.
 - [x] `CONTRIBUTING.md` with the DCO 1.1 text. A CLA is still needed before any dual licence.
 - [x] `TRADEMARK.md` (permitted: "compatible with ARMATURA", unmodified redistribution; not permitted: modified builds under the same name).
