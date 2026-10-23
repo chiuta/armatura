@@ -4351,11 +4351,68 @@ fn main() -> ExitCode {
     }
 }
 
+/// True when this process is the only one attached to its console, which is what happens when the .exe is opened
+/// from Explorer (a terminal's shell is a second process on the console).
+#[cfg(windows)]
+fn launched_by_double_click() -> bool {
+    extern "system" {
+        fn GetConsoleProcessList(list: *mut u32, count: u32) -> u32;
+    }
+    let mut ids = [0u32; 4];
+    // SAFETY: `ids` is a valid buffer of the stated length; the call only writes process ids into it.
+    let n = unsafe { GetConsoleProcessList(ids.as_mut_ptr(), ids.len() as u32) };
+    n == 1
+}
+
+#[cfg(windows)]
+fn wait_for_enter(msg: &str) {
+    println!("{msg}");
+    let mut s = String::new();
+    let _ = std::io::stdin().read_line(&mut s);
+}
+
+/// Double-click on Windows: instead of printing the usage and closing the window at once, create a first
+/// project (never overwriting an existing one) in `Documents\ARMATURA`, open the studio in the default browser
+/// and keep running until the window is closed.
+#[cfg(windows)]
+fn double_click_launcher() -> ExitCode {
+    println!("ARMATURA {}  -  command-line tool and browser studio", env!("CARGO_PKG_VERSION"));
+    println!("This window runs the studio. Close it (or press Ctrl+C) to stop. For the commands, open a terminal: armatura --help\n");
+    let home = env::var("USERPROFILE").unwrap_or_else(|_| ".".into());
+    let dir = std::path::Path::new(&home).join("Documents").join("ARMATURA");
+    if let Err(e) = std::fs::create_dir_all(&dir) {
+        wait_for_enter(&format!("cannot create {}: {e}\nPress Enter to close.", dir.display()));
+        return ExitCode::FAILURE;
+    }
+    let project = dir.join("first-rig.json").to_string_lossy().into_owned();
+    if !std::path::Path::new(&project).exists() {
+        if let Err(e) = run(&["demo".to_string(), project.clone()]) {
+            wait_for_enter(&format!("{e}\nPress Enter to close."));
+            return ExitCode::FAILURE;
+        }
+    }
+    println!("Project: {project} (edits are saved there)");
+    std::thread::spawn(|| {
+        std::thread::sleep(std::time::Duration::from_millis(1500));
+        let _ = Command::new("cmd").args(["/C", "start", "", "http://127.0.0.1:8080"]).spawn();
+    });
+    let r = run(&["studio".to_string(), project, "--port".to_string(), "8080".to_string()]);
+    if let Err(e) = r {
+        wait_for_enter(&format!("{e}\n(If another program uses port 8080, close it, or run: armatura studio <project.json> --port 8090)\nPress Enter to close."));
+        return ExitCode::FAILURE;
+    }
+    ExitCode::SUCCESS
+}
+
 fn real_main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
     // project files may only reference files inside their own directory unless this is given
     armatura_core::assets::set_allow_external(args.iter().any(|a| a == "--allow-external-assets"));
     armatura_core::fsutil::set_follow_symlinks(args.iter().any(|a| a == "--follow-symlinks"));
+    #[cfg(windows)]
+    if args.is_empty() && launched_by_double_click() {
+        return double_click_launcher();
+    }
     match run(&args) {
         Ok(()) => ExitCode::SUCCESS,
         Err(msg) => {

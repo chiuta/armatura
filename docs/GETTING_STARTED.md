@@ -5,7 +5,7 @@ keyed, looped, rendered and exported using nothing but the command line. Every c
 run for real while this page was written; the outputs shown are the outputs that were printed.
 
 How it was verified: Linux, `rustc 1.97.0`, `ffmpeg 6.1.1`, and the **debug** build of the binary
-(`cargo build -p armatura-cli`). A release build runs the same code faster. No minimum supported Rust
+(`cargo build -p armatura-cli`). A release build runs the same code faster. The test suite also passes on macOS and Windows in GitHub Actions; the commands on this page were run by hand only on Linux. No minimum supported Rust
 version is declared in the repository; 1.97.0 is simply the compiler that was tested.
 
 Documentation licence: CC-BY-4.0. See also [RIGGING_GUIDE.md](RIGGING_GUIDE.md),
@@ -28,6 +28,8 @@ cannot run ffmpeg (No such file or directory (os error 2)); install it or export
 ```
 
 There is no GPU requirement. The optional GPU renderer (`render-gpu`) is not part of the default build.
+
+**No Rust? Use a prebuilt archive.** When the owner has published the draft pre-release `v0.1.0-alpha.2`, the [Releases page](https://github.com/chiuta/armatura/releases) offers `armatura-windows-x86_64.zip`, `armatura-macos-arm64.tar.gz`, `armatura-linux-x86_64.tar.gz` and `SHA256SUMS.txt`. Check the archive against the sums (`sha256sum -c SHA256SUMS.txt --ignore-missing`, or `Get-FileHash` on Windows), unpack it and run `armatura` (`armatura.exe`) from the unpacked folder; skip the build in section 2 and read "Windows: double-clicking `armatura.exe`" and "The studio as a window" near the end of this page. The programs are not code-signed, so the system will warn you the first time. Everything below was run with a local build of the same source.
 
 ## 2. Build it
 
@@ -348,3 +350,17 @@ are refused unless you pass `--allow-external-assets` (see [FAQ.md](FAQ.md)).
 * The browser editor, its shortcuts and the HTTP API: [STUDIO.md](STUDIO.md).
 * Questions and error messages: [FAQ.md](FAQ.md). Known limits: [LIMITATIONS.md](LIMITATIONS.md).
 * Every command and flag: [CLI_REFERENCE.md](CLI_REFERENCE.md); the file format: [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
+
+## Windows: double-clicking `armatura.exe`
+
+`armatura.exe` is a command-line program. Since 0.1.0-alpha.2, opening it from Explorer (double-click) creates `Documents\ARMATURA\first-rig.json` (an existing file is never overwritten), starts the studio on `http://127.0.0.1:8080` and opens it in your browser; the console window stays open while the studio runs, close it to stop. Opened from a terminal without arguments it prints the usage as before. In 0.1.0-alpha.1 a double-click only printed the usage and the window closed at once.
+
+The executables are **not code-signed**: Windows SmartScreen shows "Unknown publisher" (choose *More info* then *Run anyway*) and macOS Gatekeeper asks you to approve the program in *System Settings > Privacy & Security*. Check the download against `SHA256SUMS.txt` first. If port 8080 is busy, run `armatura studio first-rig.json --port 8090` from a terminal.
+
+## The studio as a window: `armatura-studio` (Windows and macOS)
+
+The Windows and macOS archives contain a second program, `armatura-studio` (`armatura-studio.exe`), a small native window around the browser studio: it starts the `armatura` engine from the same folder as `studio` on a free local port, shows the page in a WebView2 (Windows 11 has it built in; older Windows needs the Evergreen runtime) or WKWebView (macOS) window, and stops the server when the window is closed. No console window appears. Keep it in the same folder as `armatura(.exe)`.
+
+* Double-click it to work on `Documents/ARMATURA/first-rig.json` (created from the built-in demo if missing), or start it as `armatura-studio my-project.json` (for example through "Open with").
+* `armatura-studio --selftest` starts the server, fetches the page and stops it without a window; the exit code is 0 when that worked (CI runs it on Windows and macOS).
+* **Limits.** The window code has been compiled in CI and self-tested there (`--selftest`), but nobody has used it on a real desktop yet. Browser-style features that need the system (file pickers beyond the studio's own, downloads, drag-and-drop from Explorer) are those of the system web view and are untested. There is no Linux window (it would need GTK / WebKitGTK system packages): use `armatura studio` and a browser. The program is not code-signed (see above).

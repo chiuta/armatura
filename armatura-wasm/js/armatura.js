@@ -249,21 +249,23 @@ export class Armatura {
    * Interactive loop on a canvas: advances the started machine by real time each animation frame and
    * draws it. `onTick(dt)` runs before each advance (set inputs there). Returns a stop function.
    */
-  playMachine(canvas, { scale = 1, onTick } = {}) {
+  playMachine(canvas, { scale = 1, onTick, onError } = {}) {
     this.stop();
     const ctx = canvas.getContext('2d');
     const raf = (typeof requestAnimationFrame === 'function') ? requestAnimationFrame : (f) => setTimeout(() => f(Date.now()), 16);
     const caf = (typeof cancelAnimationFrame === 'function') ? cancelAnimationFrame : clearTimeout;
     let last = null;
     const step = (ts) => {
-      const dt = last === null ? 0 : Math.min((ts - last) / 1000, 0.25);
-      last = ts;
-      if (onTick) onTick(dt);
-      this.advance(dt);
-      const { width, height, data } = this.playerRgba(scale);
-      if (canvas.width !== width) canvas.width = width;
-      if (canvas.height !== height) canvas.height = height;
-      ctx.putImageData(new ImageData(data, width, height), 0, 0);
+      try {
+        const dt = last === null ? 0 : Math.min((ts - last) / 1000, 0.25);
+        last = ts;
+        if (onTick) onTick(dt);
+        this.advance(dt);
+        const { width, height, data } = this.playerRgba(scale);
+        if (canvas.width !== width) canvas.width = width;
+        if (canvas.height !== height) canvas.height = height;
+        ctx.putImageData(new ImageData(data, width, height), 0, 0);
+      } catch (e) { this._raf = null; if (onError) onError(e); else throw e; return; }
       this._raf = raf(step);
     };
     this._raf = raf(step);
@@ -272,24 +274,26 @@ export class Armatura {
   }
 
   /** Play on a canvas using requestAnimationFrame; loops. Returns a stop function. */
-  play(canvas, { scale = 1, loop = true, onFrame } = {}) {
+  play(canvas, { scale = 1, loop = true, onFrame, onError } = {}) {
     this.stop();
     const ctx = canvas.getContext('2d');
     const raf = (typeof requestAnimationFrame === 'function') ? requestAnimationFrame : (f) => setTimeout(() => f(Date.now()), 16);
     const caf = (typeof cancelAnimationFrame === 'function') ? cancelAnimationFrame : clearTimeout;
     let t0 = null;
     const step = (ts) => {
-      if (t0 === null) t0 = ts;
-      let f = ((ts - t0) / 1000) * this.fps;
-      if (f >= this.frames) {
-        if (!loop) { this._raf = null; return; }
-        t0 = ts; f = 0;
-      }
-      const { width, height, data } = this.rgba(f, scale);
-      if (canvas.width !== width) canvas.width = width;
-      if (canvas.height !== height) canvas.height = height;
-      ctx.putImageData(new ImageData(data, width, height), 0, 0);
-      if (onFrame) onFrame(f);
+      try {
+        if (t0 === null) t0 = ts;
+        let f = ((ts - t0) / 1000) * this.fps;
+        if (f >= this.frames) {
+          if (!loop) { this._raf = null; return; }
+          t0 = ts; f = 0;
+        }
+        const { width, height, data } = this.rgba(f, scale);
+        if (canvas.width !== width) canvas.width = width;
+        if (canvas.height !== height) canvas.height = height;
+        ctx.putImageData(new ImageData(data, width, height), 0, 0);
+        if (onFrame) onFrame(f);
+      } catch (e) { this._raf = null; if (onError) onError(e); else throw e; return; }
       this._raf = raf(step);
     };
     this._raf = raf(step);

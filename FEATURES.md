@@ -1,6 +1,6 @@
 # ARMATURA — feature matrix + reference and competitor checklists
 
-> Version wording: all crates are `0.1.0` (pre-release); "v0.5 / v0.6 / v0.7" in this repository are *feature levels* (see [CHANGELOG.md](CHANGELOG.md)), and `ROADMAP.md` section 9 is the authority on what is built.
+> Version wording: all crates are `0.1.0` (the first builds are the draft pre-release `v0.1.0-alpha.2`); "v0.5 / v0.6 / v0.7" in this repository are *feature levels* (see [CHANGELOG.md](CHANGELOG.md)), and `ROADMAP.md` section 9 is the authority on what is built.
 
 Honest status of what exists. **✅ done & tested · 🟡 partial · ❌ not implemented.**
 
@@ -96,7 +96,7 @@ It supersedes the scattered "candidate #" lists further down; details and IDs li
 | Feature | Status | IP | Safe basis / condition |
 |---|---|---|---|
 | Browser studio with undo/redo | 🟡 | 🟢 | own UI; no copying of vendor layouts or names |
-| WASM runtime, stable Rust API + C ABI, sandboxed scripting (R-090…R-093) | 🟡 (R-091, R-092, R-093 done; R-090 wasm module written but no .wasm was ever built or run: no wasm32 target here) | 🟢 | own API |
+| WASM runtime, stable Rust API + C ABI, sandboxed scripting (R-090…R-093) | 🟡 (R-091, R-092, R-093 done; R-090 the wasm module builds and passes the wrapper's test under Node in CI, but was never run in a browser) | 🟢 | own API |
 | **Agent / MCP server** over patch ops: inspect, edit (atomic, undoable), lint, safety, render, save to its own file only (R-094) | ✅ | 🟢 | open JSON-RPC protocol |
 | Full GUI: gizmos, timeline, graph editor (R-100…R-103) | 🟡 (R-101, R-102 done; R-100 and R-103 pages exist but were never run in a real browser by the author) | 🟢 | generic widgets; own look |
 | Animation version control with semantic merge, CI perceptual diff, explain-this-pixel (I-01, I-06, I-07) | ✅ (I-01 `armatura vcs`, I-06 `armatura ci`, I-07 `explain`) | 🟢 | own ideas |
@@ -118,7 +118,7 @@ It supersedes the scattered "candidate #" lists further down; details and IDs li
 - Bundling **H.264/H.265/AAC encoders**.
 
 ## Conditions that apply to every 🟢 row
-Provenance log kept (`CLEANROOM.md`; independent implementation, not a strict clean-room); only permissive dependencies (regenerate with `scripts/licence-audit.sh`; currently 160 third-party crates, all MIT / Apache-2.0 / BSD / Zlib / Unlicense-class except one MPL-2.0+ crate (smartstring, via the `scripting` feature, which is on by default; `--no-default-features` removes it); see docs/THIRD_PARTY.md); no third-party artwork or audio shipped without its own licence file; the name **ARMATURA** cleared in a trademark search before launch.
+Provenance log kept (`CLEANROOM.md`; independent implementation, not a strict clean-room); only permissive dependencies (regenerate with `scripts/licence-audit.sh`; currently 362 third-party crates over all platforms, all MIT / Apache-2.0 / BSD / Zlib / Unlicense-class except six MPL-2.0 crates (smartstring via the `scripting` feature, which is on by default, and five via the window app `armatura-gui`); see docs/THIRD_PARTY.md); no third-party artwork or audio shipped without its own licence file; the name **ARMATURA** cleared in a trademark search before launch.
 
 
 # Detailed capability tables
@@ -380,7 +380,7 @@ general history. Status is ARMATURA's: ✅ equivalent exists · 🟡 partial / d
 | Frame rate with 3 decimals (e.g. 23.976) | ✅ |
 | SVG export handles variable-width strokes & liquid shapes | ✅ (strokes become outlines, liquids become paths) |
 | Liquid hide-edge, stroke-only liquid shapes, stroke exposure | ❌ |
-| Linux via Wine/Proton | ✅ native Rust (Linux/macOS/Windows) |
+| Linux via Wine/Proton | ✅ native Rust (Linux/macOS/Windows); prebuilt Windows x86-64, macOS arm64 and Linux x86-64 archives in the draft pre-release; tested by CI on all three, by a person only on Linux |
 
 ## Roll-up (reference product only; competitors follow below)
 Of the reference product's documented features, ARMATURA covers the **rigging, deformation,

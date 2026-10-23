@@ -4,7 +4,7 @@
 
 *Start here to find the right page. All documents are English Markdown under CC-BY-4.0, except the generated third-party files (see their headers). The Romanian README is [../README.ro.md](../README.ro.md).*
 
-ARMATURA is a 2D vector rigging and animation engine in Rust. It is a pre-release project (crates 0.1.0); read [LIMITATIONS.md](LIMITATIONS.md) before depending on a feature.
+ARMATURA is a 2D vector rigging and animation engine in Rust. It is an alpha project (the first builds are prepared as the draft pre-release `v0.1.0-alpha.2`; crates are still 0.1.0); read [LIMITATIONS.md](LIMITATIONS.md) before depending on a feature.
 
 Contents: [All documents](#all-documents) - [Reading paths by audience](#reading-paths-by-audience) - [Documents at the repository root](#documents-at-the-repository-root) - [Where each question is answered](#where-each-question-is-answered) - [Conventions](#conventions-used-in-the-documents)
 
@@ -24,10 +24,10 @@ Contents: [All documents](#all-documents) - [Reading paths by audience](#reading
 | [FAQ.md](FAQ.md) | Short answers to common questions | everyone |
 | [API.md](API.md) | The stable Rust facade (version 1.4.0): calls, errors, limits, examples | Rust integrators |
 | [C_ABI.md](C_ABI.md) | The C interface (`armatura-capi`): functions, memory rules, C and Python examples | C, C++, Python, Go, C# integrators |
-| [WASM.md](WASM.md) | WebAssembly module and JavaScript wrapper. **Status: never built or run**; includes the checklist for the first builder | web developers |
+| [WASM.md](WASM.md) | WebAssembly module and JavaScript wrapper. **Status: built and tested under Node in CI, never run in a browser**; includes the checklist for the first browser run | web developers |
 | [CI.md](CI.md) | Animation CI (`armatura ci`): manifest, thresholds, goldens, reports, pipeline examples | technical artists, build engineers |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Building, tests, conventions, new-module checklist, release checklist, debugging | contributors, maintainers |
-| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Owner-side steps before and after a first public release | owner |
+| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Owner-side steps before and after publishing the draft release | owner |
 | [SECURITY.md](SECURITY.md) | Threat model, built-in protections, known gaps, reporting, hardening checklist | security reviewers, deployers |
 | [LIMITATIONS.md](LIMITATIONS.md) | Numbered list of known limits with severity, workaround and roadmap id | everyone evaluating ARMATURA |
 | [PATENT_NOTES.md](PATENT_NOTES.md) | Patent status note (not legal advice) | licensees, lawyers |

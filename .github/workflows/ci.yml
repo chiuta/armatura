@@ -45,6 +45,12 @@ jobs:
           msg=$( { sed 's/\x1b\[[0-9;]*m//g' test.log > test.plain; grep -E -A7 '^---- |^error(\[|:)' test.plain | grep -v '^--$' | head -150; echo '--- tail ---'; tail -25 test.plain; } | head -c 6000 | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')
           if [ "$code" != 0 ]; then echo "::error title=test-failure::$msg"; fi
           exit $code
+      - name: Studio application self-test (starts the server next to the window app, fetches the page)
+        shell: bash
+        run: |
+          cargo build --locked -p armatura-cli -p armatura-gui
+          ./target/debug/armatura-studio --selftest; echo "armatura-studio --selftest exit: $?"
+          if [ "${{ runner.os }}" != "Linux" ]; then ./target/debug/armatura-studio --selftest || { echo "::error title=gui-selftest::armatura-studio --selftest failed"; exit 1; }; fi
       - name: Clippy (warnings are errors)
         shell: bash
         run: |
@@ -116,7 +122,7 @@ jobs:
           cargo deny check 2>&1 | tee deny.log
           code=${PIPESTATUS[0]}
           sed 's/\x1b\[[0-9;]*m//g' deny.log > deny.plain
-          msg=$( { grep -E -A14 '^(error|warning)' deny.plain | head -60; tail -10 deny.plain; } | head -c 6000 | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')
+          msg=$( { grep -E '^ *(├|└) [A-Za-z0-9_.-]+ v[0-9]' deny.plain | sort -u | head -40; grep -E -A14 '^(error|warning)\[' deny.plain | head -70; tail -10 deny.plain; } | head -c 6000 | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')
           if [ "$code" != 0 ]; then echo "::error title=deny::$msg"; fi
           exit $code
       - name: REUSE lint
