@@ -1,0 +1,126 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio)
+#
+# Builds the executables on GitHub-hosted runners (the authoring environment never builds --release).
+#   * push to main        -> artifacts only (Actions tab, kept 30 days)
+#   * tag v*, or a commit on main whose message contains "[release vX.Y.Z...]"
+#                         -> the same, plus a DRAFT release with the archives and SHA-256 sums attached
+#                            (a draft is visible only to people with write access; publish it by hand).
+# Each archive carries the licence texts, the third-party notices and the AGPL source offer note.
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  cli:
+    name: cli (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux-x86_64, os: ubuntu-latest, exe: armatura, lib: libarmatura_capi.so, slib: libarmatura_capi.a }
+          - { name: macos-arm64, os: macos-latest, exe: armatura, lib: libarmatura_capi.dylib, slib: libarmatura_capi.a }
+          - { name: windows-x86_64, os: windows-latest, exe: armatura.exe, lib: armatura_capi.dll, slib: armatura_capi.lib }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.97.0
+      - uses: Swatinem/rust-cache@v2
+      - name: Build release binaries (CLI + studio, C ABI)
+        run: cargo build --release --locked -p armatura-cli -p armatura-capi
+      - name: Smoke test the release binary
+        shell: bash
+        run: |
+          ./target/release/${{ matrix.exe }} --version
+          ./target/release/${{ matrix.exe }} demo smoke.json
+          ./target/release/${{ matrix.exe }} check smoke.json
+          ./target/release/${{ matrix.exe }} render smoke.json 0 smoke.png
+          test -s smoke.png
+      - name: Package
+        shell: bash
+        run: |
+          d=armatura-${{ matrix.name }}
+          mkdir -p $d/lib $d/include
+          cp target/release/${{ matrix.exe }} $d/
+          cp target/release/${{ matrix.lib }} $d/lib/ || true
+          cp target/release/${{ matrix.slib }} $d/lib/ || true
+          cp armatura-capi/armatura.h $d/include/
+          cp -r LICENSE LICENSES README.md CHANGELOG.md TRADEMARK.md docs/THIRD_PARTY_NOTICES.md $d/
+          printf 'ARMATURA binaries: armatura (CLI + studio) is AGPL-3.0-or-later; the C library is MPL-2.0.\nCorresponding source: https://github.com/chiuta/armatura at the commit/tag of this build (%s).\n' "$GITHUB_SHA" > $d/SOURCE.txt
+          if [ "${{ runner.os }}" = "Windows" ]; then 7z a $d.zip $d >/dev/null; else tar czf $d.tar.gz $d; fi
+          ls -la $d.* 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: armatura-${{ matrix.name }}
+          path: |
+            armatura-${{ matrix.name }}.tar.gz
+            armatura-${{ matrix.name }}.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  wasm:
+    name: wasm module
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.97.0
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - name: Build the release module
+        run: cargo build --release --target wasm32-unknown-unknown -p armatura-wasm --locked
+      - name: Package
+        run: |
+          d=armatura-web
+          mkdir -p $d
+          cp target/wasm32-unknown-unknown/release/armatura_wasm.wasm $d/
+          cp armatura-wasm/js/armatura.js armatura-wasm/index.html $d/
+          cp -r LICENSES $d/ && cp LICENSE $d/
+          printf 'Module: MPL-2.0. Source: https://github.com/chiuta/armatura at %s\n' "$GITHUB_SHA" > $d/SOURCE.txt
+          ls -la $d/armatura_wasm.wasm | tee wasm-size.txt
+          tar czf armatura-web.tar.gz $d
+      - uses: actions/upload-artifact@v4
+        with:
+          name: armatura-web
+          path: armatura-web.tar.gz
+          retention-days: 30
+
+  draft-release:
+    name: draft release (tags, or "[release vX]" commits)
+    if: startsWith(github.ref, 'refs/tags/v') || (github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[release v0') || contains(github.event.head_commit.message, '[release v1'))
+    needs: [cli, wasm]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: SHA-256 sums
+        run: cd dist && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          MSG: ${{ github.event.head_commit.message }}
+        run: |
+          TAG="$GITHUB_REF_NAME"
+          if [ "${GITHUB_REF_TYPE}" != "tag" ]; then TAG=$(printf '%s' "$MSG" | grep -o '\[release v[0-9][^]]*\]' | head -1 | sed 's/\[release \(.*\)\]/\1/'); fi
+          echo "tag: $TAG"
+          # remove stale DRAFT releases that carry this tag or the placeholder tag 'vX' from earlier attempts
+          for t in "$TAG" vX; do
+            gh api "repos/$GH_REPO/releases?per_page=100" --jq ".[] | select(.draft and .tag_name==\"$t\") | .id" | while read -r id; do gh api -X DELETE "repos/$GH_REPO/releases/$id"; done
+          done
+          gh release create "$TAG" dist/* --target "$GITHUB_SHA" --draft --prerelease --title "ARMATURA $TAG" \
+            --notes "Pre-release builds from CI. Unverified by people on Windows and macOS; see docs/LIMITATIONS.md. Licences: CLI AGPL-3.0-or-later, libraries MPL-2.0, docs CC-BY-4.0."

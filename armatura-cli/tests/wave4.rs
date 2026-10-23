@@ -124,12 +124,14 @@ fn eq_form_and_subcommand_help() {
 
 // ---- M5: output into a directory that cannot hold a temporary file, symbolic links ---------------------------
 
+#[cfg(unix)]
 fn is_root() -> bool {
     Command::new("id").arg("-u").output().map(|o| String::from_utf8_lossy(&o.stdout).trim() == "0").unwrap_or(false)
 }
 
 /// The binary run as an unprivileged user (`nobody` through setpriv when the tests run as root); `None` when that is
 /// not possible here (then the test says so and passes vacuously, it never pretends).
+#[cfg(unix)]
 fn unprivileged(dir: &Path, args: &[&str]) -> Option<(bool, String)> {
     let o = if is_root() {
         if Command::new("setpriv").arg("--help").output().is_err() {
@@ -143,11 +145,13 @@ fn unprivileged(dir: &Path, args: &[&str]) -> Option<(bool, String)> {
     Some((o.status.success(), format!("{}{}", String::from_utf8_lossy(&o.stdout), String::from_utf8_lossy(&o.stderr))))
 }
 
+#[cfg(unix)]
 fn chmod(p: &Path, mode: u32) {
     use std::os::unix::fs::PermissionsExt;
     fs::set_permissions(p, fs::Permissions::from_mode(mode)).unwrap();
 }
 
+#[cfg(unix)]
 #[test]
 fn m5_write_into_a_read_only_directory_falls_back_to_overwriting_the_writable_file() {
     let s = ScratchDir::new("armatura-w4-m5");
@@ -171,6 +175,7 @@ fn m5_write_into_a_read_only_directory_falls_back_to_overwriting_the_writable_fi
     assert!(!ok && t.contains("not writable"), "{t}");
 }
 
+#[cfg(unix)]
 #[test]
 fn m5_symbolic_link_outputs_are_refused_with_the_opt_in_named() {
     let s = ScratchDir::new("armatura-w4-m5l");
@@ -202,6 +207,7 @@ fn h1_other_commands_resolve_assets_against_the_input_directory() {
     }
 }
 
+#[cfg(unix)] // uses /dev/zero
 #[test]
 fn input_size_cap_and_special_files_are_refused() {
     let s = ScratchDir::new("armatura-w4-cap");

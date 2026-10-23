@@ -10,6 +10,10 @@ Related versions that **are** real and independent of the above: the Rust facade
 
 ## [Unreleased]
 
+### CI on GitHub (2026-10-24)
+* First real GitHub Actions runs (ubuntu, windows, macos; wasm32; cargo-deny; REUSE) and the fixes they forced: the CLI now runs on a 256 MiB-stack thread (Windows main thread overflowed), torn collab logs are truncated through a write handle (Windows "Access denied"), `.gitattributes` forces LF, POSIX-only tests are gated, tests that need `ffmpeg` skip without it, `zip` 2 -> 9 (advisory), RUSTSEC-2026-0249 (`smartstring`, unmaintained, via optional `rhai`) acknowledged in `deny.toml`, `wgpu` Metal / DX12 backends enabled, toolchain pinned to 1.97.0.
+* The wasm32 module builds and its Node real-module test passes in CI (LIMITATIONS L-01 / L-02 updated).
+
 ### Added
 - Documentation set (CC-BY-4.0): [README.md](README.md) and [README.ro.md](README.ro.md) (full Romanian translation), [docs/INDEX.md](docs/INDEX.md), [docs/API.md](docs/API.md) (extended to facade 1.3), [docs/C_ABI.md](docs/C_ABI.md), [docs/WASM.md](docs/WASM.md) (with an explicit "never built, never run" status box and a verification checklist), [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md), [docs/SECURITY.md](docs/SECURITY.md), [docs/LIMITATIONS.md](docs/LIMITATIONS.md) and this file. Other documents of the set (command reference, export formats, project format, architecture, glossary, guides, studio, FAQ) are listed in the INDEX. All code samples in API.md and C_ABI.md were compiled and run; the WASM samples were run only against the JavaScript mock.
 

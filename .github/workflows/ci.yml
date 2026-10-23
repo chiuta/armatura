@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio)
 #
-# Continuous integration for ARMATURA. NOTE: this workflow has never been run. It was written in an
-# environment without GitHub Actions, without Windows or macOS and without the wasm32 target, so the first
-# real run may need small fixes (action versions, runner images, a missing system package). See
-# docs/DEVELOPMENT.md ("Continuous integration").
+# Continuous integration for ARMATURA. First fully green run: 2026-10-24 (ubuntu, windows, macos tests and
+# clippy with -D warnings, wasm32 build + Node test, cargo-deny, REUSE; gpu parity jobs are informational).
+# The toolchain is pinned so that new clippy lints do not break the build; bump it deliberately.
+# See docs/DEVELOPMENT.md ("Continuous integration").
 name: ci
 
 on:
@@ -29,7 +29,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.97.0
         with:
           components: clippy
       - uses: Swatinem/rust-cache@v2
@@ -42,7 +42,7 @@ jobs:
           cargo test --workspace --exclude armatura-gpu --locked --no-fail-fast 2>&1 | tee test.log
           code=${PIPESTATUS[0]}
           # Surface the failures as ONE annotation (readable without log access).
-          msg=$( { sed 's/\x1b\[[0-9;]*m//g' test.log > test.plain; grep -E -A4 '^test .* FAILED|^---- |panicked at|^error(\[|:)' test.plain | grep -v '^--$' | head -60; echo '--- tail ---'; tail -25 test.plain; } | head -c 6000 | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')
+          msg=$( { sed 's/\x1b\[[0-9;]*m//g' test.log > test.plain; grep -E -A7 '^---- |^error(\[|:)' test.plain | grep -v '^--$' | head -150; echo '--- tail ---'; tail -25 test.plain; } | head -c 6000 | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')
           if [ "$code" != 0 ]; then echo "::error title=test-failure::$msg"; fi
           exit $code
       - name: Clippy (warnings are errors)
@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.97.0
         with:
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
@@ -91,7 +91,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.97.0
       - uses: Swatinem/rust-cache@v2
       - name: GPU parity tests (skip when no adapter is available)
         shell: bash
@@ -107,7 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.97.0
       - name: cargo-deny
         shell: bash
         run: |
@@ -115,7 +115,8 @@ jobs:
           cargo install cargo-deny --locked
           cargo deny check 2>&1 | tee deny.log
           code=${PIPESTATUS[0]}
-          msg=$( { grep -E -A5 '^(error|warning)' deny.log | head -60; tail -10 deny.log; } | head -c 6000 | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')
+          sed 's/\x1b\[[0-9;]*m//g' deny.log > deny.plain
+          msg=$( { grep -E -A14 '^(error|warning)' deny.plain | head -60; tail -10 deny.plain; } | head -c 6000 | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')
           if [ "$code" != 0 ]; then echo "::error title=deny::$msg"; fi
           exit $code
       - name: REUSE lint
