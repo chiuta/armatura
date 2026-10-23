@@ -18,7 +18,7 @@ Principios que dan forma al proyecto:
 
 ## Estado
 
-> **Versión preliminar, un solo entorno.** Todos los crates están en la versión `0.1.0` y no se ha publicado nada; "v0.5 / v0.6 / v0.7" son *niveles de funciones* del historial, no números de versión ([CHANGELOG.md](CHANGELOG.md)).
+> **Versión preliminar, un solo entorno.** Todos los crates están en la versión `0.1.0` y no se ha publicado nada; "v0.5 / v0.6 / v0.7" son *niveles de funciones* del historial, no números de versión ([CHANGELOG.md](docs/i18n/es/CHANGELOG.md)).
 >
 > | Verificado | No verificado |
 > |---|---|
@@ -119,7 +119,7 @@ Empieza en [docs/INDEX.md](docs/i18n/es/INDEX.md) (todos los documentos, destina
 | [docs/SECURITY.md](docs/i18n/es/SECURITY.md) | modelo de amenazas y refuerzo de la seguridad |
 | [docs/LIMITATIONS.md](docs/i18n/es/LIMITATIONS.md) | limitaciones conocidas |
 | [docs/PATENT_NOTES.md](docs/i18n/es/PATENT_NOTES.md), [docs/THIRD_PARTY.md](docs/i18n/es/THIRD_PARTY.md), [docs/THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md) | patentes, licencias de las dependencias |
-| [CHANGELOG.md](CHANGELOG.md), [ROADMAP.md](docs/i18n/es/ROADMAP.md), [FEATURES.md](docs/i18n/es/FEATURES.md) | historial, plan y estado detallado, matriz de funciones |
+| [CHANGELOG.md](docs/i18n/es/CHANGELOG.md), [ROADMAP.md](docs/i18n/es/ROADMAP.md), [FEATURES.md](docs/i18n/es/FEATURES.md) | historial, plan y estado detallado, matriz de funciones |
 | [CLEANROOM.md](docs/i18n/es/CLEANROOM.md), [LICENSING.md](docs/i18n/es/LICENSING.md), [TRADEMARK.md](docs/i18n/es/TRADEMARK.md), [CONTRIBUTING.md](docs/i18n/es/CONTRIBUTING.md) | procedencia, licencias, política del nombre, normas de contribución |
 
 ## Resumen de licencias

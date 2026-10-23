@@ -54,14 +54,14 @@ Cada ruta es un orden, no un requisito. Detente cuando tengas lo que necesitas.
 
 **Licenciatario, empaquetador o abogado.** [../LICENSING.md](LICENSING.md) -> [../LICENSE](../../../LICENSE) y [../LICENSES/](../../../LICENSES/) -> [THIRD_PARTY.md](THIRD_PARTY.md) -> [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md) -> [PATENT_NOTES.md](PATENT_NOTES.md) -> [../TRADEMARK.md](TRADEMARK.md) -> [../CLEANROOM.md](CLEANROOM.md) -> lista de comprobación de publicación en [DEVELOPMENT.md](DEVELOPMENT.md) sección 7.
 
-**Mantenedor que prepara una publicación.** DEVELOPMENT sección 7 -> [../CHANGELOG.md](../../../CHANGELOG.md) -> LIMITATIONS (actualizar) -> cuadro de estado del README.
+**Mantenedor que prepara una publicación.** DEVELOPMENT sección 7 -> [../CHANGELOG.md](CHANGELOG.md) -> LIMITATIONS (actualizar) -> cuadro de estado del README.
 
 ## Documentos en la raíz del repositorio
 
 | Archivo | Propósito |
 |---|---|
 | [../README.md](../../../README.es.md), [../README.ro.md](../../../README.ro.md) | Visión general, estado, inicio rápido, resumen de licencias (en inglés y en rumano) |
-| [../CHANGELOG.md](../../../CHANGELOG.md) | Historial reconstruido; formato Keep-a-Changelog |
+| [../CHANGELOG.md](CHANGELOG.md) | Historial reconstruido; formato Keep-a-Changelog |
 | [../ROADMAP.md](ROADMAP.md) | Plan ordenado; **la sección 9 es el registro fechado de lo que hace y no hace cada elemento** y la autoridad cuando los documentos discrepan |
 | [../FEATURES.md](FEATURES.md) | Matriz de funciones frente a otras herramientas (partes desactualizadas, véase LIMITATIONS) |
 | [../CLEANROOM.md](CLEANROOM.md) | Registro de procedencia y reglas de la implementación independiente |

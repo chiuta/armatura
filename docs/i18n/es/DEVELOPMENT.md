@@ -97,7 +97,7 @@ Suites fuera de `cargo test`:
 * **clippy.** `cargo clippy --workspace --all-targets -- -D warnings` termina con 0 y sin avisos (oleada 8) y es una condición de la CI. Cuando un lint no es adecuado para el caso, el código lleva un `#[allow(clippy::...)]` acotado con un comentario (bucles con índices sobre arrays paralelos, `too_many_arguments` en firmas estables, `manual_clamp` donde el tratamiento de NaN difiere, nombres inherentes `next` / `mul` que son API pública); no añadas allows a nivel de crate.
 * **Integración con la CI.** El repositorio incluye `armatura ci` para comprobaciones de *animación* ([CI.md](CI.md)); es algo distinto de la CI del código. El proyecto no tiene ninguna configuración de CI de código en el árbol; la sección 8 ofrece una receta mínima.
 
-Cómo añadir pruebas: coloca las pruebas del motor junto al código (`#[cfg(test)]`), las pruebas de comportamiento de la CLI en `armatura-cli/tests/`, y cada error corregido recibe una prueba de regresión (las oleadas de revisión de [CHANGELOG.md](../../../CHANGELOG.md) enumeran qué se corrigió y dónde). Las pruebas no deben dejar archivos temporales (usa guardas de drop) ni depender del reloj ni de la red. Los presupuestos de tiempo se prueban con un reloj de pruebas determinista.
+Cómo añadir pruebas: coloca las pruebas del motor junto al código (`#[cfg(test)]`), las pruebas de comportamiento de la CLI en `armatura-cli/tests/`, y cada error corregido recibe una prueba de regresión (las oleadas de revisión de [CHANGELOG.md](CHANGELOG.md) enumeran qué se corrigió y dónde). Las pruebas no deben dejar archivos temporales (usa guardas de drop) ni depender del reloj ni de la red. Los presupuestos de tiempo se prueban con un reloj de pruebas determinista.
 
 ## 4. Convenciones de código
 
@@ -139,7 +139,7 @@ El proyecto es una implementación independiente. En resumen (el texto vinculant
 
 ## 7. Lista de comprobación de publicación
 
-Todavía no se ha publicado nada (todos los crates están en 0.1.0; las etiquetas de versión "v0.5/v0.6/v0.7" de README, FEATURES y ROADMAP son niveles de funciones, no versiones de crates; véase [CHANGELOG.md](../../../CHANGELOG.md)). Cuando lo hagas:
+Todavía no se ha publicado nada (todos los crates están en 0.1.0; las etiquetas de versión "v0.5/v0.6/v0.7" de README, FEATURES y ROADMAP son niveles de funciones, no versiones de crates; véase [CHANGELOG.md](CHANGELOG.md)). Cuando lo hagas:
 
 1. **Versión.** Decide la versión de cada crate. La fachada tiene su propia versión (`API_VERSION`, hoy 1.4.0: mayor al eliminar o cambiar una línea de la superficie, menor al añadir) y `ARMATURA_ABI_VERSION` / `arm_abi_version()` (ambas 1) cambian únicamente ante un cambio incompatible de la ABI de C o de wasm. Alinea las versiones de `Cargo.toml`, la salida de `armatura --version`, el recuadro de estado del README y el CHANGELOG.
 2. **Controles en verde.** `cargo test --workspace`, `cargo test --doc -p armatura-core`, `cargo test -p armatura-cli --test spdx_audit`, `cargo clippy --workspace --all-targets -- -D warnings`, las cuatro pruebas de humo de Chromium, `scripts/e2e.sh` (release), `cargo test -p armatura-gpu` si cambió el código de GPU.

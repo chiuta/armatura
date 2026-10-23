@@ -1,6 +1,6 @@
 # ARMATURA — matriz de funcionalidades y listas de comprobación de referencia y competidores
 
-> Redacción de las versiones: todos los crates son `0.1.0` (versión preliminar); "v0.5 / v0.6 / v0.7" en este repositorio son *niveles de funcionalidad* (véase [CHANGELOG.md](../../../CHANGELOG.md)), y la sección 9 de `ROADMAP.md` es la autoridad sobre lo que está construido.
+> Redacción de las versiones: todos los crates son `0.1.0` (versión preliminar); "v0.5 / v0.6 / v0.7" en este repositorio son *niveles de funcionalidad* (véase [CHANGELOG.md](CHANGELOG.md)), y la sección 9 de `ROADMAP.md` es la autoridad sobre lo que está construido.
 
 Estado honesto de lo que existe. **✅ hecho y probado · 🟡 parcial · ❌ no implementado.**
 
