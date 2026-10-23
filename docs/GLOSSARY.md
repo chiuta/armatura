@@ -301,7 +301,9 @@ ARMATURA normalizes the weights and treats empty weights as static. See `engine`
 0.9. See `rig`.
 
 **SPDX.** Software Package Data Exchange: a standard way to state a file's licence, as in
+<!-- REUSE-IgnoreStart -->
 `SPDX-License-Identifier: MPL-2.0`. Every source file carries one. See `LICENSING.md`.
+<!-- REUSE-IgnoreEnd -->
 
 **Spine deformer.** A deformer that bends geometry along a curve by projecting anchors onto a rest
 curve and re-attaching them to the deformed curve. See PROJECT_FORMAT section 7.1.

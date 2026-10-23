@@ -14,7 +14,7 @@ png = "0.18"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["float_roundtrip"] }
 tiny-skia = "0.12.0"
-zip = { version = "2", default-features = false, features = ["deflate"] }
+zip = { version = "9", default-features = false, features = ["deflate"] }
 flate2 = { version = "1", default-features = false, features = ["rust_backend"] }
 # rhai pulls smartstring (MPL-2.0+, file-level copyleft). Optional so a build without scripting has no MPL crate (see docs/THIRD_PARTY.md).
 rhai = { version = "1", default-features = false, features = ["no_module"], optional = true }

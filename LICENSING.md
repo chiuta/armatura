@@ -28,7 +28,9 @@ It must also fit your **trade-free / TROM** convictions: the software should not
 | Name "ARMATURA", logo | **Trademark policy** (separate file) | Forks must rename; protects supporters from imitations. Check availability (EUIPO/OSIM/WIPO) before launch. |
 | Sample rigs, art, audio you create | **CC BY 4.0** (or CC BY-SA) | Free to reuse with credit; third-party art keeps its own licence. |
 | Documentation | **CC BY 4.0** | |
+<!-- REUSE-IgnoreStart -->
 Cargo: `license = "MPL-2.0"` (core), `license = "AGPL-3.0-or-later"` (cli). SPDX header per file: `// SPDX-License-Identifier: MPL-2.0`.
+<!-- REUSE-IgnoreEnd -->
 **Dual-licensing:** possible only for code the owner alone wrote, or after a CLA/outbound grant from every contributor. NOT possible today for contributed code (CONTRIBUTING.md).
 
 ### Variant B: AGPL-3.0-or-later everywhere (+ commercial licence on request)

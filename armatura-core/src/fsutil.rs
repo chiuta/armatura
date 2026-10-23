@@ -259,6 +259,7 @@ pub fn private_temp_dir(prefix: &str) -> Result<TempDir, String> {
     let base = std::env::temp_dir();
     for _ in 0..16 {
         let p = base.join(format!("{prefix}-{}", random_hex(8)));
+        #[cfg_attr(not(unix), allow(unused_mut))]
         let mut b = std::fs::DirBuilder::new();
         #[cfg(unix)]
         {

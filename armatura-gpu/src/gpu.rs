@@ -163,7 +163,7 @@ impl GpuContext {
         let backends = match std::env::var("ARMATURA_GPU_BACKEND").ok().as_deref() {
             Some("vulkan") => wgpu::Backends::VULKAN,
             Some("gl") => wgpu::Backends::GL,
-            _ => wgpu::Backends::VULKAN | wgpu::Backends::GL,
+            _ => wgpu::Backends::PRIMARY | wgpu::Backends::GL,
         };
         let mut desc = wgpu::InstanceDescriptor::new_without_display_handle();
         desc.backends = backends;

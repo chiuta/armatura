@@ -109,7 +109,9 @@ Adding tests: put engine tests next to the code (`#[cfg(test)]`), CLI behaviour 
 * **Deterministic randomness.** Any random behaviour (fuzzing, noise, jitter, simulation) uses the engine's own seeded generator with a `--seed` option and is bit-reproducible. No `rand` crate, no system time as a seed.
 * **Println and closed pipes.** The CLI shadows `println!`/`print!` with macros that exit quietly on a closed pipe (`armatura ... | head` must not panic). Keep using them in `main.rs`.
 * **Errors tell what to do.** Messages say what was wrong, which value, and the allowed range or the fix (the facade tests assert on this style).
+<!-- REUSE-IgnoreStart -->
 * **SPDX headers.** Every `.rs`, `.js`, `.mjs` and `.sh` file starts with `SPDX-License-Identifier:` equal to its crate's licence (MPL-2.0 for core/capi/wasm/gpu/scripts, AGPL-3.0-or-later for the CLI) and a copyright line; Markdown docs carry the CC-BY-4.0 header comment, as this file does. Other files (JSON, images, the license texts) are covered by `REUSE.toml`; when you add a new path pattern, add it there. `cargo test -p armatura-cli --test spdx_audit` fails otherwise.
+<!-- REUSE-IgnoreEnd -->
 * **Dependencies.** Few, pure Rust, permissive licence. A new crate needs a `deny.toml` check (`scripts/licence-audit.sh`), a line in `docs/THIRD_PARTY.md` (regenerated) and a justification in the ROADMAP entry. `armatura-core` is built without default features by capi, wasm, gpu and the CLI, so anything heavy goes behind a feature.
 * **Facade first.** New user-visible engine capability that other languages should reach goes into `armatura-core/src/api.rs` with a snapshot line, a doc-test and a unit test; the C and wasm layers wrap the facade only.
 

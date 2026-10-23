@@ -26,7 +26,9 @@ fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
 
 fn spdx_of(text: &str) -> Option<String> {
     text.lines().take(6).find_map(|l| {
+        // REUSE-IgnoreStart
         l.split_once("SPDX-License-Identifier:").map(|(_, r)| r.trim().trim_end_matches("*/").trim().to_string())
+        // REUSE-IgnoreEnd
     })
 }
 

@@ -81,6 +81,8 @@ fn setup(tag: &str) -> armatura_core::fsutil::ScratchDir {
     d
 }
 
+#[cfg_attr(not(unix), allow(dead_code))]
+#[cfg(unix)]
 fn link(d: &Path, rel: &str) {
     let p = d.join(rel);
     if let Some(parent) = p.parent() {
