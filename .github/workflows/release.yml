@@ -3,7 +3,8 @@
 #
 # Builds the executables on GitHub-hosted runners (the authoring environment never builds --release).
 #   * push to main        -> artifacts only (Actions tab, kept 30 days)
-#   * tag v*              -> the same, plus a DRAFT release with the archives and SHA-256 sums attached
+#   * tag v*, or a commit on main whose message contains "[release vX.Y.Z...]"
+#                         -> the same, plus a DRAFT release with the archives and SHA-256 sums attached
 #                            (a draft is visible only to people with write access; publish it by hand).
 # Each archive carries the licence texts, the third-party notices and the AGPL source offer note.
 name: build
@@ -95,8 +96,8 @@ jobs:
           retention-days: 30
 
   draft-release:
-    name: draft release (tags only)
-    if: startsWith(github.ref, 'refs/tags/v')
+    name: draft release (tags, or "[release vX]" commits)
+    if: startsWith(github.ref, 'refs/tags/v') || (github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[release v'))
     needs: [cli, wasm]
     runs-on: ubuntu-latest
     permissions:
@@ -112,6 +113,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          MSG: ${{ github.event.head_commit.message }}
         run: |
-          gh release create "$GITHUB_REF_NAME" dist/* --draft --prerelease --title "ARMATURA $GITHUB_REF_NAME" \
+          TAG="$GITHUB_REF_NAME"
+          if [ "${GITHUB_REF_TYPE}" != "tag" ]; then TAG=$(printf '%s' "$MSG" | grep -o '\[release v[^]]*\]' | head -1 | sed 's/\[release \(.*\)\]/\1/'); fi
+          echo "tag: $TAG"
+          gh release create "$TAG" dist/* --target "$GITHUB_SHA" --draft --prerelease --title "ARMATURA $TAG" \
             --notes "Pre-release builds from CI. Unverified by people on Windows and macOS; see docs/LIMITATIONS.md. Licences: CLI AGPL-3.0-or-later, libraries MPL-2.0, docs CC-BY-4.0."
