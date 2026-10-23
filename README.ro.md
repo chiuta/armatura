@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # ARMATURA
 
-**Un motor de rigging și animație vectorială 2D scris în Rust: oase, cinematică inversă (IK), skinning, deformatoare, un runtime cu mașini de stări, o trusă de instrumente în linia de comandă, un studio în browser și biblioteci integrabile, într-un singur workspace.** Versiunea engleză: [README.md](README.ro.md). Documentația din `docs/` este în limba engleză.
+**Un motor de rigging și animație vectorială 2D scris în Rust: oase, cinematică inversă (IK), skinning, deformatoare, un runtime cu mașini de stări, o trusă de instrumente în linia de comandă, un studio în browser și biblioteci integrabile, într-un singur workspace.** Versiunea engleză: [README.md](README.md). Documentația din `docs/` este în limba engleză aici; traduceri ale documentației (ro, fr, it, es, pt, de, hu) există pe ramura `landing-page` și pe pagina https://armatura.chiuta.ro/.
 
 ## Rezumat și filozofie
 
