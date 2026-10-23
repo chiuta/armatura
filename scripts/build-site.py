@@ -7,17 +7,17 @@ Embeds every Markdown document (gzip + base64) and the docs/img screenshots
 
     python3 scripts/build-site.py
 """
-import base64, gzip, io, json, pathlib, re, sys
+import base64, gzip, importlib.util, io, json, pathlib, re, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 GROUPS = [
-    ("start",   ["README", "README.ro", "GETTING_STARTED", "FAQ", "GLOSSARY", "INDEX"]),
+    ("start",   ["README", "GETTING_STARTED", "FAQ", "GLOSSARY", "INDEX"]),
     ("use",     ["STUDIO", "CLI_REFERENCE", "RIGGING_GUIDE", "ANIMATION_GUIDE", "PROJECT_FORMAT", "EXPORT_FORMATS", "CI"]),
     ("build",   ["ARCHITECTURE", "API", "C_ABI", "WASM", "DEVELOPMENT", "CONTRIBUTING"]),
     ("trust",   ["LIMITATIONS", "SECURITY", "CLEANROOM", "LICENSING", "THIRD_PARTY", "PATENT_NOTES", "TRADEMARK"]),
     ("project", ["ROADMAP", "FEATURES", "CHANGELOG", "RELEASE_CHECKLIST"]),
 ]
-TITLES = {"README": "README", "README.ro": "README (română)", "ROADMAP": "Roadmap",
+TITLES = {"README": "README", "ROADMAP": "Roadmap",
           "FEATURES": "Feature matrix", "CHANGELOG": "Changelog", "CLEANROOM": "Clean-room provenance",
           "INDEX": "Documentation index"}
 EXTRA_DESC = {"INDEX": ("Where to find the right page: all documents, reading paths by audience, questions and answers", "everyone")}
@@ -59,6 +59,14 @@ def main():
             docs[i] = {"t": title or i, "g": g,
                        "p": str(p.relative_to(ROOT)), "d": d, "a": a, "md": md}
             order.append(i)
+    spec = importlib.util.spec_from_file_location("i18n_tools", ROOT / "scripts" / "i18n.py")
+    i18n = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(i18n)
+    for i, d in docs.items():
+        for lang in i18n.LANGS:
+            t = i18n.tr_path(i, lang)
+            if t.exists():
+                d.setdefault("tr", {})[lang] = t.read_text(encoding="utf-8")
     payload = base64.b64encode(gzip.compress(json.dumps({"order": order, "docs": docs}, ensure_ascii=False).encode(), 9)).decode()
 
     from PIL import Image
@@ -71,10 +79,17 @@ def main():
         im.save(b, "WEBP", quality=80, method=6)
         imgs[p.name] = "data:image/webp;base64," + base64.b64encode(b.getvalue()).decode()
 
+    ui = {p.stem: json.load(open(p, encoding="utf-8")) for p in sorted((ROOT / "site" / "i18n").glob("*.json"))}
+    base = set(ui["en"])
+    for lang, d in ui.items():
+        if set(d) != base:
+            sys.exit(f"site/i18n/{lang}.json: keys differ from en.json: {sorted(base ^ set(d))}")
+
     tpl = (ROOT / "site" / "index.template.html").read_text(encoding="utf-8")
-    out = tpl.replace("/*__DOCS__*/", payload).replace("/*__IMGS__*/ {}", json.dumps(imgs))
+    out = tpl.replace("/*__I18N__*/ {}", json.dumps(ui, ensure_ascii=False)).replace("/*__DOCS__*/", payload).replace("/*__IMGS__*/ {}", json.dumps(imgs))
     (ROOT / "index.html").write_text(out, encoding="utf-8")
     print(f"index.html: {len(out)/1024:.0f} KiB, {len(docs)} documents, {len(imgs)} images")
 
 
-main()
+if __name__ == "__main__":
+    main()

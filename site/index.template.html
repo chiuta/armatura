@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="ro">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ARMATURA — rigging și animație 2D vectorială în Rust</title>
-<meta name="description" content="ARMATURA: motor de rigging și animație vectorială 2D în Rust. Oase, IK, skinning, deformatoare, runtime cu mașini de stări, CLI, studio în browser și biblioteci.">
+<title>ARMATURA — 2D vector rigging and animation in Rust</title>
+<meta name="description" content="ARMATURA: a 2D vector rigging and animation engine in Rust. Bones, IK, skinning, deformers, state-machine runtime, CLI, browser studio and libraries.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b0e14'/%3E%3Cpath d='M8 24L15 15L23 9' stroke='%235ef0c1' stroke-width='3' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='8' cy='24' r='3' fill='%23ffb86b'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23ffb86b'/%3E%3Ccircle cx='23' cy='9' r='3' fill='%23ffb86b'/%3E%3C/svg%3E">
 <style>
 :root{
@@ -353,6 +353,13 @@ body.rd{overflow:hidden}
 }
 @media(max-width:600px){#navsearch,.gh{font-size:0;min-width:36px;padding:0}#navsearch::before{content:"⌕";font-size:15px}.gh::before{content:"★";font-size:14px}nav .wrap{gap:10px}}
 :root{--g-start:var(--a);--g-use:var(--b);--g-build:var(--c);--g-trust:#ff7a90;--g-project:#b48cff}
+#lmenu{position:fixed;z-index:500;display:none;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px;box-shadow:0 20px 60px -10px rgba(0,0,0,.55);min-width:180px}
+#lmenu.on{display:block}
+#lmenu button{display:flex;gap:10px;align-items:center;width:100%;background:none;border:0;color:var(--tx);padding:9px 12px;border-radius:9px;font:14px system-ui;cursor:pointer;text-align:left}
+#lmenu button b{font:600 11px var(--mono);color:var(--a);width:22px}
+#lmenu button:hover,#lmenu button.on{background:var(--bg2)}
+.trn{border:1px solid var(--line);background:var(--bg2);border-radius:12px;padding:10px 16px;margin:0 0 22px;font-size:.85rem;color:var(--mut)}
+.trn a{color:var(--a);margin-left:6px}
 </style>
 </head>
 <body>
@@ -367,7 +374,7 @@ body.rd{overflow:hidden}
   </ul>
   <div class="tools">
     <button class="ib" id="navsearch" aria-label="Search">⌕ Ctrl K</button>
-    <button class="ib" id="lang" aria-label="Language">EN</button>
+    <button class="ib" id="lang" aria-haspopup="true" aria-label="Language">EN ▾</button>
     <button class="ib" id="theme" aria-label="Theme">◐</button>
     <a class="ib gh" href="https://github.com/chiuta/armatura" target="_blank" rel="noopener">★ GitHub</a>
   </div>
@@ -588,7 +595,7 @@ body.rd{overflow:hidden}
     <a class="logo" href="#top"><svg viewBox="0 0 32 32" style="width:22px;height:22px"><path d="M6 26L14 16L26 8" stroke="var(--a)" stroke-width="3" stroke-linecap="round" fill="none"/><g fill="var(--c)"><circle cx="6" cy="26" r="3.2"/><circle cx="14" cy="16" r="3.2"/><circle cx="26" cy="8" r="3.2"/></g></svg>DOCS</a>
     <span class="path" id="rpath"></span><span class="sp"></span>
     <button class="ib" id="rsearch">⌕ Ctrl K</button>
-    <button class="ib" id="rlang">EN</button>
+    <button class="ib" id="rlang" aria-haspopup="true">EN ▾</button>
     <button class="ib" id="rtheme">◐</button>
     <button class="ib" id="rclose" aria-label="Close">✕</button>
   </div>
@@ -598,127 +605,35 @@ body.rd{overflow:hidden}
     <aside id="rtoc"></aside>
   </div>
 </div>
+<div id="lmenu"></div>
 <div id="lb"><img alt=""></div>
 <script>
 let onLang=null;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const T={
-en:{
-n1:"Playground",n2:"Features",n3:"Terminal",n4:"Formats",n5:"Status",n6:"Licences",
-pill:"pre-release · 0.1.0 · Rust · open formats",
-sub:"2D vector rigging and animation as code: bones, IK, skinning, deformers, a runtime and a browser studio — deterministic and scriptable.",
-cta1:"Try the rig",cta3:"Read the docs",toc:"On this page",cta2:"View on GitHub",copy:"copy",hint:"MOVE THE CURSOR · THE RIG FOLLOWS",
-pe:"Interactive playground",ph:"A rig, live in your browser",
-pp:"A FABRIK inverse-kinematics chain with a skinned body. Drag across the canvas and the whole skeleton solves toward your pointer. This is a JavaScript illustration of the idea, not the Rust engine itself.",
-mSkin:"skin",mBoth:"skin + bones",mBones:"bones",lBones:"bones",sDirect:"direct",sSpring:"spring",aAuto:"auto",aMouse:"pointer",
-pn:"drag or hover on the canvas",
-fe:"What it does",fh:"Everything between a vector shape and a finished animation",
-fp:"One workspace, small deterministic pieces. Every tool reads and writes a documented JSON project, and every command works from a terminal.",
-c1h:"Drawing model",c1p:"Vector paths, fills, strokes with dashes and variable width, linear and radial gradients, masks, blend modes, per-layer effects, image layers with mesh warp, liquid metaballs, polygon booleans, deterministic particles and a multiplane camera with depth of field.",
-c2h:"Rigging",c2p:"Bones with FK, two-bone, soft, stretch and FABRIK IK. Limits, constraints, springs, weight tools, lattice, spine, morph and cage deformers, auto-rig from layer names.",
-c3h:"Animation",c3p:"Keys with Bézier, step, spring and bounce easing; expressions; layered clip stack; foot lock; chain, hair and cloth physics; lip-sync from audio or a transcript; BVH retargeting; MIDI, mouse, gamepad and webcam-landmark input.",
-c4h:"Runtime",c4p:"State machines with 1-D blend trees, data binding, scroll physics, level of detail with an error bound, a Rhai scripting sandbox and an MCP agent server over patch operations.",
-c5h:"Output",c5p:"From SVG and PNG to GIF, video, Lottie, glTF and a self-contained HTML player.",
-c6h:"Quality tooling",c6p:"check, lint, semantic diff, pose fuzzing, animation CI with golden frames, version control with semantic merge.",
-c7h:"Browser studio",c7p:"Gizmos, timeline, dope sheet, graph editor, command palette, undo/redo and real-time multi-user editing.",
-te:"Terminal first",th:"Animation you can script, review and test",
-s1h:"Build",s1p:"Only a recent stable Rust toolchain is required. ffmpeg is optional and never bundled.",
-s2h:"Validate",s2p:"check and lint catch rig and animation mistakes statically.",
-s3h:"Render & export",s3p:"One frame as PNG or SVG, every frame, or a GIF, HTML player, Lottie or MP4.",
-s4h:"Edit & guard",s4p:"Open the browser studio, or lock the result in with animation CI and golden frames.",
-oe:"Pipeline",oh:"From JSON project to every format",
-op:"Open formats first: no proprietary file format is read or written, by design.",
-f1h:"Project",f1p:"A documented JSON file. Diffable, reviewable, scriptable.",
-f2h:"Check & lint",f2p:"Static rig and animation checks, safety checks for flashing and motion.",
-f3h:"Evaluate",f3p:"A pure evaluate(frame): same project and seed, same pixels.",
-f4h:"Export",f4p:"Images, video, vector, web and 3D interchange.",
-exh:"Export",imh:"Import",
-de:"Determinism",dh:"Same seed, same pixels",
-dp:"Change the seed of run B: the hash changes. Set it equal to A: they match again. That is the property the engine is built on, which makes golden-frame CI possible.",
-dn:"Illustration: a seeded particle burst in JavaScript, not output of the Rust engine.",
-mY:"✓ identical output — same seed, same hash",mN:"✗ different seeds — different output",
-ste:"Honest status",sth:"What is verified, and what is not",
-stp:"The project states its limits next to its features. Read LIMITATIONS.md before you depend on anything.",
-k1:"tests in cargo test --workspace (plus 19 doc-tests), 22 Oct 2026, Linux x86-64",k2:"numbered limitations, with severity and workaround",k3:"third-party crates at the last licence audit",k4:"releases so far — “0.7” is a feature level, not a version",
-vyh:"Verified",vxh:"Not verified",
-ai:"<b>Disclosure:</b> the code was largely written with an AI model, and the project is an independent implementation from public specifications; see CLEANROOM.md. It is not affiliated with, derived from or compatible with any commercial animation product.",
-ae:"Architecture",ah:"Five crates, one workspace",
-a1:"Engine, formats, tools and the stable Rust facade.",a2:"The armatura binary, the browser studio and the collaboration server.",a3:"C ABI: header, shared and static library; also run under ASan/UBSan.",a4:"WebAssembly ABI and JS wrapper. Written, never built or run.",a5:"Optional wgpu renderer, not a default member.",
-le:"Licensing",lh:"Libraries you can link, a studio that stays open",
-l1:"Libraries: core, capi, wasm, gpu. Link them into open or closed programs; changes to those files stay under the MPL.",
-l2:"The CLI and studio. If you modify it and let others use it over a network, section 13 requires you to offer them your source.",
-l3:"Documentation and synthetic assets, including the synthetic face-detector model.",
-l4:"Your projects and renders stay yours. The name and logo are not covered by these licences. Not legal advice; a lawyer review is still outstanding.",
-gse:"Get started",gsh:"Build a rig tonight",gsp:"Clone it, run armatura demo, and open the studio on the result.",
-g1:"Open the repository",g2:"Getting started",g3:"Read the limitations",
-sup:"If it is useful to you:",
-foot:"Presentation page for the ARMATURA project. Name and logo: see TRADEMARK.md.",
-vy:["1368 tests plus 19 doc-tests pass (22 Oct 2026, Linux x86-64)","4 headless-Chromium smoke tests of the studio pass (124, 60, 89 and 35 checks)","CLI, Rust facade and C ABI run with the documented examples, also under ASan/UBSan"],
-vx:["The WebAssembly module has never been built or run","The studio was never used by a person in production, nor in a browser other than Chromium","No real GPU, webcam, photograph or motion-capture file was ever used","Windows and macOS untested; no security audit, lawyer review or patent search"]
-},
-ro:{
-n1:"Playground",n2:"Funcții",n3:"Terminal",n4:"Formate",n5:"Status",n6:"Licențe",
-pill:"pre-lansare · 0.1.0 · Rust · formate deschise",
-sub:"Rigging și animație vectorială 2D ca cod: oase, IK, skinning, deformatoare, runtime și studio în browser — deterministe și scriptabile.",
-cta1:"Încearcă rig-ul",cta3:"Citește documentația",toc:"Pe această pagină",cta2:"Vezi pe GitHub",copy:"copiază",hint:"MIȘCĂ CURSORUL · RIG-UL TE URMEAZĂ",
-pe:"Playground interactiv",ph:"Un rig, live în browser",
-pp:"Un lanț de cinematică inversă FABRIK cu corp „îmbrăcat” (skin). Trage cursorul pe canvas și tot scheletul se rezolvă spre el. E o ilustrare în JavaScript a ideii, nu motorul Rust însuși.",
-mSkin:"skin",mBoth:"skin + oase",mBones:"oase",lBones:"oase",sDirect:"direct",sSpring:"arc",aAuto:"auto",aMouse:"cursor",
-pn:"trage sau plimbă cursorul pe canvas",
-fe:"Ce face",fh:"Tot ce e între o formă vectorială și o animație gata",
-fp:"Un singur workspace, piese mici și deterministe. Fiecare unealtă citește și scrie un proiect JSON documentat, iar fiecare comandă merge din terminal.",
-c1h:"Model de desen",c1p:"Trasee vectoriale, umpleri, contururi cu linii întrerupte și grosime variabilă, degradeuri liniare și radiale, măști, moduri de amestec, efecte pe strat, straturi imagine cu mesh warp, metaballs lichide, booleene pe poligoane, particule deterministe și cameră multiplan cu profunzime de câmp.",
-c2h:"Rigging",c2p:"Oase cu FK, IK cu două oase, soft, stretch și FABRIK. Limite, constrângeri, arcuri, unelte de greutăți, deformatoare lattice, spine, morph și cage, auto-rig din numele straturilor.",
-c3h:"Animație",c3p:"Chei cu easing Bézier, step, spring și bounce; expresii; stivă de clipuri; foot lock; fizică de lanț, păr și țesătură; lip-sync din audio sau transcript; retargeting BVH; intrare MIDI, mouse, gamepad și puncte de reper de la webcam.",
-c4h:"Runtime",c4p:"Mașini de stări cu blend trees 1-D, data binding, fizică de scroll, nivel de detaliu cu eroare limitată, sandbox de scripting Rhai și server agent MCP peste operații patch.",
-c5h:"Ieșire",c5p:"De la SVG și PNG la GIF, video, Lottie, glTF și un player HTML autonom.",
-c6h:"Controlul calității",c6p:"check, lint, diff semantic, fuzzing de poze, CI de animație cu cadre de referință, versionare cu merge semantic.",
-c7h:"Studio în browser",c7p:"Gizmo-uri, timeline, dope sheet, editor de grafice, paletă de comenzi, undo/redo și editare multi-utilizator în timp real.",
-te:"Terminalul mai întâi",th:"Animație pe care o poți scripta, revizui și testa",
-s1h:"Construiește",s1p:"Ai nevoie doar de un toolchain Rust stabil recent. ffmpeg e opțional și nu e inclus niciodată.",
-s2h:"Validează",s2p:"check și lint prind static greșelile de rig și de animație.",
-s3h:"Randare și export",s3p:"Un cadru ca PNG sau SVG, toate cadrele, ori GIF, player HTML, Lottie sau MP4.",
-s4h:"Editează și protejează",s4p:"Deschide studioul în browser sau fixează rezultatul cu CI de animație și cadre de referință.",
-oe:"Pipeline",oh:"De la proiect JSON la orice format",
-op:"Formate deschise mai întâi: niciun format proprietar nu este citit sau scris, prin construcție.",
-f1h:"Proiect",f1p:"Un fișier JSON documentat. Comparabil, revizuibil, scriptabil.",
-f2h:"Check și lint",f2p:"Verificări statice de rig și animație, verificări de siguranță pentru sclipiri și mișcare.",
-f3h:"Evaluare",f3p:"Un evaluate(frame) pur: același proiect și același seed, aceiași pixeli.",
-f4h:"Export",f4p:"Imagini, video, vector, web și interschimb 3D.",
-exh:"Export",imh:"Import",
-de:"Determinism",dh:"Același seed, aceiași pixeli",
-dp:"Schimbă seed-ul rulării B: hash-ul se schimbă. Pune-l egal cu A: se potrivesc din nou. Aceasta e proprietatea pe care se sprijină motorul și care face posibil CI-ul cu cadre de referință.",
-dn:"Ilustrare: o explozie de particule cu seed, în JavaScript, nu ieșire a motorului Rust.",
-mY:"✓ ieșire identică — același seed, același hash",mN:"✗ seed-uri diferite — ieșire diferită",
-ste:"Status sincer",sth:"Ce e verificat și ce nu",
-stp:"Proiectul își spune limitele lângă funcții. Citește LIMITATIONS.md înainte să te bazezi pe ceva.",
-k1:"teste în cargo test --workspace (plus 19 doc-tests), 22 oct. 2026, Linux x86-64",k2:"limitări numerotate, cu severitate și soluție ocolitoare",k3:"crate-uri terțe la ultimul audit de licențe",k4:"lansări până acum — „0.7” e un nivel de funcții, nu o versiune",
-vyh:"Verificat",vxh:"Neverificat",
-ai:"<b>Transparență:</b> codul a fost scris în mare parte cu un model AI, iar proiectul e o implementare independentă din specificații publice; vezi CLEANROOM.md. Nu este afiliat cu, derivat din sau compatibil cu vreun produs comercial de animație.",
-ae:"Arhitectură",ah:"Cinci crate-uri, un workspace",
-a1:"Motor, formate, unelte și fațada Rust stabilă.",a2:"Binarul armatura, studioul din browser și serverul de colaborare.",a3:"ABI C: header, bibliotecă partajată și statică; rulat și sub ASan/UBSan.",a4:"ABI WebAssembly și wrapper JS. Scris, niciodată compilat sau rulat.",a5:"Randor wgpu opțional, nu membru implicit.",
-le:"Licențiere",lh:"Biblioteci pe care le poți lega, un studio care rămâne deschis",
-l1:"Bibliotecile: core, capi, wasm, gpu. Le poți lega în programe deschise sau închise; modificările acelor fișiere rămân sub MPL.",
-l2:"CLI-ul și studioul. Dacă îl modifici și îl oferi altora prin rețea, secțiunea 13 cere să le oferi sursa.",
-l3:"Documentația și resursele sintetice, inclusiv modelul sintetic de detecție a fețelor.",
-l4:"Proiectele și randările tale rămân ale tale. Numele și logo-ul nu sunt acoperite de aceste licențe. Nu e sfat juridic; revizuirea de către un avocat e încă în așteptare.",
-gse:"Începe",gsh:"Construiește un rig diseară",gsp:"Clonează-l, rulează armatura demo și deschide studioul pe rezultat.",
-g1:"Deschide repository-ul",g2:"Primii pași",g3:"Citește limitările",
-sup:"Dacă îți este de folos:",
-foot:"Pagină de prezentare pentru proiectul ARMATURA. Nume și logo: vezi TRADEMARK.md.",
-vy:["1368 de teste plus 19 doc-tests trec (22 oct. 2026, Linux x86-64)","4 teste smoke ale studioului în Chromium headless trec (124, 60, 89 și 35 de verificări)","CLI-ul, fațada Rust și ABI-ul C rulate cu exemplele din documentație, inclusiv sub ASan/UBSan"],
-vx:["Modulul WebAssembly nu a fost niciodată compilat sau rulat","Studioul nu a fost folosit de o persoană în producție, nici într-un alt browser decât Chromium","Nu s-a folosit niciodată un GPU real, o cameră web, o fotografie sau un fișier de motion-capture","Windows și macOS netestate; fără audit de securitate, revizuire juridică sau căutare de brevete"]
-}};
-let L=(()=>{try{const s=localStorage.getItem('l');if(s)return s}catch(e){}return(navigator.language||'').startsWith('ro')?'ro':'en'})();
+const T=/*__I18N__*/ {};
+const LANGS=[['en','English'],['ro','Română'],['fr','Français'],['it','Italiano'],['es','Español'],['pt','Português'],['de','Deutsch'],['hu','Magyar']];
+Object.keys(T).forEach(l=>{if(l!=='en')Object.setPrototypeOf(T[l],T.en)});
+let L=(()=>{try{const s=localStorage.getItem('l');if(s&&T[s])return s}catch(e){}return'en'})();
 function applyLang(){
   const t=T[L];document.documentElement.lang=L;
   $$('[data-i]').forEach(e=>{e.innerHTML=t[e.dataset.i]});
   $('#vy').innerHTML=t.vy.map(x=>`<li>${x}</li>`).join('');$('#vx').innerHTML=t.vx.map(x=>`<li>${x}</li>`).join('');
   $$('[data-ph]').forEach(e=>e.placeholder=t[e.dataset.ph]);
-  $('#lang').textContent=L==='ro'?'EN':'RO';updMatch();onLang&&onLang();
+  $('#lang').textContent=L.toUpperCase()+' ▾';$('#rlang').textContent=L.toUpperCase()+' ▾';
+  document.querySelector('meta[name=description]').content=t.metaDesc;if(!$('#reader').classList.contains('on'))document.title=t.metaTitle;
+  updMatch();onLang&&onLang();
   try{localStorage.setItem('l',L)}catch(e){}
 }
-$('#lang').onclick=()=>{L=L==='ro'?'en':'ro';applyLang()};
+const lmenu=$('#lmenu');
+lmenu.innerHTML=LANGS.map(([c,n])=>`<button data-l="${c}"><b>${c.toUpperCase()}</b> ${n}</button>`).join('');
+function openLangMenu(btn){
+  if(lmenu.classList.contains('on')){lmenu.classList.remove('on');return}
+  const r=btn.getBoundingClientRect();lmenu.style.top=(r.bottom+8)+'px';lmenu.style.right=Math.max(8,innerWidth-r.right)+'px';
+  $$('#lmenu button').forEach(b=>b.classList.toggle('on',b.dataset.l===L));lmenu.classList.add('on');
+}
+$('#lang').onclick=e=>{e.stopPropagation();openLangMenu(e.currentTarget)};
+lmenu.onclick=e=>{const b=e.target.closest('button');if(b){L=b.dataset.l;lmenu.classList.remove('on');applyLang()}};
+addEventListener('click',e=>{if(!e.target.closest('#lmenu'))lmenu.classList.remove('on')});
 const root=document.documentElement;
 try{const t=localStorage.getItem('t');if(t)root.dataset.theme=t}catch(e){}
 $('#theme').onclick=()=>{const n=root.dataset.theme==='light'?'dark':'light';root.dataset.theme=n;try{localStorage.setItem('t',n)}catch(e){};cols()};
@@ -912,54 +827,6 @@ setInterval(()=>{DA.tick();DB.tick()},1000/24);
 const DOCS_B64="/*__DOCS__*/";
 const IMGS=/*__IMGS__*/ {};
 const REPO='https://github.com/chiuta/armatura';
-Object.assign(T.en,{
-nDocs:"Docs",nStudio:"Studio",nCli:"CLI",
-doe:"Documentation",doh:"All the docs, inside the page",
-dop:"Every Markdown document of the repository — guides, references, API, security, roadmap — is embedded, rendered and searchable here, offline. Nothing is loaded from the network.",
-dsD:"documents embedded",dsW:"words",dsS:"searchable sections",dsL:"cross-references between docs",
-dsearch:"Search every document, command and limitation…",
-cstH:"The documentation constellation",cstP:"Each star is a document, sized by how many others point to it; lines are real links found in the Markdown. Hover to see neighbours, drag to rearrange, click to read.",
-pathH:"Pick your reading path",pathP:"The docs index recommends an order per audience. Choose who you are and follow the line.",
-libH:"The library",
-soe:"The studio",soh:"Real screenshots, straight from the docs",sop:"The browser studio as it looks in the repository's own documentation: layers, dope sheet, graph editor, onion skin, command palette, collaboration.",
-openIn:"Open in docs →",
-cle:"Command atlas",clh:"Every command, one search away",clp:"Parsed live from the CLI reference. Click a command to jump to its section.",clph:"filter commands…",all:"all",
-lxH:"Limitation explorer",lxP:"All numbered limits from LIMITATIONS.md, parsed live. Bars show severity per area; click an area to filter.",lxph:"search limits…",
-palph:"Search docs, commands, limits — or type to jump…",palNav:"navigate",palOpen:"open",palClose:"close",
-rfph:"filter documents…",
-none:"No results.",results:"results",of:"of",more:"Show more",
-gStart:"Start",gUse:"Use",gBuild:"Build & integrate",gTrust:"Trust & legal",gProject:"Project",
-links_in:"linked from",links_out:"links to",docs_w:"docs",
-prev:"Previous",next:"Next",min:"min read",edit:"Edit on GitHub",raw:"Raw",copy2:"copy",
-act_theme:"Toggle theme",act_lang:"Switch language",act_repo:"Open the GitHub repository",act_go:"Go to",
-sev:{High:"High",Medium:"Medium",Low:"Low"},workaround:"Workaround",roadmap:"Roadmap",
-roles:{new:"New user",rig:"Rigger",ani:"Animator",pipe:"Pipeline dev",int:"Integrator",con:"Contributor",sec:"Security",lic:"Licensee",mnt:"Maintainer"},
-notices:"THIRD_PARTY_NOTICES.md — 1.4 MB of generated licence texts. Too large to embed; open on GitHub."
-});
-Object.assign(T.ro,{
-nDocs:"Docs",nStudio:"Studio",nCli:"CLI",
-doe:"Documentație",doh:"Toată documentația, chiar în pagină",
-dop:"Fiecare document Markdown din repository — ghiduri, referințe, API, securitate, roadmap — este încorporat, randat și căutabil aici, offline. Nimic nu se încarcă din rețea.",
-dsD:"documente încorporate",dsW:"cuvinte",dsS:"secțiuni căutabile",dsL:"referințe încrucișate între documente",
-dsearch:"Caută în toate documentele, comenzile și limitările…",
-cstH:"Constelația documentației",cstP:"Fiecare stea e un document, mărit după câte altele trimit spre el; liniile sunt linkuri reale găsite în Markdown. Treci cu cursorul pentru vecini, trage pentru a rearanja, dă click pentru a citi.",
-pathH:"Alege-ți traseul de citire",pathP:"Indexul documentației recomandă o ordine pentru fiecare tip de public. Alege cine ești și urmează linia.",
-libH:"Biblioteca",
-soe:"Studioul",soh:"Capturi reale, direct din documentație",sop:"Studioul din browser așa cum apare în documentația repository-ului: straturi, dope sheet, editor de grafice, onion skin, paletă de comenzi, colaborare.",
-openIn:"Deschide în docs →",
-cle:"Atlasul comenzilor",clh:"Orice comandă, la o căutare distanță",clp:"Extras live din referința CLI. Dă click pe o comandă ca să sari la secțiunea ei.",clph:"filtrează comenzi…",all:"toate",
-lxH:"Exploratorul de limitări",lxP:"Toate limitările numerotate din LIMITATIONS.md, extrase live. Barele arată severitatea pe domenii; dă click pe un domeniu ca să filtrezi.",lxph:"caută limitări…",
-palph:"Caută în docs, comenzi, limitări — sau scrie ca să sari…",palNav:"navighează",palOpen:"deschide",palClose:"închide",
-rfph:"filtrează documentele…",
-none:"Niciun rezultat.",results:"rezultate",of:"din",more:"Arată mai multe",
-gStart:"Început",gUse:"Utilizare",gBuild:"Construire și integrare",gTrust:"Încredere și juridic",gProject:"Proiect",
-links_in:"referit din",links_out:"trimite la",docs_w:"documente",
-prev:"Anterior",next:"Următor",min:"min de citit",edit:"Editează pe GitHub",raw:"Brut",copy2:"copiază",
-act_theme:"Schimbă tema",act_lang:"Schimbă limba",act_repo:"Deschide repository-ul GitHub",act_go:"Mergi la",
-sev:{High:"Mare",Medium:"Medie",Low:"Mică"},workaround:"Soluție ocolitoare",roadmap:"Roadmap",
-roles:{new:"Utilizator nou",rig:"Rigger",ani:"Animator",pipe:"Dezvoltator pipeline",int:"Integrator",con:"Contributor",sec:"Securitate",lic:"Licențiat",mnt:"Mentenanță"},
-notices:"THIRD_PARTY_NOTICES.md — 1,4 MB de texte de licență generate. Prea mare pentru a fi încorporat; deschide pe GitHub."
-});
 const GROUPS=['start','use','build','trust','project'];
 const gname=g=>T[L]['g'+g[0].toUpperCase()+g.slice(1)];
 const gcol=g=>`var(--g-${g})`;
@@ -975,8 +842,8 @@ function resolveHref(h,ctx){
   if(h[0]==='#')return{doc:ctx.id,anchor:h.slice(1)};
   const [p,a]=h.split('#');const parts=ctx.dir?ctx.dir.split('/'):[];
   for(const seg of p.split('/')){if(seg==='..')parts.pop();else if(seg&&seg!=='.')parts.push(seg)}
-  const full=parts.join('/'),m=full.match(/([^\/]+)\.md$/);
-  if(m&&D.docs[m[1]]&&D.docs[m[1]].p===full)return{doc:m[1],anchor:a};
+  const full=parts.join('/');
+  if(PATHMAP[full])return{doc:PATHMAP[full],anchor:a};
   const dir=/\/$/.test(h)||!/\.[a-z0-9]+$/i.test(full);
   return{ext:`${REPO}/${dir?'tree':'blob'}/main/${full}${a?'#'+a:''}`};
 }
@@ -1082,7 +949,7 @@ function blocks(L,ctx){
   return o;
 }
 const L_=()=>L;
-function mdToHtml(id){const d=D.docs[id],ctx={id,dir:d.p.includes('/')?d.p.slice(0,d.p.lastIndexOf('/')):'',seen:{},toc:[]};
+function mdToHtml(id){const d=D.docs[id],rp=d.rp||d.p,ctx={id,dir:rp.includes('/')?rp.slice(0,rp.lastIndexOf('/')):'',seen:{},toc:[]};
   return{html:blocks(d.md.replace(/\r/g,'').split('\n'),ctx),toc:ctx.toc}}
 function outline(md){
   const out=[],seen={};let fence=null;
@@ -1122,11 +989,12 @@ function openDoc(id,anchor){
     cur=id;const d=D.docs[id];
     const r=HTMLC[id]||(HTMLC[id]=mdToHtml(id));
     const words=d.md.split(/\s+/).length,i=D.order.indexOf(id),pv=D.docs[D.order[i-1]],nx=D.docs[D.order[i+1]];
-    art.innerHTML=`<div class="meta"><span style="color:${gcol(d.g)}">${gname(d.g)}</span><span>${Math.max(1,Math.round(words/200))} ${T[L].min}</span><span>${d.p}</span><a href="${REPO}/blob/main/${d.p}" target="_blank" rel="noopener">${T[L].edit}</a></div>`
+    art.innerHTML=`<div class="meta"><span style="color:${gcol(d.g)}">${gname(d.g)}</span><span>${Math.max(1,Math.round(words/200))} ${T[L].min}</span><span>${d.rp||d.p}</span><a href="${REPO}/blob/main/${d.rp||d.p}" target="_blank" rel="noopener">${T[L].edit}</a></div>`
+      +trBanner(id)
       +r.html
       +`<div class="pn">${pv?`<a href="#/d/${encodeURIComponent(D.order[i-1])}"><small>← ${T[L].prev}</small>${esc(pv.t)}</a>`:'<span></span>'}${nx?`<a href="#/d/${encodeURIComponent(D.order[i+1])}"><small>${T[L].next} →</small>${esc(nx.t)}</a>`:'<span></span>'}</div>`;
     $('#rnav').innerHTML=navHtml($('#rfilter').value);
-    $('#rpath').textContent=d.p;
+    $('#rpath').textContent=d.rp||d.p;
     $('#rtoc').innerHTML=r.toc.length?`<h5>${T[L].toc||'On this page'}</h5>`+r.toc.map(t=>`<a class="l${t.l}" href="#/d/${encodeURIComponent(id)}/${encodeURIComponent(t.id)}" data-id="${t.id}">${esc(t.t)}</a>`).join(''):'';
     document.title=d.t+' · ARMATURA';
     rmain.style.scrollBehavior='auto';rmain.scrollTop=0;rmain.style.scrollBehavior='';
@@ -1136,8 +1004,7 @@ function openDoc(id,anchor){
   if(anchor){const el=document.getElementById(anchor);el&&setTimeout(()=>el.scrollIntoView({block:'start'}),30)}
   spy();
 }
-function closeReader(){rd.classList.remove('on');document.body.classList.remove('rd');cur=null;document.title=TITLE0}
-const TITLE0=document.title;
+function closeReader(){rd.classList.remove('on');document.body.classList.remove('rd');cur=null;document.title=T[L].metaTitle}
 function route(){
   if(!D)return;
   const m=location.hash.match(/^#\/d\/([^\/]+)(?:\/(.+))?$/);
@@ -1157,7 +1024,7 @@ $('#rclose').onclick=()=>{location.hash='#docs'};
 $('#rmenu').onclick=()=>$('#rside').classList.toggle('open');
 $('#rfilter').oninput=e=>{$('#rnav').innerHTML=navHtml(e.target.value)};
 $('#rsearch').onclick=()=>openPal();
-$('#rlang').onclick=()=>$('#lang').click();
+$('#rlang').onclick=e=>{e.stopPropagation();openLangMenu(e.currentTarget)};
 $('#rtheme').onclick=()=>$('#theme').click();
 art.addEventListener('click',e=>{
   const b=e.target.closest('.cb button');
@@ -1187,7 +1054,7 @@ function snippet(tx,toks){
 }
 function actions(){
   const t=T[L],go=(k,h)=>({k:'act',t:`${t.act_go}: ${t[k]}`,run:()=>{location.hash=h}});
-  return[{k:'act',t:t.act_theme,run:()=>$('#theme').click()},{k:'act',t:t.act_lang,run:()=>$('#lang').click()},
+  return[{k:'act',t:t.act_theme,run:()=>$('#theme').click()},...LANGS.map(([c,n])=>({k:'act',t:`${t.langLabel}: ${n}`,run:()=>{L=c;applyLang()}})),
     {k:'act',t:t.act_repo,run:()=>open(REPO,'_blank')},go('n1','#play'),go('nDocs','#docs'),go('nStudio','#studio'),go('nCli','#cli'),go('n5','#status')];
 }
 let palSel=0,palRes=[];
@@ -1218,7 +1085,7 @@ function renderPal(){
     if(r.k==='info')return`<div class="empty">${esc(r.t)}</div>`;
     const tag=r.k==='act'?'⚡':r.k==='doc'?'📄':'§';
     const sub=r.k==='sec'?`<small>${esc(D.docs[r.id].t)}</small>`:r.k==='doc'?`<small>${gname(D.docs[r.id].g)}</small>`:'';
-    return`<a data-i="${i}" class="${i===palSel?'on':''}"><b>${tag} ${esc(r.t)} ${sub}</b>${r.s?`<span>${r.k==='sec'?r.s:esc(r.s)}</span>`:''}</a>`}).join(''):`<div class="empty">${T[L].none}</div>`;
+    return`<a data-ix="${i}" class="${i===palSel?'on':''}"><b>${tag} ${esc(r.t)} ${sub}</b>${r.s?`<span>${r.k==='sec'?r.s:esc(r.s)}</span>`:''}</a>`}).join(''):`<div class="empty">${T[L].none}</div>`;
 }
 function openPal(){if(!D)return;$('#pal').classList.add('on');$('#pin').value='';palSel=0;renderPal();setTimeout(()=>$('#pin').focus(),20)}
 function closePal(){$('#pal').classList.remove('on')}
@@ -1230,8 +1097,8 @@ $('#pin').onkeydown=e=>{
   if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();const n=palRes.length;if(!n)return;palSel=(palSel+(e.key==='ArrowDown'?1:-1)+n)%n;renderPal();const a=$('#pr a.on');a&&a.scrollIntoView({block:'nearest'})}
   else if(e.key==='Enter')choose(palSel);
 };
-$('#pr').onclick=e=>{const a=e.target.closest('a[data-i]');a&&choose(+a.dataset.i)};
-$('#pr').onmousemove=e=>{const a=e.target.closest('a[data-i]');if(a&&+a.dataset.i!==palSel){palSel=+a.dataset.i;$$('#pr a').forEach(x=>x.classList.toggle('on',x===a))}};
+$('#pr').onclick=e=>{const a=e.target.closest('a[data-ix]');a&&choose(+a.dataset.ix)};
+$('#pr').onmousemove=e=>{const a=e.target.closest('a[data-ix]');if(a&&+a.dataset.ix!==palSel){palSel=+a.dataset.ix;$$('#pr a').forEach(x=>x.classList.toggle('on',x===a))}};
 $('#pal').onclick=e=>{if(e.target.id==='pal')closePal()};
 $('#openpal').onclick=openPal;
 $('#navsearch').onclick=openPal;
@@ -1247,7 +1114,7 @@ function initCst(){
   const nodes=ids.map(id=>({id,x:0,y:0,vx:0,vy:0,r:0,ind:0,out:0,g:D.docs[id].g}));
   const em={};
   ids.forEach(id=>{const seen=new Set();
-    for(const m of D.docs[id].md.matchAll(/\]\(([^)\s#]+)(?:#[^)\s]*)?\)/g)){
+    for(const m of D.docs[id].o.md.matchAll(/\]\(([^)\s#]+)(?:#[^)\s]*)?\)/g)){
       const n=m[1].split('/').pop();if(!n.endsWith('.md'))continue;const t=n.slice(0,-3);
       if(!D.docs[t]||t===id)continue;
       const k=ix[id]<ix[t]?id+'|'+t:t+'|'+id;em[k]=(em[k]||0)+1;
@@ -1330,7 +1197,7 @@ let lg='all';
 function renderLib(){
   $('#gchips').innerHTML=`<button data-g="all" class="${lg==='all'?'on':''}">${T[L].all}</button>`+GROUPS.map(g=>`<button data-g="${g}" class="${lg===g?'on':''}">${gname(g)}</button>`).join('');
   $('#lib').innerHTML=D.order.filter(id=>lg==='all'||D.docs[id].g===lg).map(id=>{const d=D.docs[id];
-    return`<a class="dc" href="#/d/${encodeURIComponent(id)}" style="--gc:${gcol(d.g)}"><small><span>${esc(d.p)}</span><span>${Math.max(1,Math.round(d.md.split(/\s+/).length/200))} ${T[L].min}</span></small><h4>${esc(d.t)}</h4><p>${esc(d.d||'')}</p><em>${gname(d.g)}${d.a?' · '+esc(d.a):''}</em></a>`}).join('')
+    return`<a class="dc" href="#/d/${encodeURIComponent(id)}" style="--gc:${gcol(d.g)}"><small><span>${esc(d.rp||d.p)}</span><span>${Math.max(1,Math.round(d.md.split(/\s+/).length/200))} ${T[L].min}</span></small><h4>${esc(d.t)}</h4><p>${esc(d.d||'')}</p><em>${gname(d.g)}${d.a?' · '+esc(d.a):''}</em></a>`}).join('')
    +(lg==='all'||lg==='trust'?`<a class="dc" href="${REPO}/blob/main/docs/THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener" style="--gc:var(--g-trust)"><small><span>docs/THIRD_PARTY_NOTICES.md</span><span>↗ GitHub</span></small><h4>Third-party notices</h4><p>${T[L].notices}</p><em>${gname('trust')}</em></a>`:'');
 }
 $('#gchips').onclick=e=>{const b=e.target.closest('button');if(b){lg=b.dataset.g;renderLib()}};
@@ -1348,9 +1215,9 @@ function initGallery(){
 }
 function renderGal(){
   if(!GAL.length)return;const g=GAL[gi];
-  $('#gal').innerHTML=`<div class="big"><img src="${IMGS[g.n]}" alt="${esc(g.alt)}"><div class="cap"><span>${esc(g.alt)}</span><a href="#/d/${g.id}${g.a?'/'+g.a:''}" onclick="event.stopPropagation()">${T[L].openIn}</a></div></div><div class="thumbs">${GAL.map((x,i)=>`<img src="${IMGS[x.n]}" data-i="${i}" class="${i===gi?'on':''}" alt="" loading="lazy">`).join('')}</div>`;
+  $('#gal').innerHTML=`<div class="big"><img src="${IMGS[g.n]}" alt="${esc(g.alt)}"><div class="cap"><span>${esc(g.alt)}</span><a href="#/d/${g.id}${g.a?'/'+g.a:''}" onclick="event.stopPropagation()">${T[L].openIn}</a></div></div><div class="thumbs">${GAL.map((x,i)=>`<img src="${IMGS[x.n]}" data-ix="${i}" class="${i===gi?'on':''}" alt="" loading="lazy">`).join('')}</div>`;
 }
-$('#gal').onclick=e=>{const t=e.target.closest('.thumbs img');if(t){gi=+t.dataset.i;renderGal();return}if(e.target.closest('.big img'))lightbox(e.target.closest('.big img').src)};
+$('#gal').onclick=e=>{const t=e.target.closest('.thumbs img');if(t){gi=+t.dataset.ix;renderGal();return}if(e.target.closest('.big img'))lightbox(e.target.closest('.big img').src)};
 
 /* ---- CLI atlas ---- */
 let CMDS=[],csec='all',cq='';
@@ -1419,22 +1286,64 @@ $('#lchips').onclick=e=>{const b=e.target.closest('button');if(b){lsev=b.dataset
 $('#lsrch').oninput=e=>{lq=e.target.value;lshown=10;renderLims()};
 $('#lmore').onclick=()=>{lshown+=10;renderLims()};
 
+/* ---- translated documents ---- */
+let forceEn=false;
+const trPath=(id,lang)=>id==='README'?`README.${lang}.md`:`docs/i18n/${lang}/${id}.md`;
+const PATHMAP={};
+const TRD={};
+function trDescs(lang,md){
+  if(TRD[lang])return TRD[lang];const o=TRD[lang]={};
+  md.split('\n').forEach(ln=>{
+    if(!/^\s*\|/.test(ln))return;const c=splitRow(ln);if(c.length<2||c.length>3)return;
+    for(const m of c[0].matchAll(/\[(?:\.\.\/)?([\w]+?)\.md\]/g))if(D.docs[m[1]]&&!o[m[1]])o[m[1]]=[plain(c[1]),c[2]?plain(c[2]):''];
+  });
+  return o;
+}
+function titleOf(md,fb){
+  const m=md.match(/^# (.+)$/m);if(!m)return fb;
+  let s=plain(m[1]).replace(/^ARMATURA\s+/,'');return s.charAt(0).toUpperCase()+s.slice(1);
+}
+function applyDocLang(){
+  const lang=(L==='en'||forceEn)?null:L;
+  Object.keys(HTMLC).forEach(k=>delete HTMLC[k]);
+  const idx=D.docs.INDEX&&D.docs.INDEX.tr&&lang&&D.docs.INDEX.tr[lang];
+  const descs=idx?trDescs(lang,idx):{};
+  D.order.forEach(id=>{
+    const d=D.docs[id],o=d.o||(d.o={t:d.t,d:d.d,a:d.a,md:d.md,p:d.p}),tr=lang&&d.tr&&d.tr[lang];
+    d.istr=!!tr;d.md=tr||o.md;d.rp=tr?trPath(id,lang):o.p;d.t=tr?titleOf(tr,o.t):o.t;
+    const ds=descs[id];d.d=ds?ds[0]:o.d;d.a=ds?ds[1]:o.a;
+  });
+}
+function trBanner(id){
+  const d=D.docs[id],has=d.tr&&d.tr[L];
+  if(L==='en')return'';
+  if(d.istr)return`<div class="trn">🌐 ${T[L].trNote} <a href="#" id="trtoggle">${T[L].trView}</a></div>`;
+  if(forceEn&&has)return`<div class="trn">EN · <a href="#" id="trtoggle">${T[L].trShow}</a></div>`;
+  return`<div class="trn">${T[L].trMissing}</div>`;
+}
+art.addEventListener('click',e=>{if(e.target.id==='trtoggle'){e.preventDefault();forceEn=!forceEn;renderDyn()}});
+
 /* ---- boot docs ---- */
+function rebuildData(){
+  applyDocLang();
+  CMDS=[];csec='all';initCli();LIMS=[];lsec='all';initLims();GAL=[];gi=0;initGallery();buildIndex();
+  const words=D.order.reduce((s,id)=>s+D.docs[id].md.split(/\s+/).length,0);
+  let links=0;EDGES.forEach(e=>links+=e.w);
+  $('#sD').textContent=D.order.length;$('#sW').textContent=words.toLocaleString(L);
+  $('#sS').textContent=IDX.length.toLocaleString(L);$('#sL').textContent=links.toLocaleString(L);
+}
 function renderDyn(){
   if(!D)return;
+  rebuildData();
   $$('.gl').forEach(e=>e.textContent=gname(e.dataset.g));
   renderPaths();renderLib();renderGal();renderCli();renderLims();
-  $('#rlang').textContent=$('#lang').textContent;
   if(cur){const c=cur;cur=null;openDoc(c)}
 }
-onLang=renderDyn;
+onLang=()=>{forceEn=false;renderDyn()};
 loadDocs().then(()=>{
-  const words=D.order.reduce((s,id)=>s+D.docs[id].md.split(/\s+/).length,0);
-  initCst();initGallery();initCli();initLims();
-  buildIndex();
-  let links=0;EDGES.forEach(e=>links+=e.w);
-  $('#sD').textContent=D.order.length;$('#sW').textContent=words.toLocaleString(L==='ro'?'ro-RO':'en-US');
-  $('#sS').textContent=IDX.length.toLocaleString(L==='ro'?'ro-RO':'en-US');$('#sL').textContent=links.toLocaleString(L==='ro'?'ro-RO':'en-US');
+  D.order.forEach(id=>{const d=D.docs[id];PATHMAP[d.p]=id;LANGS.forEach(([l])=>{if(l!=='en')PATHMAP[trPath(id,l)]=id})});
+  applyDocLang();
+  initCst();
   renderDyn();route();
 }).catch(err=>{console.error(err);$$('#docs .rv').forEach(e=>e.classList.add('in'))});
 
