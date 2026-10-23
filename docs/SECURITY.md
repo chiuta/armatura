@@ -38,6 +38,7 @@ Out of scope: protecting against a malicious local administrator, a compromised 
 | Concurrent connections | 128 | 503 |
 | Chunked request bodies | not supported | 411 |
 | Duplicate `Host` header | refused | 400 |
+| Control character (CR, NUL, DEL…) in a header value | refused (a tab is allowed) | 400 |
 
 Every response carries `Connection: close` (no keep-alive state to exhaust), `Cache-Control: no-store`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer` and a `Content-Security-Policy`.
 

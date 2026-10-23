@@ -52,6 +52,22 @@ a.close();
   assert.ok(calls.every(([m, u]) => Number.isFinite(m) && m >= 0 && u > 1.6e12), 'performance.now() and Date.now()');
   c.close();
 }
+// play(): an engine error in a frame stops the loop and goes to onError (it used to die silently inside requestAnimationFrame).
+{
+  const cbs = [];
+  const g = globalThis, old = { raf: g.requestAnimationFrame, caf: g.cancelAnimationFrame, id: g.ImageData };
+  g.requestAnimationFrame = (f) => cbs.push(f); g.cancelAnimationFrame = () => {}; g.ImageData = class { constructor(d, w, h) { this.data = d; this.width = w; this.height = h; } };
+  const cv = { width: 0, height: 0, getContext: () => ({ putImageData() {} }) };
+  const b = await Armatura.create(mockExports(), { name: 'x' });
+  const errs = [];
+  b.play(cv, { onError: (e) => errs.push(e.message) });
+  cbs.shift()(0);
+  assert.equal(errs.length, 0); assert.equal(cbs.length, 1);
+  b.rgba = () => { throw new Error('boom'); };
+  cbs.shift()(16);
+  assert.deepEqual(errs, ['boom']); assert.equal(cbs.length, 0); assert.equal(b._raf, null);
+  Object.assign(g, { requestAnimationFrame: old.raf, cancelAnimationFrame: old.caf, ImageData: old.id });
+}
 console.log('mock tests: ok');
 
 // Mock of the machine exports: one machine "hero", layer "body", states a/b, bool input "go".
