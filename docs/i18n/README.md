@@ -14,7 +14,7 @@ The English documents are the reference. Translations exist in **Romanian (ro), 
 | Deutsch | [de/INDEX.md](de/INDEX.md) | [README.de.md](../../README.de.md) |
 | Magyar | [hu/INDEX.md](hu/INDEX.md) | [README.hu.md](../../README.hu.md) |
 
-The landing page `index.html` (built by `scripts/build-site.py`) embeds these translations and shows them in the language chosen in the page.
+The landing page `index.html` (built by `scripts/build-site.py`) loads these translations from `site/data/docs.<lang>.js` and shows them in the language chosen in the page. Run the build script after changing a document or a translation.
 
 ## Layout
 

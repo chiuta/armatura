@@ -824,8 +824,11 @@ function updMatch(){const same=$('#ha').textContent===$('#hb').textContent,m=$('
 setInterval(()=>{DA.tick();DB.tick()},1000/24);
 
 /* ================= DOCS ATLAS ================= */
-const DOCS_B64="/*__DOCS__*/";
-const IMGS=/*__IMGS__*/ {};
+const BUILD="/*__BUILD__*/";
+const DATA_DIR='site/data/';
+const imgUrl=n=>'docs/img/'+n;
+window.ARM_DATA=window.ARM_DATA||{};
+function loadScript(src){return new Promise((ok,fail)=>{const s=document.createElement('script');s.src=src+'?v='+BUILD;s.onload=ok;s.onerror=()=>fail(new Error('cannot load '+src));document.head.appendChild(s)})}
 const REPO='https://github.com/chiuta/armatura';
 const GROUPS=['start','use','build','trust','project'];
 const gname=g=>T[L]['g'+g[0].toUpperCase()+g.slice(1)];
@@ -853,7 +856,7 @@ function inline(s,ctx){
   s=s.replace(/(`+)([\s\S]*?[^`])\1(?!`)/g,(m,a,c)=>stash('<code>'+esc(c.trim())+'</code>'));
   s=esc(s.replace(/<!--[\s\S]*?-->/g,''));
   s=s.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;[^)]*&quot;)?\)/g,(m,alt,src)=>{
-    const n=src.split('/').pop();return stash(`<img src="${IMGS[n]||REPO.replace('github.com','raw.githubusercontent.com')+'/main/docs/'+src}" alt="${alt}" loading="lazy">`)});
+    const n=src.split('/').pop();return stash(`<img src="${imgUrl(n)}" alt="${alt}" loading="lazy">`)});
   s=s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,(m,t,h)=>{
     const r=resolveHref(h.replace(/&amp;/g,'&'),ctx);
     return stash(r.ext?`<a href="${r.ext}" target="_blank" rel="noopener">${emph(t)}</a>`:`<a href="#/d/${encodeURIComponent(r.doc)}${r.anchor?'/'+encodeURIComponent(r.anchor):''}">${emph(t)}</a>`)});
@@ -964,10 +967,12 @@ function outline(md){
 }
 
 /* ---- load ---- */
-async function loadDocs(){
-  const bin=Uint8Array.from(atob(DOCS_B64),c=>c.charCodeAt(0));
-  const txt=await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
-  D=JSON.parse(txt);
+async function loadDocs(){await loadScript(DATA_DIR+'docs.en.js');D=ARM_DATA.en}
+const LOADED={};
+async function ensureLang(l){
+  if(l==='en'||LOADED[l]||!D)return;
+  await loadScript(DATA_DIR+'docs.'+l+'.js');
+  const m=ARM_DATA[l];D.order.forEach(id=>{if(m[id])(D.docs[id].tr||(D.docs[id].tr={}))[l]=m[id]});LOADED[l]=1;
 }
 const HTMLC={};
 let cur=null;
@@ -1209,13 +1214,13 @@ function initGallery(){
   D.order.forEach(id=>{
     const md=D.docs[id].md,lines=md.split('\n'),o=outline(md);
     lines.forEach((ln,i)=>{const m=ln.match(/!\[([^\]]*)\]\((?:\.\.\/)*(?:docs\/)?img\/([^)\s]+)\)/);
-      if(m&&IMGS[m[2]]&&!seen.has(m[2])){seen.add(m[2]);let a='';o.forEach(h=>{if(h.i<i)a=h.a});GAL.push({n:m[2],alt:m[1],id,a})}});
+      if(m&&!seen.has(m[2])){seen.add(m[2]);let a='';o.forEach(h=>{if(h.i<i)a=h.a});GAL.push({n:m[2],alt:m[1],id,a})}});
   });
   GAL.sort((x,y)=>(y.id==='STUDIO')-(x.id==='STUDIO'));
 }
 function renderGal(){
   if(!GAL.length)return;const g=GAL[gi];
-  $('#gal').innerHTML=`<div class="big"><img src="${IMGS[g.n]}" alt="${esc(g.alt)}"><div class="cap"><span>${esc(g.alt)}</span><a href="#/d/${g.id}${g.a?'/'+g.a:''}" onclick="event.stopPropagation()">${T[L].openIn}</a></div></div><div class="thumbs">${GAL.map((x,i)=>`<img src="${IMGS[x.n]}" data-ix="${i}" class="${i===gi?'on':''}" alt="" loading="lazy">`).join('')}</div>`;
+  $('#gal').innerHTML=`<div class="big"><img src="${imgUrl(g.n)}" alt="${esc(g.alt)}"><div class="cap"><span>${esc(g.alt)}</span><a href="#/d/${g.id}${g.a?'/'+g.a:''}" onclick="event.stopPropagation()">${T[L].openIn}</a></div></div><div class="thumbs">${GAL.map((x,i)=>`<img src="${imgUrl(x.n)}" data-ix="${i}" class="${i===gi?'on':''}" alt="" loading="lazy">`).join('')}</div>`;
 }
 $('#gal').onclick=e=>{const t=e.target.closest('.thumbs img');if(t){gi=+t.dataset.ix;renderGal();return}if(e.target.closest('.big img'))lightbox(e.target.closest('.big img').src)};
 
@@ -1339,8 +1344,13 @@ function renderDyn(){
   renderPaths();renderLib();renderGal();renderCli();renderLims();
   if(cur){const c=cur;cur=null;openDoc(c)}
 }
-onLang=()=>{forceEn=false;renderDyn()};
-loadDocs().then(()=>{
+onLang=async()=>{
+  if(!D)return;forceEn=false;document.body.style.cursor='progress';
+  try{await ensureLang(L)}catch(e){console.error(e)}
+  document.body.style.cursor='';renderDyn();
+};
+loadDocs().then(async()=>{
+  try{await ensureLang(L)}catch(e){console.error(e)}
   D.order.forEach(id=>{const d=D.docs[id];PATHMAP[d.p]=id;LANGS.forEach(([l])=>{if(l!=='en')PATHMAP[trPath(id,l)]=id})});
   applyDocLang();
   initCst();

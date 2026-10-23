@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MPL-2.0
-"""Build the single-file landing page (index.html).
+"""Build the landing page (index.html and site/data/).
 
-Embeds every Markdown document (gzip + base64) and the docs/img screenshots
-(WebP data URIs) into site/index.template.html. Run from anywhere:
+Builds index.html from site/index.template.html and the UI strings in site/i18n/*.json, and writes the
+Markdown documents (English and translations) to site/data/docs.<lang>.js, loaded on demand by the page.
+The screenshots are read from docs/img/. Run from anywhere:
 
     python3 scripts/build-site.py
 """
-import base64, gzip, importlib.util, io, json, pathlib, re, sys
+import hashlib, importlib.util, json, pathlib, re, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 GROUPS = [
@@ -62,22 +63,23 @@ def main():
     spec = importlib.util.spec_from_file_location("i18n_tools", ROOT / "scripts" / "i18n.py")
     i18n = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(i18n)
-    for i, d in docs.items():
-        for lang in i18n.LANGS:
-            t = i18n.tr_path(i, lang)
-            if t.exists():
-                d.setdefault("tr", {})[lang] = t.read_text(encoding="utf-8")
-    payload = base64.b64encode(gzip.compress(json.dumps({"order": order, "docs": docs}, ensure_ascii=False).encode(), 9)).decode()
 
-    from PIL import Image
-    imgs = {}
-    for p in sorted((ROOT / "docs" / "img").glob("*.png")):
-        im = Image.open(p).convert("RGB")
-        if im.width > 1400:
-            im = im.resize((1400, round(im.height * 1400 / im.width)), Image.LANCZOS)
-        b = io.BytesIO()
-        im.save(b, "WEBP", quality=80, method=6)
-        imgs[p.name] = "data:image/webp;base64," + base64.b64encode(b.getvalue()).decode()
+    # Documents are written as separate script files, loaded on demand by index.html:
+    # site/data/docs.en.js (the English documents) and site/data/docs.<lang>.js (translations).
+    # Plain scripts, not fetch(), so the page also works when opened from disk.
+    data = ROOT / "site" / "data"
+    data.mkdir(exist_ok=True)
+    for old in data.glob("docs.*.js"):
+        old.unlink()
+    files = {"en": "window.ARM_DATA=window.ARM_DATA||{};ARM_DATA.en=" + dump({"order": order, "docs": docs}) + ";\n"}
+    for lang in i18n.LANGS:
+        tr = {i: i18n.tr_path(i, lang).read_text(encoding="utf-8") for i in docs if i18n.tr_path(i, lang).exists()}
+        if tr:
+            files[lang] = f"window.ARM_DATA=window.ARM_DATA||{{}};ARM_DATA.{lang}=" + dump(tr) + ";\n"
+    h = hashlib.sha1()
+    for lang, text in sorted(files.items()):
+        (data / f"docs.{lang}.js").write_text(text, encoding="utf-8")
+        h.update(text.encode())
 
     ui = {p.stem: json.load(open(p, encoding="utf-8")) for p in sorted((ROOT / "site" / "i18n").glob("*.json"))}
     base = set(ui["en"])
@@ -86,9 +88,14 @@ def main():
             sys.exit(f"site/i18n/{lang}.json: keys differ from en.json: {sorted(base ^ set(d))}")
 
     tpl = (ROOT / "site" / "index.template.html").read_text(encoding="utf-8")
-    out = tpl.replace("/*__I18N__*/ {}", json.dumps(ui, ensure_ascii=False)).replace("/*__DOCS__*/", payload).replace("/*__IMGS__*/ {}", json.dumps(imgs))
+    out = tpl.replace("/*__I18N__*/ {}", dump(ui)).replace("/*__BUILD__*/", h.hexdigest()[:10])
     (ROOT / "index.html").write_text(out, encoding="utf-8")
-    print(f"index.html: {len(out)/1024:.0f} KiB, {len(docs)} documents, {len(imgs)} images")
+    size = sum(len(t.encode()) for t in files.values()) / 1024
+    print(f"index.html: {len(out)/1024:.0f} KiB; site/data: {len(files)} files, {size:.0f} KiB; {len(docs)} documents")
+
+
+def dump(obj):
+    return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
 
 
 if __name__ == "__main__":
