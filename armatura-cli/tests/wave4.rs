@@ -124,12 +124,14 @@ fn eq_form_and_subcommand_help() {
 
 // ---- M5: output into a directory that cannot hold a temporary file, symbolic links ---------------------------
 
+#[cfg(unix)]
 fn is_root() -> bool {
     Command::new("id").arg("-u").output().map(|o| String::from_utf8_lossy(&o.stdout).trim() == "0").unwrap_or(false)
 }
 
 /// The binary run as an unprivileged user (`nobody` through setpriv when the tests run as root); `None` when that is
 /// not possible here (then the test says so and passes vacuously, it never pretends).
+#[cfg(unix)]
 fn unprivileged(dir: &Path, args: &[&str]) -> Option<(bool, String)> {
     let o = if is_root() {
         if Command::new("setpriv").arg("--help").output().is_err() {

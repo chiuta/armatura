@@ -246,6 +246,7 @@ pub fn synth(dir: &str, o: &Opts) -> Result<(), String> {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(unix)]
     use super::*;
 
     /// Every `face-*` output (model, report, overlay, landmark stream, synthetic frames) goes through `write`: atomic,
