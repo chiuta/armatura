@@ -350,11 +350,13 @@ impl Collab {
                     return Err(format!("collaboration log {path} belongs to a different project state than the one loaded (neither the session's starting document nor its last state); start the studio with the matching project file, or move the log away. The log was left untouched."));
                 }
                 ed.replace_doc(l.hub.doc_json()).map_err(|e| format!("collaboration log {path}: the logged project no longer validates: {}", e.join("; ")))?;
-                let f = std::fs::OpenOptions::new().append(true).open(&p).map_err(|e| format!("cannot open {path} for appending: {e}"))?;
                 if l.torn_tail {
-                    f.set_len(l.valid_len as u64).map_err(|e| format!("cannot drop the cut-off last line of {path}: {e}"))?;
-                    let _ = f.sync_all();
+                    // Truncate through a plain write handle: on Windows an append-only handle may not resize the file.
+                    let t = std::fs::OpenOptions::new().write(true).open(&p).map_err(|e| format!("cannot open {path} to drop the cut-off last line: {e}"))?;
+                    t.set_len(l.valid_len as u64).map_err(|e| format!("cannot drop the cut-off last line of {path}: {e}"))?;
+                    let _ = t.sync_all();
                 }
+                let f = std::fs::OpenOptions::new().append(true).open(&p).map_err(|e| format!("cannot open {path} for appending: {e}"))?;
                 lf.file = Some(f);
                 lf.prev = l.last_hash.clone();
                 lf.origin = l.origin.clone();

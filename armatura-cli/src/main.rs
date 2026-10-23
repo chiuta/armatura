@@ -4343,6 +4343,15 @@ fn ui_cmd(a: &Args, rest: &[&str]) -> Result<(), String> {
 }
 
 fn main() -> ExitCode {
+    // Windows gives the main thread a 1 MiB stack (Linux/macOS: 8 MiB); deep recursion in the evaluator
+    // and the renderers overflowed it (found by the Windows CI run). Run everything on a big-stack thread.
+    match std::thread::Builder::new().stack_size(256 << 20).spawn(real_main) {
+        Ok(h) => h.join().unwrap_or(ExitCode::FAILURE),
+        Err(_) => real_main(),
+    }
+}
+
+fn real_main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
     // project files may only reference files inside their own directory unless this is given
     armatura_core::assets::set_allow_external(args.iter().any(|a| a == "--allow-external-assets"));
