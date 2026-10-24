@@ -11,7 +11,7 @@ Contents: [Installation and setup](#installation-and-setup) - [ffmpeg](#ffmpeg) 
 ## Installation and setup
 
 **1. How do I install ARMATURA?**
-Prebuilt archives (Windows x86-64, macOS arm64, Linux x86-64, and the WebAssembly module) are prepared as the draft pre-release `v0.1.0-alpha.2` on <https://github.com/chiuta/armatura/releases>; they become downloadable when the owner publishes the draft, and they are not code-signed (SmartScreen shows "Unknown publisher"; macOS asks for approval). There is no installer: unpack the archive and run `armatura`. Or build it from source with a recent stable Rust toolchain: `cargo build -p armatura-cli` gives `target/debug/armatura`; add `--release` for `target/release/armatura`. See [DEVELOPMENT.md](DEVELOPMENT.md).
+Prebuilt archives (Windows x86-64, macOS arm64, Linux x86-64, and the WebAssembly module) are prepared as the draft pre-release `v0.1.0-alpha.3` on <https://github.com/chiuta/armatura/releases>; they become downloadable when the owner publishes the draft, and they are not code-signed (SmartScreen shows "Unknown publisher"; macOS asks for approval). There is no installer: unpack the archive and run `armatura`. Or build it from source with a recent stable Rust toolchain: `cargo build -p armatura-cli` gives `target/debug/armatura`; add `--release` for `target/release/armatura`. See [DEVELOPMENT.md](DEVELOPMENT.md).
 
 **2. Which platforms work?**
 Linux x86-64 is where the project was developed and exercised. On GitHub Actions the test suite and clippy also pass on macOS (arm64) and Windows (x86-64), and release binaries for those three are built there; but no person has used the Windows or macOS executables on a real desktop yet, so they are "tested by CI", not "supported" ([LIMITATIONS.md](LIMITATIONS.md), section 1).
@@ -29,7 +29,7 @@ Yes: `cargo build -p armatura-cli --no-default-features` leaves out Rhai, so the
 No. The program needs no account and no network to work (the studio has no accounts). By default the studio listens on your own machine only (see question 51).
 
 **7. Where does the studio keep its settings?**
-In `$ARMATURA_UI_CONFIG` if set, else `$XDG_CONFIG_HOME/armatura/ui.json`, else `~/.config/armatura/ui.json`. Your projects are never touched by it.
+In `$ARMATURA_UI_CONFIG` if set, else `$XDG_CONFIG_HOME/armatura/ui.json`, else on Windows `%APPDATA%\ARMATURA\ui.json`, else `~/.config/armatura/ui.json`. Your projects are never touched by it.
 
 ---
 

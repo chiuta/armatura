@@ -1,6 +1,6 @@
 # ARMATURA — feature matrix + reference and competitor checklists
 
-> Version wording: all crates are `0.1.0` (the first builds are the draft pre-release `v0.1.0-alpha.2`); "v0.5 / v0.6 / v0.7" in this repository are *feature levels* (see [CHANGELOG.md](CHANGELOG.md)), and `ROADMAP.md` section 9 is the authority on what is built.
+> Version wording: all crates are `0.1.0` (the first builds are the draft pre-release `v0.1.0-alpha.3`); "v0.5 / v0.6 / v0.7" in this repository are *feature levels* (see [CHANGELOG.md](CHANGELOG.md)), and `ROADMAP.md` section 9 is the authority on what is built.
 
 Honest status of what exists. **✅ done & tested · 🟡 partial · ❌ not implemented.**
 

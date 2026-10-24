@@ -18,7 +18,7 @@ Principles that shape the project:
 
 ## Status
 
-> **Alpha. First builds prepared as a draft pre-release: `v0.1.0-alpha.2`.** The executables for Windows x86-64, macOS arm64 and Linux x86-64 and the WebAssembly module are built by GitHub Actions and attached to a *draft* pre-release on <https://github.com/chiuta/armatura/releases> (a draft is visible only to the owner until it is published by hand). All crates are still version `0.1.0`; "v0.5 / v0.6 / v0.7" are *feature levels* in the history, not release numbers ([CHANGELOG.md](CHANGELOG.md)).
+> **Alpha. First builds prepared as a draft pre-release: `v0.1.0-alpha.3`.** The executables for Windows x86-64, macOS arm64 and Linux x86-64 and the WebAssembly module are built by GitHub Actions and attached to a *draft* pre-release on <https://github.com/chiuta/armatura/releases> (a draft is visible only to the owner until it is published by hand). All crates are still version `0.1.0`; "v0.5 / v0.6 / v0.7" are *feature levels* in the history, not release numbers ([CHANGELOG.md](CHANGELOG.md)).
 >
 > | Verified | Not verified |
 > |---|---|
