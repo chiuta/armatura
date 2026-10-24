@@ -795,7 +795,7 @@ const norm0=L=>{ L.hidden=L.hidden||[]; L.floating=L.floating||[]; return L; };
 const LS={get(k){ try{ return localStorage.getItem('osatura.ui.'+k); }catch(e){ return null; } },set(k,v){ try{ localStorage.setItem('osatura.ui.'+k,v); }catch(e){} }};
 const el_=(tag,cls,txt)=>{ const e=document.createElement(tag); if(cls)e.className=cls; if(txt!==undefined)e.textContent=txt; return e; };
 let toastT=0;
-function toast(t,bad){ const e=$('toast'); e.textContent=t; e.className=bad?'bad':''; e.style.display='block'; clearTimeout(toastT); toastT=setTimeout(()=>{ e.style.display='none'; },bad?5000:2200); }
+function toast(t,bad,ms){ const e=$('toast'); e.textContent=t; e.className=bad?'bad':''; e.style.display='block'; clearTimeout(toastT); toastT=setTimeout(()=>{ e.style.display='none'; },ms||(bad?5000:2200)); }
 
 // ---- chords (must produce the same canonical strings as uiconfig.rs) ----
 const CODEKEYS={Minus:'-',Equal:'=',BracketLeft:'[',BracketRight:']',Comma:',',Period:'.',Slash:'/',Semicolon:';',Quote:"'",Backslash:'\\',Backquote:'`',Space:'Space',Enter:'Enter',NumpadEnter:'Enter',Escape:'Escape',Tab:'Tab',Backspace:'Backspace',Delete:'Delete',Insert:'Insert',Home:'Home',End:'End',PageUp:'PageUp',PageDown:'PageDown',ArrowLeft:'ArrowLeft',ArrowRight:'ArrowRight',ArrowUp:'ArrowUp',ArrowDown:'ArrowDown'};
@@ -827,6 +827,30 @@ const tgl=id=>{ const c=$(id); c.checked=!c.checked; c.dispatchEvent(new Event('
 const step=n=>{ if(!S)return false; frame=Math.max(0,Math.min(S.frames-1,frame+n)); show(); };
 const tlReady=()=>!!(TK.m&&S);
 const download=url=>{ const a=document.createElement('a'); a.href=url; a.download=''; document.body.appendChild(a); a.click(); a.remove(); };
+// Exports. In the native window app the web view asks where to save (see osatura-gui), so the plain link is used there.
+// In a browser a GIF can take seconds to render and the page showed nothing meanwhile; a second click then made Chrome refuse
+// "multiple downloads". Here: one export at a time, a visible "rendering" message, and, where the browser has it (Chrome, Edge), a
+// real "Save as" dialog opened straight from the click. Browsers without it (Firefox, Safari) get a normal download afterwards.
+const IN_WINDOW=!!(window.chrome&&window.chrome.webview)||!!(window.webkit&&window.webkit.messageHandlers);
+const EXPORTS={'/export.gif':{name:'animation.gif',what:'GIF',types:{'image/gif':['.gif']}},'/export.html':{name:'player.html',what:'HTML player',types:{'text/html':['.html']}},'/export.lottie.json':{name:'animation.json',what:'Lottie',types:{'application/json':['.json']}}};
+let exporting=false;
+const kb=n=>n>=1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';
+async function exportFile(url){
+ const x=EXPORTS[url]; if(!x||IN_WINDOW){ download(url); return; }
+ if(exporting){ toast('an export is already running, please wait',true); return; }
+ let handle=null;
+ if(window.showSaveFilePicker){ try{ handle=await window.showSaveFilePicker({suggestedName:x.name,types:[{description:x.what,accept:x.types}]}); }catch(e){ if(e&&e.name==='AbortError')return; handle=null; } }
+ exporting=true; document.querySelectorAll('a[href^="/export."]').forEach(e=>e.style.opacity='.5');
+ toast('Rendering '+x.what+'... this can take a few seconds',false,120000);
+ try{
+  const r=await fetch(url,{cache:'no-store'}); if(!r.ok)throw new Error('the server answered '+r.status);
+  const b=await r.blob();
+  if(handle){ const w=await handle.createWritable(); await w.write(b); await w.close(); toast('Saved '+handle.name+' ('+kb(b.size)+')',false,6000); }
+  else{ const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=x.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),60000); toast('Downloaded '+x.name+' ('+kb(b.size)+'): see your browser\'s downloads folder',false,8000); }
+ }catch(e){ toast('Export failed: '+e.message,true,8000); }
+ finally{ exporting=false; document.querySelectorAll('a[href^="/export."]').forEach(e=>e.style.opacity=''); }
+}
+document.querySelectorAll('a[href^="/export."]').forEach(a=>{ a.addEventListener('click',ev=>{ if(IN_WINDOW||!EXPORTS[a.getAttribute('href')])return; ev.preventDefault(); exportFile(a.getAttribute('href')); }); });
 const CMD={
  'edit.undo':()=>{ $('undo').click(); }, 'edit.redo':()=>{ $('redo').click(); }, 'file.save':()=>{ $('save').click(); },
  'select.all':()=>{ if(!S)return false; (async()=>{ const r=await api('/api/layers'); if(r.ok===false)return; await selApply(r.layers.filter(l=>!locks.has(l.path)).map(l=>({kind:'layer',path:l.path})),'replace'); })(); },
@@ -853,7 +877,7 @@ const CMD={
  'timeline.toggle_view':()=>{ $('dk-view').click(); },'timeline.toggle_snap':()=>tgl('dk-snap'),'timeline.toggle_shy':()=>tgl('dk-shy'),
  'timeline.apply_ease':()=>{ $('dk-applyease').click(); },'timeline.smooth':()=>{ $('dk-smooth').click(); },'timeline.ripple_insert':()=>{ $('dk-rins').click(); },'timeline.ripple_delete':()=>{ $('dk-rdel').click(); },
  'layout.reset':()=>applyLayout(UI.defLayout,'reset'),
- 'export.gif':()=>download('/export.gif'),'export.html':()=>download('/export.html'),'export.lottie':()=>download('/export.lottie.json'),
+ 'export.gif':()=>exportFile('/export.gif'),'export.html':()=>exportFile('/export.html'),'export.lottie':()=>exportFile('/export.lottie.json'),
  'ui.palette':()=>openPalette(),'ui.shortcuts':()=>openShortcuts()};
 function handlerFor(id){ if(CMD[id])return CMD[id]; let m;
  if((m=/^panel\.toggle\.(\w+)$/.exec(id))&&UI.pdefs[m[1]])return ()=>panelToggle(m[1]);
