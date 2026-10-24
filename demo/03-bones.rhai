@@ -3,9 +3,9 @@
 add_bone("hips", "", 10, 200, 205, -90);
 add_bone("torso", "hips", 75, 10, 0, 0);
 add_bone("head", "torso", 40, 75, 0, 0);
-add_bone("arm_upper_l", "torso", 50, 62, 22, 180);
+add_bone("arm_upper_l", "torso", 50, 62, 26, 180);
 add_bone("arm_lower_l", "arm_upper_l", 45, 50, 0, 0);
-add_bone("arm_upper_r", "torso", 50, 62, -22, 180);
+add_bone("arm_upper_r", "torso", 50, 62, -26, 180);
 add_bone("arm_lower_r", "arm_upper_r", 45, 50, 0, 0);
 add_bone("thigh_l", "hips", 50, 5, 10, 180);
 add_bone("shin_l", "thigh_l", 50, 50, 0, 0);
