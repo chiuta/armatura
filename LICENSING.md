@@ -65,4 +65,4 @@ Prevents commercial competition for N years. Cost: **not open source**; conflict
 - [x] `CONTRIBUTING.md` with the DCO 1.1 text. A CLA is still needed before any dual licence.
 - [x] `TRADEMARK.md` (permitted: "compatible with ARMATURA", unmodified redistribution; not permitted: modified builds under the same name).
 - [x] `.github/FUNDING.yml` (`buy_me_a_coffee: echo.of.the.strings`) so the platform shows a Sponsor button.
-- [ ] Trademark/domain search for "ARMATURA" (the word is a common Italian/Romanian noun and may be taken in class 9/42).
+- [~] Trademark search for "ARMATURA": the EUIPO search of 24 Oct 2026 found a conflicting mark in classes 9 and 42 (ZKTECO CO., LTD., IR 1687065), see [docs/LIMITATIONS.md](docs/LIMITATIONS.md) L-78; OSIM / WIPO / domain searches and a lawyer's opinion are still open.
