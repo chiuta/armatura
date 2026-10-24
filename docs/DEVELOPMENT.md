@@ -89,7 +89,7 @@ Suites outside `cargo test`:
 
   ```sh
   cargo build -p osatura-cli
-  node osatura-cli/tests/studio_ui_smoke.js        # same for collab / overlays / suggest
+  node osatura-cli/tests/studio_ui_smoke.js        # same for collab / overlays / suggest / demo
   ```
 
   Environment: `OSATURA_BIN` (default `target/debug/osatura`), `PLAYWRIGHT_CORE`, `CHROME`, and for the overlay script `SHOTS` (screenshot directory). The scripts clean up their temporary files.
