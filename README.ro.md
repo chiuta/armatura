@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # OSATURA
 
-**Un motor de rigging și animație vectorială 2D scris în Rust: oase, cinematică inversă (IK), skinning, deformatoare, un runtime cu mașini de stări, o trusă de instrumente în linia de comandă, un studio în browser și biblioteci integrabile, într-un singur workspace.** Versiunea engleză: [README.md](README.md). Documentația din `docs/` este în limba engleză aici; traduceri ale documentației (ro, fr, it, es, pt, de, hu) există pe ramura `landing-page` și pe pagina https://osatura.chiuta.ro/.
+**Un motor de rigging și animație vectorială 2D scris în Rust: oase, cinematică inversă (IK), skinning, deformatoare, un runtime cu mașini de stări, o trusă de instrumente în linia de comandă, un studio în browser și biblioteci integrabile, într-un singur workspace.** Versiunea engleză: [README.md](README.md). Documentația din `docs/` este în limba engleză.
 
 ## Rezumat și filozofie
 
@@ -18,13 +18,15 @@ Principiile proiectului:
 
 ## Stare
 
-> **Alpha. Primele build-uri sunt pregătite ca pre-lansare ciornă: `v0.1.0-alpha.2`.** Executabilele pentru Windows x86-64, macOS arm64 și Linux x86-64 și modulul WebAssembly sunt construite de GitHub Actions și atașate la o pre-lansare *ciornă* pe <https://github.com/chiuta/osatura/releases> (o ciornă este vizibilă doar proprietarului până când este publicată manual). Toate crate-urile au în continuare versiunea `0.1.0`; „v0.5 / v0.6 / v0.7” sunt *niveluri de funcționalitate* în istoric, nu numere de lansare ([CHANGELOG.md](CHANGELOG.md)).
+*Nume: proiectul s-a numit ARMATURA până la 24 oct. 2026 și a fost redenumit OSATURA în urma unei căutări de mărci ([docs/LIMITATIONS.md](docs/LIMITATIONS.md) L-78). Depozitul și adresa site-ului au fost redenumite și ele (linkurile vechi către depozit redirecționează).*
+
+> **Alpha. Primele build-uri sunt pregătite ca pre-lansare ciornă: `v0.1.0-alpha.3`.** Executabilele pentru Windows x86-64, macOS arm64 și Linux x86-64 și modulul WebAssembly sunt construite de GitHub Actions și atașate la o pre-lansare *ciornă* pe <https://github.com/chiuta/osatura/releases> (o ciornă este vizibilă doar proprietarului până când este publicată manual). Toate crate-urile au în continuare versiunea `0.1.0`; „v0.5 / v0.6 / v0.7” sunt *niveluri de funcționalitate* în istoric, nu numere de lansare ([CHANGELOG.md](CHANGELOG.md)).
 >
 > | Verificat | Neverificat |
 > |---|---|
 > | **Local (Linux x86-64, 24 oct. 2026):** 1338 de teste din `cargo test --workspace --exclude osatura-gpu --exclude osatura-gui` plus 19 doc-teste trec (crate-ul GPU are nevoie de un adaptor, iar crate-ul ferestrei de un desktop; înainte de aceasta, numărul incluzând crate-ul GPU era 1368). **Pe GitHub Actions (24 oct. 2026, toolchain 1.97.0):** suita de teste și `clippy -D warnings` trec pe Linux, macOS (arm64) și Windows; `cargo deny` și `reuse lint` trec; modulul WebAssembly se construiește pentru `wasm32-unknown-unknown`, iar testul wrapper-ului trece față de modulul real sub Node 20; binarele de lansare trec un test de fum (`--version`, `demo`, `check`, `render`), iar `osatura-studio --selftest` rulează pe Windows și macOS. Patru teste de fum ale studioului în Chromium fără interfață trec; CLI-ul, fațada Rust și ABI-ul C (inclusiv sub ASan/UBSan) au fost rulate cu exemplele din documentație | **Nicio persoană nu a folosit executabilele pe un desktop real Windows sau macOS**: lansatorul Windows prin dublu clic și aplicația cu fereastră `osatura-studio` (WebView2 / WKWebView) au fost doar compilate și autotestate în CI; binarele **nu sunt semnate cu cod** (SmartScreen „Unknown publisher”, macOS Gatekeeper); binarul Linux a fost construit doar pe un runner Ubuntu; **modulul WebAssembly nu a fost niciodată rulat într-un browser**, iar viteza și memoria lui nu sunt măsurate; studioul nu a fost folosit de o persoană în producție și nici într-un alt browser decât Chromium; nu s-a folosit niciodată un GPU real (doar un adaptor software), o cameră web, o fotografie sau un fișier de captură de mișcare; fără audit de securitate, revizuire juridică sau căutare de brevete |
 >
-> Citește [docs/LIMITATIONS.md](docs/LIMITATIONS.md) (77 de limite numerotate, cu gravitate și soluție ocolitoare) înainte să te bazezi pe ceva.
+> Citește [docs/LIMITATIONS.md](docs/LIMITATIONS.md) (78 de limite numerotate, cu gravitate și soluție ocolitoare) înainte să te bazezi pe ceva.
 
 ## Descărcare
 
@@ -57,7 +59,7 @@ Detalii și opțiunile exacte: [docs/CLI_REFERENCE.md](docs/CLI_REFERENCE.md); c
 
 ## Pornire rapidă
 
-Cerințe: un lanț de unelte Rust stabil, recent (sau o arhivă precompilată din secțiunea [Descărcare](#download): sari peste linia `cargo build` și folosește `osatura` despachetat). `ffmpeg` este necesar doar pentru exportul MP4/WebM și pentru audio mp3/ogg; nu este niciodată inclus în pachet. Fiecare comandă de mai jos a fost rulată pentru acest README (build de depanare, Linux). Build-urile de lansare (`cargo build --release`) sunt mult mai rapide la randare și se folosesc la fel, cu `target/release`.
+Cerințe: un lanț de unelte Rust stabil, recent (sau o arhivă precompilată din secțiunea [Descărcare](#descărcare): sari peste linia `cargo build` și folosește `osatura` despachetat). `ffmpeg` este necesar doar pentru exportul MP4/WebM și pentru audio mp3/ogg; nu este niciodată inclus în pachet. Fiecare comandă de mai jos a fost rulată pentru acest README (build de depanare, Linux). Build-urile de lansare (`cargo build --release`) sunt mult mai rapide la randare și se folosesc la fel, cu `target/release`.
 
 ```sh
 cargo build -p osatura-cli                       # construiește target/debug/osatura
