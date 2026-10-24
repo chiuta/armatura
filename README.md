@@ -40,7 +40,7 @@ Prebuilt archives, once the owner has published the draft release, are on the pr
 | `osatura-web.tar.gz` | `osatura_wasm.wasm`, `osatura.js`, demo `index.html` (unverified in browsers, see [docs/WASM.md](docs/WASM.md)) |
 | `SHA256SUMS.txt` | check every download against it |
 
-* **Windows:** double-click `osatura.exe` to create `Documents\OSATURA\first-rig.json` and open the studio in your browser, or double-click `osatura-studio.exe` for a window of its own. Both programs are unsigned: choose *More info* then *Run anyway* in SmartScreen. See [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md).
+* **Windows:** double-click `osatura.exe` to create `Documents\OSATURA\first-rig.json` (the walking-person demo: head with ear, hands with fingers, feet with toes) and open the studio in your browser, or double-click `osatura-studio.exe` for a window of its own. Both programs are unsigned: choose *More info* then *Run anyway* in SmartScreen. See [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md).
 * **macOS:** approve the program in *System Settings > Privacy & Security* the first time.
 * **Source:** each archive names the commit it was built from; the AGPL parts are served with their source offer (`osatura --version`, `/source`).
 

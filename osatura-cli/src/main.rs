@@ -55,6 +55,7 @@ GLOBAL OPTIONS (accepted anywhere on the line, also after a sub-command; `--key=
 USAGE:
   osatura --version   print the version, licence (AGPL-3.0-or-later), source offer and support links
   osatura demo     <out.json>                         write the built-in rig demo
+  osatura demo-person <out.json>                      write the walking-person demo (head, ears, hands with fingers, feet)
   osatura demo-fx  <out.json>                         write the liquid / boolean / particles demo
   osatura check    <project.json>                     validate a project
   osatura render   <project.json> <frame> <out.svg|out.png> [--bones] [--scale N] [--clamp] [--proxy N]
@@ -1552,6 +1553,11 @@ fn run(raw: &[String]) -> Result<(), String> {
     match pos.as_slice() {
         ["demo", out] => {
             write_json(&demo::project(), out)?;
+            println!("wrote {out}");
+            Ok(())
+        }
+        ["demo-person", out] => {
+            write_json(&demo::person(), out)?;
             println!("wrote {out}");
             Ok(())
         }
@@ -4387,7 +4393,7 @@ fn double_click_launcher() -> ExitCode {
     }
     let project = dir.join("first-rig.json").to_string_lossy().into_owned();
     if !std::path::Path::new(&project).exists() {
-        if let Err(e) = run(&["demo".to_string(), project.clone()]) {
+        if let Err(e) = run(&["demo-person".to_string(), project.clone()]) {
             wait_for_enter(&format!("{e}\nPress Enter to close."));
             return ExitCode::FAILURE;
         }
