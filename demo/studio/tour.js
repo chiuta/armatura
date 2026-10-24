@@ -39,7 +39,7 @@ const DM_TEXT={
  face:['Face and mouth','Eyes are circles. The mouth is a switch layer holding five shapes: rest, small, open, round and wide.'],
  bones:['Skeleton','Eleven bones with parents: rotating the upper arm carries the forearm. Each piece rides its bone. Open the Bones tab to select them.'],
  walk:['A generated walk','One command writes the whole walk cycle as ordinary keys: legs in opposition, knees, hip bob, arm swing. See them in the timeline.'],
- wave:['A wave, with IK','The right arm gets no angle keys. A control bone (hand_ctrl) is the IK target and the solver finds shoulder and elbow.'],
+ wave:['A wave, with IK','The right arm gets no angle keys. A control bone (hand_ctrl) is the IK target and the solver finds shoulder and elbow. The hand has a palm and five spread fingers, open like the Trade-Free greeting.'],
  loop:['Close the loop','`loop-solve` checks the seam so that frame 24 equals frame 0 and the cycle repeats without a jump.'],
  mouth:['The mouth talks','Switch keys choose which mouth shape shows on each frame. This is what the lip-sync commands write for you.'],
  check:['Check it','`lint` runs static checks on the rig and the animation; `stats` summarises the project.'],

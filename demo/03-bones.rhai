@@ -25,3 +25,8 @@ set_layer("thigh_l", "bone", "thigh_l");
 set_layer("shin_l", "bone", "shin_l");
 set_layer("thigh_r", "bone", "thigh_r");
 set_layer("shin_r", "bone", "shin_r");
+// laba piciorului și mâna stângă urmează rigid osul de care sunt lipite
+set_layer("foot_l", "bone", "shin_l"); set_layer("toe_l", "bone", "shin_l");
+set_layer("foot_r", "bone", "shin_r"); set_layer("toe_r", "bone", "shin_r");
+set_layer("palm_l", "bone", "arm_lower_l");
+for n in ["thumb", "index", "middle", "ring", "pinky"] { set_layer("finger_l_" + n, "bone", "arm_lower_l"); }
