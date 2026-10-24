@@ -37,11 +37,18 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.97.0
       - uses: Swatinem/rust-cache@v2
       - name: Build release binaries (CLI + studio, C ABI)
+        env:
+          # AGPL section 13: the studio's /source page and `--version` point to the exact commit this binary is built from
+          # (a fork that builds with its own workflow points to itself).
+          ARMATURA_SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}/tree/${{ github.sha }}
         run: cargo build --release --locked -p armatura-cli -p armatura-capi -p armatura-gui
       - name: Smoke test the release binary
         shell: bash
+        env:
+          ARMATURA_SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}/tree/${{ github.sha }}
         run: |
-          ./target/release/${{ matrix.exe }} --version
+          ./target/release/${{ matrix.exe }} --version | tee version.txt
+          grep -q "available at: ${ARMATURA_SOURCE_URL}" version.txt
           ./target/release/${{ matrix.exe }} demo smoke.json
           ./target/release/${{ matrix.exe }} check smoke.json
           ./target/release/${{ matrix.exe }} render smoke.json 0 smoke.png

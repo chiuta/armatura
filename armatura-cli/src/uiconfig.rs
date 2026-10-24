@@ -970,16 +970,27 @@ impl UiConfig {
     }
 }
 
-/// `$ARMATURA_UI_CONFIG`, else `$XDG_CONFIG_HOME/armatura/ui.json`, else `~/.config/armatura/ui.json`.
-/// Never a path inside the project.
+/// `$ARMATURA_UI_CONFIG`, else `$XDG_CONFIG_HOME/armatura/ui.json`, else on Windows `%APPDATA%\ARMATURA\ui.json`
+/// (then `%USERPROFILE%\.config\armatura\ui.json`), else `~/.config/armatura/ui.json`. Never a path inside the project.
 pub fn default_config_path() -> Option<PathBuf> {
-    if let Some(p) = std::env::var_os("ARMATURA_UI_CONFIG").filter(|p| !p.is_empty()) {
+    config_path_from(|k| std::env::var_os(k).filter(|v| !v.is_empty()), cfg!(windows))
+}
+
+/// The lookup behind [`default_config_path`], with the environment and the platform as parameters (testable).
+fn config_path_from(env: impl Fn(&str) -> Option<std::ffi::OsString>, windows: bool) -> Option<PathBuf> {
+    if let Some(p) = env("ARMATURA_UI_CONFIG") {
         return Some(PathBuf::from(p));
     }
-    if let Some(x) = std::env::var_os("XDG_CONFIG_HOME").filter(|p| !p.is_empty()) {
+    if let Some(x) = env("XDG_CONFIG_HOME") {
         return Some(PathBuf::from(x).join("armatura").join("ui.json"));
     }
-    std::env::var_os("HOME").filter(|p| !p.is_empty()).map(|h| PathBuf::from(h).join(".config").join("armatura").join("ui.json"))
+    if windows {
+        if let Some(a) = env("APPDATA") {
+            return Some(PathBuf::from(a).join("ARMATURA").join("ui.json"));
+        }
+        return env("USERPROFILE").map(|h| PathBuf::from(h).join(".config").join("armatura").join("ui.json"));
+    }
+    env("HOME").map(|h| PathBuf::from(h).join(".config").join("armatura").join("ui.json"))
 }
 
 #[cfg(test)]
@@ -1803,6 +1814,28 @@ mod tests {
         let mut strict = UiStore::open(None);
         let e = strict.update(&json!({"recents": [], "nonsense": 1})).unwrap_err();
         assert!(e.iter().any(|m| m.contains("unknown field 'nonsense'")), "{e:?}");
+    }
+
+    #[test]
+    fn config_path_lookup_per_platform() {
+        use std::ffi::OsString;
+        let env = |pairs: &'static [(&'static str, &'static str)]| move |k: &str| pairs.iter().find(|(n, _)| *n == k).map(|(_, v)| OsString::from(*v));
+        // explicit override wins everywhere
+        let p = config_path_from(env(&[("ARMATURA_UI_CONFIG", "/x/u.json"), ("APPDATA", "/a"), ("HOME", "/h")]), true).unwrap();
+        assert_eq!(p, PathBuf::from("/x/u.json"));
+        // XDG before platform defaults
+        let p = config_path_from(env(&[("XDG_CONFIG_HOME", "/xdg"), ("APPDATA", "/a")]), true).unwrap();
+        assert_eq!(p, PathBuf::from("/xdg").join("armatura").join("ui.json"));
+        // Windows: %APPDATA%\ARMATURA\ui.json, then %USERPROFILE%
+        let p = config_path_from(env(&[("APPDATA", "/a"), ("USERPROFILE", "/u")]), true).unwrap();
+        assert_eq!(p, PathBuf::from("/a").join("ARMATURA").join("ui.json"));
+        let p = config_path_from(env(&[("USERPROFILE", "/u")]), true).unwrap();
+        assert_eq!(p, PathBuf::from("/u").join(".config").join("armatura").join("ui.json"));
+        assert!(config_path_from(env(&[("HOME", "/h")]), true).is_none());
+        // Unix and macOS: ~/.config/armatura/ui.json (APPDATA is ignored)
+        let p = config_path_from(env(&[("HOME", "/h"), ("APPDATA", "/a")]), false).unwrap();
+        assert_eq!(p, PathBuf::from("/h").join(".config").join("armatura").join("ui.json"));
+        assert!(config_path_from(env(&[]), false).is_none());
     }
 
     #[test]

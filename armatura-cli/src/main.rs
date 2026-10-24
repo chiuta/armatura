@@ -1531,7 +1531,7 @@ fn run(raw: &[String]) -> Result<(), String> {
         return Ok(());
     }
     if pos.is_empty() && a.flags.iter().any(|f| f == "--version") {
-        println!("armatura {} (armatura-cli, AGPL-3.0-or-later; engine libraries MPL-2.0)\n{}", env!("CARGO_PKG_VERSION"), studio::source_offer_text(None));
+        println!("armatura {} (armatura-cli, AGPL-3.0-or-later; engine libraries MPL-2.0)\n{}", env!("CARGO_PKG_VERSION"), studio::source_offer_text(studio::default_source_url()));
         return Ok(());
     }
     // commands that read a project and write a different kind of file: never over the project itself
@@ -4239,6 +4239,7 @@ fn run(raw: &[String]) -> Result<(), String> {
             if let Some(u) = &source_url {
                 studio::check_source_url(u)?;
             }
+            let source_url = source_url.or_else(|| studio::default_source_url().map(String::from));
             let public_origin = a.opts.get("--public-origin").cloned();
             if let Some(o) = &public_origin {
                 studio::public_origin_host(o)?;
