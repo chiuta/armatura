@@ -113,7 +113,7 @@
   "Only one person has tried the Windows launcher and the window app (Windows 11, alpha.2); nobody has used them on macOS; the binaries are not code-signed",
   "The studio was never used by a person in production, nor in a browser other than Chromium",
   "No real GPU, webcam, photograph or motion-capture file was ever used; no security audit, lawyer review or patent search",
-  "The name OSATURA (renamed from ARMATURA after a conflict in the EU register) was searched only at the EUIPO; OSIM, WIPO and a lawyer’s opinion are still open"
+  "The name OSATURA (renamed from OSATURA after a conflict in the EU register) was searched only at the EUIPO; OSIM, WIPO and a lawyer’s opinion are still open"
  ],
  "nDocs": "Docs",
  "nStudio": "Studio",
