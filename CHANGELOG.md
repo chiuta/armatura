@@ -10,6 +10,10 @@ Related versions that **are** real and independent of the above: the Rust facade
 
 ## [Unreleased]
 
+### Studio
+
+- **Guided demo (Demo button, command `demo.panel`)**: builds the walking person in 13 steps (scenery, body, head, arms with five fingers, skeleton, walk, arm swing, trunk and head, blink and smile, moving ground, check, export). Each step loads that stage of the project into the editor through one replace-all operation (one Undo step); Save is disabled while it is loaded and *Restore my project* brings your own project back. The stages are cut from `osatura demo-person`; `scripts/build-studio-tour.mjs` regenerates them with the real binary.
+
 ### Draft pre-release `v0.1.0-alpha.3` (built 2026-10-24, not yet published)
 Prepared from commit marker `[release v0.1.0-alpha.3]`; it supersedes the drafts `v0.1.0-alpha.1` and `v0.1.0-alpha.2` (never published). Same assets as alpha.2. Changes follow the first test on a real Windows 11 desktop (the double-click launcher, `osatura-studio` and the GIF / Lottie / HTML exports worked):
 * **Changed: the project is now called OSATURA** (it was ARMATURA until 24 Oct 2026; see L-78). Nothing was ever published under the old name; the unpublished drafts `v0.1.0-alpha.1` and `v0.1.0-alpha.2` still contain `armatura` file names.

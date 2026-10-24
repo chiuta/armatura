@@ -1,0 +1,16 @@
+<div id="dmp" role="dialog" aria-label="Guided demo">
+<div class="dmh"><b>Guided demo · walking person</b><button id="dm-x" aria-label="Close the demo panel" title="hide this panel (the demo stays loaded)">×</button></div>
+<div id="dm-intro">
+<p>Build a whole character, step by step, with the same commands you would type in a terminal. Each step loads the project that command produced into this editor, so you can play, scrub, select bones and layers, and look at the timeline.</p>
+<p class="dm-warn"><b>This replaces the project in the editor.</b> Nothing is written to disk: Save is disabled while the demo is loaded, and <i>Restore my project</i> (or Undo) brings your project back.</p>
+<button id="dm-start" class="dm-p">Start the demo</button>
+</div>
+<div id="dm-run" style="display:none">
+<div id="dm-steps" role="tablist" aria-label="Demo steps"></div>
+<div id="dm-num"></div><h4 id="dm-title"></h4><p id="dm-desc"></p>
+<div class="dm-tabs" role="tablist"><button id="dm-tt" role="tab" aria-selected="true">Terminal</button><button id="dm-ts" role="tab" aria-selected="false">Script</button></div>
+<pre id="dm-term" tabindex="0"></pre>
+<div class="dm-nav"><button id="dm-prev">Back</button><button id="dm-next" class="dm-p">Next</button><button id="dm-restore" title="put back the project that was open before the demo">Restore my project</button></div>
+<p class="dm-note" id="dm-note"></p>
+</div>
+</div>

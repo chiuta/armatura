@@ -263,6 +263,7 @@ pub const COMMANDS: &[Command] = &[
     cmd!("layout.preset.rig", "Panels", "Layout: rig", "Tall side panels, timeline folded", []),
     cmd!("layout.preset.compact", "Panels", "Layout: compact", "Canvas and timeline, everything else in one tab group", []),
     cmd!("layout.preset.live", "Panels", "Layout: live", "Live input and face panels beside the canvas", []),
+    cmd!("demo.panel", "Demo", "Guided demo", "Open the guided step-by-step demo that builds the walking person with the real commands", []),
     cmd!("suggest.panel", "Suggest", "Pose suggestions", "Open the pose suggestion panel (in-between, completion, next pose; learned from this project)", [(G, "Alt+8")]),
     cmd!("overlay.panel", "Overlays", "Overlay settings", "Open the onion skin, motion trail and scrub proxy settings", [(G, "Alt+7")]),
     cmd!("overlay.onion_toggle", "Overlays", "Toggle onion skin", "Show ghosts of neighbouring frames", [(G, "Alt+N")]),
