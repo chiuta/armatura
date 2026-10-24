@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio)
-//! Version control for animation projects with semantic merge ("ArmaGit", I-01).
+//! Version control for animation projects with semantic merge ("OsaGit", I-01).
 //!
 //! Own design; no code, format or command implementation of any other version-control system is
 //! used (and nothing here shells out to one). Textbook ideas only:
