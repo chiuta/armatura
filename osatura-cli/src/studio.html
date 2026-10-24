@@ -7,6 +7,7 @@
 *{box-sizing:border-box}
 body{margin:0;font:13px system-ui,sans-serif;background:#15171d;color:#e6e6ee;display:flex;flex-direction:column;height:100vh;overflow:hidden}
 header{flex:none;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;background:#1d2029;border-bottom:1px solid #2c3040}
+header .brk{flex:0 0 100%;height:0;margin:-4px 0}
 header b{letter-spacing:.12em;margin-right:12px}
 button{background:#343b52;color:#fff;border:0;border-radius:5px;padding:5px 11px;cursor:pointer}
 button:disabled{opacity:.35;cursor:default}
@@ -157,6 +158,7 @@ kbd{font:11px ui-monospace,monospace;background:#0f1116;border:1px solid #3a4056
 <button id="lockbtn" title="lock or unlock the selected layers: locked layers are skipped by clicks and boxes, and refuse edits">Lock</button></span>
 <span style="flex:1"></span>
 <button id="ovbtn" title="onion skin, motion trails and scrub proxy settings">Overlays</button><button id="sgbtn" title="pose suggestions learned from this project's own poses">Suggest</button><button id="lmenubtn" title="panels, presets, reset layout">Layout</button><button id="palbtn" title="command palette (shortcut shown in the palette)">Commands</button><button id="keysbtn" title="view and change keyboard shortcuts">Keys</button>
+<span class="brk"></span>
 <span id="cb"><input id="cname" placeholder="your name" maxlength="40" aria-label="your name for the shared session"><button id="cjoin" title="join or leave the shared editing session of this studio">Collab</button><span id="cusers"></span></span>
 <a class="btn" href="/export.gif">GIF</a><a class="btn" href="/export.html">HTML player</a><a class="btn" href="/export.lottie.json">Lottie</a>
 <span id="ok"></span></header>

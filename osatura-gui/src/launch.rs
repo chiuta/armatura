@@ -53,7 +53,7 @@ pub fn default_project(engine: &Path) -> Result<PathBuf, String> {
     let p = dir.join("first-rig.json");
     if !p.exists() {
         let mut c = Command::new(engine);
-        c.arg("demo").arg(&p).stdout(Stdio::null()).stderr(Stdio::null());
+        c.arg("demo-person").arg(&p).stdout(Stdio::null()).stderr(Stdio::null());
         hide_console(&mut c);
         let st = c.status().map_err(|e| format!("cannot run the engine: {e}"))?;
         if !st.success() {
