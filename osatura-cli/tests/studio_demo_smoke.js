@@ -48,6 +48,13 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       await p.click(`#dm-steps button[data-k="${i}"]`); await sleep(500);
       const j = JSON.parse(await project(p));
       seen.push([(j.layers || []).length, (j.bones || []).length, (j.channels || []).length]);
+      await p.click('#dm-ts');
+      const sc = await p.evaluate(() => ({ vis: !document.getElementById('dm-ts').hidden, txt: document.getElementById('dm-term').textContent }));
+      const nn = String(Math.min(i + 1, 11)).padStart(2, '0'); // the last two steps (lint/stats, export) work on stage-11.json
+      const body = sc.txt.replace(/^\$ cat [^\n]*\n/, '');
+      let okJson = false; try { okJson = JSON.parse(body).name === j.name; } catch (e) { okJson = /more lines/.test(sc.txt) && body.trimStart().startsWith('{'); }
+      check(`step ${i + 1}: Script tab shows stage-${nn}.json`, sc.vis && sc.txt.startsWith(`$ cat stage-${nn}.json\n`) && okJson, sc.txt.slice(0, 60));
+      await p.click('#dm-tt');
     }
     check('stages grow: layers 0 → 41, then bones 42, then channels 0 → 48', seen[0][0] === 0 && seen[4][0] === 41 && seen[4][1] === 0 && seen[5][1] === 42 && seen[5][2] === 0 && seen[10][2] === 48 && seen[12][2] === 48, seen);
     await p.keyboard.press('Control+S'); await sleep(400);

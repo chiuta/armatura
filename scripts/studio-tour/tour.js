@@ -15,13 +15,15 @@ async function dmApply(value){ const r=await dmSet(value); if(r&&r.ok===false){ 
  S=r; frame=0; $('tl').max=Math.max(0,(S.frames||1)-1); await refresh(true); return true; }
 function dmLine(parent,cls,txt){ const s=document.createElement('span'); if(cls)s.className=cls; s.textContent=txt; parent.appendChild(s); }
 function dmTerm(){ const st=dmData().steps[DM.i], t=$('dm-term'); t.textContent='';
+ if(DM.tab==='s'&&!st.files.length){ const name=st.file||'project.json'; let txt; try{ txt=JSON.stringify(JSON.parse(st.project),null,2); }catch(e){ txt=st.project; }
+  const L=txt.split('\n'), MAX=1500, cut=L.length>MAX; if(cut)txt=L.slice(0,MAX).join('\n');
+  dmLine(t,'pr','$'); t.appendChild(document.createTextNode(' cat '+name+'\n')); dmLine(t,'out',txt+(cut?'\n  ... ('+(L.length-MAX)+' more lines; '+Math.round(st.project.length/1024)+' KiB in all: use Save or the export buttons for the whole file)\n':'\n')); return; }
  if(DM.tab==='s'&&st.files.length){ st.files.forEach((f,k)=>{ if(k)t.appendChild(document.createTextNode('\n\n')); dmLine(t,'pr','$'); t.appendChild(document.createTextNode(' cat '+f.name+'\n')); dmLine(t,'out',f.text); }); return; }
  st.commands.forEach(c=>{ dmLine(t,'pr','$'); t.appendChild(document.createTextNode(' '+c.cmd+'\n')); if(c.out)dmLine(t,'out',c.out+'\n'); }); }
 function dmFill(){ const D=dmData(), st=D.steps[DM.i], n=D.steps.length;
  const tx=DM_TEXT[st.id]; $('dm-num').textContent='Step '+(DM.i+1)+' / '+n; $('dm-title').textContent=tx[0]; $('dm-desc').textContent=tx[1];
  [...$('dm-steps').children].forEach((b,k)=>{ b.setAttribute('aria-selected',k===DM.i); b.classList.toggle('done',DM.seen.has(k)&&k!==DM.i); });
- $('dm-tt').setAttribute('aria-selected',DM.tab==='t'); $('dm-ts').setAttribute('aria-selected',DM.tab==='s'); $('dm-ts').hidden=!st.files.length;
- if(!st.files.length&&DM.tab==='s'){ DM.tab='t'; $('dm-tt').setAttribute('aria-selected','true'); }
+ $('dm-tt').setAttribute('aria-selected',DM.tab==='t'); $('dm-ts').setAttribute('aria-selected',DM.tab==='s'); $('dm-ts').hidden=false;
  $('dm-prev').disabled=DM.i===0; $('dm-next').disabled=DM.i===n-1; dmTerm();
  $('dm-note').textContent=st.id===DM_EXPORT?'Use the GIF, HTML player and Lottie buttons in the header: they export this project, the same files the commands above wrote.':'Real output of '+D.engine.replace(/ \(.*/,'')+'. The project in the editor is that stage, cut from the finished project that osatura demo-person writes.'; }
 async function dmGo(i){ const D=dmData(); i=Math.max(0,Math.min(D.steps.length-1,i)); const st=D.steps[i];
