@@ -118,7 +118,7 @@ It supersedes the scattered "candidate #" lists further down; details and IDs li
 - Bundling **H.264/H.265/AAC encoders**.
 
 ## Conditions that apply to every 🟢 row
-Provenance log kept (`CLEANROOM.md`; independent implementation, not a strict clean-room); only permissive dependencies (regenerate with `scripts/licence-audit.sh`; currently 362 third-party crates over all platforms, all MIT / Apache-2.0 / BSD / Zlib / Unlicense-class except six MPL-2.0 crates (smartstring via the `scripting` feature, which is on by default, and five via the window app `armatura-gui`); see docs/THIRD_PARTY.md); no third-party artwork or audio shipped without its own licence file; the name **ARMATURA** cleared in a trademark search before launch.
+Provenance log kept (`CLEANROOM.md`; independent implementation, not a strict clean-room); only permissive dependencies (regenerate with `scripts/licence-audit.sh`; currently 363 third-party crates over all platforms, all MIT / Apache-2.0 / BSD / Zlib / Unlicense-class except six MPL-2.0 crates (smartstring via the `scripting` feature, which is on by default, and five via the window app `armatura-gui`); see docs/THIRD_PARTY.md); no third-party artwork or audio shipped without its own licence file; the name **ARMATURA** cleared in a trademark search before launch.
 
 
 # Detailed capability tables
