@@ -1,6 +1,6 @@
 # ARMATURA — feature matrix + reference and competitor checklists
 
-> Version wording: all crates are `0.1.0` (the first builds are the draft pre-release `v0.1.0-alpha.2`); "v0.5 / v0.6 / v0.7" in this repository are *feature levels* (see [CHANGELOG.md](CHANGELOG.md)), and `ROADMAP.md` section 9 is the authority on what is built.
+> Version wording: all crates are `0.1.0` (the first builds are the draft pre-release `v0.1.0-alpha.3`); "v0.5 / v0.6 / v0.7" in this repository are *feature levels* (see [CHANGELOG.md](CHANGELOG.md)), and `ROADMAP.md` section 9 is the authority on what is built.
 
 Honest status of what exists. **✅ done & tested · 🟡 partial · ❌ not implemented.**
 
@@ -118,7 +118,7 @@ It supersedes the scattered "candidate #" lists further down; details and IDs li
 - Bundling **H.264/H.265/AAC encoders**.
 
 ## Conditions that apply to every 🟢 row
-Provenance log kept (`CLEANROOM.md`; independent implementation, not a strict clean-room); only permissive dependencies (regenerate with `scripts/licence-audit.sh`; currently 362 third-party crates over all platforms, all MIT / Apache-2.0 / BSD / Zlib / Unlicense-class except six MPL-2.0 crates (smartstring via the `scripting` feature, which is on by default, and five via the window app `armatura-gui`); see docs/THIRD_PARTY.md); no third-party artwork or audio shipped without its own licence file; the name **ARMATURA** cleared in a trademark search before launch.
+Provenance log kept (`CLEANROOM.md`; independent implementation, not a strict clean-room); only permissive dependencies (regenerate with `scripts/licence-audit.sh`; currently 363 third-party crates over all platforms, all MIT / Apache-2.0 / BSD / Zlib / Unlicense-class except six MPL-2.0 crates (smartstring via the `scripting` feature, which is on by default, and five via the window app `armatura-gui`); see docs/THIRD_PARTY.md); no third-party artwork or audio shipped without its own licence file; the name **ARMATURA** cleared in a trademark search before launch.
 
 
 # Detailed capability tables

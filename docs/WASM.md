@@ -4,7 +4,7 @@
 
 > ## STATUS: BUILT AND TESTED IN CI, NEVER RUN IN A BROWSER
 >
-> **As of 24 Oct 2026 the module is built on GitHub Actions** (`wasm32-unknown-unknown`, debug build in `ci.yml`, release build in `release.yml`) and **the wrapper's test passes against the real module under Node 20** (`node armatura-wasm/js/test.mjs demo.json`, including its real-module part). The release build is attached to the draft pre-release `v0.1.0-alpha.2` as `armatura-web.tar.gz` (about 0.9 MB compressed, with `armatura.js` and the demo page). **It has never been loaded in a browser**: nothing on this page about browsers, speed or memory is observed behaviour, and the development environment itself still cannot install the target (the download of its standard library is blocked there).
+> **As of 24 Oct 2026 the module is built on GitHub Actions** (`wasm32-unknown-unknown`, debug build in `ci.yml`, release build in `release.yml`) and **the wrapper's test passes against the real module under Node 20** (`node armatura-wasm/js/test.mjs demo.json`, including its real-module part). The release build is attached to the draft pre-release `v0.1.0-alpha.3` as `armatura-web.tar.gz` (about 0.9 MB compressed, with `armatura.js` and the demo page). **It has never been loaded in a browser**: nothing on this page about browsers, speed or memory is observed behaviour, and the development environment itself still cannot install the target (the download of its standard library is blocked there).
 >
 > What was tested, and how far that goes:
 >

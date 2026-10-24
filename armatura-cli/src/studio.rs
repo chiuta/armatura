@@ -351,11 +351,19 @@ fn esc(s: &str) -> String {
     s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;")
 }
 
+/// The source address built into official release binaries: `release.yml` sets `ARMATURA_SOURCE_URL` at compile time to
+/// the commit the binary is built from (`<server>/<repository>/tree/<sha>`; a fork building with its own workflow points
+/// to itself). A plain `cargo build` has none, so a modified build does not claim somebody else's source. An explicit
+/// `--source-url` always wins; an unusable value is ignored.
+pub fn default_source_url() -> Option<&'static str> {
+    option_env!("ARMATURA_SOURCE_URL").filter(|u| !u.is_empty() && check_source_url(u).is_ok())
+}
+
 /// Plain-text source offer (CLI `--version` and the body of `/source`).
 pub fn source_offer_text(url: Option<&str>) -> String {
     let where_ = match url {
         Some(u) => format!("The corresponding source code of this exact version is available at: {u}"),
-        None => "The operator of this server has not configured a source URL. You are entitled to the complete corresponding source of the version you are using: ask the person or organisation that runs this server or that gave you this program, or the maintainer (Alexio, alexio@trom.tf), and it will be provided. (The operator can set the address with `armatura studio --source-url URL`.)".to_string(),
+        None => "The operator of this server has not configured a source URL (this build has none built in). You are entitled to the complete corresponding source of the version you are using: ask the person or organisation that runs this server or that gave you this program, or the maintainer (Alexio, alexio@trom.tf), and it will be provided. (The operator can set the address with `armatura studio --source-url URL`.)".to_string(),
     };
     format!("ARMATURA studio (armatura-cli) is free software under the GNU Affero General Public License, version 3 or (at your option) any later version. Copyright (c) 2026 Alexandru-Ionut Chiuta (Alexio). It comes with NO WARRANTY. If you modify it and let others interact with it over a network, section 13 of the AGPL requires you to offer them the corresponding source of your version. {where_} The engine libraries it links (armatura-core and others) are MPL-2.0 and keep that licence file by file; see LICENSE. {SUPPORT_LINE}")
 }
@@ -1091,6 +1099,18 @@ pub fn serve(mut ed: Editor, save_path: &str, addr: &str, ui_path: Option<std::p
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn built_in_source_url_is_a_valid_url_or_absent() {
+        if let Some(u) = default_source_url() {
+            assert!(check_source_url(u).is_ok(), "{u}");
+        }
+        // an explicit address is what the offer states, and the page links to it
+        let t = source_offer_text(Some("https://example.org/src/tree/abc"));
+        assert!(t.contains("available at: https://example.org/src/tree/abc"), "{t}");
+        assert!(source_page(Some("https://example.org/src/tree/abc")).contains("href=\"https://example.org/src/tree/abc\""));
+        assert!(source_offer_text(None).contains("has not configured a source URL"));
+    }
 
     #[test]
     fn bind_warnings_cover_plain_http_wildcards_and_shared_tokens() {

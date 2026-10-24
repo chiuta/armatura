@@ -49,7 +49,7 @@ Every response carries `Connection: close` (no keep-alive state to exhaust), `Ca
 3. **Content type.** `POST` requires `Content-Type: application/json` (415 otherwise), so a plain HTML form cannot post to the API.
 4. **Token** (see section 3), when configured; mandatory when `--bind` is not a loopback address.
 
-**Source offer.** The studio serves `/source` (also when a token is required) and `--source-url` sets the address, as required by AGPL-3.0 section 13 (see [LICENSING.md](../LICENSING.md)).
+**Source offer.** The studio serves `/source` (also when a token is required) and `--source-url` sets the address (the official release binaries default to the commit they were built from), as required by AGPL-3.0 section 13 (see [LICENSING.md](../LICENSING.md)).
 
 **Unknown or malformed paths and methods** get a plain error response; the editor page is compiled into the binary (`studio.html`) and is not read from the file system, so there is no path traversal surface for static content.
 
@@ -130,7 +130,7 @@ Honest list; see [LIMITATIONS.md](LIMITATIONS.md) for the wider list of function
 * **Do not open a public issue** for a vulnerability. Send a private report to the maintainer: **`alexio@trom.tf`**. *(Placeholder: the address appears in the program's `--version` notice and in the licence documents; the owner must confirm it as the security contact and may replace it with a dedicated address or a private advisory channel before the first release.)*
 * Include: version (`armatura --version`) and platform, the project or request that triggers the problem (a minimal file is best), what you expected and what happened, and whether you want to be credited.
 * What to expect *(intent, not a contract: this is a one-person project)*: an acknowledgement within a reasonable time, a fix developed in private, a regression test added to the suite, a note in [CHANGELOG.md](../CHANGELOG.md), and credit if you wish. Please allow time for a fix before publishing details.
-* Supported versions: only the newest pre-release (`v0.1.0-alpha.2` once published) and the current tree on `main` are supported.
+* Supported versions: only the newest pre-release (`v0.1.0-alpha.3` once published) and the current tree on `main` are supported.
 * Reports about the studio's network exposure when it is deliberately bound to a public address without a reverse proxy are documentation issues first: see section 11.
 
 ## 11. Deployer hardening checklist

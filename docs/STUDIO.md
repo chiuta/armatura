@@ -37,10 +37,10 @@ same message. Unknown fields are warned about (`warning: unknown field bogus (ig
 |---|---|---|
 | `--port N` | 8080 | TCP port. An occupied port gives `cannot listen on 127.0.0.1:8861: Address already in use (os error 98)`; a bad one `cannot listen on 127.0.0.1:99999: invalid port value`. |
 | `--bind ADDR` | `127.0.0.1` | Interface to listen on. Anything that is not a loopback address **requires `--collab-token`**. |
-| `--ui-config F` | `$ARMATURA_UI_CONFIG`, else `$XDG_CONFIG_HOME/armatura/ui.json`, else `~/.config/armatura/ui.json` | Where layout, shortcuts, recent commands and overlay settings are kept. It is a per-user file, never part of the project. |
+| `--ui-config F` | `$ARMATURA_UI_CONFIG`, else `$XDG_CONFIG_HOME/armatura/ui.json`, else on Windows `%APPDATA%\ARMATURA\ui.json` (before alpha.3 there was none: settings were kept for the session only), else `~/.config/armatura/ui.json` | Where layout, shortcuts, recent commands and overlay settings are kept. It is a per-user file, never part of the project. |
 | `--allow-host NAMES` | none | Extra `Host` names to accept (comma separated), for access under a DNS name. |
 | `--public-origin URL` | none | The bare origin (`https://studio.example.org`, no path) that a TLS reverse proxy presents; its `Host` and `Origin` are then accepted. |
-| `--source-url URL` | none | Where the corresponding source of *your* build can be downloaded (AGPL section 13); shown on `/source`. |
+| `--source-url URL` | none; in the official release binaries the commit they were built from (`https://github.com/chiuta/armatura/tree/<commit>`) | Where the corresponding source of *your* build can be downloaded (AGPL section 13); shown on `/source` and by `--version`. An explicit value always wins. |
 | `--collab-token T` | none | Shared secret, **at least 16 characters** (`openssl rand -hex 16`). Required for non-loopback binds. |
 | `--collab-log LOG` | none | Persist the shared editing session to a file and resume it after a restart. |
 | `--collab-nosync` | off | With `--collab-log`: do not `fsync` after each edit (faster; a power cut can lose the last edits). Without `--collab-log` it is refused at start (`--collab-nosync needs --collab-log`). |
@@ -99,7 +99,7 @@ and behind a proxy every client appears to have the proxy's address, so the back
 ### The AGPL source offer
 
 The studio is AGPL-3.0-or-later software: if you modify it and let other people use it over a network, you must offer them your
-version's source. `/source` is that offer; set `--source-url` to where your build's source lives. Without it the page says so and names the maintainer.
+version's source. `/source` is that offer; set `--source-url` to where your build's source lives. Without it (a build you made yourself with a plain `cargo build` has none) the page says so and names the maintainer. The release binaries built by `.github/workflows/release.yml` carry the address of their own commit (`ARMATURA_SOURCE_URL` at compile time; a fork building with its own workflow points to itself).
 
 ## 3. A tour of the interface
 

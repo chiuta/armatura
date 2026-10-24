@@ -18,13 +18,13 @@ Principles that shape the project:
 
 ## Status
 
-> **Alpha. First builds prepared as a draft pre-release: `v0.1.0-alpha.2`.** The executables for Windows x86-64, macOS arm64 and Linux x86-64 and the WebAssembly module are built by GitHub Actions and attached to a *draft* pre-release on <https://github.com/chiuta/armatura/releases> (a draft is visible only to the owner until it is published by hand). All crates are still version `0.1.0`; "v0.5 / v0.6 / v0.7" are *feature levels* in the history, not release numbers ([CHANGELOG.md](CHANGELOG.md)).
+> **Alpha. First builds prepared as a draft pre-release: `v0.1.0-alpha.3`.** The executables for Windows x86-64, macOS arm64 and Linux x86-64 and the WebAssembly module are built by GitHub Actions and attached to a *draft* pre-release on <https://github.com/chiuta/armatura/releases> (a draft is visible only to the owner until it is published by hand). All crates are still version `0.1.0`; "v0.5 / v0.6 / v0.7" are *feature levels* in the history, not release numbers ([CHANGELOG.md](CHANGELOG.md)).
 >
 > | Verified | Not verified |
 > |---|---|
 > | **Local (Linux x86-64, 24 Oct 2026):** 1338 tests of `cargo test --workspace --exclude armatura-gpu --exclude armatura-gui` plus 19 doc-tests pass (the GPU crate needs an adapter and the window crate a desktop; before this the count including the GPU crate was 1368). **On GitHub Actions (24 Oct 2026, toolchain 1.97.0):** the test suite and `clippy -D warnings` pass on Linux, macOS (arm64) and Windows; `cargo deny` and `reuse lint` pass; the WebAssembly module builds for `wasm32-unknown-unknown` and the wrapper's test passes against the real module under Node 20; the release binaries pass a smoke test (`--version`, `demo`, `check`, `render`) and `armatura-studio --selftest` runs on Windows and macOS. Four headless-Chromium smoke tests of the studio pass; the CLI, the Rust facade and the C ABI (also under ASan/UBSan) were run with the examples in the docs | **No person has used the executables on a real Windows or macOS desktop**: the Windows double-click launcher and the `armatura-studio` window app (WebView2 / WKWebView) were only compiled and self-tested in CI; the binaries are **not code-signed** (SmartScreen "Unknown publisher", macOS Gatekeeper); the Linux binary was built on an Ubuntu runner only; **the WebAssembly module has never been run in a browser** and its speed and memory are unmeasured; the studio was never used by a person in production, nor in a browser other than Chromium; no real GPU (only a software adapter), webcam, photograph or motion-capture file was ever used; no security audit, lawyer review or patent search |
 >
-> Read [docs/LIMITATIONS.md](docs/LIMITATIONS.md) (77 numbered limits with severity and workaround) before you depend on anything.
+> Read [docs/LIMITATIONS.md](docs/LIMITATIONS.md) (78 numbered limits with severity and workaround) before you depend on anything.
 
 ## Download
 
@@ -147,7 +147,7 @@ Start at [docs/INDEX.md](docs/INDEX.md) (all documents, audiences, reading paths
 * **CC-BY-4.0** for documentation and synthetic assets (the synthetic face-detector model included).
 * **Your projects and renders stay yours.**
 * The name and logo are not covered by these licences ([TRADEMARK.md](TRADEMARK.md)). Patent status is not assessed ([docs/PATENT_NOTES.md](docs/PATENT_NOTES.md)). A commercial or dual licence for contributed code is not possible without a contributor licence agreement, and none exists.
-* Third-party crates: 362 in the 24 Oct 2026 inventory (all platforms and targets together, which includes the window app's Windows / macOS / Linux-only crates; a given binary contains a subset), all permissive except six weak-copyleft MPL-2.0 crates: `smartstring` behind the optional `scripting` feature, and five (`cssparser`, `cssparser-macros`, `dtoa-short`, `selectors`, `option-ext`) that only the window app `armatura-gui` can pull in ([docs/THIRD_PARTY.md](docs/THIRD_PARTY.md)). ffmpeg is never bundled.
+* Third-party crates: 363 in the 24 Oct 2026 inventory (all platforms and targets together, which includes the window app's Windows / macOS / Linux-only crates; a given binary contains a subset), all permissive except six weak-copyleft MPL-2.0 crates: `smartstring` behind the optional `scripting` feature, and five (`cssparser`, `cssparser-macros`, `dtoa-short`, `selectors`, `option-ext`) that only the window app `armatura-gui` can pull in ([docs/THIRD_PARTY.md](docs/THIRD_PARTY.md)). ffmpeg is never bundled.
 
 See [LICENSE](LICENSE), [LICENSES/](LICENSES/) and [LICENSING.md](LICENSING.md). None of this is legal advice; a lawyer review is still outstanding.
 

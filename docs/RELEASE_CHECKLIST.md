@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # Release checklist (owner side)
 
-*Steps that only the owner can do, in order. Status on 24 Oct 2026: the repository <https://github.com/chiuta/armatura> exists, GitHub Actions is green (tests on Linux, macOS and Windows, clippy, wasm32, cargo-deny, REUSE) and the draft pre-release `v0.1.0-alpha.2` has been built (Windows, macOS and Linux archives, the web module and `SHA256SUMS.txt`); **nothing is published yet**. Steps below that CI already did are ticked; the rest need a person, a lawyer or an account. Not legal advice. Items marked **[blocker]** should be done before a public announcement.*
+*Steps that only the owner can do, in order. Status on 24 Oct 2026: the repository <https://github.com/chiuta/armatura> exists, GitHub Actions is green (tests on Linux, macOS and Windows, clippy, wasm32, cargo-deny, REUSE) and the draft pre-release `v0.1.0-alpha.3` has been built (Windows, macOS and Linux archives, the web module and `SHA256SUMS.txt`); **nothing is published yet**. Steps below that CI already did are ticked; the rest need a person, a lawyer or an account. Not legal advice. Items marked **[blocker]** should be done before a public announcement.*
 
 ## 1. Before publishing anything
 
@@ -41,7 +41,7 @@
 
 ## 6. Release artefacts
 
-- [x] The release binaries are built on GitHub-hosted runners (`release.yml`) and `SHA256SUMS.txt` is generated in the draft. **Open:** review the draft `v0.1.0-alpha.2`, tick "pre-release", publish it, and tag the commit (the tag is created with the release).
+- [x] The release binaries are built on GitHub-hosted runners (`release.yml`) and `SHA256SUMS.txt` is generated in the draft. **Open:** review the draft `v0.1.0-alpha.3`, tick "pre-release", publish it, and tag the commit (the tag is created with the release).
 - [ ] Decide on code signing (Windows Authenticode certificate, Apple Developer ID and notarisation); until then the downloads are flagged as unsigned (L-74).
 - [ ] Attach the corresponding source for the AGPL parts (the tag itself is enough; keep it available as long as you distribute binaries).
 - [x] `docs/THIRD_PARTY_NOTICES.md` is regenerated (24 Oct 2026) and each archive carries it; regenerate again with `scripts/licence-audit.sh` before every later release.
