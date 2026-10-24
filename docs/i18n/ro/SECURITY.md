@@ -2,13 +2,13 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # Securitate
 
-*Modelul de amenințări, protecțiile încorporate, lacunele cunoscute, cum raportezi o problemă și cum implementezi studioul în siguranță. Documentație CC-BY-4.0. Derivată din sursă (`armatura-core/src/{api,assets,fsutil,expr,script}.rs`, `armatura-cli/src/{http,studio,collab_srv}.rs`), din `ROADMAP.md` secțiunea 9 (valurile de revizie 1–4) și din testele numite mai jos. **ARMATURA nu a avut niciun audit de securitate independent.** Valurile de revizie au fost făcute chiar de proiect; tratează această pagină ca o descriere a intenției și a ceea ce acoperă testele, nu ca o garanție.*
+*Modelul de amenințări, protecțiile încorporate, lacunele cunoscute, cum raportezi o problemă și cum implementezi studioul în siguranță. Documentație CC-BY-4.0. Derivată din sursă (`osatura-core/src/{api,assets,fsutil,expr,script}.rs`, `osatura-cli/src/{http,studio,collab_srv}.rs`), din `ROADMAP.md` secțiunea 9 (valurile de revizie 1–4) și din testele numite mai jos. **OSATURA nu a avut niciun audit de securitate independent.** Valurile de revizie au fost făcute chiar de proiect; tratează această pagină ca o descriere a intenției și a ceea ce acoperă testele, nu ca o garanție.*
 
 Cuprins: [1 Modelul de amenințări](#1-modelul-de-amenințări) - [2 Serverul HTTP al studioului](#2-serverul-http-al-studioului) - [3 Autentificare și colaborare](#3-autentificare-și-colaborare) - [4 Rezolvarea resurselor și limitele de intrare](#4-rezolvarea-resurselor-și-limitele-de-intrare) - [5 Sandbox-ul pentru expresii și scripturi](#5-sandbox-ul-pentru-expresii-și-scripturi) - [6 Fișiere, legături simbolice și date temporare](#6-fișiere-legături-simbolice-și-date-temporare) - [7 Programe externe (ffmpeg)](#7-programe-externe-ffmpeg) - [8 Biblioteci (C ABI, WASM, fațadă)](#8-biblioteci-c-abi-wasm-fațadă) - [9 Lacune cunoscute](#9-lacune-cunoscute) - [10 Raportarea unei vulnerabilități](#10-raportarea-unei-vulnerabilități) - [11 Listă de consolidare pentru cel care implementează](#11-listă-de-consolidare-pentru-cel-care-implementează) - [12 Reverse proxy cu TLS: nginx și Caddy](#12-reverse-proxy-cu-tls-nginx-și-caddy)
 
 ## 1. Modelul de amenințări
 
-Ce procesează ARMATURA: **fișiere de proiect** (JSON), imagini, audio, fișiere de import Lottie / OCA / de tip glTF, fișiere de mapare și, în studio, cereri HTTP de la un browser. Fișierele de proiect sunt *date nesigure* în modelul de mai jos: un proiect primit de la altcineva poate fi ostil, iar deschiderea lui nu trebuie să execute cod, să citească fișiere din afara folderului său sau să epuizeze mașina.
+Ce procesează OSATURA: **fișiere de proiect** (JSON), imagini, audio, fișiere de import Lottie / OCA / de tip glTF, fișiere de mapare și, în studio, cereri HTTP de la un browser. Fișierele de proiect sunt *date nesigure* în modelul de mai jos: un proiect primit de la altcineva poate fi ostil, iar deschiderea lui nu trebuie să execute cod, să citească fișiere din afara folderului său sau să epuizeze mașina.
 
 | Actor | Poate | Scop presupus | Apărări principale |
 |---|---|---|---|
@@ -23,7 +23,7 @@ Ce procesează ARMATURA: **fișiere de proiect** (JSON), imagini, audio, fișier
 
 ## 2. Serverul HTTP al studioului
 
-`armatura studio` servește editorul dintr-o implementare HTTP/1.1 proprie, mică (`armatura-cli/src/http.rs`, doar biblioteca standard, fără framework web terț). Comportament, cu testele care îl fixează (testele unitare `armatura-cli`, `tests/robust.rs`, `tests/wave4.rs`, `tests/source_offer.rs` și testele smoke Chromium):
+`osatura studio` servește editorul dintr-o implementare HTTP/1.1 proprie, mică (`osatura-cli/src/http.rs`, doar biblioteca standard, fără framework web terț). Comportament, cu testele care îl fixează (testele unitare `osatura-cli`, `tests/robust.rs`, `tests/wave4.rs`, `tests/source_offer.rs` și testele smoke Chromium):
 
 **Limite**
 
@@ -63,7 +63,7 @@ Opțiunea `--collab-token T` (sau tokenul cerut de un `--bind` non-local) active
 * **Back-off.** Per adresă IP de client, începând cu al **5-lea** eșec consecutiv: 2, 4, 8, 16, apoi 30 de secunde de răspunsuri 429; se urmăresc până la 512 de adrese de client. Tokenul corect este mereu acceptat, chiar și în timpul unui back-off (astfel încât un atacator să nu-l poată bloca pe proprietar). Back-off-ul încetinește ghicitul; nu oprește un atac distribuit. **În spatele unui reverse proxy fiecare client apare cu adresa proxy-ului**, deci împart un singur contor de back-off: un val de cereri greșite de la un vizitator întârzie contorul de eșecuri pentru toți, dar tokenul corect tot funcționează.
 * **Secrete ale participanților.** Fiecare colaborator primește un secret aleatoriu de 128 de biți (`X-Collab-Secret`) care îi identifică fluxul; cel mult 32 de participanți și 64 de fluxuri de evenimente.
 * **Integritatea jurnalului.** Jurnalul sesiunii este un fișier text, o linie pe operație: `<hash> <json>`, înlănțuit cu SHA-256 (format versiunea 2). Editarea, ștergerea sau reordonarea unei linii rupe lanțul, lucru raportat la încărcarea jurnalului. Fiecare cerere este `fdatasync`-ată înainte de răspuns, fișierul este creat cu modul 0600 și rescris atomic. Lanțul detectează deteriorarea accidentală și manipularea ocazională; **nu este semnat**, deci cine poate scrie fișierul poate reconstrui un lanț valid.
-* **Tokenuri per participant (valul 7, opțional).** `--collab-secret-file F` înlocuiește singurul bearer partajat cu tokenuri derivate dintr-un secret: `ap1.<name>.<expires>.<mac>`, unde `mac` = HMAC-SHA-256 (RFC 2104, SHA-256 propriu, vectorii de test RFC 4231 în teste) peste nume și termen. Gazda le emite cu `armatura collab-token NAME --secret-file F --ttl SECONDS` (implicit 8 ore, cel mult 30 de zile) și dă fiecărei persoane tokenul ei. Un token este legat de un singur nume (un participant care se alătură primește acel nume indiferent ce trimite pagina, deci nimeni nu se poate alătura drept altcineva), expiră singur, este verificat prin recalculare (nu există tabel pe server, nimic de furat de acolo în afară de secretul însuși), iar cookie-ul său primește un `Max-Age` egal cu durata de viață rămasă. `--collab-revoke NAMES` refuză tokenurile acelor nume înainte de expirare; schimbarea secretului revocă tot. Fișierul secret trebuie să fie privat (mod 600 pe Unix, altfel studioul refuză să pornească), de cel puțin 16 caractere, și nu este acceptat niciodată ca argument de linie de comandă. `--collab-token` și `--collab-secret-file` pot fi combinate; oricare satisface regula că o legare non-loopback are nevoie de o credențială. Expirarea este verificată **per cerere**: un flux de evenimente deja deschis rămâne deschis până se încheie, iar următoarea conexiune este refuzată. Un token expirat sau revocat primește răspuns `401` cu motivul și nu alimentează back-off-ul de ghicire.
+* **Tokenuri per participant (valul 7, opțional).** `--collab-secret-file F` înlocuiește singurul bearer partajat cu tokenuri derivate dintr-un secret: `ap1.<name>.<expires>.<mac>`, unde `mac` = HMAC-SHA-256 (RFC 2104, SHA-256 propriu, vectorii de test RFC 4231 în teste) peste nume și termen. Gazda le emite cu `osatura collab-token NAME --secret-file F --ttl SECONDS` (implicit 8 ore, cel mult 30 de zile) și dă fiecărei persoane tokenul ei. Un token este legat de un singur nume (un participant care se alătură primește acel nume indiferent ce trimite pagina, deci nimeni nu se poate alătura drept altcineva), expiră singur, este verificat prin recalculare (nu există tabel pe server, nimic de furat de acolo în afară de secretul însuși), iar cookie-ul său primește un `Max-Age` egal cu durata de viață rămasă. `--collab-revoke NAMES` refuză tokenurile acelor nume înainte de expirare; schimbarea secretului revocă tot. Fișierul secret trebuie să fie privat (mod 600 pe Unix, altfel studioul refuză să pornească), de cel puțin 16 caractere, și nu este acceptat niciodată ca argument de linie de comandă. `--collab-token` și `--collab-secret-file` pot fi combinate; oricare satisface regula că o legare non-loopback are nevoie de o credențială. Expirarea este verificată **per cerere**: un flux de evenimente deja deschis rămâne deschis până se încheie, iar următoarea conexiune este refuzată. Un token expirat sau revocat primește răspuns `401` cu motivul și nu alimentează back-off-ul de ghicire.
 * **Limită de rată (valul 7).** `--collab-rate N` permite N cereri pe secundă per adresă de client, cu rafale de 2N (token bucket); mai mult primește răspuns `429` cu `Retry-After`. Implicit este 100 pe secundă când se cere o credențială și fără limită altfel; 0 o dezactivează. Se aplică după autentificare și per **adresă** (sursa unei conexiuni), nu per conexiune TCP, deoarece o limită per conexiune este ocolită prin deschiderea mai multor conexiuni; în spatele unui reverse proxy toți clienții împart adresa proxy-ului, deci limitează și la proxy (secțiunea 12).
 * **Avertismente despre adresa de legare (valul 7).** Un `--bind` non-loopback afișează un avertisment la pornire (HTTP simplu; pentru `0.0.0.0` / `::` că studioul ascultă pe fiecare interfață; pentru un token partajat că nu are nume și nu expiră niciodată).
 * **Fără TLS, fără conturi.** Serverul vorbește HTTP simplu. Un token care circulă printr-o rețea poate fi citit de oricine se află pe cale. Pune studioul în spatele unui reverse proxy care termină TLS sau al unui tunel SSH / VPN (secțiunea 11). Nu există conturi de utilizator, roluri sau permisiuni per proiect: tokenul acordă acces complet de editare.
@@ -74,7 +74,7 @@ Opțiunea `--collab-token T` (sau tokenul cerut de un `--bind` non-local) active
 * **Fișiere de proiect.** `load_project` citește doar fișiere obișnuite (fără dispozitive, fără pipe-uri), până la 256 MB (`--max-input-bytes N` pentru a schimba). `MAX_JSON_BYTES` al fațadei este 256 MiB.
 * **Proiecte derivate.** Comenzile care scriu un proiect derivat validează față de directorul proiectului de *intrare*; când ieșirea este în altă parte, căile relative ale resurselor existente sunt rescrise sau un avertisment spune că ieșirea nu le va găsi (`--allow-external-assets` le face absolute).
 * **Randare.** Fațada refuză imaginile mai mari de 16384 px pe latură (`MAX_RENDER_SIDE`) și scări în afara intervalului 0.05–4; straturile C și wasm refuză ieșirea peste 256 MiB înainte de alocare. Alte limite ale fațadei: fps în (0, 1000], cadre de la 1 la 200000, scenă până la 32768, 4096 de oase, magnitudini în limita 1e7, `lod_levels` de la 1 la 12, eșantioane `fuzz` până la 100000, culori `trace` de la 2 la 64 ([API.md](API.md)).
-* **Fără panici la intrare.** Testele cu intrări ostile se află în `armatura-cli/tests/robust.rs` și în testele valurilor; testele de tip fuzz acoperă parserele. O panică accesibilă din intrare este tratată ca o vulnerabilitate.
+* **Fără panici la intrare.** Testele cu intrări ostile se află în `osatura-cli/tests/robust.rs` și în testele valurilor; testele de tip fuzz acoperă parserele. O panică accesibilă din intrare este tratată ca o vulnerabilitate.
 * **Corpurile studioului** sunt limitate la 32 MB; editările trec prin aceeași validare ca fișierele.
 
 ## 5. Sandbox-ul pentru expresii și scripturi
@@ -89,7 +89,7 @@ Opțiunea `--collab-token T` (sau tokenul cerut de un `--bind` non-local) active
 * **Date private.** Jurnalele collab și alte fișiere pe care trebuie să le citească doar proprietarul sunt create cu modul 0600 (`write_atomic_private`). Directoarele temporare sunt create exclusiv cu modul 0700 (`private_temp_dir`), astfel încât un nume previzibil într-un `/tmp` partajat nu poate fi creat în prealabil de alt utilizator. Valorile aleatorii (tokenuri pentru participanți noi, nume temporare) vin din `/dev/urandom` (`fsutil::random_bytes`); generatorul determinist cu seed al motorului nu este folosit niciodată pentru secrete.
 * **Setările UI.** `ui.json` al studioului ignoră cheile necunoscute cu un avertisment și este copiat în `ui.json.bak` (apoi `.bak.1`, ...) înainte de prima salvare.
 * **Windows / non-Unix.** Modurile de permisiuni de mai sus se aplică pe Unix. Pe Windows și macOS suita de teste trece în CI (verificările doar-POSIX sunt omise pe Windows), dar verificările pentru symlink-uri, permisiuni și `/dev/urandom` rulează doar pe Linux și macOS, iar comportamentul pe Windows nu a fost revizuit manual de nimeni.
-* **Binare nesemnate și aplicația cu fereastră.** Executabilele de lansare nu sunt semnate cu cod; verifică descărcările față de `SHA256SUMS.txt`. `armatura-studio` pornește același server local (doar `127.0.0.1`, port liber aleatoriu) și îl afișează în web view-ul sistemului (WebView2 / WKWebView); web view-ul său este la fel de expus ca o filă de browser pe acea adresă și nu a avut o revizuire de securitate separată.
+* **Binare nesemnate și aplicația cu fereastră.** Executabilele de lansare nu sunt semnate cu cod; verifică descărcările față de `SHA256SUMS.txt`. `osatura-studio` pornește același server local (doar `127.0.0.1`, port liber aleatoriu) și îl afișează în web view-ul sistemului (WebView2 / WKWebView); web view-ul său este la fel de expus ca o filă de browser pe acea adresă și nu a avut o revizuire de securitate separată.
 
 ## 7. Programe externe (ffmpeg)
 
@@ -128,14 +128,14 @@ Listă sinceră; vezi [LIMITATIONS.md](LIMITATIONS.md) pentru lista mai largă d
 ## 10. Raportarea unei vulnerabilități
 
 * **Nu deschide un issue public** pentru o vulnerabilitate. Trimite un raport privat către mentenanță: **`alexio@trom.tf`**. *(Substituent: adresa apare în notificarea `--version` a programului și în documentele de licență; proprietarul trebuie să o confirme drept contact de securitate și o poate înlocui cu o adresă dedicată sau cu un canal privat de advisory înainte de prima lansare.)*
-* Include: versiunea (`armatura --version`) și platforma, proiectul sau cererea care declanșează problema (un fișier minimal este cel mai bun), ce te așteptai să se întâmple și ce s-a întâmplat, și dacă dorești să fii menționat.
+* Include: versiunea (`osatura --version`) și platforma, proiectul sau cererea care declanșează problema (un fișier minimal este cel mai bun), ce te așteptai să se întâmple și ce s-a întâmplat, și dacă dorești să fii menționat.
 * La ce să te aștepți *(intenție, nu contract: acesta este un proiect al unei singure persoane)*: o confirmare într-un timp rezonabil, o remediere dezvoltată în privat, un test de regresie adăugat în suită, o notă în [CHANGELOG.md](CHANGELOG.md) și menționare dacă dorești. Te rugăm să lași timp pentru o remediere înainte de a publica detalii.
 * Versiuni suportate: este suportată doar cea mai nouă pre-lansare (`v0.1.0-alpha.3` după publicare) și arborele curent de pe `main`.
 * Rapoartele despre expunerea în rețea a studioului când este legat în mod deliberat la o adresă publică fără reverse proxy sunt mai întâi probleme de documentație: vezi secțiunea 11.
 
 ## 11. Listă de consolidare pentru cel care implementează
 
-Pentru oricine rulează `armatura studio` pentru mai mult de o persoană sau în afara localhost.
+Pentru oricine rulează `osatura studio` pentru mai mult de o persoană sau în afara localhost.
 
 1. [ ] Preferă să **nu** îl expui. Un singur utilizator: lasă legarea implicită (`127.0.0.1`) și folosește un tunel SSH (`ssh -L 8080:127.0.0.1:8080 host`).
 2. [ ] Dacă este expus, **termină TLS** într-un reverse proxy (nginx, Caddy, ...) în fața lui; nu expune niciodată portul HTTP simplu pe Internet.
@@ -159,9 +159,9 @@ Studioul vorbește HTTP simplu. Pentru orice dincolo de propria ta mașină rule
 Pornește studioul pe loopback și numește-i gazda publică, astfel încât verificările Host și Origin să accepte proxy-ul și nimic altceva:
 
 ```
-armatura studio demo.json --port 8080 --bind 127.0.0.1 \
+osatura studio demo.json --port 8080 --bind 127.0.0.1 \
   --allow-host studio.example.org --public-origin https://studio.example.org \
-  --collab-secret-file /etc/armatura/collab.secret --collab-log /var/lib/armatura/session.log
+  --collab-secret-file /etc/osatura/collab.secret --collab-log /var/lib/osatura/session.log
 ```
 
 Cu un `--public-origin` de tip `https://`, cookie-ul de autentificare primește atributul `Secure`. Fluxul de evenimente (`/api/collab/events`) este Server-Sent Events: proxy-ul nu trebuie să îl pună în buffer și trebuie să permită citiri lungi.
@@ -169,7 +169,7 @@ Cu un `--public-origin` de tip `https://`, cookie-ul de autentificare primește 
 **nginx** (certificate de la CA-ul tău sau `certbot`):
 
 ```
-limit_req_zone $binary_remote_addr zone=armatura:10m rate=20r/s;
+limit_req_zone $binary_remote_addr zone=osatura:10m rate=20r/s;
 
 server {
     listen 80;
@@ -187,7 +187,7 @@ server {
     client_max_body_size 64m;
 
     location / {
-        limit_req zone=armatura burst=60 nodelay;
+        limit_req zone=osatura burst=60 nodelay;
         proxy_pass http://127.0.0.1:8080;
         proxy_http_version 1.1;
         proxy_set_header Host $host;

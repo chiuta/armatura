@@ -54,7 +54,7 @@ def main():
             h1 = re.search(r"^# (.+)$", md, re.M)
             title = TITLES.get(i)
             if not title and h1:
-                title = re.sub(r"^ARMATURA ", "", h1.group(1).replace("`", ""))
+                title = re.sub(r"^OSATURA ", "", h1.group(1).replace("`", ""))
                 title = title[:1].upper() + title[1:]
             d, a = desc.get(i) or EXTRA_DESC.get(i, ("", ""))
             docs[i] = {"t": title or i, "g": g,

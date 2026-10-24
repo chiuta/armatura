@@ -7,7 +7,7 @@
 ## 1. Înainte de a publica orice
 
 - [ ] **[blocker]** Confirmă sau înlocuiește contactul de securitate (`alexio@trom.tf` este un substituent în `docs/SECURITY.md`, în `--version` și în documentele de licență).
-- [ ] **[blocker]** Caută numele „ARMATURA” în registrele de mărci care te interesează (EUIPO, USPTO, OSIM) și în magazinele de aplicații / registrele de pachete. Vezi `TRADEMARK.md`. Dacă apare o suprapunere, redenumește înainte de prima lansare (numele apare în binar, crate-uri, documentație).
+- [ ] **[blocker]** Caută numele „OSATURA” în registrele de mărci care te interesează (EUIPO, USPTO, OSIM) și în magazinele de aplicații / registrele de pachete. Vezi `TRADEMARK.md`. Dacă apare o suprapunere, redenumește înainte de prima lansare (numele apare în binar, crate-uri, documentație).
 - [ ] **[blocker]** Cere unui avocat să verifice `LICENSING.md`, împărțirea MPL-2.0 / AGPL-3.0, `docs/THIRD_PARTY.md` și `docs/PATENT_NOTES.md`. Decide dacă vrei licențiere duală; dacă da, este nevoie de un CLA *înainte* de a accepta contribuții din exterior (în prezent: doar DCO).
 - [ ] Verifică termenii referinței Graphics Gems pentru potrivirea curbelor (citată din memorie în `CLEANROOM.md`); păstrează formularea despre implementare independentă doar dacă este corectă.
 - [x] `reuse lint` și `cargo deny check` trec în CI (jobul `licences`); rulează-le o dată și pe mașina ta.
@@ -30,7 +30,7 @@
 
 - [ ] Dă studioul la 3–5 animatori pentru o săptămână, cu o sarcină scurtă (rig pentru un personaj, un ciclu de mers, export GIF). Notează unde se blochează; deschide câte un issue pentru fiecare.
 - [ ] Testează pe browsere reale (Chrome, Firefox, Safari), un dispozitiv tactil și o sesiune doar cu tastatura.
-- [ ] Pe un **Windows 11** real și pe un **Mac** real: despachetează arhiva, fă dublu clic pe `armatura.exe` (Windows) și pe `armatura-studio`, fă rig și exportă un proiect și raportează ce nu merge (L-74 până la L-76).
+- [ ] Pe un **Windows 11** real și pe un **Mac** real: despachetează arhiva, fă dublu clic pe `osatura.exe` (Windows) și pe `osatura-studio`, fă rig și exportă un proiect și raportează ce nu merge (L-74 până la L-76).
 - [ ] Încearcă funcțiile de detector de fețe / mocap / voce cu date reale; raportează sincer că sunt limitate (L-12, L-13).
 
 ## 5. Siguranța implementării (dacă găzduiești studioul sau colaborarea)

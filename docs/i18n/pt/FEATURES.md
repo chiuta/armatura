@@ -1,15 +1,15 @@
-# ARMATURA — matriz de recursos + listas de verificação de referência e da concorrência
+# OSATURA — matriz de recursos + listas de verificação de referência e da concorrência
 
 > Redação das versões: todos os crates estão em `0.1.0` (os primeiros builds são o pré-lançamento em rascunho `v0.1.0-alpha.3`); "v0.5 / v0.6 / v0.7" neste repositório são *níveis de recursos* (veja [CHANGELOG.md](CHANGELOG.md)), e a seção 9 de `ROADMAP.md` é a autoridade sobre o que está construído.
 
 Estado honesto do que existe. **✅ pronto e testado · 🟡 parcial · ❌ não implementado.**
 
-> Nota de escopo: o ARMATURA é um motor implementado de forma independente (a partir de especificações e artigos públicos; as listas de recursos da concorrência foram consultadas para definir o escopo; nenhum código-fonte de terceiros foi copiado; veja CLEANROOM.md para a divulgação da pesquisa), não uma reimplementação de nenhum
+> Nota de escopo: o OSATURA é um motor implementado de forma independente (a partir de especificações e artigos públicos; as listas de recursos da concorrência foram consultadas para definir o escopo; nenhum código-fonte de terceiros foi copiado; veja CLEANROOM.md para a divulgação da pesquisa), não uma reimplementação de nenhum
 > produto comercial, e **não** atinge a paridade com uma suíte comercial de 25 anos
 > (GUI madura, ferramentas de desenho, entrada ao vivo, 3D, ecossistema). As primeiras tabelas são organizadas por
 > capacidade; a **segunda metade deste arquivo** é uma lista de verificação, versão por versão, dos recursos
 > publicamente documentados do produto de referência (fontes listadas no final), com
-> o estado do ARMATURA para cada um. As "inovações" são afirmadas apenas em relação à técnica genérica,
+> o estado do OSATURA para cada um. As "inovações" são afirmadas apenas em relação à técnica genérica,
 > e não como comprovadamente ausentes de qualquer outra ferramenta.
 
 ---
@@ -99,13 +99,13 @@ Ela substitui as listas dispersas de "candidatos n.º" mais adiante; os detalhes
 | Runtime WASM, API Rust estável + ABI C, scripting em sandbox (R-090…R-093) | 🟡 (R-091, R-092, R-093 concluídos; R-090: o módulo wasm compila e passa no teste do wrapper sob o Node no CI, mas nunca foi executado em um navegador) | 🟢 | API própria |
 | **Servidor de agente / MCP** sobre patch ops: inspecionar, editar (atômico, desfazível), lint, segurança, renderizar, salvar somente no próprio arquivo (R-094) | ✅ | 🟢 | protocolo JSON-RPC aberto |
 | GUI completa: gizmos, timeline, editor de curvas (R-100…R-103) | 🟡 (R-101, R-102 concluídos; as páginas de R-100 e R-103 existem, mas o autor nunca as executou em um navegador real) | 🟢 | widgets genéricos; visual próprio |
-| Controle de versão de animação com merge semântico, diff perceptual de CI, explique-este-pixel (I-01, I-06, I-07) | ✅ (I-01 `armatura vcs`, I-06 `armatura ci`, I-07 `explain`) | 🟢 | ideias próprias |
+| Controle de versão de animação com merge semântico, diff perceptual de CI, explique-este-pixel (I-01, I-06, I-07) | ✅ (I-01 `osatura vcs`, I-06 `osatura ci`, I-07 `explain`) | 🟢 | ideias próprias |
 | Fuzzing de poses com mapas de calor de estresse, exportação com tamanho-alvo, nível de detalhe determinístico com limite de erro declarado (I-03, I-10, I-11) | 🟡 (os três construídos; o limite de I-11 não cobre efeitos, caminhos com skin, valores guiados por IK nem poses de máquina de estados) | 🟢 | ideias próprias, matemática de livro didático |
 
 ## Nível 6 — Fronteira (nível de pesquisa)
 | Recurso | Estado | PI | Base segura / condição |
 |---|---|---|---|
-| Renderizador GPU com testes de paridade com a CPU (R-110) | 🟡 (crate `armatura-gpu` construído e testado; execução em hardware limitada, veja ROADMAP) | 🟢 | wgpu (permissiva) |
+| Renderizador GPU com testes de paridade com a CPU (R-110) | 🟡 (crate `osatura-gpu` construído e testado; execução em hardware limitada, veja ROADMAP) | 🟢 | wgpu (permissiva) |
 | Edição multiusuário em tempo real sobre o op-log (R-111) | 🟡 (concluída, com log de sessão persistido opcional `--collab-log`; participantes e histórico de desfazer não são persistidos; HTTP simples, token compartilhado) | 🟢 | literatura de CRDT |
 | Runtime de data-binding / layout (R-091, R-095) | ✅ (design próprio; triagem de patentes não realizada, docs/PATENT_NOTES.md) | 🟠 | fazer a triagem de patentes antes de distribuir |
 | Ferramentas assistidas por ML (R-112) | 🟡 | 🟠 | somente métodos clássicos, sem pesos de modelo: `autotrace` (k-means, ajuste de Bézier de Schneider, modo de linha Zhang-Suen) e sugestões aprendidas das suas poses (PCA, kernels, pequeno MLP opcional em formato de pesos próprio); sem deep learning |
@@ -118,7 +118,7 @@ Ela substitui as listas dispersas de "candidatos n.º" mais adiante; os detalhes
 - Incluir **encoders H.264/H.265/AAC**.
 
 ## Condições que se aplicam a toda linha 🟢
-Log de proveniência mantido (`CLEANROOM.md`; implementação independente, não um clean-room estrito); somente dependências permissivas (regenere com `scripts/licence-audit.sh`; atualmente 363 crates de terceiros em todas as plataformas, todos da classe MIT / Apache-2.0 / BSD / Zlib / Unlicense, exceto seis crates MPL-2.0 (smartstring, via o recurso `scripting`, ativado por padrão, e cinco via o aplicativo de janela `armatura-gui`); veja docs/THIRD_PARTY.md); nenhuma arte ou áudio de terceiros distribuído sem o respectivo arquivo de licença; o nome **ARMATURA** liberado em uma busca de marca registrada antes do lançamento.
+Log de proveniência mantido (`CLEANROOM.md`; implementação independente, não um clean-room estrito); somente dependências permissivas (regenere com `scripts/licence-audit.sh`; atualmente 363 crates de terceiros em todas as plataformas, todos da classe MIT / Apache-2.0 / BSD / Zlib / Unlicense, exceto seis crates MPL-2.0 (smartstring, via o recurso `scripting`, ativado por padrão, e cinco via o aplicativo de janela `osatura-gui`); veja docs/THIRD_PARTY.md); nenhuma arte ou áudio de terceiros distribuído sem o respectivo arquivo de licença; o nome **OSATURA** liberado em uma busca de marca registrada antes do lançamento.
 
 
 # Tabelas detalhadas de capacidades
@@ -222,10 +222,10 @@ pixels de renderização, exportadores, desfazer/refazer do editor, áudio, part
 Referência: Moho (antes Anime Studio), 1999 → 14.5 "SHOWTIME" (12 out 2026). As listas de recursos vêm
 de páginas de lançamento do fornecedor e da imprensa especializada (veja Fontes). Lacunas no registro: Anime Studio 6–8,
 12.5 e 14.1 não tinham uma lista pública detalhada que eu pudesse encontrar, por isso são cobertos apenas pelo
-histórico geral. O estado é o do ARMATURA: ✅ existe equivalente · 🟡 parcial / abordagem diferente · ❌ ausente.
+histórico geral. O estado é o do OSATURA: ✅ existe equivalente · 🟡 parcial / abordagem diferente · ❌ ausente.
 
 ## Primeiras versões (1999 – Anime Studio 8, apenas histórico geral)
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | Partículas | ✅ camada de emissor determinística |
 | Máscaras de camada | ✅ máscaras alfa + inverter |
@@ -240,7 +240,7 @@ histórico geral. O estado é o do ARMATURA: ✅ existe equivalente · 🟡 parc
 | Smart bones, IK | 🟡 canais guiados / ✅ 2 ossos + FABRIK |
 
 ## Anime Studio 9 (2013)
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | 64 bits, aceleração por GPU | 🟡 Rust nativo de 64 bits; apenas rasterizador por CPU (sem GPU) |
 | Smart Bones (dials de controle de dobra de junta) | 🟡 canais guiados mapeiam qualquer valor para qualquer outro; sem UI/ações de dial |
@@ -249,7 +249,7 @@ histórico geral. O estado é o do ARMATURA: ✅ existe equivalente · 🟡 parc
 | Multitoque Wacom | ❌ |
 
 ## Anime Studio 10 (2014)
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | Restrições de ângulo independentes (globais) | 🟡 copy-rotation para um osso de controle aproxima isso |
 | Squash & stretch | 🟡 a escala do osso é animável; sem squash/stretch automático |
@@ -260,7 +260,7 @@ histórico geral. O estado é o do ARMATURA: ✅ existe equivalente · 🟡 parc
 | Importação de objetos 3D | ❌ |
 
 ## Anime Studio 11 (2015)
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | Animação quadro a quadro | ✅ camadas switch + canais de exposição |
 | Referenciamento de camadas (duplicatas vinculadas) | ❌ |
@@ -272,7 +272,7 @@ histórico geral. O estado é o do ARMATURA: ✅ existe equivalente · 🟡 parc
 | Mesclar traços, ferramenta Color Points | ❌ |
 
 ## Moho 12 (2016) e 12.x
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | Alças Bézier | ✅ |
 | Ferramentas de mão livre aprimoradas | ❌ |
@@ -284,7 +284,7 @@ histórico geral. O estado é o do ARMATURA: ✅ existe equivalente · 🟡 parc
 | UI redesenhada, ancoragem de ossos, congelamento automático de posição | ❌ |
 
 ## Moho 13 (2019)
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | Quadro a quadro bitmap + onion skin | 🟡 camadas de imagem PNG dentro de camadas switch; sem onion skin, sem desenho bitmap |
 | Ferramentas de desenho bitmap / pincéis personalizados | ❌ |
@@ -295,7 +295,7 @@ histórico geral. O estado é o do ARMATURA: ✅ existe equivalente · 🟡 parc
 | Personagens incluídos | ❌ |
 
 ## Moho 13.5 (2021) e 13.5.x
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | Vitruvian Bones (troca desenhos *e* conjuntos de ossos) | 🟡 camadas switch trocam desenhos; sem troca de conjuntos de ossos |
 | Malhas quad (perspectiva) | 🟡 malha de grade + lattice dão warps de forma livre; sem quad projetivo |
@@ -307,7 +307,7 @@ histórico geral. O estado é o do ARMATURA: ✅ existe equivalente · 🟡 parc
 | Licenças flutuantes | n/a |
 
 ## Moho 14 (2023)
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | Novo motor gráfico, efeitos em tempo real (blur, sombra, ruído) | ❌ sem filtros de blur/sombra/ruído; modos de mesclagem ✅ |
 | Liquid Shapes (mesclar/subtrair/interseccionar/misturar) | 🟡 líquido metaball ✅ + booleanas de polígono ✅; não é o mesmo modelo de formas |
@@ -324,7 +324,7 @@ histórico geral. O estado é o do ARMATURA: ✅ existe equivalente · 🟡 parc
 | Atualização da interface de scripting (Lua 5.4) | ❌ |
 
 ## Moho 14.1 – 14.2 (2023-11, 2024-06)
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | (14.1: nenhum detalhe público encontrado) | — |
 | Deslocamento animado do perfil de curva | ❌ (os perfis de largura são estáticos) |
@@ -343,14 +343,14 @@ histórico geral. O estado é o do ARMATURA: ✅ existe equivalente · 🟡 parc
 | Exportação ProRes com alfa | ❌ (somente GIF/PNG/MP4) |
 
 ## Moho 14.3 (2024-12)
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | Opacidade de pincel por ponto (guiada por pressão) | ❌ |
 | Variação de cor pela pressão da caneta | ❌ |
 | Controles de ferramenta de mão livre/largura de linha | ❌ |
 
 ## Moho 14.4 "SIDE QUEST" (2025-11)
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | Exportação para Unreal / Unity / Godot | ❌ |
 | Exportação glTF para Blender / ferramentas 3D | 🟡 (`.glb`: formas do quadro 0, ossos, pesos de morph) |
@@ -361,7 +361,7 @@ histórico geral. O estado é o do ARMATURA: ✅ existe equivalente · 🟡 parc
 | Criação de ciclos mais fácil | ✅ extrapolação em loop + gerador de ciclo de caminhada |
 
 ## Moho 14.5 "SHOWTIME" (2026-10-12)
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | Live Playback (webcam / gamepad / microfone, webcam virtual, OBS) | ❌ |
 | Rastreamento facial → ossos / Smart Bones / malha | 🟡 (detector treinado com dados sintéticos, `face-bake`; não validado em rostos reais) |
@@ -383,7 +383,7 @@ histórico geral. O estado é o do ARMATURA: ✅ existe equivalente · 🟡 parc
 | Linux via Wine/Proton | ✅ Rust nativo (Linux/macOS/Windows); arquivos pré-compilados para Windows x86-64, macOS arm64 e Linux x86-64 no pré-lançamento em rascunho; testado pelo CI nos três, por uma pessoa apenas no Linux |
 
 ## Resumo (somente o produto de referência; a concorrência vem a seguir)
-Dos recursos documentados do produto de referência, o ARMATURA cobre o núcleo de **rigging, deformação,
+Dos recursos documentados do produto de referência, o OSATURA cobre o núcleo de **rigging, deformação,
 animação procedural, matemática de composição e exportação** (aproximadamente: esqueleto/IK/restrições,
 deformação por malha e lattice, keyframes e expressões, máscaras/mesclagens/gradientes, partículas,
 metaballs/booleanas, GIF/MP4/HTML/Lottie), mas **não tem ferramentas de desenho, entrada ao vivo, 3D
@@ -410,7 +410,7 @@ Fonte: o PDF de histórico de versões hospedado pelo fornecedor (lostmarble.com
 páginas de imprensa do Anime Studio 7 e 8. Ele substitui as linhas de "apenas histórico geral" próximas ao topo da
 lista de verificação de referência. Não encontrado nem aqui: detalhes de 8.x, 10.1.x, 11.1, 12.5, 14.1.
 
-| Versão | Recursos documentados | ARMATURA |
+| Versão | Recursos documentados | OSATURA |
 |---|---|---|
 | Moho 1 (1999) | BeOS, port para Windows, saída Flash | ❌ Flash/SWF (obsoleto) |
 | 2.x | E/S QuickTime, renderiza até 4096², sombreamento de camada, camadas switch, amostras de cor em estilos, vinculação flexível de ossos, importação aprimorada do Illustrator | ✅ camadas switch, 🟡 vinculação por pesos, ❌ importação do Illustrator, ✅ grandes escalas de raster (≤16×) |
@@ -438,10 +438,10 @@ Synfig Studio, OpenToonz, TVPaint Animation 12, Adobe Animate, Cavalry, Procreat
 Effects), Blender Grease Pencil. Os itens abaixo são os que **ainda não constam** na lista de verificação
 de referência. A qualidade das fontes varia: a maioria das linhas vem de páginas de recursos/lançamentos do fornecedor que eu consultei;
 as linhas marcadas com † vêm de conhecimento geral ou apenas de um título/sumário e não foram confirmadas em uma página.
-O estado é o do ARMATURA: ✅ · 🟡 · ❌.
+O estado é o do OSATURA: ✅ · 🟡 · ❌.
 
 ## Rigging, restrições, deformação
-| Recurso | Visto em | ARMATURA |
+| Recurso | Visto em | OSATURA |
 |---|---|---|
 | Ferramentas de pesos: soldar pesos entre malhas, copiar/colar pesos entre vértices | Spine 4.2 | ❌ (somente auto-skin, sem pintura) |
 | Restrições de física de ossos (inércia, vento, gravidade, mix) | Spine 4.2 | 🟡 molas amortecidas (frequência/amortecimento); sem vento/gravidade/inércia |
@@ -470,7 +470,7 @@ O estado é o do ARMATURA: ✅ · 🟡 · ❌.
 | Auto-rigging, controladores, dinâmica de molas | Duik † | 🟡 molas ✅; auto-rig ❌ |
 
 ## Animação, timeline, interatividade
-| Recurso | Visto em | ARMATURA |
+| Recurso | Visto em | OSATURA |
 |---|---|---|
 | Mistura de animações: blend/crossfade de animações simultâneas em runtime | Spine | 🟡 modos Add/Multiply + pesos; `crossfade` pré-calculado; sem transições em runtime |
 | Dopesheet + editor de curvas + pré-visualização em runtime | Spine, Rive, OpenToonz | ❌ (os dados suportam; sem UI) |
@@ -498,7 +498,7 @@ O estado é o do ARMATURA: ✅ · 🟡 · ❌.
 | Câmera 2D baseada em keys com temporização na timeline | TVPaint 12 | ✅ |
 
 ## Ferramentas de desenho, pintura e bitmap
-| Recurso | Visto em | ARMATURA |
+| Recurso | Visto em | OSATURA |
 |---|---|---|
 | Pincel: randomização (quantidade de carimbos, deslocamento), papéis duplos, pincéis multitexturizados | Harmony 24, TVPaint 12 | ❌ |
 | Opacidade do lápis por pressão/inclinação/velocidade/afilamento/fade | Harmony 24 | ❌ |
@@ -517,7 +517,7 @@ O estado é o do ARMATURA: ✅ · 🟡 · ❌.
 | Mais de 50 tipos de camada (fractais, filtros, distorções) | Synfig | ❌ (≈7 tipos de camada) |
 
 ## Efeitos e composição
-| Recurso | Visto em | ARMATURA |
+| Recurso | Visto em | OSATURA |
 |---|---|---|
 | Rede de composição em visão de nós com portas nomeadas | Harmony 24 | ❌ (árvore de camadas + máscaras/mesclagens) |
 | Mattes, grupos sob composite | Harmony | ✅ máscaras, grupos isolados |
@@ -533,7 +533,7 @@ O estado é o do ARMATURA: ✅ · 🟡 · ❌.
 | Motor de áudio (locução, música, SFX) | Procreate Dreams | ❌ |
 
 ## 3D, pipeline, interoperabilidade, runtimes
-| Recurso | Visto em | ARMATURA |
+| Recurso | Visto em | OSATURA |
 |---|---|---|
 | Cena 3D, pose de ossos FBX, grafo de cena Vulkan, desenho em plano de perspectiva | Harmony 24 | ❌ |
 | Renderização externa via Maya / Blender | Harmony 24 | ❌ |
@@ -588,7 +588,7 @@ O estado é o do ARMATURA: ✅ · 🟡 · ❌.
 Legenda como acima: ✅ pronto, 🟡 parcial, ❌ ainda não. Só são listados recursos confirmados em páginas de fornecedores/projetos ou na imprensa. Sites piratas não foram usados; web.archive.org não é acessível a partir deste ambiente, de modo que algumas versões mais antigas continuam sem documentação (veja "Lacunas conhecidas").
 
 ## Toon Boom Harmony 20 (notas de lançamento do fornecedor)
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | Editor Centerline: exclusão de pontos, opção de suavidade | ❌ |
 | Linhas de lápis texturizadas → traços de pincel texturizados; conta-gotas de textura de lápis | ❌ |
@@ -609,7 +609,7 @@ Legenda como acima: ✅ pronto, 🟡 parcial, ❌ ainda não. Só são listados 
 | Control Center: cópia/importação/execução de scripts de cenas em lote, fila de renderização | ❌ |
 
 ## OpenToonz 1.7
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | Modo de linha reta para o pincel | ❌ |
 | Suporte a pincéis do GIMP + MyPaint | ❌ |
@@ -626,7 +626,7 @@ Legenda como acima: ✅ pronto, 🟡 parcial, ❌ ainda não. Só são listados 
 | Suporte ao Haiku OS | n/a |
 
 ## Synfig 1.4.2 (e 1.4.0 da rodada 1)
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | Exportação Lottie incl. camadas avançadas de contorno e blur, gama | 🟡 exportação Lottie ✅ (formas/transformação); blur ❌ |
 | Editor de atalhos de teclado, atalhos de ferramenta de tecla única | ❌ |
@@ -666,7 +666,7 @@ Anime Studio 8.x, 10.1.x, 11.1; detalhes do Moho 12.5 e 14.1; Spine 3.0–4.1 (o
 O WebSearch restrito a youtube.com retorna títulos de vídeos; o WebFetch retorna a **descrição/lista de capítulos** de cada vídeo (sem transcrições). Só são listados os recursos ali nomeados; "novo na versão X" é como declarado por quem enviou o vídeo (muitas vezes o fornecedor).
 
 ## Moho 14.1 (descrição do vídeo)
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | Mostrar/ocultar alças na ferramenta Curvature | ❌ (sem GUI de canvas) |
 | Efeitos de forma Shaded e Halo visíveis no modo de edição | 🟡 gradientes ✅; efeitos halo/shade ❌ |
@@ -681,7 +681,7 @@ O WebSearch restrito a youtube.com retorna títulos de vídeos; o WebFetch retor
 As páginas de título/descrição não trouxeram lista de recursos (vídeo desatualizado; download gratuito do 12.5 retirado). Títulos relacionados mencionam tutoriais de Smart Bones, rigs 2.5D com Smart Warp e instalação das "Mynd Tools" — Smart Bones 🟡 (canais/morphs), Smart Warp 🟡 (lattice FFD ✅).
 
 ## Spine
-| Versão | Recurso | ARMATURA |
+| Versão | Recurso | OSATURA |
 |---|---|---|
 | 3.7 | Suporte a áudio | ❌ (WAV analisado apenas para lip-sync) |
 | 3.7 | Exportações reformuladas | 🟡 |
@@ -703,7 +703,7 @@ As páginas de título/descrição não trouxeram lista de recursos (vídeo desa
 | 4.1 beta | Função Sequence (attachment de sequência de imagens) | ❌ |
 
 ## Toon Boom Harmony 25 / 25.2
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | Ferramenta Pencil Retouch | ❌ |
 | Importar pincéis do Photoshop | ❌ |
@@ -714,7 +714,7 @@ As páginas de título/descrição não trouxeram lista de recursos (vídeo desa
 | Master Controller Grid Wizard | ❌ |
 
 ## Série Cartoon Animator 5
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | 5.1 Edição de ida e volta de PSD e vetor | ❌ |
 | 5.1 Importação de sequência de imagens e GIF | ❌ |
@@ -746,7 +746,7 @@ As páginas de título/descrição não trouxeram lista de recursos (vídeo desa
 Fontes: notas de lançamento oficiais do Synfig/Rive, títulos/descrições do YouTube. Só são listados os recursos nomeados.
 
 ## Anime Studio 8 (série "Pro Feature" do YouTube, títulos + descrições)
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | Vetorização automática de imagem (bitmap → vetor editável) | ❌ (roadmap n.º 20) |
 | Character Wizard (criação guiada de personagens) | 🟡 rigs de demonstração/gerador de caminhada; sem wizard |
@@ -757,7 +757,7 @@ Fontes: notas de lançamento oficiais do Synfig/Rive, títulos/descrições do Y
 Anime Studio 10.1 / 11.1: nenhuma fonte acessível encontrada.
 
 ## Synfig 1.4.1 – 1.4.4
-| Versão | Recurso | ARMATURA |
+| Versão | Recurso | OSATURA |
 |---|---|---|
 | 1.4.1 | Camadas de som mixadas no vídeo exportado | ❌ (sem faixa de áudio) |
 | 1.4.1 | Duplicar camada copia todas as camadas selecionadas | ✅ (ops em lote) |
@@ -768,7 +768,7 @@ Anime Studio 10.1 / 11.1: nenhuma fonte acessível encontrada.
 | 1.4.4 | Correção na exportação do último quadro | ✅ coberto por testes |
 
 ## Rive (notas de lançamento oficiais, set–out 2026) — o concorrente mais ativo
-| Recurso | ARMATURA |
+| Recurso | OSATURA |
 |---|---|
 | Conversor String Template (texto a partir de valores de view-model, formatação de números) | ❌ |
 | Traços tracejados (Dash Effect), importados do SVG | ❌ |
@@ -793,7 +793,7 @@ Anime Studio 10.1 / 11.1: nenhuma fonte acessível encontrada.
 | Histórico de revisões e restauração, sincronização offline, desfazer que mantém o zoom | 🟡 desfazer/refazer ✅ |
 
 ## TVPaint Animation 11 (descrições do YouTube)
-Criação de atalhos, under-drawings removíveis, suavização de linhas, gravação de desenho, clique e arraste do ponto de pivô do KeyFramer (11.7.1), Sprite Generator, Inlay Texture FX, guias, vídeo "end of update releases" — tudo ❌ (ferramentas de pintura raster; o ARMATURA é vetor/rig).
+Criação de atalhos, under-drawings removíveis, suavização de linhas, gravação de desenho, clique e arraste do ponto de pivô do KeyFramer (11.7.1), Sprite Generator, Inlay Texture FX, guias, vídeo "end of update releases" — tudo ❌ (ferramentas de pintura raster; o OSATURA é vetor/rig).
 
 ## Toon Boom Harmony 17 (YouTube)
 Free Form Deformer 🟡 (lattice FFD ✅), Master Controllers turbinados 🟡, RGB Difference Keyer ❌, Motion Blur ❌ (roadmap n.º 5).
@@ -831,14 +831,14 @@ Anime Studio 10.1 / 11.1, notas detalhadas do Moho 12.5, páginas de detalhes do
 **Realidade do acesso:** as páginas do X/Twitter estão bloqueadas para busca pelo robots.txt (só são visíveis trechos/títulos de resultados de busca); o Facebook idem; as buscas no Reddit com filtro de domínio foram rejeitadas pelo proxy de busca e as buscas sem filtro não retornaram threads do Reddit; o fórum da Lost Marble serve uma casca de redirecionamento em JavaScript sem conteúdo legível. Nada foi contornado. O que foi legível:
 
 ## Canais oficiais do Moho (notícias de moho.lostmarble.com, trechos do X)
-| Item | Observações | ARMATURA |
+| Item | Observações | OSATURA |
 |---|---|---|
 | Moho 13.5.3 (abr 2022) | lip-sync automático aprimorado, interface melhor, ossos menos intrusivos | ✅ lip-sync (WAV heurístico) |
 | Moho 13.5.5 (X, mai 2022) | **Relative Paths** para assets vinculados | ✅ o diretório de assets é relativo |
 | Moho 14.3 "Mantis Shrimp" (dez 2024) | atualização focada em pincéis | ❌ |
 | Moho 14.4 "Side Quest" (nov 2025) | exportação para engines de jogos e software 3D | 🟡 Lottie/JSON próprio; glTF/FBX ❌ |
 | Moho 14.5 "Showtime" (out 2026) | onion skins magnéticos, Shift & Trace, opções de Liquid Shapes, EXR/PNG com perfis de cor, modo live-playback para transmissão/controle de personagens em tempo real | veja a matriz principal; modo ao vivo ❌ |
-| Programa de Embaixadores (jun 2026); posição oficial: nenhuma ferramenta de IA planejada (mar 2025) | política | n/a — o ARMATURA também não tem recursos de IA |
+| Programa de Embaixadores (jun 2026); posição oficial: nenhuma ferramenta de IA planejada (mar 2025) | política | n/a — o OSATURA também não tem recursos de IA |
 | Webinars (Víctor Paredes etc.) | tutoriais | n/a |
 
 ## Comparações da comunidade (fórum do Spine, "Spine vs Moho 12")
@@ -846,7 +846,7 @@ Anime Studio 10.1 / 11.1, notas detalhadas do Moho 12.5, páginas de detalhes do
 - Os usuários criticam: FFD considerado fraco; **sem runtime real**, exportação para jogos limitada a FBX.
 - Creature elogiado pelo motion capture integrado (FFD criticado).
 - As restrições de física do Spine 4.2 recebem reações entusiasmadas no X (posts de usuários).
-ARMATURA: física ✅ (molas pré-calculadas), mascaramento 🟡 (clip via booleanas), smart bones 🟡, edição vetorial ✅, runtime ❌, mocap ❌.
+OSATURA: física ✅ (molas pré-calculadas), mascaramento 🟡 (clip via booleanas), smart bones 🟡, edição vetorial ✅, runtime ❌, mocap ❌.
 
 ## Títulos de listas de desejos de fóruns vistos (conteúdo ilegível)
 "Concentrate on Timeline/Workflow improvements" (2024), "Road map for Moho", "Help Shape the Future of Anime Studio", "13.5.2 performance issue" — sugere que timeline/fluxo de trabalho e desempenho são as áreas mais solicitadas; não é uma lista de recursos verificada.
@@ -867,11 +867,11 @@ ARMATURA: física ✅ (molas pré-calculadas), mascaramento 🟡 (clip via boole
 
 # Adendo — Listas de desejos e quadros de pedidos de recursos (rodada 6, 2026-10-19)
 
-Só são listados os pedidos realmente legíveis. A coluna "ARMATURA" indica se o pedido é algo que o motor já cobre.
+Só são listados os pedidos realmente legíveis. A coluna "OSATURA" indica se o pedido é algo que o motor já cobre.
 
 ## Moho (fórum da Lost Marble)
 Legível: apenas o índice do fórum. Existem as seções "Feature Request Discussions" e "Unofficial Bug Reports and Feature Requests"; título de pedido mais recente visível: **"Dock Windows – Custom Interface"** (18 out 2026). O longo tópico "Help Shape the Future of Anime Studio" (828 respostas, 2011–2021) e outros tópicos de listas de desejos ("Road map for Moho", "My wish for Moho in 2024 – Concentrate on Timeline/Workflow improvements", "Request for top 10 Anime Studio Pro 6 features") são cascas de redirecionamento em JavaScript → conteúdo ilegível. Comparações específicas entre fóruns (fórum do Spine): física, mascaramento, smart bones desejados no Spine; Moho criticado pelo FFD fraco e pela falta de runtime.
-| Pedido | ARMATURA |
+| Pedido | OSATURA |
 |---|---|
 | Janelas acopláveis / interface personalizada | ❌ (layout fixo do studio web) |
 | Melhorias de timeline / fluxo de trabalho | 🟡 |
@@ -879,7 +879,7 @@ Legível: apenas o índice do fórum. Existem as seções "Feature Request Discu
 | FFD mais forte | ✅ lattice de Bernstein + malha |
 
 ## Cartoon Animator (Reallusion Feedback Tracker + tópico de lista de desejos)
-| Pedido (votos quando exibidos) | ARMATURA |
+| Pedido (votos quando exibidos) | OSATURA |
 |---|---|
 | Curva de keyframe padrão nas preferências | ✅ easing por key |
 | Edição de keyframes de vários canais | 🟡 ops em lote de patch |
@@ -904,7 +904,7 @@ Legível: apenas o índice do fórum. Existem as seções "Feature Request Discu
 | Panorama de 360° (5); ideias de integração com IA (6) | ❌ |
 
 ## Quadro de pedidos de recursos do Live2D Cubism Editor (30 tópicos, 2023–2026)
-| Pedido | ARMATURA |
+| Pedido | OSATURA |
 |---|---|
 | Suporte a Linux | ✅ |
 | Atalhos de teclado na edição manual de malha | n/a |
@@ -927,7 +927,7 @@ Legível: apenas o índice do fórum. Existem as seções "Feature Request Discu
 O fórum de usuários está fechado e redireciona para o Discord (não pesquisável); os antigos tópicos do "Feature Requests board" ("One can only dream: A Feature List", "Software Upgrade Suggestions Part 2", "Bitmap Layer Overhaul LONG OVERDUE", "Various Quality of Life suggestions") mostram apenas o aviso de encerramento. Nenhum pedido recuperável.
 
 ## Synfig (lista de ideias do GSoC 2019–2022, números de issues do GitHub vinculados)
-| Pedido | ARMATURA |
+| Pedido | OSATURA |
 |---|---|
 | Copiar/colar waypoints (#2139) | ✅ keys via ops |
 | Troca de abas com Ctrl+Tab, atalhos de janela, seleção da área de reprodução, busca de propriedades, alternar réguas, alteração de parâmetro com o mouse | ❌ (GUI) |
@@ -935,7 +935,7 @@ O fórum de usuários está fechado e redireciona para o Discord (não pesquisá
 | Port para GTK 4, builds Conan/vcpkg | n/a |
 
 ## Spine
-Os pedidos vão para o fórum e são movidos para um quadro público do Trello (não acessível: robots.txt). Do fórum: a prioridade mais alta historicamente é a estabilidade do editor e as atualizações de runtime. O plano da era do Kickstarter (malhas → FFD → skinning → IK pinning) está agora totalmente entregue, de modo que a malha/FFD/skinning do ARMATURA estão em paridade com aquela lista antiga; IK pinning ✅ (restrição Pin). Títulos de pedidos recentes no fórum: suporte ao three.js / React Three Fiber mais recente; suporte ao Spine 4.3 no Defold.
+Os pedidos vão para o fórum e são movidos para um quadro público do Trello (não acessível: robots.txt). Do fórum: a prioridade mais alta historicamente é a estabilidade do editor e as atualizações de runtime. O plano da era do Kickstarter (malhas → FFD → skinning → IK pinning) está agora totalmente entregue, de modo que a malha/FFD/skinning do OSATURA estão em paridade com aquela lista antiga; IK pinning ✅ (restrição Pin). Títulos de pedidos recentes no fórum: suporte ao three.js / React Three Fiber mais recente; suporte ao Spine 4.3 no Defold.
 
 ## Rive
 Roadmap público = "canal Feature Requests" com rótulos de status (em andamento / planejado / lançado); exige login para leitura. Nada recuperável além das notas de lançamento (rodada 4).
@@ -971,9 +971,9 @@ As páginas do GitHub (OpenToonz/Synfig) estão bloqueadas pelo robots.txt; nenh
 **Acesso:** a API de busca do GitHub não está disponível neste ambiente ("sessions are bound to their configured repositories"), então os projetos foram encontrados por busca na web e lidos a partir de seus READMEs públicos. As APIs do GitLab e do Codeberg estão bloqueadas pelo proxy; páginas do Codeberg/GitLab apareceram apenas em resultados de busca (o Friction estava legível). Não foi possível obter contagens de estrelas. Vários projetos são muito novos/iniciais — os recursos listados são os alegados nos READMEs, não verificados por execução.
 
 ## Ferramentas de código aberto semelhantes de rigging / animação
-| Projeto | Plataforma | Recursos notáveis | Comparação com o ARMATURA |
+| Projeto | Plataforma | Recursos notáveis | Comparação com o OSATURA |
 |---|---|---|---|
-| **Rigby2D** (jaisurya-dev-art/rigby2d) | GitHub, MIT/Apache | Editor no estilo Spine (importação PSD, malha + pintura de pesos, malhas vinculadas, restrições IK/transform/path/physics/**slider**, skins com ossos específicos de skin, eventos, attachments de bounding-box/clipping/point/path, dopesheet + editor de curvas), exportação Spine JSON 3.8/4.2/4.3 + .skel, atlas, runtimes JS/Rust/Godot, **servidor MCP integrado** para assistentes de IA, desktop Tauri | O ARMATURA não tem GUI de editor, atlas, runtimes, skins, eventos, restrições slider/path; tem avaliador de função pura, FX de líquido/booleanas/emissor, lip-sync, gerador de caminhada |
+| **Rigby2D** (jaisurya-dev-art/rigby2d) | GitHub, MIT/Apache | Editor no estilo Spine (importação PSD, malha + pintura de pesos, malhas vinculadas, restrições IK/transform/path/physics/**slider**, skins com ossos específicos de skin, eventos, attachments de bounding-box/clipping/point/path, dopesheet + editor de curvas), exportação Spine JSON 3.8/4.2/4.3 + .skel, atlas, runtimes JS/Rust/Godot, **servidor MCP integrado** para assistentes de IA, desktop Tauri | O OSATURA não tem GUI de editor, atlas, runtimes, skins, eventos, restrições slider/path; tem avaliador de função pura, FX de líquido/booleanas/emissor, lip-sync, gerador de caminhada |
 | **SkelForm** (Retropaint/SkelForm, Rust) | GitHub | IK FABRIK, wrapper nativo + web + mobile | núcleo de rig semelhante ✅; sem GUI ❌ |
 | **Ankhimate editor** | GitHub, pré-alfa | Modos Setup/Animate, slots + skins, FABRIK de qualquer comprimento, restrições de caminho/física, mesh tracing da silhueta a partir do alfa, pincel de pesos com modos de mesclagem + travamento de ossos, **timelines de FFD**, eventos com áudio, marcadores, deslocamentos de track por osso, **editor de formato de exportação baseado em templates**, runtime de referência em Rust | ❌ em grande parte GUI; ideias: templates de exportação, deslocamentos de track por osso |
 | **rig2d-rs** (tanhieuno41) | GitHub, Rust | Port da física do Spine 4.2, IK com **mix/softness/bend/compress/stretch/uniform**, pesos de auto-bind por queda de distância, suavizar/normalizar/limitar a 4 pesos, packer de atlas em prateleiras, ghosting de onion skin, importação/exportação Spine JSON | ❌ IK soft/stretch, ferramentas de pesos, atlas, interoperabilidade com Spine |
@@ -1000,7 +1000,7 @@ As páginas do GitHub (OpenToonz/Synfig) estão bloqueadas pelo robots.txt; nenh
 Surgiram repositórios de software pirata (p. ex. "activate-free" do Adobe Animate): não foram abertos nem usados.
 
 ## Ideias que vale adotar (novos candidatos ao roadmap)
-59. **Servidor MCP / API de agente** sobre o editor de patch ops para que assistentes de IA possam fazer rig e animar (Rigby2D, Iki) — combina com a arquitetura de JSON-patch do ARMATURA
+59. **Servidor MCP / API de agente** sobre o editor de patch ops para que assistentes de IA possam fazer rig e animar (Rigby2D, Iki) — combina com a arquitetura de JSON-patch do OSATURA
 60. **IDs de parâmetros padrão** (ParamAngleX, EyeOpen, MouthOpen…) para que qualquer host possa guiar um modelo (Iki)
 61. **Auto-rigger a partir de camadas com nomes de papéis**: piscar, olhar, giro/aceno/inclinação da cabeça, sobrancelhas, respiração, física de cabelo (Iki)
 62. **Auto eye clipping** (íris mascarada pela forma do olho) (Stretchy Studio) — via camada Boolean
@@ -1012,7 +1012,7 @@ Surgiram repositórios de software pirata (p. ex. "activate-free" do Adobe Anima
 68. **Exportação de vídeo com fundo transparente (WebM/MOV com alfa) e spritesheet PNG+JSON** (Skeletal-Animator)
 69. **Motor de templates de exportação** (formatos de saída definidos pelo usuário) (Ankhimate)
 70. **Contêiner dotLottie `.lottie` + slots/theming em runtime + máquinas de estados** (dotlottie-rs)
-71. **CLI de diff / dump / conversão de modelos** (`armatura diff a.json b.json`) (Umamo)
+71. **CLI de diff / dump / conversão de modelos** (`osatura diff a.json b.json`) (Umamo)
 72. **Paleta de comandos + atalhos reconfiguráveis** no studio (Umamo)
 73. **Loader com fuzzing, caminho de runtime sem panic, benchmarks de latência** (Ayatsuri2D) — reforço de robustez de `Engine::new`
 74. **Importação/exportação Spine JSON** para interoperabilidade (Rigby2D, rig2d, Stretchy Studio)
@@ -1035,7 +1035,7 @@ Surgiram repositórios de software pirata (p. ex. "activate-free" do Adobe Anima
 Fontes: itch.io, Steam, AlternativeTo, Wikipedia, resultados de busca acadêmica/de patentes, análises de ferramentas do After Effects. As afirmações vêm de páginas de lojas/projetos, não de testes práticos.
 
 ## Ferramentas de rigging indie / de nicho (itch.io, Steam)
-| Ferramenta | Recursos notáveis | ARMATURA |
+| Ferramenta | Recursos notáveis | OSATURA |
 |---|---|---|
 | **Inochi Creator / Inochi2D** (Kitsunebi Games, código aberto, beta) | rigging de puppets 2D aberto voltado a VTubers + runtime em tempo real; formato próprio (não compatível com Live2D/Spine); exportação GIF/sequência de imagens; UI multilíngue | 🟡 mesmo nicho (formato de rig aberto) |
 | **Keyframe.it** (navegador, gratuito) | ossos + IK + malhas com pesos + movimento de mola; **clipes de símbolos de jogo** (idle, land, anticipation, win); editor de imagens integrado + importação PSD; exporta GIF, sprite sheet, vídeo, player HTML autônomo, **pacotes Spine 3.8/4.2**; salvamento automático no navegador; conector de agente de IA **keyframe-mcp**; assistente de IA integrado opcional | ✅ player HTML/GIF; ❌ sprite sheet, pacote Spine, MCP, editor no navegador |
@@ -1047,7 +1047,7 @@ Fontes: itch.io, Steam, AlternativeTo, Wikipedia, resultados de busca acadêmica
 | VBridger, Vitamins | Ferramentas do Steam em torno de VTubing; não avaliadas | — |
 
 ## Ecossistema de rigging do After Effects (análise da School of Motion)
-| Recurso | Fonte | ARMATURA |
+| Recurso | Fonte | OSATURA |
 |---|---|---|
 | **Controlador joystick** (5 poses-chave: origem/direita/esquerda/cima/baixo) interpoladas em 2D | Joysticks 'n Sliders | ❌ — forte candidato |
 | **Sliders** que misturam poses ilimitadas | JnS, Duik | 🟡 canais de morph |
@@ -1062,7 +1062,7 @@ Tahoma2D (fork do OpenToonz, stop-motion), TupiTube, enve (descontinuado; tornou
 
 ## Literatura acadêmica e de patentes (somente títulos/resumos)
 - Jacobson et al. 2011, **Bounded Biharmonic Weights** para deformação em tempo real — pesos de skinning suaves automáticos a partir de uma cage/esqueleto ✅ ideia: melhorar `auto_skin` (atualmente baseado em distância).
-- Patentes da Adobe US9865073 / US10078910, **"Computer animation of artwork using fast 2-dimensional deformation solving"** (o mesh warp do Character Animator). *Nota clean-room:* o ARMATURA usa FFD de Bernstein e skinning com pesos, não esse solver patenteado; qualquer futuro solver no estilo ARAP deve ser revisado com um advogado. Isto não é aconselhamento jurídico.
+- Patentes da Adobe US9865073 / US10078910, **"Computer animation of artwork using fast 2-dimensional deformation solving"** (o mesh warp do Character Animator). *Nota clean-room:* o OSATURA usa FFD de Bernstein e skinning com pesos, não esse solver patenteado; qualquer futuro solver no estilo ARAP deve ser revisado com um advogado. Isto não é aconselhamento jurídico.
 - Auto-rigging em arXiv 2025–26: **ASMR** (esqueleto + skin de malha 3D via priors generativos 2D), UniRig, "How to Train Your Dragon" (rigging por difusão), HumanRig, SPRig, UniMate — todos 3D/ML; relevantes apenas como um futuro recurso de "sugestão de auto-rig".
 - Stony Brook TVC 2017 **retargeting automático de pesos de skinning** — copiar pesos entre malhas (✅ roadmap: cópia de pesos).
 
@@ -1096,7 +1096,7 @@ Fontes: tabela de versões da Wikipedia (incl. 26.0 de jan 2026), página de pro
 Arte em camadas do Photoshop/Illustrator (também EPS/SVG desde out 2018) torna-se um **puppet** com rig automático a partir de **nomes/tags de camadas**; a performance é capturada ao vivo (webcam facial/corporal, microfone, teclado, mouse, MIDI) como **takes** em uma timeline; as saídas vão para sequências PNG, WAV, Media Encoder (incl. **vídeo com alfa**), Dynamic Link para After Effects / Premiere e Syphon / Mercury Transmit ao vivo. O modo Starter é gratuito; o Pro exige Creative Cloud.
 
 ## Behaviors (lista completa da Ajuda da Adobe)
-| Behavior | O que faz | ARMATURA |
+| Behavior | O que faz | OSATURA |
 |---|---|---|
 | **Face** | cabeça, olhos, sobrancelhas, nariz, boca a partir da webcam; parallax e intensidade da posição da cabeça | ❌ (sem rastreamento ao vivo) — roadmap n.º 88 |
 | **Body** (Body Tracker, Sensei AI, 22.0) | braços, tronco, pernas a partir da webcam | ❌ |
@@ -1124,7 +1124,7 @@ Arte em camadas do Photoshop/Illustrator (também EPS/SVG desde out 2018) torna-
 | **Collide, Dynamic, Cycle Pause, Auto-swap (22.5)** | tags/behaviors para física e trocas do tipo quadro | ❌ |
 
 ## Recursos de timeline, gravação e fluxo de trabalho
-| Recurso | Versão | ARMATURA |
+| Recurso | Versão | OSATURA |
 |---|---|---|
 | Takes, replays (gravações reutilizáveis acionáveis), smart replays, replays editáveis | 2.0 / 22.0 / 23.6 | 🟡 clipes ✅; replays ❌ |
 | Keyframes, esticamento de tempo de keyframes, câmeras de cena, áudio acionável | 3.0 / 3.2 | ✅ keys/câmera; ❌ áudio acionável |
@@ -1143,9 +1143,9 @@ Arte em camadas do Photoshop/Illustrator (também EPS/SVG desde out 2018) torna-
 | MIDI, scripts via V8 (JavaScript) | 1.1 / 2.0 | ❌ — roadmap n.º 31 |
 | Compartilhar/publicar puppets, arquivos de puppet compartilháveis | Beta 5 | 🟡 JSON portátil |
 | Dynamic Link para AE / Premiere | Beta 5 | ❌ |
-| Pontos fracos relatados (análise): curva de aprendizado íngreme, dependência de hardware (webcam/microfone), longo tempo de preparação do personagem, Pro pago, complexidade da configuração de triggers | | oportunidade: pipeline offline determinístico do ARMATURA, CLI/JSON |
+| Pontos fracos relatados (análise): curva de aprendizado íngreme, dependência de hardware (webcam/microfone), longo tempo de preparação do personagem, Pro pago, complexidade da configuração de triggers | | oportunidade: pipeline offline determinístico do OSATURA, CLI/JSON |
 
-## O que se destaca para o ARMATURA (novos candidatos ao roadmap)
+## O que se destaca para o OSATURA (novos candidatos ao roadmap)
 89. **Auto-rig baseado em tags a partir de nomes de camadas** (cabeça, olhos, sobrancelhas, visemas da boca, tags de braço/perna) — ideia central do Character Animator; estende o roadmap n.º 61
 90. **Takes e replays**: gravar a performance de parâmetros como clipes reutilizáveis e acionáveis, com easing de mistura
 91. **Pin Feet When Standing** e travamento de contato com o solo para o gerador de caminhada

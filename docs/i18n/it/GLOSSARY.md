@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 
-# Glossario di ARMATURA
+# Glossario di OSATURA
 
 Termini di dominio usati nel codice e nella documentazione, in ordine alfabetico (dei termini inglesi). "Vedi" rimanda
-al modulo (in `armatura-core/src`, se non indicato altrimenti) o al documento in cui il termine è implementato o
+al modulo (in `osatura-core/src`, se non indicato altrimenti) o al documento in cui il termine è implementato o
 specificato. Documenti: [PROJECT_FORMAT.md](PROJECT_FORMAT.md), [ARCHITECTURE.md](ARCHITECTURE.md).
 Le fonti delle tecniche sono elencate in `CLEANROOM.md`.
 
@@ -92,7 +92,7 @@ allineamento e a capo automatico, che posiziona livelli e altri contenitori. Ved
 `rig`.
 
 **CRDT.** Conflict-free replicated data type: una struttura che le repliche possono modificare in modo indipendente e
-fondere con lo stesso risultato senza coordinamento. ARMATURA usa un CRDT basato su operazioni. Vedi `collab`;
+fondere con lo stesso risultato senza coordinamento. OSATURA usa un CRDT basato su operazioni. Vedi `collab`;
 ARCHITECTURE sezione 10. Correlati: registro LWW, RGA, clock di Lamport, vector clock, tombstone.
 
 **Easing di Bézier cubico (Cubic Bezier easing).** Una curva di easing in stile CSS definita da due punti di controllo tra (0,0) e
@@ -188,9 +188,9 @@ PROJECT_FORMAT sezione 5.
 Vedi `layerfx`.
 
 **Livello di dettaglio (Level of detail, LOD).** Una versione semplificata di un progetto prodotta entro un limite d'errore dichiarato
-in pixel, per un'anteprima rapida o un output piccolo. Vedi `lod`, `armatura lod`.
+in pixel, per un'anteprima rapida o un output piccolo. Vedi `lod`, `osatura lod`.
 
-**Linter.** Il controllore consultivo (`armatura lint`) che segnala problemi di qualità dell'animazione con codici
+**Linter.** Il controllore consultivo (`osatura lint`) che segnala problemi di qualità dell'animazione con codici
 come L011 e L012. Separato dalla validazione. Vedi `lint`.
 
 **Livello liquido (Liquid layer).** Un livello di metaball il cui contorno è l'isocontorno di un campo a somma di influenze. Vedi
@@ -234,7 +234,7 @@ dall'illuminazione per livello. Vedi `postfx`; PROJECT_FORMAT sezione 7.3.
 inverso per l'annulla. Vedi `edit`.
 
 **OT.** Operational transformation: un'alternativa ai CRDT che riscrive le operazioni concorrenti le une rispetto alle altre,
-di solito con un server centrale. ARMATURA non la usa; usa un CRDT con un sequenziatore centrale. Vedi ARCHITECTURE sezione 10.
+di solito con un server centrale. OSATURA non la usa; usa un CRDT con un sequenziatore centrale. Vedi ARCHITECTURE sezione 10.
 
 **Parallasse (Parallax).** Un fattore per livello che scala il movimento della camera, in modo che i livelli distanti si muovano meno. Anche il
 valore di profondità usato per la profondità di campo. Vedi PROJECT_FORMAT sezione 10.1.
@@ -294,7 +294,7 @@ sezione 4.
 gruppo, come i costumi. Vedi `skins`.
 
 **Skinning.** Deformare la geometria fondendo le trasformazioni delle ossa, con pesi per ancora o vertice.
-ARMATURA normalizza i pesi e tratta i pesi vuoti come statici. Vedi `engine`, `weights`.
+OSATURA normalizza i pesi e tratta i pesi vuoti come statici. Vedi `engine`, `weights`.
 
 **Soft IK.** Un'opzione IK che addolcisce l'estensione vicino alla portata massima per evitare di scattare in posizione dritta. Intervallo da 0 a
 0,9. Vedi `rig`.
@@ -311,7 +311,7 @@ di riposo e riagganciandole alla curva deformata. Vedi PROJECT_FORMAT sezione 7.
 caricamento, così qualsiasi fotogramma può essere valutato. Vedi PROJECT_FORMAT sezione 4.4.
 
 **SSIM.** Structural similarity index (Wang et al. 2004): una misura di qualità dell'immagine ricavata da medie locali,
-varianze e covarianza. ARMATURA usa una versione a blocchi. Vedi `percep`.
+varianze e covarianza. OSATURA usa una versione a blocchi. Vedi `percep`.
 
 **Stage.** Lo spazio di coordinate dell'immagine di output: pixel, +x a destra, +y in basso.
 

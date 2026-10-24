@@ -1,14 +1,14 @@
-# ARMATURA — funkciómátrix + referencia- és versenytárs-ellenőrzőlisták
+# OSATURA — funkciómátrix + referencia- és versenytárs-ellenőrzőlisták
 
 > Verziójelölés: az összes crate `0.1.0` (az első buildek a `v0.1.0-alpha.3` előzetes kiadás-vázlatként készülnek); a „v0.5 / v0.6 / v0.7” ebben a repositoryban *funkciószintet* jelent (lásd [CHANGELOG.md](CHANGELOG.md)), és hogy mi készült el, azt a `ROADMAP.md` 9. szakasza dönti el.
 
 Őszinte állapotkép arról, ami létezik. **✅ kész és tesztelt · 🟡 részleges · ❌ nincs megvalósítva.**
 
-> Hatókör: az ARMATURA önállóan megvalósított motor (nyilvános specifikációkból és tanulmányokból; a versenytársak funkciólistáit a hatókör felméréséhez használtuk; harmadik féltől származó forráskódot nem másoltunk; a kutatás ismertetését lásd a CLEANROOM.md fájlban), nem valamely
+> Hatókör: az OSATURA önállóan megvalósított motor (nyilvános specifikációkból és tanulmányokból; a versenytársak funkciólistáit a hatókör felméréséhez használtuk; harmadik féltől származó forráskódot nem másoltunk; a kutatás ismertetését lásd a CLEANROOM.md fájlban), nem valamely
 > kereskedelmi termék újraimplementálása, és **nem** éri el egy 25 éves kereskedelmi csomag szintjét
 > (kiforrott GUI, rajzeszközök, élő bemenet, 3D, ökoszisztéma). Az első táblázatok képesség szerint
 > szerveződnek; a **fájl második fele** a referenciatermék nyilvánosan dokumentált funkcióinak verziónkénti ellenőrzőlistája (a források a végén vannak felsorolva),
-> az ARMATURA mindegyikhez tartozó állapotával. Az „újítások” kizárólag az általános technikához képest értendők,
+> az OSATURA mindegyikhez tartozó állapotával. Az „újítások” kizárólag az általános technikához képest értendők,
 > nem azt állítják, hogy bármely más eszközben bizonyítottan hiányoznának.
 
 ---
@@ -98,13 +98,13 @@ Felváltja a lejjebb szétszórt „jelölt #” listákat; a részletek és az 
 | WASM futtatókörnyezet, stabil Rust API + C ABI, sandboxolt szkriptelés (R-090…R-093) | 🟡 (az R-091, R-092, R-093 kész; az R-090 wasm-modul a CI-ben lefordul és átmegy a wrapper tesztjén Node alatt, de böngészőben még soha nem futtatták) | 🟢 | saját API |
 | **Ágens / MCP-szerver** patch-opok fölött: vizsgálat, szerkesztés (atomi, visszavonható), lint, biztonság, renderelés, mentés kizárólag a saját fájljába (R-094) | ✅ | 🟢 | nyílt JSON-RPC protokoll |
 | Teljes GUI: gizmók, idővonal, görbeszerkesztő (R-100…R-103) | 🟡 (az R-101, R-102 kész; az R-100 és R-103 oldalai léteznek, de a szerző soha nem futtatta őket valódi böngészőben) | 🟢 | általános widgetek; saját megjelenés |
-| Animáció-verziókezelés szemantikus merge-dzsel, CI észlelési diff, explain-this-pixel (I-01, I-06, I-07) | ✅ (I-01 `armatura vcs`, I-06 `armatura ci`, I-07 `explain`) | 🟢 | saját ötletek |
+| Animáció-verziókezelés szemantikus merge-dzsel, CI észlelési diff, explain-this-pixel (I-01, I-06, I-07) | ✅ (I-01 `osatura vcs`, I-06 `osatura ci`, I-07 `explain`) | 🟢 | saját ötletek |
 | Póz-fuzzing terhelési hőtérképekkel, méretcélzott export, determinisztikus részletességi szint (LOD) deklarált hibahatárral (I-03, I-10, I-11) | 🟡 (mindhárom megépült; az I-11 határ nem terjed ki az effektekre, a skinelt útvonalakra, az IK-vezérelt értékekre és az állapotgép-pózokra) | 🟢 | saját ötletek, tankönyvi matematika |
 
 ## 6. szint — Határterület (kutatási szint)
 | Funkció | Állapot | IP | Biztonságos alap / feltétel |
 |---|---|---|---|
-| GPU-renderelő CPU-paritásteszttel (R-110) | 🟡 (az `armatura-gpu` crate megépült és tesztelt; a hardveres futtatás korlátozott, lásd ROADMAP) | 🟢 | wgpu (megengedő) |
+| GPU-renderelő CPU-paritásteszttel (R-110) | 🟡 (az `osatura-gpu` crate megépült és tesztelt; a hardveres futtatás korlátozott, lásd ROADMAP) | 🟢 | wgpu (megengedő) |
 | Valós idejű többfelhasználós szerkesztés az op-napló fölött (R-111) | 🟡 (kész, opcionális tartós munkamenet-naplóval `--collab-log`; a résztvevők és a visszavonási előzmények nem tartósak; sima HTTP, közös token) | 🟢 | CRDT-irodalom |
 | Adatkötési / elrendezési futtatókörnyezet (R-091, R-095) | ✅ (saját tervezés; szabadalmi szűrés nem történt, docs/PATENT_NOTES.md) | 🟠 | szállítás előtt szabadalmi szűrés |
 | ML-támogatott eszközök (R-112) | 🟡 | 🟠 | kizárólag klasszikus módszerek, modellsúlyok nélkül: `autotrace` (k-means, Schneider-féle Bézier-illesztés, Zhang-Suen vonalmód) és a saját pózaidból tanult javaslatok (PCA, kernelek, opcionális kis MLP saját súlyformátumban); nincs mélytanulás |
@@ -117,7 +117,7 @@ Felváltja a lejjebb szétszórt „jelölt #” listákat; a részletek és az 
 - **H.264/H.265/AAC kódolók** bundle-ölése.
 
 ## Feltételek, amelyek minden 🟢 sorra érvényesek
-Vezetett származási napló (`CLEANROOM.md`; független megvalósítás, nem szigorú clean-room); csak megengedő függőségek (a `scripts/licence-audit.sh` újragenerálja; jelenleg 363 harmadik féltől származó crate az összes platformon együtt, mind MIT / Apache-2.0 / BSD / Zlib / Unlicense jellegű, hat MPL-2.0 crate kivételével (a smartstring a `scripting` feature-ön keresztül, amely alapértelmezetten be van kapcsolva, öt pedig az `armatura-gui` ablakos alkalmazáson keresztül); lásd docs/THIRD_PARTY.md); harmadik féltől származó grafika vagy hang nem szállítható saját licencfájl nélkül; az **ARMATURA** nevet az indulás előtt védjegykeresésben tisztázni kell.
+Vezetett származási napló (`CLEANROOM.md`; független megvalósítás, nem szigorú clean-room); csak megengedő függőségek (a `scripts/licence-audit.sh` újragenerálja; jelenleg 363 harmadik féltől származó crate az összes platformon együtt, mind MIT / Apache-2.0 / BSD / Zlib / Unlicense jellegű, hat MPL-2.0 crate kivételével (a smartstring a `scripting` feature-ön keresztül, amely alapértelmezetten be van kapcsolva, öt pedig az `osatura-gui` ablakos alkalmazáson keresztül); lásd docs/THIRD_PARTY.md); harmadik féltől származó grafika vagy hang nem szállítható saját licencfájl nélkül; az **OSATURA** nevet az indulás előtt védjegykeresésben tisztázni kell.
 
 
 # Részletes képességtáblázatok
@@ -221,10 +221,10 @@ pixelrenderelés, exportálók, szerkesztő visszavonás/újra, hang, részecsk�
 Referencia: Moho (korábban Anime Studio), 1999 → 14.5 „SHOWTIME” (2026. okt. 12.). A funkciólisták
 a gyártói kiadási oldalakról és a szakmai sajtóból származnak (lásd Források). Hiányok az adatokban: az Anime Studio 6–8,
 12.5 és 14.1 verziókról nem találtam részletes nyilvános listát, ezért ezeket csak az
-általános történet fedi. Az állapot az ARMATURA-é: ✅ létezik egyenértékű · 🟡 részleges / eltérő megközelítés · ❌ hiányzik.
+általános történet fedi. Az állapot az OSATURA-é: ✅ létezik egyenértékű · 🟡 részleges / eltérő megközelítés · ❌ hiányzik.
 
 ## Korai verziók (1999 – Anime Studio 8, csak általános történet)
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | Részecskék | ✅ determinisztikus emitterréteg |
 | Rétegmaszkok | ✅ alfamaszkok + invertálás |
@@ -239,7 +239,7 @@ a gyártói kiadási oldalakról és a szakmai sajtóból származnak (lásd For
 | Smart bone-ok, IK | 🟡 vezérelt csatornák / ✅ 2 csontos + FABRIK |
 
 ## Anime Studio 9 (2013)
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | 64 bit, GPU-gyorsítás | 🟡 natív 64 bites Rust; csak CPU-rasztermotor (nincs GPU) |
 | Smart Bones (ízületi hajlítást vezérlő tárcsák) | 🟡 a vezérelt csatornák bármely értéket bármely másikra leképeznek; nincs tárcsa-UI/akció |
@@ -248,7 +248,7 @@ a gyártói kiadási oldalakról és a szakmai sajtóból származnak (lásd For
 | Wacom multi-touch | ❌ |
 
 ## Anime Studio 10 (2014)
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | Független (globális) szögkorlátok | 🟡 a vezérlőcsontra mutató copy-rotation megközelíti |
 | Squash & stretch | 🟡 a csont skálája animálható; nincs automatikus squash/stretch |
@@ -259,7 +259,7 @@ a gyártói kiadási oldalakról és a szakmai sajtóból származnak (lásd For
 | 3D objektum import | ❌ |
 
 ## Anime Studio 11 (2015)
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | Képkockáról képkockára animáció | ✅ kapcsolórétegek + expozíciós csatornák |
 | Réteg-hivatkozás (kapcsolt duplikátumok) | ❌ |
@@ -271,7 +271,7 @@ a gyártói kiadási oldalakról és a szakmai sajtóból származnak (lásd For
 | Körvonalak egyesítése, Color Points eszköz | ❌ |
 
 ## Moho 12 (2016) és 12.x
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | Bézier-fogantyúk | ✅ |
 | Továbbfejlesztett szabadkézi eszközök | ❌ |
@@ -283,7 +283,7 @@ a gyártói kiadási oldalakról és a szakmai sajtóból származnak (lásd For
 | Újratervezett UI, csont-rögzítés, pozíció automatikus befagyasztása | ❌ |
 
 ## Moho 13 (2019)
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | Bitmap képkockáról képkockára + onion skin | 🟡 PNG képrétegek kapcsolórétegeken belül; nincs onion skin, nincs bitmap-rajzolás |
 | Bitmap-rajzeszközök / egyedi ecsetek | ❌ |
@@ -294,7 +294,7 @@ a gyártói kiadási oldalakról és a szakmai sajtóból származnak (lásd For
 | Mellékelt karakterek | ❌ |
 
 ## Moho 13.5 (2021) és 13.5.x
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | Vitruvian Bones (rajzok *és* csontkészletek cseréje) | 🟡 a kapcsolórétegek rajzokat cserélnek; csontkészlet-csere nincs |
 | Quad hálók (perspektíva) | 🟡 a rácsháló + rács szabad formájú warpokat ad; nincs projektív quad |
@@ -306,7 +306,7 @@ a gyártói kiadási oldalakról és a szakmai sajtóból származnak (lásd For
 | Lebegő licencek | n/a |
 
 ## Moho 14 (2023)
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | Új grafikus motor, valós idejű effektek (blur, árnyék, zaj) | ❌ nincsenek blur/árnyék/zaj szűrők; keverési módok ✅ |
 | Liquid Shapes (egyesítés/kivonás/metszet/keverés) | 🟡 metaball folyadék ✅ + sokszög-booleanok ✅; nem ugyanaz az alakzatmodell |
@@ -323,7 +323,7 @@ a gyártói kiadási oldalakról és a szakmai sajtóból származnak (lásd For
 | Szkriptfelület frissítése (Lua 5.4) | ❌ |
 
 ## Moho 14.1 – 14.2 (2023-11, 2024-06)
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | (14.1: nem találtam nyilvános részletet) | — |
 | Animált görbeprofil-eltolás | ❌ (a vastagságprofilok statikusak) |
@@ -342,14 +342,14 @@ a gyártói kiadási oldalakról és a szakmai sajtóból származnak (lásd For
 | ProRes alfa export | ❌ (csak GIF/PNG/MP4) |
 
 ## Moho 14.3 (2024-12)
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | Pontonkénti ecsetátlátszatlanság (nyomásvezérelt) | ❌ |
 | Színsodródás tollnyomás szerint | ❌ |
 | Szabadkézi/vonalvastagság-eszköz vezérlők | ❌ |
 
 ## Moho 14.4 „SIDE QUEST” (2025-11)
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | Export Unrealba / Unitybe / Godotba | ❌ |
 | glTF-export Blenderbe / 3D-eszközökbe | 🟡 (`.glb`: a 0. képkocka alakzatai, csontok, morph-súlyok) |
@@ -360,7 +360,7 @@ a gyártói kiadási oldalakról és a szakmai sajtóból származnak (lásd For
 | Könnyebb ciklusalkotás | ✅ loop extrapoláció + járásciklus-generátor |
 
 ## Moho 14.5 „SHOWTIME” (2026-10-12)
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | Live Playback (webkamera / gamepad / mikrofon, virtuális webkamera, OBS) | ❌ |
 | Arckövetés → csontok / Smart Bones / háló | 🟡 (szintetikusan tanított detektor, `face-bake`; valódi arcokon nem validált) |
@@ -382,7 +382,7 @@ a gyártói kiadási oldalakról és a szakmai sajtóból származnak (lásd For
 | Linux Wine/Proton segítségével | ✅ natív Rust (Linux/macOS/Windows); előre elkészített Windows x86-64, macOS arm64 és Linux x86-64 archívumok az előzetes kiadás-vázlatban; a CI mindhárom rendszeren teszteli, ember csak Linuxon |
 
 ## Összegzés (csak a referenciatermék; a versenytársak lejjebb következnek)
-A referenciatermék dokumentált funkciói közül az ARMATURA a **rigging, a deformáció,
+A referenciatermék dokumentált funkciói közül az OSATURA a **rigging, a deformáció,
 a procedurális animáció, a kompozitálás-matematika és az export** magját fedi le (nagyjából: csontváz/IK/kényszerek,
 háló- és rácsdeformáció, kulcsok és kifejezések, maszkok/keverések/színátmenetek, részecskék,
 metaballok/booleanok, GIF/MP4/HTML/Lottie), de **nincsenek rajzeszközei, nincs élő bemenete, nincs 3D-je,
@@ -409,7 +409,7 @@ Forrás: a gyártó által üzemeltetett verziótörténeti PDF (lostmarble.com,
 Anime Studio 7 és 8 sajtóoldalai. Felváltja a hivatkozási ellenőrzőlista elején található „csak általános történet” sorokat.
 Itt sem találtam meg: a 8.x, 10.1.x, 11.1, 12.5, 14.1 részleteit.
 
-| Verzió | Dokumentált funkciók | ARMATURA |
+| Verzió | Dokumentált funkciók | OSATURA |
 |---|---|---|
 | Moho 1 (1999) | BeOS, Windows-portolás, Flash-kimenet | ❌ Flash/SWF (elavult) |
 | 2.x | QuickTime I/O, renderelés 4096²-ig, rétegárnyékolás, kapcsolórétegek, színmintázatok a stílusokban, rugalmas csontkötés, továbbfejlesztett Illustrator-import | ✅ kapcsolórétegek, 🟡 súlykötés, ❌ Illustrator-import, ✅ nagy raszterskálák (≤16×) |
@@ -437,10 +437,10 @@ Synfig Studio, OpenToonz, TVPaint Animation 12, Adobe Animate, Cavalry, Procreat
 Effects), Blender Grease Pencil. Az alábbiak azok a tételek, amelyek **még nem szerepelnek** a referencia-
 ellenőrzőlistán. A források minősége változó: a legtöbb sor a gyártók általam lekért funkció-/kiadási oldalairól származik;
 a †-gal jelölt sorok általános tudásból vagy csak címből/tartalomjegyzékből származnak, és oldalon nem lettek megerősítve.
-Az állapot az ARMATURA-é: ✅ · 🟡 · ❌.
+Az állapot az OSATURA-é: ✅ · 🟡 · ❌.
 
 ## Rigging, kényszerek, deformáció
-| Funkció | Hol látható | ARMATURA |
+| Funkció | Hol látható | OSATURA |
 |---|---|---|
 | Súlyeszközök: súlyok összeforrasztása hálók között, súlyok másolása/beillesztése csúcspontok között | Spine 4.2 | ❌ (csak automatikus skin, festés nincs) |
 | Csont-fizikai kényszerek (tehetetlenség, szél, gravitáció, keverés) | Spine 4.2 | 🟡 csillapított rugók (frekvencia/csillapítás); nincs szél/gravitáció/tehetetlenség |
@@ -469,7 +469,7 @@ Az állapot az ARMATURA-é: ✅ · 🟡 · ❌.
 | Automatikus rigging, vezérlők, rugódinamika | Duik † | 🟡 rugók ✅; automatikus rig ❌ |
 
 ## Animáció, idővonal, interaktivitás
-| Funkció | Hol látható | ARMATURA |
+| Funkció | Hol látható | OSATURA |
 |---|---|---|
 | Animációkeverés: egyidejű animációk keverése/keresztáttűnése futásidőben | Spine | 🟡 Add/Multiply módok + súlyok; beégetett `crossfade`; futásidejű átmenetek nincsenek |
 | Dopesheet + görbeszerkesztő + futásidejű előnézet | Spine, Rive, OpenToonz | ❌ (az adatok támogatják; UI nincs) |
@@ -497,7 +497,7 @@ Az állapot az ARMATURA-é: ✅ · 🟡 · ❌.
 | Kulcsalapú 2D kamera idővonal-időzítéssel | TVPaint 12 | ✅ |
 
 ## Rajzolás, festés, bitmap-eszközök
-| Funkció | Hol látható | ARMATURA |
+| Funkció | Hol látható | OSATURA |
 |---|---|---|
 | Ecset: randomizálás (bélyegszám, eltolás), kettős papírok, többtextúrás ecsetek | Harmony 24, TVPaint 12 | ❌ |
 | Ceruza átlátszatlansága nyomás/dőlés/sebesség/elvékonyodás/halványodás szerint | Harmony 24 | ❌ |
@@ -516,7 +516,7 @@ Az állapot az ARMATURA-é: ✅ · 🟡 · ❌.
 | >50 rétegtípus (fraktálok, szűrők, torzítások) | Synfig | ❌ (≈7 rétegfajta) |
 
 ## Effektek és kompozitálás
-| Funkció | Hol látható | ARMATURA |
+| Funkció | Hol látható | OSATURA |
 |---|---|---|
 | Csomópontnézetes kompozitáló hálózat névvel ellátott portokkal | Harmony 24 | ❌ (rétegfa + maszkok/keverések) |
 | Matte-ok, csoportok a kompozit alatt | Harmony | ✅ maszkok, izolált csoportok |
@@ -532,7 +532,7 @@ Az állapot az ARMATURA-é: ✅ · 🟡 · ❌.
 | Hangmotor (narráció, zene, SFX) | Procreate Dreams | ❌ |
 
 ## 3D, pipeline, adatcsere, futtatókörnyezetek
-| Funkció | Hol látható | ARMATURA |
+| Funkció | Hol látható | OSATURA |
 |---|---|---|
 | 3D jelenet, FBX csontpózolás, Vulkan jelenetgráf, perspektíva-síkú rajzolás | Harmony 24 | ❌ |
 | Külső renderelés Maya / Blender segítségével | Harmony 24 | ❌ |
@@ -587,7 +587,7 @@ Az állapot az ARMATURA-é: ✅ · 🟡 · ❌.
 A jelmagyarázat a fentiekkel azonos: ✅ kész, 🟡 részleges, ❌ még nincs. Csak a gyártói/projektoldalakon vagy a sajtóban megerősített funkciók szerepelnek. Kalózoldalakat nem használtunk; a web.archive.org nem érhető el ebből a környezetből, ezért néhány régebbi kiadás dokumentálatlan marad (lásd „Ismert hiányok”).
 
 ## Toon Boom Harmony 20 (gyártói kiadási jegyzetek)
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | Centerline-szerkesztő: pont törlése, simasági opció | ❌ |
 | Textúrázott ceruzavonalak → textúrázott ecsetvonások; ceruzatextúra-pipetta | ❌ |
@@ -608,7 +608,7 @@ A jelmagyarázat a fentiekkel azonos: ✅ kész, 🟡 részleges, ❌ még nincs
 | Control Center: kötegelt jelenetmásolás/-import/szkriptfuttatás, rendersor | ❌ |
 
 ## OpenToonz 1.7
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | Egyenes vonal mód az ecsethez | ❌ |
 | GIMP + MyPaint ecsettámogatás | ❌ |
@@ -625,7 +625,7 @@ A jelmagyarázat a fentiekkel azonos: ✅ kész, 🟡 részleges, ❌ még nincs
 | Haiku OS támogatás | n/a |
 
 ## Synfig 1.4.2 (és az 1.4.0 az 1. körből)
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | Lottie-export fejlett körvonal- és blur-rétegekkel, gammával | 🟡 Lottie-export ✅ (alakzatok/transzformáció); blur ❌ |
 | Gyorsbillentyű-szerkesztő, egybillentyűs eszköz-gyorsbillentyűk | ❌ |
@@ -665,7 +665,7 @@ Anime Studio 8.x, 10.1.x, 11.1; Moho 12.5 és 14.1 részletek; Spine 3.0–4.1 (
 A kizárólag a youtube.com-ra korlátozott WebSearch videócímeket ad vissza; a WebFetch az egyes videók **leírását/fejezetlistáját** adja vissza (átiratok nélkül). Csak az ott megnevezett funkciók szerepelnek; az „új az X verzióban” a feltöltő (gyakran a gyártó) állítása szerint értendő.
 
 ## Moho 14.1 (videóleírás)
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | Fogantyúk megjelenítése/elrejtése a Curvature eszközben | ❌ (nincs GUI-vászon) |
 | Szerkesztő módban látható Shaded és Halo alakzateffektek | 🟡 színátmenetek ✅; halo/shade effektek ❌ |
@@ -680,7 +680,7 @@ A kizárólag a youtube.com-ra korlátozott WebSearch videócímeket ad vissza; 
 A cím-/leíróoldalak nem adtak funkciólistát (a videó elavult; az ingyenes 12.5 letöltést visszavonták). A kapcsolódó címek Smart Bones oktatóanyagokat, Smart Warp 2.5D rigeket és a „Mynd Tools” telepítését említik — Smart Bones 🟡 (csatornák/morphok), Smart Warp 🟡 (FFD rács ✅).
 
 ## Spine
-| Verzió | Funkció | ARMATURA |
+| Verzió | Funkció | OSATURA |
 |---|---|---|
 | 3.7 | Hangtámogatás | ❌ (a WAV-ot csak lip-synchez elemezzük) |
 | 3.7 | Újragondolt exportok | 🟡 |
@@ -702,7 +702,7 @@ A cím-/leíróoldalak nem adtak funkciólistát (a videó elavult; az ingyenes 
 | 4.1 béta | Sequence (képsorozat-csatolmány) függvény | ❌ |
 
 ## Toon Boom Harmony 25 / 25.2
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | Pencil Retouch eszköz | ❌ |
 | Photoshop-ecsetek importja | ❌ |
@@ -713,7 +713,7 @@ A cím-/leíróoldalak nem adtak funkciólistát (a videó elavult; az ingyenes 
 | Master Controller Grid Wizard | ❌ |
 
 ## Cartoon Animator 5 sorozat
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | 5.1 PSD és vektor round-trip szerkesztés | ❌ |
 | 5.1 Képsorozat- és GIF-import | ❌ |
@@ -745,7 +745,7 @@ A cím-/leíróoldalak nem adtak funkciólistát (a videó elavult; az ingyenes 
 Források: a Synfig/Rive hivatalos kiadási jegyzetei, YouTube-címek/leírások. Csak a megnevezett funkciók szerepelnek.
 
 ## Anime Studio 8 (YouTube „Pro Feature” sorozat, címek + leírások)
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | Automatikus képkövetés (bitmap → szerkeszthető vektor) | ❌ (ütemterv #20) |
 | Character Wizard (vezetett karakterkészítés) | 🟡 demo rigek/járásgenerátor; varázsló nincs |
@@ -756,7 +756,7 @@ Források: a Synfig/Rive hivatalos kiadási jegyzetei, YouTube-címek/leírások
 Anime Studio 10.1 / 11.1: nem találtam elérhető forrást.
 
 ## Synfig 1.4.1 – 1.4.4
-| Verzió | Funkció | ARMATURA |
+| Verzió | Funkció | OSATURA |
 |---|---|---|
 | 1.4.1 | Hangrétegek belekeverése az exportált videóba | ❌ (nincs hangsáv) |
 | 1.4.1 | A réteg duplikálása az összes kijelölt réteget másolja | ✅ (kötegelt opok) |
@@ -767,7 +767,7 @@ Anime Studio 10.1 / 11.1: nem találtam elérhető forrást.
 | 1.4.4 | Utolsó képkocka exportjának javítása | ✅ tesztek fedik |
 
 ## Rive (hivatalos kiadási jegyzetek, 2026. szept.–okt.) — a legaktívabb versenytárs
-| Funkció | ARMATURA |
+| Funkció | OSATURA |
 |---|---|
 | String Template konverter (szöveg view-model értékekből, számformázás) | ❌ |
 | Szaggatott körvonalak (Dash Effect), SVG-ből importálva | ❌ |
@@ -792,7 +792,7 @@ Anime Studio 10.1 / 11.1: nem találtam elérhető forrást.
 | Revíziótörténet és visszaállítás, offline szinkron, nagyítást megtartó visszavonás | 🟡 visszavonás/újra ✅ |
 
 ## TVPaint Animation 11 (YouTube-leírások)
-Gyorsbillentyű-létrehozás, eltávolítható alrajzok, vonalsimítás, rajzrögzítés, KeyFramer pivot-pont kattintás-és-húzás (11.7.1), Sprite Generator, Inlay Texture FX, segédvonalak, „end of update releases” videó — mind ❌ (raszteres festőeszközök; az ARMATURA vektoros/rig).
+Gyorsbillentyű-létrehozás, eltávolítható alrajzok, vonalsimítás, rajzrögzítés, KeyFramer pivot-pont kattintás-és-húzás (11.7.1), Sprite Generator, Inlay Texture FX, segédvonalak, „end of update releases” videó — mind ❌ (raszteres festőeszközök; az OSATURA vektoros/rig).
 
 ## Toon Boom Harmony 17 (YouTube)
 Free Form Deformer 🟡 (FFD rács ✅), feltuningolt Master Controllerek 🟡, RGB Difference Keyer ❌, Motion Blur ❌ (ütemterv #5).
@@ -830,14 +830,14 @@ Anime Studio 10.1 / 11.1, a Moho 12.5 részletes jegyzetei, Spine 3.0–3.6 rés
 **Hozzáférési valóság:** az X/Twitter oldalait a robots.txt letiltja a lekérés elől (csak a keresési találatok kivonatai/címei láthatók); a Facebookkal ugyanez a helyzet; a tartományszűrős Reddit-keresést a keresési proxy elutasította, a szűrő nélküli keresések pedig nem adtak vissza Reddit-szálakat; a Lost Marble fórum JavaScript-átirányító héjat szolgál ki olvasható tartalom nélkül. Semmit nem kerültünk meg. Ami olvasható volt:
 
 ## A Moho hivatalos csatornái (moho.lostmarble.com hírek, X-kivonatok)
-| Tétel | Megjegyzések | ARMATURA |
+| Tétel | Megjegyzések | OSATURA |
 |---|---|---|
 | Moho 13.5.3 (2022. ápr.) | továbbfejlesztett automatikus lip-sync, jobb felület, kevésbé tolakodó csontok | ✅ lip-sync (WAV-heurisztika) |
 | Moho 13.5.5 (X, 2022. máj.) | **Relative Paths** a csatolt erőforrásokhoz | ✅ az erőforrás-könyvtár relatív |
 | Moho 14.3 „Mantis Shrimp” (2024. dec.) | ecsetközpontú frissítés | ❌ |
 | Moho 14.4 „Side Quest” (2025. nov.) | export játékmotorokba és 3D-szoftverekbe | 🟡 Lottie/saját JSON; glTF/FBX ❌ |
 | Moho 14.5 „Showtime” (2026. okt.) | mágneses onion skinek, Shift & Trace, Liquid Shapes opciók, EXR/PNG színprofilokkal, élő lejátszási mód karakterek valós idejű streameléséhez/vezérléséhez | lásd a fő mátrixot; élő mód ❌ |
-| Ambassador Program (2026. jún.); hivatalos álláspont: nem terveznek MI-eszközöket (2025. márc.) | irányelv | n/a — az ARMATURA-ban sincsenek MI-funkciók |
+| Ambassador Program (2026. jún.); hivatalos álláspont: nem terveznek MI-eszközöket (2025. márc.) | irányelv | n/a — az OSATURA-ban sincsenek MI-funkciók |
 | Webinárok (Víctor Paredes stb.) | oktatóanyagok | n/a |
 
 ## Közösségi összehasonlítások (Spine fórum, „Spine vs Moho 12”)
@@ -845,7 +845,7 @@ Anime Studio 10.1 / 11.1, a Moho 12.5 részletes jegyzetei, Spine 3.0–3.6 rés
 - A felhasználók kritizálják: az FFD-t gyengének tartják; **nincs valódi futtatókörnyezet (runtime)**, a játékexport FBX-re korlátozódik.
 - A Creature-t az integrált motion capture miatt dicsérik (az FFD-t kritizálják).
 - A Spine 4.2 fizikai kényszerei lelkes reakciókat kapnak az X-en (felhasználói posztok).
-ARMATURA: fizika ✅ (beégetett rugók), maszkolás 🟡 (clip booleanokon keresztül), smart bone-ok 🟡, vektorszerkesztés ✅, futtatókörnyezet ❌, mocap ❌.
+OSATURA: fizika ✅ (beégetett rugók), maszkolás 🟡 (clip booleanokon keresztül), smart bone-ok 🟡, vektorszerkesztés ✅, futtatókörnyezet ❌, mocap ❌.
 
 ## Látott fórumos kívánságlista-címek (a tartalom nem olvasható)
 „Concentrate on Timeline/Workflow improvements” (2024), „Road map for Moho”, „Help Shape the Future of Anime Studio”, „13.5.2 performance issue” — arra utal, hogy az idővonal/munkafolyamat és a teljesítmény a legtöbbet kért terület; nem ellenőrzött funkciólista.
@@ -866,11 +866,11 @@ ARMATURA: fizika ✅ (beégetett rugók), maszkolás 🟡 (clip booleanokon kere
 
 # Kiegészítés — Kívánságlisták és funkciókérő táblák (6. kör, 2026-10-19)
 
-Csak ténylegesen olvasható kérések szerepelnek. Az „ARMATURA” oszlop azt mutatja, hogy a kérést a motor már lefedi-e.
+Csak ténylegesen olvasható kérések szerepelnek. Az „OSATURA” oszlop azt mutatja, hogy a kérést a motor már lefedi-e.
 
 ## Moho (Lost Marble fórum)
 Olvasható: csak a fórum főoldala. Léteznek a „Feature Request Discussions” és az „Unofficial Bug Reports and Feature Requests” szakaszok; a legutóbbi látható kérés címe: **„Dock Windows – Custom Interface”** (2026. okt. 18.). A régóta futó „Help Shape the Future of Anime Studio” szál (828 válasz, 2011–2021) és más kívánságlista-szálak („Road map for Moho”, „My wish for Moho in 2024 – Concentrate on Timeline/Workflow improvements”, „Request for top 10 Anime Studio Pro 6 features”) JavaScript-átirányító héjak → a tartalom nem olvasható. Konkrét fórumok közötti összehasonlítások (Spine fórum): a Spine-ban fizikát, maszkolást, smart bone-okat szeretnének; a Mohót gyenge FFD-ért és a futtatókörnyezet hiányáért kritizálják.
-| Kérés | ARMATURA |
+| Kérés | OSATURA |
 |---|---|
 | Dokkolható ablakok / egyedi felület | ❌ (a webes stúdió elrendezése rögzített) |
 | Idővonal- / munkafolyamat-fejlesztések | 🟡 |
@@ -878,7 +878,7 @@ Olvasható: csak a fórum főoldala. Léteznek a „Feature Request Discussions�
 | Erősebb FFD | ✅ Bernstein-rács + háló |
 
 ## Cartoon Animator (Reallusion Feedback Tracker + kívánságlista-szál)
-| Kérés (szavazatok, ahol látszanak) | ARMATURA |
+| Kérés (szavazatok, ahol látszanak) | OSATURA |
 |---|---|
 | Alapértelmezett kulcsgörbe a beállításokban | ✅ kulcsonkénti easing |
 | Többcsatornás kulcsszerkesztés | 🟡 patch kötegelt opok |
@@ -903,7 +903,7 @@ Olvasható: csak a fórum főoldala. Léteznek a „Feature Request Discussions�
 | 360°-os panoráma (5); MI-integrációs ötletek (6) | ❌ |
 
 ## Live2D Cubism Editor funkciókérő tábla (30 szál, 2023–2026)
-| Kérés | ARMATURA |
+| Kérés | OSATURA |
 |---|---|
 | Linux-támogatás | ✅ |
 | Gyorsbillentyűk a kézi hálószerkesztésben | n/a |
@@ -926,7 +926,7 @@ Olvasható: csak a fórum főoldala. Léteznek a „Feature Request Discussions�
 A felhasználói fórum bezárt, és Discordra irányít át (nem kereshető); a régi „Feature Requests board” szálak („One can only dream: A Feature List”, „Software Upgrade Suggestions Part 2”, „Bitmap Layer Overhaul LONG OVERDUE”, „Various Quality of Life suggestions”) csak a bezárási értesítést mutatják. Kérések nem nyerhetők vissza.
 
 ## Synfig (GSoC ötletlista 2019–2022, hivatkozott GitHub-issue számok)
-| Kérés | ARMATURA |
+| Kérés | OSATURA |
 |---|---|
 | Waypointok másolása/beillesztése (#2139) | ✅ kulcsok opokkal |
 | Ctrl+Tab lapváltás, ablak-gyorsbillentyűk, lejátszási terület kijelölése, tulajdonságkeresés, vonalzók ki/be, egérvezérelt paramétermódosítás | ❌ (GUI) |
@@ -934,7 +934,7 @@ A felhasználói fórum bezárt, és Discordra irányít át (nem kereshető); a
 | GTK 4 portolás, Conan/vcpkg buildek | n/a |
 
 ## Spine
-A kérések a fórumra mennek, és egy nyilvános Trello-táblára kerülnek át (nem lekérhető: robots.txt). A fórumról: a legnagyobb prioritás történelmileg a szerkesztő stabilitása és a futtatókörnyezetek frissítése. A Kickstarter-korszak terve (hálók → FFD → skinning → IK pinning) mára teljesen elkészült, így az ARMATURA háló/FFD/skinning képességei paritásban vannak azzal a régi listával; az IK pinning ✅ (Pin kényszer). Legutóbbi fórumos kérések címei: a legújabb three.js / React Three Fiber támogatása; Spine 4.3 támogatás a Defoldban.
+A kérések a fórumra mennek, és egy nyilvános Trello-táblára kerülnek át (nem lekérhető: robots.txt). A fórumról: a legnagyobb prioritás történelmileg a szerkesztő stabilitása és a futtatókörnyezetek frissítése. A Kickstarter-korszak terve (hálók → FFD → skinning → IK pinning) mára teljesen elkészült, így az OSATURA háló/FFD/skinning képességei paritásban vannak azzal a régi listával; az IK pinning ✅ (Pin kényszer). Legutóbbi fórumos kérések címei: a legújabb three.js / React Three Fiber támogatása; Spine 4.3 támogatás a Defoldban.
 
 ## Rive
 A nyilvános ütemterv = „Feature Requests” csatorna állapotcímkékkel (folyamatban / tervezett / megjelent); olvasásához bejelentkezés kell. A kiadási jegyzeteken (4. kör) túl semmi nem nyerhető vissza.
@@ -970,9 +970,9 @@ A GitHub (OpenToonz/Synfig) oldalait a robots.txt blokkolja; olvasható TVPaint-
 **Hozzáférés:** a GitHub keresési API nem érhető el ebben a környezetben („sessions are bound to their configured repositories”), ezért a projekteket webes kereséssel találtuk meg, és nyilvános README-jeikből olvastuk. A GitLab és a Codeberg API-it a proxy blokkolja; a Codeberg/GitLab oldalak csak a keresési találatokban jelentek meg (a Friction olvasható volt). A csillagszámokat nem lehetett lekérni. Több projekt nagyon új/korai fázisú — a felsorolt funkciók a README-k állításai szerint szerepelnek, futtatással nem ellenőriztük őket.
 
 ## Hasonló nyílt forráskódú rigging- / animációs eszközök
-| Projekt | Platform | Említésre méltó funkciók | Összehasonlítás az ARMATURA-val |
+| Projekt | Platform | Említésre méltó funkciók | Összehasonlítás az OSATURA-val |
 |---|---|---|---|
-| **Rigby2D** (jaisurya-dev-art/rigby2d) | GitHub, MIT/Apache | Spine-stílusú szerkesztő (PSD-import, háló + súlyfestés, összekapcsolt hálók, IK/transzformáció/útvonal/fizika/**slider** kényszerek, skinek skin-specifikus csontokkal, események, befoglaló doboz/clipping/pont/útvonal csatolmányok, dopesheet + görbeszerkesztő), Spine JSON 3.8/4.2/4.3 + .skel export, atlasz, JS/Rust/Godot futtatókörnyezetek, **beépített MCP-szerver** MI-asszisztensekhez, Tauri asztali alkalmazás | Az ARMATURA-ból hiányzik a szerkesztő-GUI, az atlasz, a futtatókörnyezetek, a skinek, az események, a slider/útvonal kényszerek; megvan a tiszta függvényű kiértékelő, a folyadék/boolean/emitter FX, a lip-sync, a járásgenerátor |
+| **Rigby2D** (jaisurya-dev-art/rigby2d) | GitHub, MIT/Apache | Spine-stílusú szerkesztő (PSD-import, háló + súlyfestés, összekapcsolt hálók, IK/transzformáció/útvonal/fizika/**slider** kényszerek, skinek skin-specifikus csontokkal, események, befoglaló doboz/clipping/pont/útvonal csatolmányok, dopesheet + görbeszerkesztő), Spine JSON 3.8/4.2/4.3 + .skel export, atlasz, JS/Rust/Godot futtatókörnyezetek, **beépített MCP-szerver** MI-asszisztensekhez, Tauri asztali alkalmazás | Az OSATURA-ból hiányzik a szerkesztő-GUI, az atlasz, a futtatókörnyezetek, a skinek, az események, a slider/útvonal kényszerek; megvan a tiszta függvényű kiértékelő, a folyadék/boolean/emitter FX, a lip-sync, a járásgenerátor |
 | **SkelForm** (Retropaint/SkelForm, Rust) | GitHub | FABRIK IK, natív + web + mobil burkoló | hasonló rig-mag ✅; GUI nincs ❌ |
 | **Ankhimate editor** | GitHub, pre-alfa | Setup/Animate módok, slotok + skinek, tetszőleges hosszúságú FABRIK, útvonal/fizika kényszerek, hálósziluett-követés alfából, súlyecset keverési módokkal + csontzárolással, **FFD idővonalak**, események hanggal, jelölők, csontonkénti sáv-eltolások, **sablonalapú exportformátum-szerkesztő**, Rust referencia-futtatókörnyezet | ❌ többnyire GUI; ötletek: exportsablonok, csontonkénti sáv-eltolások |
 | **rig2d-rs** (tanhieuno41) | GitHub, Rust | Spine-4.2 fizika-port, IK **mix/softness/bend/compress/stretch/uniform** módokkal, automatikus súlykötés távolság-lecsengéssel, súly simítás/normalizálás/4-re korlátozás, polcos atlaszcsomagoló, onion skin szellemképek, Spine JSON import/export | ❌ soft/stretch IK, súlyeszközök, atlasz, Spine-csere |
@@ -999,7 +999,7 @@ A GitHub (OpenToonz/Synfig) oldalait a robots.txt blokkolja; olvasható TVPaint-
 Kalózszoftver-repók is felbukkantak (pl. „activate-free” Adobe Animate): nem nyitottuk meg és nem használtuk őket.
 
 ## Átvételre érdemes ötletek (új ütemterv-jelöltek)
-59. **MCP-szerver / ágens-API** a patch-op szerkesztő fölött, hogy MI-asszisztensek rigelhessenek és animálhassanak (Rigby2D, Iki) — illik az ARMATURA JSON-patch architektúrájához
+59. **MCP-szerver / ágens-API** a patch-op szerkesztő fölött, hogy MI-asszisztensek rigelhessenek és animálhassanak (Rigby2D, Iki) — illik az OSATURA JSON-patch architektúrájához
 60. **Szabványos paraméter-ID-k** (ParamAngleX, EyeOpen, MouthOpen…), hogy bármely hoszt vezérelhessen egy modellt (Iki)
 61. **Automatikus rigger szerepnevű rétegekből**: pislogás, tekintet, fejfordítás/bólintás/döntés, szemöldök, légzés, hajfizika (Iki)
 62. **Automatikus szemvágás** (az írisz a szem alakjával maszkolva) (Stretchy Studio) — Boolean rétegen keresztül
@@ -1011,7 +1011,7 @@ Kalózszoftver-repók is felbukkantak (pl. „activate-free” Adobe Animate): n
 68. **Átlátszó hátterű videóexport (WebM/MOV alfával) és spritesheet PNG+JSON** (Skeletal-Animator)
 69. **Exportsablon-motor** (felhasználó által definiált kimeneti formátumok) (Ankhimate)
 70. **dotLottie `.lottie` konténer + futásidejű slotok/témázás + állapotgépek** (dotlottie-rs)
-71. **Modell diff / dump / convert CLI** (`armatura diff a.json b.json`) (Umamo)
+71. **Modell diff / dump / convert CLI** (`osatura diff a.json b.json`) (Umamo)
 72. **Parancspaletta + újrakötött gyorsbillentyűk** a stúdióban (Umamo)
 73. **Fuzzolt betöltő, pánikmentes futtatókörnyezeti útvonal, késleltetési benchmarkok** (Ayatsuri2D) — az `Engine::new` robusztussági megerősítése
 74. **Spine JSON import/export** az adatcseréhez (Rigby2D, rig2d, Stretchy Studio)
@@ -1034,7 +1034,7 @@ Kalózszoftver-repók is felbukkantak (pl. „activate-free” Adobe Animate): n
 Források: itch.io, Steam, AlternativeTo, Wikipedia, tudományos/szabadalmi keresési találatok, After Effects eszközértékelések. Az állítások bolt-/projektoldalakról származnak, nem gyakorlati tesztekből.
 
 ## Indie / niche rigging eszközök (itch.io, Steam)
-| Eszköz | Említésre méltó funkciók | ARMATURA |
+| Eszköz | Említésre méltó funkciók | OSATURA |
 |---|---|---|
 | **Inochi Creator / Inochi2D** (Kitsunebi Games, nyílt forráskódú, béta) | nyílt, VTuber-orientált 2D bábrigging + valós idejű futtatókörnyezet; saját formátum (nem Live2D/Spine-kompatibilis); GIF/képsorozat-export; többnyelvű UI | 🟡 ugyanaz a niche (nyílt rigformátum) |
 | **Keyframe.it** (böngésző, ingyenes) | csontok + IK + súlyozott hálók + rugós mozgás; **játékszimbólum-klipek** (idle, land, anticipation, win); beépített képszerkesztő + PSD-import; export GIF, sprite sheet, videó, önálló HTML-lejátszó, **Spine 3.8/4.2 csomagok**; automatikus mentés a böngészőben; **keyframe-mcp** MI-ágens összekötő; opcionális beépített MI-asszisztens | ✅ HTML-lejátszó/GIF; ❌ sprite sheet, Spine-csomag, MCP, böngészős szerkesztő |
@@ -1046,7 +1046,7 @@ Források: itch.io, Steam, AlternativeTo, Wikipedia, tudományos/szabadalmi kere
 | VBridger, Vitamins | Steam-eszközök a VTubing körül; nem értékeltük | — |
 
 ## After Effects rigging ökoszisztéma (School of Motion értékelés)
-| Funkció | Forrás | ARMATURA |
+| Funkció | Forrás | OSATURA |
 |---|---|---|
 | **Joystick vezérlő** (5 kulcspóz: origó/jobb/bal/felső/alsó) 2D-ben interpolálva | Joysticks 'n Sliders | ❌ — erős jelölt |
 | **Csúszkák**, amelyek korlátlan számú pózt kevernek | JnS, Duik | 🟡 morph-csatornák |
@@ -1061,7 +1061,7 @@ Tahoma2D (OpenToonz fork, stop-motion), TupiTube, enve (megszűnt; Friction lett
 
 ## Tudományos és szabadalmi irodalom (csak címek/absztraktok)
 - Jacobson et al. 2011, **Bounded Biharmonic Weights** valós idejű deformációhoz — automatikus sima skinning-súlyok cage-ből/csontvázból ✅ ötlet: az `auto_skin` javítása (jelenleg távolságalapú).
-- Adobe szabadalmak US9865073 / US10078910, **„Computer animation of artwork using fast 2-dimensional deformation solving”** (a Character Animator háló-warpja). *Clean-room megjegyzés:* az ARMATURA Bernstein FFD-t és súlyozott skinninget használ, nem a szabadalmaztatott solvert; bármely jövőbeli ARAP-stílusú solvert jogásszal kell átnézetni. Ez nem jogi tanács.
+- Adobe szabadalmak US9865073 / US10078910, **„Computer animation of artwork using fast 2-dimensional deformation solving”** (a Character Animator háló-warpja). *Clean-room megjegyzés:* az OSATURA Bernstein FFD-t és súlyozott skinninget használ, nem a szabadalmaztatott solvert; bármely jövőbeli ARAP-stílusú solvert jogásszal kell átnézetni. Ez nem jogi tanács.
 - arXiv 2025–26 automatikus rigging: **ASMR** (3D háló csontváz + skin 2D generatív priorokból), UniRig, „How to Train Your Dragon” (diffúziós rigging), HumanRig, SPRig, UniMate — mind 3D/ML; csak egy jövőbeli „auto-rig javaslat” funkció szempontjából releváns.
 - Stony Brook TVC 2017 **automatikus skinning-súly retargeting** — súlyok másolása hálók között (✅ ütemterv: súlymásolás).
 
@@ -1095,7 +1095,7 @@ Források: Wikipedia verziótáblázat (a 2026. jan.-i 26.0-val együtt), Adobe 
 A rétegezett Photoshop/Illustrator grafika (2018. okt. óta EPS/SVG is) **réteg-nevekből/címkékből** automatikusan rigelt **bábbá** válik; az előadást élőben rögzíti (webkamerás arc/test, mikrofon, billentyűzet, egér, MIDI) **take-ekként** egy idővonalon; a kimenetek: PNG-sorozatok, WAV, Media Encoder (beleértve a **videót alfával**), Dynamic Link After Effectshez / Premiere-hez, valamint élő Syphon / Mercury Transmit. A Starter mód ingyenes; a Pro-hoz Creative Cloud kell.
 
 ## Behaviorök (teljes lista az Adobe Helpből)
-| Behavior | Mit csinál | ARMATURA |
+| Behavior | Mit csinál | OSATURA |
 |---|---|---|
 | **Face** | fej, szemek, szemöldök, orr, száj webkamerából; parallaxis és fejpozíció-erősség | ❌ (nincs élő követés) — ütemterv #88 |
 | **Body** (Body Tracker, Sensei AI, 22.0) | karok, törzs, lábak webkamerából | ❌ |
@@ -1123,7 +1123,7 @@ A rétegezett Photoshop/Illustrator grafika (2018. okt. óta EPS/SVG is) **réte
 | **Collide, Dynamic, Cycle Pause, Auto-swap (22.5)** | címkék/behaviorök fizikához és képkockaszerű cserékhez | ❌ |
 
 ## Idővonal-, rögzítési és munkafolyamat-funkciók
-| Funkció | Verzió | ARMATURA |
+| Funkció | Verzió | OSATURA |
 |---|---|---|
 | Take-ek, replayek (újrahasznosítható, triggerelhető felvételek), smart replayek, szerkeszthető replayek | 2.0 / 22.0 / 23.6 | 🟡 klipek ✅; replayek ❌ |
 | Kulcsok, kulcsok időnyújtása, jelenetkamerák, triggerelhető hang | 3.0 / 3.2 | ✅ kulcsok/kamera; ❌ triggerelhető hang |
@@ -1142,9 +1142,9 @@ A rétegezett Photoshop/Illustrator grafika (2018. okt. óta EPS/SVG is) **réte
 | MIDI, szkriptek V8-cal (JavaScript) | 1.1 / 2.0 | ❌ — ütemterv #31 |
 | Bábok megosztása/közzététele, megosztható bábfájlok | Beta 5 | 🟡 hordozható JSON |
 | Dynamic Link AE-hez / Premiere-hez | Beta 5 | ❌ |
-| Jelentett gyengeségek (értékelés): meredek tanulási görbe, hardverfüggés (webkamera/mikrofon), hosszú karakter-előkészítési idő, fizetős Pro, a triggerek beállításának bonyolultsága | | lehetőség: az ARMATURA determinisztikus offline pipeline-ja, CLI/JSON |
+| Jelentett gyengeségek (értékelés): meredek tanulási görbe, hardverfüggés (webkamera/mikrofon), hosszú karakter-előkészítési idő, fizetős Pro, a triggerek beállításának bonyolultsága | | lehetőség: az OSATURA determinisztikus offline pipeline-ja, CLI/JSON |
 
-## Ami kiemelkedik az ARMATURA szempontjából (új ütemterv-jelöltek)
+## Ami kiemelkedik az OSATURA szempontjából (új ütemterv-jelöltek)
 89. **Címkealapú automatikus rig réteg-nevekből** (fej, szemek, szemöldök, szájforma-visemek, kar/láb címkék) — a Character Animator alapötlete; kiterjeszti az ütemterv #61-et
 90. **Take-ek és replayek**: az előadás paramétereinek rögzítése újrahasznosítható, triggerelhető klipekként, blend easinggel
 91. **Pin Feet When Standing** és talajérintkezési zárolás a járásgenerátorhoz

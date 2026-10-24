@@ -1,7 +1,7 @@
-# Guia de animação do ARMATURA
+# Guia de animação do OSATURA
 
 Como fazer as coisas se moverem, reutilizar movimento, controlá-lo a partir de áudio, rostos, mocap e entrada ao vivo, verificá-lo e
-entregá-lo em tamanho reduzido. Todos os comandos aqui foram executados com o binário real (`armatura 0.1.0`, build de depuração, Linux);
+entregá-lo em tamanho reduzido. Todos os comandos aqui foram executados com o binário real (`osatura 0.1.0`, build de depuração, Linux);
 as saídas foram copiadas dessas execuções. O rigging está em [RIGGING_GUIDE.md](RIGGING_GUIDE.md); o primeiro projeto em
 [GETTING_STARTED.md](GETTING_STARTED.md); todas as opções em [CLI_REFERENCE.md](CLI_REFERENCE.md).
 
@@ -26,7 +26,7 @@ modo e uma fonte.
 
 * **Fontes:** `keys` (keyframes), `expr` (uma expressão), `noise` (ruído fractal de valor em `[-amp, amp]`, com `freq` em
   ciclos por segundo) e `driven` (uma curva que mapeia o valor de outra propriedade para esta). Os comandos que fazem bake
-  (physics, walk, clips, lip-sync...) gravam `keys` comuns. `armatura timeline` mostra a fonte de cada trilha:
+  (physics, walk, clips, lip-sync...) gravam `keys` comuns. `osatura timeline` mostra a fonte de cada trilha:
   `#1 bone_offset_y (noise)`, `#0 bone_angle (expr)`, `#0 layer_switch (driven)`, ou a lista de quadros-chave.
 * **Modos:** `replace`, `add` (por cima do que estiver abaixo) e `multiply`. Os canais se combinam na ordem da lista.
 * **Extrapolate** (o que uma trilha faz fora da primeira e da última chave): `hold` (padrão), `linear` (continua a
@@ -40,11 +40,11 @@ Crie chaves a partir de um script (`set_key(target, prop, frame, value[, ease])`
 estúdio ou em JSON.
 
 ```
-$ armatura keyedit walk.json k3.json add --target torso --prop bone_angle --at 12 --value 6 --ease ease_in_out
+$ osatura keyedit walk.json k3.json add --target torso --prop bone_angle --at 12 --value 6 --ease ease_in_out
 add: 1 keys changed, wrote k3.json
 ```
 
-`armatura timeline <project> [--json]` lista todas as trilhas por osso/camada com seus quadros-chave; `armatura explain <project> <bone|layer> <frame>`
+`osatura timeline <project> [--json]` lista todas as trilhas por osso/camada com seus quadros-chave; `osatura explain <project> <bone|layer> <frame>`
 mostra como um quadro foi calculado.
 
 ## 2. Interpolação e easing
@@ -65,14 +65,14 @@ pelas chaves vizinhas: suave, sem controle de overshoot) e `bounce`. Em JSON, um
 `SEL` é `target:prop@first..last`, `target:prop` ou `all`.
 
 ```
-$ armatura keyedit walk.json k2.json ease --sel all --ease smooth
+$ osatura keyedit walk.json k2.json ease --sel all --ease smooth
 ease: 119 keys changed, wrote k2.json
 ```
 
 Acrescente `-` como saída para transformar qualquer `keyedit` em um **ensaio (dry run)** que imprime o plano como JSON sem gravar nada:
 
 ```
-$ armatura keyedit walk.json - move --sel 'thigh_l:bone_angle@0..6' --dt 2
+$ osatura keyedit walk.json - move --sel 'thigh_l:bone_angle@0..6' --dt 2
 { "op": { "op": "batch", "ops": [ { "op": "set", "path": "/channels/0/track", "value": { "extrapolate": "loop", "keys": [ ... ] } } ] }, ... }
 ```
 
@@ -111,21 +111,21 @@ duas vezes**. Três comandos ajudam:
 * `keyedit ... loop --channels 0,1` define `extrapolate: loop` nos canais (as chaves não são alteradas):
 
 ```
-$ armatura keyedit s4.json s6.json loop --channels 0,1
+$ osatura keyedit s4.json s6.json loop --channels 0,1
 loop: 2 keys changed, wrote s6.json
 ```
 
 * `loop-solve <in> <out> [--window 24] [--inclusive]` faz os canais animados por chaves entrarem em loop sem emendas e informa a emenda:
 
 ```
-$ armatura loop-solve 04-keys.json buddy-final.json
+$ osatura loop-solve 04-keys.json buddy-final.json
 wrote buddy-final.json: 2 channel(s) adjusted, seam 0.000 -> 0.000
 ```
 
 * `make-loop <in> <out> [targets|all] [props] [--inclusive]` **remove o deslocamento** para que o movimento funcione no lugar:
 
 ```
-$ armatura make-loop t1.json t2.json
+$ osatura make-loop t1.json t2.json
 ball LayerX: removed drift 280.00
 wrote t2.json
 ```
@@ -154,7 +154,7 @@ cat > ex.rhai <<'EOF'
 add_channel_expr("head", "bone_angle", "8 * sin(t * 2 * pi)", "add");
 add_noise("hips", "bone_offset_y", 1.5, 2.0, 7, "add");
 EOF
-armatura script biped.json ex1.json ex.rhai
+osatura script biped.json ex1.json ex.rhai
 ```
 ```
 2 request(s) applied; wrote ex1.json
@@ -167,9 +167,9 @@ move `hips` por uma fração de unidade: a cabeça dele fica em y 169.7 no quadr
 Os erros são detectados antes de qualquer coisa ser gravada:
 
 ```
-$ armatura script biped.json ex2.json ex2.rhai       # "8 * sin(tt * 2 * pi)"
+$ osatura script biped.json ex2.json ex2.rhai       # "8 * sin(tt * 2 * pi)"
 request 1 (channel head.BoneAngle) was rejected, nothing changed: channel 0 ('head'): expression error: unknown variable 'tt'
-$ armatura script biped.json ex3.json ex3.rhai       # "8 * sin("
+$ osatura script biped.json ex3.json ex3.rhai       # "8 * sin("
 request 1 (channel head.BoneAngle) was rejected, nothing changed: channel 0 ('head'): expression error: unexpected end of expression
 ```
 
@@ -183,14 +183,14 @@ e está errado: quase não se move. Use `time` para segundos ou `frame`.
   suavização e uma expressão opcional:
 
 ```
-$ armatura bind add m1.json b1.json look player.look head:bone_angle --remap 0,1,-20,20 --smooth 0.1
+$ osatura bind add m1.json b1.json look player.look head:bone_angle --remap 0,1,-20,20 --smooth 0.1
 added binding 'look' (1 bindings); wrote b1.json
-$ armatura bind add b1.json b2.json run player.running @hero:walking
-$ armatura bind list b2.json
+$ osatura bind add b1.json b2.json run player.running @hero:walking
+$ osatura bind list b2.json
 look  player.look -> head:BoneAngle remap 0..1 -> -20..20 clamp smooth 0.1s
 run  player.running -> @hero:walking
 $ echo '{"player.look":0.75,"player.running":0}' > vals.json
-$ armatura bind-eval b2.json vals.json
+$ osatura bind-eval b2.json vals.json
 look = 10
 run = 0
 ```
@@ -202,7 +202,7 @@ run = 0
 `walk` gera uma caminhada procedural: ele precisa dos nomes dos ossos das pernas e (opcionalmente) dos braços e dos quadris.
 
 ```
-$ armatura walk biped.json walk.json --thigh-l thigh_l --thigh-r thigh_r --shin-l shin_l --shin-r shin_r \
+$ osatura walk biped.json walk.json --thigh-l thigh_l --thigh-r thigh_r --shin-l shin_l --shin-r shin_r \
     --arm-l arm_upper_l --arm-r arm_upper_r --hips hips --period 24 --stride 28 --knee 40 --bob 4 --swing 25
 wrote walk.json (+7 channels)
 ```
@@ -217,11 +217,11 @@ a remover.
 Um **take** é um trecho de animação gravado, armazenado em um arquivo de **biblioteca** que você pode reutilizar entre projetos:
 
 ```
-$ armatura take-record walk.json lib.json walk 0 24 thigh,shin,arm,hips
+$ osatura take-record walk.json lib.json walk 0 24 thigh,shin,arm,hips
 recorded 7 tracks into lib.json
-$ armatura take-list lib.json
+$ osatura take-list lib.json
 walk (24 frames, 7 tracks)
-$ armatura take-apply biped.json ta.json lib.json walk 0
+$ osatura take-apply biped.json ta.json lib.json walk 0
 applied 7 tracks; wrote ta.json
 ```
 
@@ -234,16 +234,16 @@ Um **clip** é um take colocado na timeline com um modo, um peso e máscaras. Os
 anteriores. Exemplo: uma caminhada, mais um braço direito acenando que aparece e some gradualmente.
 
 ```
-$ armatura clip add biped.json c1.json lib.json walk walkclip --at 0 --loops 1 --mode replace --weight 1
+$ osatura clip add biped.json c1.json lib.json walk walkclip --at 0 --loops 1 --mode replace --weight 1
 added clip 'walkclip' (1 clips); run clip bake to generate channels
-$ armatura clip add c1.json c2.json lib.json wave waveclip --at 0 --mode replace --weight 1 \
+$ osatura clip add c1.json c2.json lib.json wave waveclip --at 0 --mode replace --weight 1 \
     --include 'arm_*_r' --fade-in 4 --fade-out 4
-$ armatura clip list c2.json
+$ osatura clip list c2.json
 1. walkclip take 'walk' frames 0..24 x1 speed 1 Replace weight 1
 2. waveclip take 'wave' frames 0..24 x1 speed 1 Replace weight 1 include arm_*_r
-$ armatura clip bake c2.json c3.json
+$ osatura clip bake c2.json c3.json
 baked 2 clips into 18 channels (0 replaced); wrote c3.json
-$ armatura clip set-weight c3.json c4.json waveclip --keys 0:0,6:1,18:1,24:0
+$ osatura clip set-weight c3.json c4.json waveclip --keys 0:0,6:1,18:1,24:0
 updated clip 'waveclip'; run clip bake to update channels
 ```
 
@@ -271,12 +271,12 @@ condições de `when` (`input op value`, AND) são verdadeiras, opcionalmente ap
 transição correspondente, em ordem; `"from":"*"` significa qualquer estado.
 
 ```
-$ armatura machine add c2.json m1.json machine.json
+$ osatura machine add c2.json m1.json machine.json
 added machine 'hero' (1 machines); wrote m1.json
-$ armatura machine validate m1.json
+$ osatura machine validate m1.json
 1 machines, 0 bindings: ok
 $ echo '{"duration":3.0,"events":[{"t":1.0,"trigger":["greet"]}]}' > script.json
-$ armatura machine-sim m1.json script.json simout --fps 12
+$ osatura machine-sim m1.json script.json simout --fps 12
    0.000s  base     Entered walk
    1.000s  base     Exited walk
    1.000s  base     Entered wave
@@ -295,18 +295,18 @@ Todas as entradas de áudio devem ser **WAV**; converta outros formatos com o ff
 comprimento do projeto; aumente o projeto antes (`frames` no arquivo) ou você terá menos quadros do que o som tem.
 
 ```
-$ armatura lipsync biped.json speech.wav mouth ls.json
+$ osatura lipsync biped.json speech.wav mouth ls.json
 wrote ls.json (3.00s of audio → 24 frames)       # the project has 24 frames = 1 s: the last 2 s are cut
 ```
 
 Em uma cópia de 72 quadros do projeto (3 s):
 
 ```
-$ armatura lipsync talk0.json speech.wav mouth ls.json
+$ osatura lipsync talk0.json speech.wav mouth ls.json
 wrote ls.json (3.00s of audio → 72 frames)
-$ armatura lipsync-text talk0.json speech.wav transcript.txt mouth lt.json --lang en --words-out words.json
+$ osatura lipsync-text talk0.json speech.wav transcript.txt mouth lt.json --lang en --words-out words.json
 wrote lt.json (7 words, 18 exposure changes; energy + text alignment, not phoneme recognition)
-$ armatura speech-motion lt.json speech.wav transcript.txt sm.json --head head --nod 4 --fall 3 --tilt 2 --seed 5 --lang en
+$ osatura speech-motion lt.json speech.wav transcript.txt sm.json --head head --nod 4 --fall 3 --tilt 2 --seed 5 --lang en
 wrote sm.json (1 additive channel(s) from 7 words)
 ```
 
@@ -325,8 +325,8 @@ Se você tem deixas (cues) de outra ferramenta, `mouth <project> <cues.txt> <swi
 
 ```
 printf '0.00 X\n0.20 C\n0.35 B\n0.60 D\n1.00 A\n' > cues.txt
-armatura mouth talk0.json cues.txt mouth mc.json                 # wrote mc.json (5 cues)
-armatura mouth talk0.json cues.txt mouth mc.json --rhubarb       # also wrote mc.json (5 cues)
+osatura mouth talk0.json cues.txt mouth mc.json                 # wrote mc.json (5 cues)
+osatura mouth talk0.json cues.txt mouth mc.json --rhubarb       # also wrote mc.json (5 cues)
 ```
 
 As letras de forma são mapeadas para as cinco classes de boca: `X A MBP rest` para rest; `B G H L FV etc` (e letras desconhecidas) para small; `D AI` para open;
@@ -338,10 +338,10 @@ forma larga do Papagayo (wide). Aqui `X C B D A` deu rest, wide, small, open, re
 ### Reação ao áudio e batidas
 
 ```
-armatura audio-react biped.json ar.json speech.wav head bone_angle gain=10 add=on   # loudness drives a property
-armatura beats biped.json bt.json speech.wav as=markers name=syl                    # 2 beats at frames [5, 14]
-armatura sound add biped.json s1.json voice speech.wav 0 1.0
-armatura sound mix s1.json mix.wav                                                  # wrote mix.wav (1.00 s)
+osatura audio-react biped.json ar.json speech.wav head bone_angle gain=10 add=on   # loudness drives a property
+osatura beats biped.json bt.json speech.wav as=markers name=syl                    # 2 beats at frames [5, 14]
+osatura sound add biped.json s1.json voice speech.wav 0 1.0
+osatura sound mix s1.json mix.wav                                                  # wrote mix.wav (1.00 s)
 ```
 
 `sound mix` também trunca ao comprimento do projeto (um som de 3 s virou 1.00 s em um projeto de 1 s). `export` para `.html` incorpora o som
@@ -358,8 +358,8 @@ cat > path.rhai <<'EOF'
 add_line("route", [40, 300, 120, 260, 200, 290, 300, 240, 360, 280], "#bbbbbb", 2, false);
 add_circle("ball", 0, 0, 10, "#c1121f");
 EOF
-armatura script biped.json p0.json path.rhai
-armatura follow p0.json p1.json ball route 0 23         # 3 channels: layer_x, layer_y, layer_rotation
+osatura script biped.json p0.json path.rhai
+osatura follow p0.json p1.json ball route 0 23         # 3 channels: layer_x, layer_y, layer_rotation
 ```
 
 (`add_line` precisa de três ou mais pontos: `points need an even number of coordinates: 3..1000 points`.)
@@ -368,7 +368,7 @@ armatura follow p0.json p1.json ball route 0 23         # 3 channels: layer_x, l
   cadeia de seguidores, cada um mais tardio e mais fraco (overlapping action, caudas, antenas):
 
 ```
-$ armatura follow walk.json fo.json --target hips --prop bone_offset_y --chain torso,head --delay 2 --decay 0.6
+$ osatura follow walk.json fo.json --target hips --prop bone_offset_y --chain torso,head --delay 2 --decay 0.6
 wrote fo.json (+2 channels)
 ```
 
@@ -383,7 +383,7 @@ add_bone("root_ctrl", "", 10, 200, 312, 0);
 add_bone("foot_goal_l", "", 10, 212, 312, 0);
 add_ik("leg_ik_l", ["thigh_l", "shin_l"], "foot_goal_l", -1);
 EOF
-armatura script biped.json fl0.json ctrl.rhai
+osatura script biped.json fl0.json ctrl.rhai
 cat > fl1.rhai <<'EOF'
 set_key("foot_goal_l", "bone_offset_x", 0, 0);
 set_key("foot_goal_l", "bone_offset_x", 12, -40);
@@ -393,8 +393,8 @@ set_key("foot_goal_l", "bone_offset_y", 6, -15);
 set_key("foot_goal_l", "bone_offset_y", 12, 0);
 set_key("foot_goal_l", "bone_offset_y", 24, 0);
 EOF
-armatura script fl0.json fl2.json fl1.rhai
-$ armatura foot-lock fl2.json fl3.json foot_goal_l 312 1 2
+osatura script fl0.json fl2.json fl1.rhai
+$ osatura foot-lock fl2.json fl3.json foot_goal_l 312 1 2
 contact frames 12..23 pinned at (172.0, 312.0)
 wrote fl3.json
 ```
@@ -407,10 +407,10 @@ wrote fl3.json
 
 ## 10. Rastreamento facial e seus limites
 
-**Seja honesto sobre o que isto é.** O ARMATURA contém seu próprio detector de rostos e modelo de landmarks, pequenos (23 landmarks, layout
-`armatura23`). Ele está embutido no binário, roda localmente, não precisa de downloads e foi **treinado apenas com rostos gerados
+**Seja honesto sobre o que isto é.** O OSATURA contém seu próprio detector de rostos e modelo de landmarks, pequenos (23 landmarks, layout
+`osatura23`). Ele está embutido no binário, roda localmente, não precisa de downloads e foi **treinado apenas com rostos gerados
 pelo gerador sintético do próprio projeto**: cabeças estilizadas e de desenho animado. Ele **não foi validado em fotografias, webcams nem em vídeo
-real.** Os números medidos (`armatura face-eval --eval-n 50 --seed 9`) são:
+real.** Os números medidos (`osatura face-eval --eval-n 50 --seed 9`) são:
 
 | Medida | Resultado |
 |---|---|
@@ -422,14 +422,14 @@ real.** Os números medidos (`armatura face-eval --eval-n 50 --seed 9`) são:
 
 Esses números valem para o *seu próprio estilo sintético*. Não os leia como precisão em uma pessoa diante de uma câmera. Se você
 precisa de rastreamento de rostos reais, produza os landmarks com uma ferramenta em que você confie e forneça-os como NDJSON (o formato de entrada do `face-bake`
-é aberto); o painel Face do estúdio espera que você forneça uma função `window.armaturaLandmarkProvider` para a entrada da câmera.
+é aberto); o painel Face do estúdio espera que você forneça uma função `window.osaturaLandmarkProvider` para a entrada da câmera.
 
 O pipeline:
 
 ```
-armatura face-synth face --frames 60 --size 160 --seed 7        # synthetic head animation: PNG frames, truth.ndjson, params.json
-armatura face-track face face/track.ndjson --fps 24             # wrote face/track.ndjson: 60 frames, face found in 60
-armatura face-bake biped.json face/track.ndjson facemap.json fb.json --fps 24
+osatura face-synth face --frames 60 --size 160 --seed 7        # synthetic head animation: PNG frames, truth.ndjson, params.json
+osatura face-track face face/track.ndjson --fps 24             # wrote face/track.ndjson: 60 frames, face found in 60
+osatura face-bake biped.json face/track.ndjson facemap.json fb.json --fps 24
 ```
 ```
 60 landmark frames -> +2 channels (K keys in them), 0 trigger keys set, 2 events; wrote fb.json   # K = number of keys in the 2 new channels
@@ -458,18 +458,18 @@ produziram chaves de 0 a 23 apenas, e um aviso em stderr diz quantos quadros da 
 ## 11. Mocap e BVH
 
 ```
-$ armatura mocap-info walk.bvh
+$ osatura mocap-info walk.bvh
 11 joints (5 end sites), 36 channels per frame
 48 frames at 0.0417 s (24.000 fps), duration 1.958 s
 Hips  offset (0.000, 95.000, 0.000)  [Xpos Ypos Zpos Zrot Xrot Yrot]
 ...
-$ armatura mocap-match biped.json walk.bvh
+$ osatura mocap-match biped.json walk.bvh
 slot         bvh joint                  rig bone                conf  via         len x  note
 hips         Hips                       hips                    1.00  name         2.00
 head         Head                       head                    1.00  name         4.00
 shin.l       LeftLeg                    shin_l                  0.63  name         7.20  limb length ratio is 2.1x off the median
 ...
-$ armatura mocap-retarget biped.json walk.bvh mo.json --view side --smooth 2 --weight 1
+$ osatura mocap-retarget biped.json walk.bvh mo.json --view side --smooth 2 --weight 1
 note: project length extended from 24 to 48 frames
 11 bones, 48 frames at 24 fps, root scale 2.7692, +13 channels; wrote mo.json
 ```
@@ -491,7 +491,7 @@ cat > lmap.json <<'EOF'
 {"params":[{"source":"midi_cc","id":"1:1","target":"arm_upper_r","prop":"bone_angle","in_min":0,"in_max":1,"out_min":0,"out_max":160,"smooth":0.2}],
  "triggers":[{"source":"midi_note","id":"1:60","edge":"press","threshold":0.5,"action":{"type":"fire_event","name":"cymbal"}}]}
 EOF
-armatura live-map biped.json wheel.mid lmap.json lm.json
+osatura live-map biped.json wheel.mid lmap.json lm.json
 ```
 ```
 27 events -> +1 channels (K keys in them), 0 trigger keys set, 0 takes, 1 events (0 after the last frame skipped); wrote lm.json
@@ -512,14 +512,14 @@ $ cat cont.json
 {"id":"faces","axis":"row","gap":12,"padding":[10,10,10,10],
  "rect":{"kind":"pin","left":10,"right":10,"top":10,"height":100},
  "members":[{"layer":"eye_l"},{"layer":"eye_r","grow":1}]}
-$ armatura container add biped.json c1.json cont.json
+$ osatura container add biped.json c1.json cont.json
 added container 'faces' (1 containers); wrote c1.json
-$ armatura container solve c1.json --size 800x360
+$ osatura container solve c1.json --size 800x360
 canvas 800x360
 container faces: x 10.00 y 10.00 w 780.00 h 100.00
 layer eye_l: dx -186.000 dy -44.000 scale 1.0000 x 1.0000
 layer eye_r: dx -146.000 dy -44.000 scale 1.0000 x 1.0000
-$ armatura layout-preview c1.json lp.svg --size 800x360
+$ osatura layout-preview c1.json lp.svg --size 800x360
 wrote lp.svg (800x360, 1 containers, 2 layers placed)
 ```
 
@@ -530,12 +530,12 @@ fling) estão em [CLI_REFERENCE.md](CLI_REFERENCE.md#scroll-add-list-remove-eval
 ## 14. Câmera, planos, profundidade de campo
 
 ```
-armatura shot walk.json sh1.json wide 200 180 1          # name x y zoom [rotation]
-armatura shot sh1.json sh2.json close 200 100 2.2
-armatura camera-seq sh2.json sh3.json 0:wide,12:close,23:wide
-armatura parallax sh3.json px.json sky,ground 0.2 1.0
-armatura dof px.json 12 dof.png --focus 1.0 --strength 10
-armatura dof-export px.json dof.gif --from 0 --to 11 --scale 0.5
+osatura shot walk.json sh1.json wide 200 180 1          # name x y zoom [rotation]
+osatura shot sh1.json sh2.json close 200 100 2.2
+osatura camera-seq sh2.json sh3.json 0:wide,12:close,23:wide
+osatura parallax sh3.json px.json sky,ground 0.2 1.0
+osatura dof px.json 12 dof.png --focus 1.0 --strength 10
+osatura dof-export px.json dof.gif --from 0 --to 11 --scale 0.5
 ```
 
 `timeline sh3.json` mostra 11 canais: os 7 da caminhada mais os da câmera. `dof` desfoca cada camada de nível superior por `|parallax - focus|`
@@ -558,27 +558,27 @@ quadro a partir de uma lista JSON:
 
 ```
 $ echo '[{"type":"outline","width":3,"color":"#222222"},{"type":"posterize","levels":6}]' > chain.json
-$ armatura fx biped.json 0 chain.json fxc.png
+$ osatura fx biped.json 0 chain.json fxc.png
 wrote fxc.png (2 effect(s))
 ```
 
 Verificações de segurança para flashes e movimento de câmera (um auxílio de engenharia baseado na definição pública da WCAG 2.3.1, **não uma certificação para broadcast**):
 
 ```
-$ armatura safety walk.json
+$ osatura safety walk.json
 flashes      ok    worst 0 transitions/s (frame 0)
 red flashes  ok    worst 0 transitions/s (frame 0)
 camera       pan 0.00 widths/s, rotation 0°/s, zoom ×1.00/s
-$ armatura reduced-motion walk.json rm.json --factor 0.25
+$ osatura reduced-motion walk.json rm.json --factor 0.25
 wrote rm.json
 ```
 
 ## 16. Onion skin e trails (overlays)
 
 ```
-armatura onion p1.json 12 onion.png --before 3 --after 2                  # ghosts of neighbouring frames, raster
-armatura onion p1.json onion.svg --frame 12 --before 3 --after 2 --keyed --outline   # SVG; --keyed ghosts key frames
-armatura trail p1.json trail.svg --target layer:ball --from 0 --to 23     # wrote trail.svg (24 ticks, 24 key marker(s))
+osatura onion p1.json 12 onion.png --before 3 --after 2                  # ghosts of neighbouring frames, raster
+osatura onion p1.json onion.svg --frame 12 --before 3 --after 2 --keyed --outline   # SVG; --keyed ghosts key frames
+osatura trail p1.json trail.svg --target layer:ball --from 0 --to 23     # wrote trail.svg (24 ticks, 24 key marker(s))
 ```
 
 `--keyed` desenha os ghosts nos quadros-chave vizinhos, e não em um passo fixo. Os overlays nunca alteram o projeto e não fazem parte de uma exportação.
@@ -587,9 +587,9 @@ O estúdio os mostra ao vivo (`Alt+N` onion, `Alt+M` trails, `Alt+7` painel).
 ## 17. Idles procedurais
 
 ```
-armatura idle blink  p1.json i1.json --target eye_l --prop layer_scale_y --interval 2 --seed 4 --closed 0.1
-armatura idle breath p1.json i2.json --target torso  --prop bone_scale   --amp 0.03 --period 48
-armatura idle sway   p1.json i3.json --target head   --prop bone_angle   --amp 3 --freq 0.5 --seed 2
+osatura idle blink  p1.json i1.json --target eye_l --prop layer_scale_y --interval 2 --seed 4 --closed 0.1
+osatura idle breath p1.json i2.json --target torso  --prop bone_scale   --amp 0.03 --period 48
+osatura idle sway   p1.json i3.json --target head   --prop bone_angle   --amp 3 --freq 0.5 --seed 2
 ```
 
 Com seed, portanto o mesmo comando gera a mesma animação em qualquer lugar. O `autorig` adiciona respiração e piscadas para você quando os nomes correspondem.
@@ -603,7 +603,7 @@ Com seed, portanto o mesmo comando gera a mesma animação em qualquer lugar. O 
 * O **fuzz** posiciona o rig aleatoriamente e informa onde ele quebra:
 
 ```
-$ armatura fuzz walk.json --samples 200 --seed 3 --strategy lhs --only thigh_l,shin_l,arm_upper_l
+$ osatura fuzz walk.json --samples 200 --seed 3 --strategy lhs --only thigh_l,shin_l,arm_upper_l
 fuzz 'Biped': 200 samples (lhs, seed 3, frame 0), 12 parameters, 22 failures (11.0%), max severity 1.00, baseline 0.00, 0.78 ms/sample
   off_canvas: 22
   extreme-range failure excess  arm_upper_l              28%
@@ -622,10 +622,10 @@ fuzz: failure rate 11.00% exceeds --max-fail-rate 5.00%
   `ci` engloba isso e mais em um manifesto:
 
 ```
-$ armatura ci init walk.json --out armatura-ci.json
-wrote armatura-ci.json with 9 checks:
+$ osatura ci init walk.json --out osatura-ci.json
+wrote osatura-ci.json with 9 checks:
   validate / render frames / render frames-float / determinism / pose-fuzz / limits / gif-size / loop-seam / render-speed
-$ armatura ci run armatura-ci.json
+$ osatura ci run osatura-ci.json
 [PASS   ] validate     validate           project compiles; 0 lint finding(s), none at 'error' or above
 [PASS   ] render       frames             6 frame(s) match
 [PASS   ] render       frames-float       2 frame(s) match
@@ -645,7 +645,7 @@ $ armatura ci run armatura-ci.json
 ## 19. Tamanho e nível de detalhe
 
 ```
-$ armatura size-report walk.json | head -9
+$ osatura size-report walk.json | head -9
 project file: 17507 bytes (2185 gzip)
   by layer (JSON bytes; embedded image base64 in brackets):
          2658  mouth
@@ -658,10 +658,10 @@ project file: 17507 bytes (2185 gzip)
 `size-report` mostra quais camadas, imagens e canais custam bytes. Quando uma plataforma tem um orçamento, `export-fit` encontra a exportação de melhor qualidade que cabe nele:
 
 ```
-$ armatura export-fit walk.json fit.gif --max-size 60KB --format gif
+$ osatura export-fit walk.json fit.gif --max-size 60KB --format gif
 gif -> fit.gif: 44540 bytes raw, 43822 gzip (budget 60000 raw); SSIM mean 0.9271, worst 0.9057 at frame 3, max CIEDE2000 74.98; 8 candidates built
 time budget exhausted (60 s, checked inside every candidate): the search stopped early and the best result so far is kept (exit code 0 if it fits the size budget, 1 if not; ...)
-$ armatura export-fit walk.json fit.json --max-size 8KB --format lottie
+$ osatura export-fit walk.json fit.json --max-size 8KB --format lottie
 lottie -> fit.json: 14952 bytes raw, 1429 gzip (budget 8000 raw); SSIM mean 0.9350, worst 0.9060 at frame 10, max CIEDE2000 74.98; 5 candidates built
 existing exporter at defaults: 76430 bytes raw, 6654 gzip
 budget not met: the smallest export found is 14952 bytes (raw), above the budget of 8000 bytes: every knob is at its floor ...
@@ -674,13 +674,13 @@ no build de depuração, a busca de GIF foi interrompida por esse limite e mante
 Para desenhos com muitas curvas e malhas, o **nível de detalhe (LOD)** produz cópias simplificadas com um limite de erro *declarado* em pixels de saída:
 
 ```
-$ armatura lod walk.json --tolerance-px 0.5 --levels 3 --out-dir lods --verify
+$ osatura lod walk.json --tolerance-px 0.5 --levels 3 --out-dir lods --verify
 level  tol_px  anchors  mesh_v  keys  layers    bytes  declared_px  ...  measured_px  ratio
 L0      0.000       75       0   119      20    17507       0.0000  ...            -      -
 L1      0.500       72       0   100      20    16193       0.1153  ...       0.0895   1.3x
 L2      1.000       70       0   100      20    16040       0.3969  ...       0.3597   1.1x
 L3      2.000       69       0   100      20    16080       0.5570  ...       0.4997   1.1x
-$ armatura lod-pick walk.json --screen-px 200x180 --max-px 0.5
+$ osatura lod-pick walk.json --screen-px 200x180 --max-px 0.5
 screen 200x180 -> scale 0.5000 px/unit; budget 0.5 px -> level L3 (declared 0.2785 px, 69 anchors, 0 mesh vertices, 100 keys)
 ```
 

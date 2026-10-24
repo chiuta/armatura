@@ -1,12 +1,12 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
-# ARMATURA
+# OSATURA
 
 **Un moteur de rigging et d'animation vectoriels 2D en Rust : os, IK, skinning, déformateurs, un runtime de machines à états, une boîte à outils en ligne de commande, un studio dans le navigateur et des bibliothèques intégrables, réunis dans un seul workspace.** Version roumaine : [README.ro.md](README.ro.md).
 
 ## Résumé et philosophie
 
-ARMATURA vous permet de construire un personnage ou une scène à partir de formes vectorielles et d'images, de les rigger avec des os et des contraintes, de les animer avec des clés, des clips et de la physique, puis de les exporter en GIF, en vidéo, en Lottie, en glTF, en lecteur HTML autonome ou en runtime interactif. Il est composé de petites briques déterministes : le même projet et la même seed donnent les mêmes pixels, chaque outil lit et écrit un projet JSON documenté, et chaque commande fonctionne depuis un terminal ; l'animation peut ainsi être scriptée, relue, comparée (diff) et testée comme du code source.
+OSATURA vous permet de construire un personnage ou une scène à partir de formes vectorielles et d'images, de les rigger avec des os et des contraintes, de les animer avec des clés, des clips et de la physique, puis de les exporter en GIF, en vidéo, en Lottie, en glTF, en lecteur HTML autonome ou en runtime interactif. Il est composé de petites briques déterministes : le même projet et la même seed donnent les mêmes pixels, chaque outil lit et écrit un projet JSON documenté, et chaque commande fonctionne depuis un terminal ; l'animation peut ainsi être scriptée, relue, comparée (diff) et testée comme du code source.
 
 Principes qui structurent le projet :
 
@@ -18,11 +18,13 @@ Principes qui structurent le projet :
 
 ## État d'avancement
 
+*Nom : le projet s'appelait OSATURA jusqu'au 24 oct. 2026 et a été renommé OSATURA après une recherche de marque ([docs/LIMITATIONS.md](docs/i18n/fr/LIMITATIONS.md) L-78). L'adresse du dépôt et le domaine du site portent encore l'ancien nom tant que le propriétaire ne les a pas déplacés.*
+
 > **Alpha. Premiers builds préparés comme préversion en brouillon : `v0.1.0-alpha.3`.** Les exécutables pour Windows x86-64, macOS arm64 et Linux x86-64 ainsi que le module WebAssembly sont construits par GitHub Actions et joints à une préversion *en brouillon* sur <https://github.com/chiuta/armatura/releases> (un brouillon n'est visible que de son propriétaire tant qu'il n'a pas été publié à la main). Tous les crates sont toujours en version `0.1.0` ; « v0.5 / v0.6 / v0.7 » sont des *niveaux de fonctionnalités* dans l'historique, pas des numéros de version ([CHANGELOG.md](docs/i18n/fr/CHANGELOG.md)).
 >
 > | Vérifié | Non vérifié |
 > |---|---|
-> | **En local (Linux x86-64, 24 oct. 2026) :** 1338 tests de `cargo test --workspace --exclude armatura-gpu --exclude armatura-gui` plus 19 doc-tests passent (le crate GPU a besoin d'un adaptateur et le crate de fenêtre d'un bureau ; auparavant, le total incluant le crate GPU était de 1368). **Sur GitHub Actions (24 oct. 2026, chaîne d'outils 1.97.0) :** la suite de tests et `clippy -D warnings` passent sous Linux, macOS (arm64) et Windows ; `cargo deny` et `reuse lint` passent ; le module WebAssembly se compile pour `wasm32-unknown-unknown` et le test du wrapper passe sur le vrai module sous Node 20 ; les binaires de release passent un test de fumée (`--version`, `demo`, `check`, `render`) et `armatura-studio --selftest` s'exécute sous Windows et macOS. Quatre tests de fumée du studio avec Chromium sans interface passent ; la CLI, la façade Rust et l'ABI C (y compris sous ASan/UBSan) ont été exécutées avec les exemples de la documentation | **Personne n'a utilisé les exécutables sur un vrai bureau Windows ou macOS** : le lanceur par double-clic de Windows et l'application à fenêtre `armatura-studio` (WebView2 / WKWebView) n'ont été que compilés et auto-testés en CI ; les binaires **ne sont pas signés** (SmartScreen « Éditeur inconnu », Gatekeeper de macOS) ; le binaire Linux n'a été construit que sur un runner Ubuntu ; **le module WebAssembly n'a jamais été exécuté dans un navigateur** et sa vitesse comme sa mémoire n'ont pas été mesurées ; le studio n'a jamais été utilisé par une personne en production, ni dans un autre navigateur que Chromium ; aucun vrai GPU (seulement un adaptateur logiciel), aucune webcam, photographie ou capture de mouvement réelle n'a jamais été utilisée ; aucun audit de sécurité, aucune revue juridique, aucune recherche de brevets |
+> | **En local (Linux x86-64, 24 oct. 2026) :** 1338 tests de `cargo test --workspace --exclude osatura-gpu --exclude osatura-gui` plus 19 doc-tests passent (le crate GPU a besoin d'un adaptateur et le crate de fenêtre d'un bureau ; auparavant, le total incluant le crate GPU était de 1368). **Sur GitHub Actions (24 oct. 2026, chaîne d'outils 1.97.0) :** la suite de tests et `clippy -D warnings` passent sous Linux, macOS (arm64) et Windows ; `cargo deny` et `reuse lint` passent ; le module WebAssembly se compile pour `wasm32-unknown-unknown` et le test du wrapper passe sur le vrai module sous Node 20 ; les binaires de release passent un test de fumée (`--version`, `demo`, `check`, `render`) et `osatura-studio --selftest` s'exécute sous Windows et macOS. Quatre tests de fumée du studio avec Chromium sans interface passent ; la CLI, la façade Rust et l'ABI C (y compris sous ASan/UBSan) ont été exécutées avec les exemples de la documentation | **Personne n'a utilisé les exécutables sur un vrai bureau Windows ou macOS** : le lanceur par double-clic de Windows et l'application à fenêtre `osatura-studio` (WebView2 / WKWebView) n'ont été que compilés et auto-testés en CI ; les binaires **ne sont pas signés** (SmartScreen « Éditeur inconnu », Gatekeeper de macOS) ; le binaire Linux n'a été construit que sur un runner Ubuntu ; **le module WebAssembly n'a jamais été exécuté dans un navigateur** et sa vitesse comme sa mémoire n'ont pas été mesurées ; le studio n'a jamais été utilisé par une personne en production, ni dans un autre navigateur que Chromium ; aucun vrai GPU (seulement un adaptateur logiciel), aucune webcam, photographie ou capture de mouvement réelle n'a jamais été utilisée ; aucun audit de sécurité, aucune revue juridique, aucune recherche de brevets |
 >
 > Lisez [docs/LIMITATIONS.md](docs/i18n/fr/LIMITATIONS.md) (78 limites numérotées, avec gravité et contournement) avant de dépendre de quoi que ce soit.
 
@@ -32,15 +34,15 @@ Les archives précompilées, une fois que le propriétaire a publié la version 
 
 | Archive | Contenu |
 |---|---|
-| `armatura-windows-x86_64.zip` | `armatura.exe` (ligne de commande + serveur du studio), `armatura-studio.exe` (application à fenêtre), bibliothèque C et en-tête, licences, mentions des composants tiers |
-| `armatura-macos-arm64.tar.gz` | `armatura`, `armatura-studio` (Apple Silicon uniquement), bibliothèque C et en-tête, licences, mentions |
-| `armatura-linux-x86_64.tar.gz` | `armatura`, bibliothèque C et en-tête, licences, mentions (pas d'application à fenêtre : utilisez `armatura studio` et un navigateur) |
-| `armatura-web.tar.gz` | `armatura_wasm.wasm`, `armatura.js`, page de démonstration `index.html` (non vérifiée dans des navigateurs, voir [docs/WASM.md](docs/i18n/fr/WASM.md)) |
+| `osatura-windows-x86_64.zip` | `osatura.exe` (ligne de commande + serveur du studio), `osatura-studio.exe` (application à fenêtre), bibliothèque C et en-tête, licences, mentions des composants tiers |
+| `osatura-macos-arm64.tar.gz` | `osatura`, `osatura-studio` (Apple Silicon uniquement), bibliothèque C et en-tête, licences, mentions |
+| `osatura-linux-x86_64.tar.gz` | `osatura`, bibliothèque C et en-tête, licences, mentions (pas d'application à fenêtre : utilisez `osatura studio` et un navigateur) |
+| `osatura-web.tar.gz` | `osatura_wasm.wasm`, `osatura.js`, page de démonstration `index.html` (non vérifiée dans des navigateurs, voir [docs/WASM.md](docs/i18n/fr/WASM.md)) |
 | `SHA256SUMS.txt` | vérifiez chaque téléchargement avec ce fichier |
 
-* **Windows :** double-cliquez sur `armatura.exe` pour créer `Documents\ARMATURA\first-rig.json` et ouvrir le studio dans votre navigateur, ou double-cliquez sur `armatura-studio.exe` pour obtenir une fenêtre à part. Les deux programmes ne sont pas signés : dans SmartScreen, choisissez *Informations complémentaires* puis *Exécuter quand même*. Voir [docs/GETTING_STARTED.md](docs/i18n/fr/GETTING_STARTED.md).
+* **Windows :** double-cliquez sur `osatura.exe` pour créer `Documents\OSATURA\first-rig.json` et ouvrir le studio dans votre navigateur, ou double-cliquez sur `osatura-studio.exe` pour obtenir une fenêtre à part. Les deux programmes ne sont pas signés : dans SmartScreen, choisissez *Informations complémentaires* puis *Exécuter quand même*. Voir [docs/GETTING_STARTED.md](docs/i18n/fr/GETTING_STARTED.md).
 * **macOS :** approuvez le programme dans *Réglages Système > Confidentialité et sécurité* la première fois.
-* **Source :** chaque archive indique le commit dont elle provient ; les parties AGPL sont servies avec leur offre de code source (`armatura --version`, `/source`).
+* **Source :** chaque archive indique le commit dont elle provient ; les parties AGPL sont servies avec leur offre de code source (`osatura --version`, `/source`).
 
 ## Fonctionnalités par domaine
 
@@ -57,24 +59,24 @@ Détails et options exactes : [docs/CLI_REFERENCE.md](docs/i18n/fr/CLI_REFERENCE
 
 ## Démarrage rapide
 
-Prérequis : une chaîne d'outils Rust stable récente (ou une archive précompilée de la section [Téléchargement](#téléchargement) : sautez la ligne `cargo build` et utilisez le `armatura` décompressé). `ffmpeg` n'est nécessaire que pour l'export MP4/WebM et pour l'audio mp3/ogg ; il n'est jamais fourni avec le projet. Chaque commande ci-dessous a été exécutée pour ce README (build de débogage, Linux). Les builds de release (`cargo build --release`) sont bien plus rapides pour le rendu et s'utilisent de la même façon avec `target/release`.
+Prérequis : une chaîne d'outils Rust stable récente (ou une archive précompilée de la section [Téléchargement](#téléchargement) : sautez la ligne `cargo build` et utilisez le `osatura` décompressé). `ffmpeg` n'est nécessaire que pour l'export MP4/WebM et pour l'audio mp3/ogg ; il n'est jamais fourni avec le projet. Chaque commande ci-dessous a été exécutée pour ce README (build de débogage, Linux). Les builds de release (`cargo build --release`) sont bien plus rapides pour le rendu et s'utilisent de la même façon avec `target/release`.
 
 ```sh
-cargo build -p armatura-cli                       # builds target/debug/armatura
-export PATH="$PWD/target/debug:$PATH"             # so that `armatura` is found
+cargo build -p osatura-cli                       # builds target/debug/osatura
+export PATH="$PWD/target/debug:$PATH"             # so that `osatura` is found
 
-armatura --version                                # version, licence, source offer, support links
-armatura demo demo.json                           # write the built-in rig demo (640x480, 48 frames)
-armatura check demo.json                          # validate: ok: 'ARMATURA demo' 640x480 @ 24 fps, 48 frames, 6 bones...
-armatura lint demo.json                           # static rig/animation checks: 0 finding(s), 0 error(s)
-armatura render demo.json 12 frame12.png --bones  # one frame, with the skeleton overlay
-armatura render demo.json 12 frame12.svg          # the same frame as vector output
-armatura frames demo.json frames_out --png        # every frame as a PNG
-armatura export demo.json demo.gif                # also .html (player), .json (Lottie), .lottie, .mp4 (ffmpeg)
-armatura demo-fx fx.json                          # second demo: liquid, booleans, particles
-armatura lipsync demo.json voice.wav mouth out.json   # mouth shapes from a WAV file (switch layer "mouth")
-armatura studio demo.json --port 8080             # browser editor at http://127.0.0.1:8080
-armatura ci init demo.json && armatura ci run     # animation CI: goldens + checks (about 40 s in a debug build)
+osatura --version                                # version, licence, source offer, support links
+osatura demo demo.json                           # write the built-in rig demo (640x480, 48 frames)
+osatura check demo.json                          # validate: ok: 'OSATURA demo' 640x480 @ 24 fps, 48 frames, 6 bones...
+osatura lint demo.json                           # static rig/animation checks: 0 finding(s), 0 error(s)
+osatura render demo.json 12 frame12.png --bones  # one frame, with the skeleton overlay
+osatura render demo.json 12 frame12.svg          # the same frame as vector output
+osatura frames demo.json frames_out --png        # every frame as a PNG
+osatura export demo.json demo.gif                # also .html (player), .json (Lottie), .lottie, .mp4 (ffmpeg)
+osatura demo-fx fx.json                          # second demo: liquid, booleans, particles
+osatura lipsync demo.json voice.wav mouth out.json   # mouth shapes from a WAV file (switch layer "mouth")
+osatura studio demo.json --port 8080             # browser editor at http://127.0.0.1:8080
+osatura ci init demo.json && osatura ci run     # animation CI: goldens + checks (about 40 s in a debug build)
 ```
 
 `voice.wav` est un fichier WAV mono ou stéréo quelconque que vous fournissez. Le studio n'écoute que sur `127.0.0.1` et refuse les requêtes destinées à d'autres noms d'hôte ; pour le partager, lisez d'abord [docs/SECURITY.md](docs/i18n/fr/SECURITY.md).
@@ -82,31 +84,31 @@ armatura ci init demo.json && armatura ci run     # animation CI: goldens + chec
 Utiliser les bibliothèques :
 
 ```sh
-cargo build -p armatura-capi                      # target/debug/libarmatura_capi.so and .a
-gcc -std=c99 -o smoke armatura-capi/tests/smoke.c -Ltarget/debug -larmatura_capi
+cargo build -p osatura-capi                      # target/debug/libosatura_capi.so and .a
+gcc -std=c99 -o smoke osatura-capi/tests/smoke.c -Ltarget/debug -losatura_capi
 LD_LIBRARY_PATH=target/debug ./smoke demo.json    # abi 1, 48 frames, 320x240, rc=0, checksum=...
 ```
 
-La façade Rust est `armatura_core::prelude` ([docs/API.md](docs/i18n/fr/API.md)) ; d'autres exemples en C et en Python figurent dans [docs/C_ABI.md](docs/i18n/fr/C_ABI.md).
+La façade Rust est `osatura_core::prelude` ([docs/API.md](docs/i18n/fr/API.md)) ; d'autres exemples en C et en Python figurent dans [docs/C_ABI.md](docs/i18n/fr/C_ABI.md).
 
 Tests (environ 14 minutes en build de débogage sur une machine partagée ; voir [docs/DEVELOPMENT.md](docs/i18n/fr/DEVELOPMENT.md)) :
 
 ```sh
 cargo test --workspace
-cargo test --doc -p armatura-core
-cargo test -p armatura-cli --test spdx_audit
+cargo test --doc -p osatura-core
+cargo test -p osatura-cli --test spdx_audit
 ```
 
 ## Structure du dépôt
 
 | Chemin | Contenu | Licence |
 |---|---|---|
-| `armatura-core/` | moteur, formats, outils, façade stable `api` | MPL-2.0 |
-| `armatura-cli/` | le binaire `armatura`, le studio et le serveur de collaboration, tests de bout en bout et tests de fumée | AGPL-3.0-or-later |
-| `armatura-gui/` | `armatura-studio`, le studio dans une fenêtre native (Windows et macOS ; une coquille vide sous Linux) | AGPL-3.0-or-later |
-| `armatura-capi/` | ABI C (`armatura.h`, bibliothèque partagée et statique) | MPL-2.0 |
-| `armatura-wasm/` | ABI WebAssembly, wrapper JavaScript, page de démonstration (compilé en CI) | MPL-2.0 |
-| `armatura-gpu/` | moteur de rendu wgpu optionnel (pas un membre par défaut) | MPL-2.0 |
+| `osatura-core/` | moteur, formats, outils, façade stable `api` | MPL-2.0 |
+| `osatura-cli/` | le binaire `osatura`, le studio et le serveur de collaboration, tests de bout en bout et tests de fumée | AGPL-3.0-or-later |
+| `osatura-gui/` | `osatura-studio`, le studio dans une fenêtre native (Windows et macOS ; une coquille vide sous Linux) | AGPL-3.0-or-later |
+| `osatura-capi/` | ABI C (`osatura.h`, bibliothèque partagée et statique) | MPL-2.0 |
+| `osatura-wasm/` | ABI WebAssembly, wrapper JavaScript, page de démonstration (compilé en CI) | MPL-2.0 |
+| `osatura-gpu/` | moteur de rendu wgpu optionnel (pas un membre par défaut) | MPL-2.0 |
 | `docs/` | documentation (CC-BY-4.0) et fichiers tiers générés | CC-BY-4.0 |
 | `.github/workflows/` | CI (`ci.yml`) et builds de release (`release.yml`) | MPL-2.0 |
 | `scripts/` | `e2e.sh`, `licence-audit.sh` | MPL-2.0 |
@@ -142,12 +144,12 @@ Commencez par [docs/INDEX.md](docs/i18n/fr/INDEX.md) (tous les documents, public
 
 ## Résumé des licences
 
-* **MPL-2.0** pour les bibliothèques `armatura-core`, `armatura-capi`, `armatura-wasm`, `armatura-gpu` et pour `scripts/` : vous pouvez les lier à votre propre programme, ouvert ou fermé ; les modifications apportées à ces fichiers doivent être publiées sous MPL.
-* **AGPL-3.0-or-later** pour `armatura-cli` (la ligne de commande et le studio) et `armatura-gui` (la fenêtre qui l'entoure). Si vous le modifiez et laissez d'autres personnes interagir avec lui via un réseau, la section 13 vous oblige à leur proposer votre code source : `armatura studio --source-url URL` publie l'endroit où il se trouve ; `/source` et `armatura --version` portent cette offre.
+* **MPL-2.0** pour les bibliothèques `osatura-core`, `osatura-capi`, `osatura-wasm`, `osatura-gpu` et pour `scripts/` : vous pouvez les lier à votre propre programme, ouvert ou fermé ; les modifications apportées à ces fichiers doivent être publiées sous MPL.
+* **AGPL-3.0-or-later** pour `osatura-cli` (la ligne de commande et le studio) et `osatura-gui` (la fenêtre qui l'entoure). Si vous le modifiez et laissez d'autres personnes interagir avec lui via un réseau, la section 13 vous oblige à leur proposer votre code source : `osatura studio --source-url URL` publie l'endroit où il se trouve ; `/source` et `osatura --version` portent cette offre.
 * **CC-BY-4.0** pour la documentation et les assets synthétiques (y compris le modèle synthétique de détection de visage).
 * **Vos projets et vos rendus restent les vôtres.**
 * Le nom et le logo ne sont pas couverts par ces licences ([TRADEMARK.md](docs/i18n/fr/TRADEMARK.md)). Le statut vis-à-vis des brevets n'a pas été évalué ([docs/PATENT_NOTES.md](docs/i18n/fr/PATENT_NOTES.md)). Une licence commerciale ou double pour le code contribué n'est pas possible sans accord de licence de contributeur, et il n'en existe aucun.
-* Crates tiers : 363 dans l'inventaire du 24 oct. 2026 (toutes plateformes et cibles confondues, ce qui inclut les crates propres à Windows / macOS / Linux de l'application à fenêtre ; un binaire donné en contient un sous-ensemble), tous permissifs sauf six crates MPL-2.0 à copyleft faible : `smartstring` derrière la fonctionnalité optionnelle `scripting`, et cinq (`cssparser`, `cssparser-macros`, `dtoa-short`, `selectors`, `option-ext`) que seule l'application à fenêtre `armatura-gui` peut faire intervenir ([docs/THIRD_PARTY.md](docs/i18n/fr/THIRD_PARTY.md)). ffmpeg n'est jamais fourni avec le projet.
+* Crates tiers : 363 dans l'inventaire du 24 oct. 2026 (toutes plateformes et cibles confondues, ce qui inclut les crates propres à Windows / macOS / Linux de l'application à fenêtre ; un binaire donné en contient un sous-ensemble), tous permissifs sauf six crates MPL-2.0 à copyleft faible : `smartstring` derrière la fonctionnalité optionnelle `scripting`, et cinq (`cssparser`, `cssparser-macros`, `dtoa-short`, `selectors`, `option-ext`) que seule l'application à fenêtre `osatura-gui` peut faire intervenir ([docs/THIRD_PARTY.md](docs/i18n/fr/THIRD_PARTY.md)). ffmpeg n'est jamais fourni avec le projet.
 
 Voir [LICENSE](LICENSE), [LICENSES/](LICENSES/) et [LICENSING.md](docs/i18n/fr/LICENSING.md). Rien de ceci ne constitue un avis juridique ; une revue par un juriste reste à faire.
 
@@ -159,16 +161,16 @@ Problèmes de sécurité : n'ouvrez pas de ticket public ; suivez la section 10 
 
 ## Soutien
 
-ARMATURA est développé par Alexandru-Ionuț Chiuță (Alexio). Si le projet vous est utile, vous pouvez soutenir ce travail :
+OSATURA est développé par Alexandru-Ionuț Chiuță (Alexio). Si le projet vous est utile, vous pouvez soutenir ce travail :
 
 * Buy Me a Coffee : <https://buymeacoffee.com/echo.of.the.strings>
 * Patreon : <https://patreon.com/c/alexio_tf>
 
-Contact du mainteneur (également affiché par `armatura --version`) : alexio@trom.tf.
+Contact du mainteneur (également affiché par `osatura --version`) : alexio@trom.tf.
 
 ## Remerciements
 
 * Les auteurs des articles et manuels publics que suivent les algorithmes, cités module par module dans [CLEANROOM.md](docs/i18n/fr/CLEANROOM.md) (mathématiques des courbes de Bézier et des splines, cinématique inverse, skinning par mélange linéaire, coordonnées à valeur moyenne, ajustement de courbes et autres).
-* Les spécifications ouvertes qu'ARMATURA lit et écrit : SVG, OpenRaster, OCA, Lottie/dotLottie, glTF, APNG, WebM, OpenEXR, BVH, PNG, GIF.
+* Les spécifications ouvertes qu'OSATURA lit et écrit : SVG, OpenRaster, OCA, Lottie/dotLottie, glTF, APNG, WebM, OpenEXR, BVH, PNG, GIF.
 * Les crates Rust sur lesquels il repose, listés avec leurs licences dans [docs/THIRD_PARTY.md](docs/i18n/fr/THIRD_PARTY.md), notamment `tiny-skia`, `serde`, `png`, `zip`, `rhai` et `wgpu`.
 * Toutes les personnes qui soutiennent le projet via les liens ci-dessus.

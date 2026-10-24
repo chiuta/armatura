@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 
-# Glossaire d'ARMATURA
+# Glossaire d'OSATURA
 
 Termes de domaine utilisés dans le code et la documentation, par ordre alphabétique de l'original anglais. « Voir » renvoie au
-module (dans `armatura-core/src` sauf indication contraire) ou au document où le terme est implémenté ou
+module (dans `osatura-core/src` sauf indication contraire) ou au document où le terme est implémenté ou
 spécifié. Documents : [PROJECT_FORMAT.md](PROJECT_FORMAT.md), [ARCHITECTURE.md](ARCHITECTURE.md).
 Les sources des techniques sont listées dans `CLEANROOM.md`.
 
@@ -92,7 +92,7 @@ alignement et retour à la ligne, qui positionne des calques et d'autres contene
 `rig`.
 
 **CRDT.** Type de données répliqué sans conflit (conflict-free replicated data type) : une structure que les répliques peuvent modifier indépendamment et
-fusionner vers le même résultat sans coordination. ARMATURA utilise un CRDT fondé sur les opérations. Voir `collab` ;
+fusionner vers le même résultat sans coordination. OSATURA utilise un CRDT fondé sur les opérations. Voir `collab` ;
 ARCHITECTURE section 10. Termes liés : registre LWW, RGA, horloge de Lamport, horloge vectorielle, tombstone.
 
 **Interpolation de Bézier cubique (Cubic Bezier easing).** Une courbe d'interpolation de style CSS définie par deux points de contrôle entre (0,0) et
@@ -187,9 +187,9 @@ PROJECT_FORMAT section 5.
 Voir `layerfx`.
 
 **Niveau de détail (LOD) (Level of detail (LOD)).** Une version simplifiée d'un projet produite sous une borne d'erreur déclarée
-en pixels, pour un aperçu rapide ou une petite sortie. Voir `lod`, `armatura lod`.
+en pixels, pour un aperçu rapide ou une petite sortie. Voir `lod`, `osatura lod`.
 
-**Linter.** Le vérificateur consultatif (`armatura lint`) qui signale des problèmes de qualité d'animation avec des codes
+**Linter.** Le vérificateur consultatif (`osatura lint`) qui signale des problèmes de qualité d'animation avec des codes
 tels que L011 et L012. Distinct de la validation. Voir `lint`.
 
 **Calque liquide (Liquid layer).** Un calque de metaballs dont le contour est l'isocontour d'un champ de somme d'influences. Voir
@@ -232,7 +232,7 @@ l'éclairage par calque. Voir `postfx` ; PROJECT_FORMAT section 7.3.
 inverse pour l'annulation. Voir `edit`.
 
 **OT.** Transformation opérationnelle (operational transformation) : une alternative aux CRDT qui réécrit les opérations concurrentes les unes par rapport aux autres,
-généralement avec un serveur central. ARMATURA ne l'utilise pas ; il utilise un CRDT avec un séquenceur central. Voir
+généralement avec un serveur central. OSATURA ne l'utilise pas ; il utilise un CRDT avec un séquenceur central. Voir
 ARCHITECTURE section 10.
 
 **Parallaxe (Parallax).** Un facteur par calque qui met à l'échelle le mouvement de la caméra, de sorte que les calques éloignés bougent moins. C'est aussi
@@ -293,7 +293,7 @@ section 4.
 groupe, comme des costumes. Voir `skins`.
 
 **Skinning.** Déformation de la géométrie par mélange des transformations des os, pondéré par ancre ou par sommet.
-ARMATURA normalise les poids et traite les poids vides comme statiques. Voir `engine`, `weights`.
+OSATURA normalise les poids et traite les poids vides comme statiques. Voir `engine`, `weights`.
 
 **IK souple (Soft IK).** Une option d'IK qui adoucit l'extension près de la portée maximale pour éviter un redressement brusque. Plage 0 à
 0,9. Voir `rig`.
@@ -310,7 +310,7 @@ repos et en les rattachant à la courbe déformée. Voir PROJECT_FORMAT section 
 chargement pour que n'importe quelle image puisse être évaluée. Voir PROJECT_FORMAT section 4.4.
 
 **SSIM.** Indice de similarité structurelle (structural similarity index, Wang et al. 2004) : une mesure de qualité d'image à partir des moyennes locales,
-des variances et de la covariance. ARMATURA utilise une version par blocs. Voir `percep`.
+des variances et de la covariance. OSATURA utilise une version par blocs. Voir `percep`.
 
 **Scène (Stage).** L'espace de coordonnées de l'image de sortie : pixels, +x vers la droite, +y vers le bas.
 

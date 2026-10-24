@@ -7,7 +7,7 @@
 ## 1. Antes de publicar nada
 
 - [ ] **[blocker]** Confirma o sustituye el contacto de seguridad (`alexio@trom.tf` es un marcador de posición en `docs/SECURITY.md`, en `--version` y en los documentos de licencias).
-- [ ] **[blocker]** Busca el nombre «ARMATURA» en los registros de marcas que te interesen (EUIPO, USPTO, OSIM) y en tiendas de aplicaciones / registros de paquetes. Véase `TRADEMARK.md`. Si hay conflicto, cambia el nombre antes de la primera versión (el nombre aparece en el binario, los crates y la documentación).
+- [ ] **[blocker]** Busca el nombre «OSATURA» en los registros de marcas que te interesen (EUIPO, USPTO, OSIM) y en tiendas de aplicaciones / registros de paquetes. Véase `TRADEMARK.md`. Si hay conflicto, cambia el nombre antes de la primera versión (el nombre aparece en el binario, los crates y la documentación).
 - [ ] **[blocker]** Pide a un abogado que revise `LICENSING.md`, la división MPL-2.0 / AGPL-3.0, `docs/THIRD_PARTY.md` y `docs/PATENT_NOTES.md`. Decide si quieres doble licencia; si es así, hace falta un CLA *antes* de aceptar contribuciones externas (hoy: solo DCO).
 - [ ] Comprueba las condiciones de la referencia de ajuste de curvas de Graphics Gems (citada de memoria en `CLEANROOM.md`); conserva la redacción de implementación independiente solo si es exacta.
 - [x] `reuse lint` y `cargo deny check` pasan en CI (el trabajo `licences`); ejecútalos también una vez en tu máquina.
@@ -30,7 +30,7 @@
 
 - [ ] Entrega el estudio a entre 3 y 5 animadores durante una semana con una tarea corta (hacer el rig de un personaje, crear un ciclo de caminar, exportar un GIF). Anota dónde se atascan; registra cada caso como una incidencia.
 - [ ] Prueba en navegadores reales (Chrome, Firefox, Safari), en un dispositivo táctil y en una sesión solo con teclado.
-- [ ] En un **Windows 11** real y en un **Mac** real: descomprime el archivo, haz doble clic en `armatura.exe` (Windows) y en `armatura-studio`, haz el rig y exporta un proyecto, e informa de lo que falle (L-74 a L-76).
+- [ ] En un **Windows 11** real y en un **Mac** real: descomprime el archivo, haz doble clic en `osatura.exe` (Windows) y en `osatura-studio`, haz el rig y exporta un proyecto, e informa de lo que falle (L-74 a L-76).
 - [ ] Prueba las funciones de detector de rostros / mocap / voz con datos reales; informa con honestidad de que son limitadas (L-12, L-13).
 
 ## 5. Seguridad del despliegue (si alojas el estudio o la colaboración)

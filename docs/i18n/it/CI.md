@@ -1,15 +1,15 @@
-# CI delle animazioni (`armatura ci`)
+# CI delle animazioni (`osatura ci`)
 
 Tratta un'animazione come codice testabile: un manifest elenca i controlli, un job di CI li esegue, e una modifica
 visiva che fallisce arriva con un report che mostra che cosa si è mosso. Tutto è locale, offline e
 deterministico; le metriche sono quelle classiche (CIEDE2000, SSIM, MSE/PSNR, un hash DCT).
 
 ```
-armatura ci init  <project.json> [--out armatura-ci.json] [--no-goldens]
-armatura ci run   [manifest] [--update] [--bless] [--prune] [--only a,b]
+osatura ci init  <project.json> [--out osatura-ci.json] [--no-goldens]
+osatura ci run   [manifest] [--update] [--bless] [--prune] [--only a,b]
                   [--junit out.xml] [--html out.html] [--json out.json] [--artifacts dir] [--quiet]
-armatura ci bless [manifest] [--only a,b] [--prune]
-armatura ci diff  a.png b.png [--metric ssim|de2000|de76|mse] [--tol T] [--pixel-de D] [--aa N]
+osatura ci bless [manifest] [--only a,b] [--prune]
+osatura ci diff  a.png b.png [--metric ssim|de2000|de76|mse] [--tol T] [--pixel-de D] [--aa N]
                   [--ignore x,y,w,h;x,y,w,h] [--out heat.png] [--side s.png] [--overlay o.png] [--flicker f.gif]
 ```
 
@@ -20,10 +20,10 @@ manifest non valido, golden illeggibile o manomesso, opzione sconosciuta).
 ## Avvio rapido
 
 ```
-armatura ci init animation.json        # writes armatura-ci.json and goldens/ next to the project
-armatura ci run --html report.html     # verify; exit 1 and a report on regressions
-armatura ci bless                      # after reviewing the report: accept the new look
-git add armatura-ci.json goldens       # commit the goldens with the change that caused them
+osatura ci init animation.json        # writes osatura-ci.json and goldens/ next to the project
+osatura ci run --html report.html     # verify; exit 1 and a report on regressions
+osatura ci bless                      # after reviewing the report: accept the new look
+git add osatura-ci.json goldens       # commit the goldens with the change that caused them
 ```
 
 `init` calibra il manifest sul progetto così com'è ora: circa sei fotogrammi equidistanti a una
@@ -34,11 +34,11 @@ limiti con il 50 % di margine, un budget di dimensione per la GIF (+50 %), un co
 oggi va in loop in modo pulito), e un budget informativo di velocità di rendering (4 x la mediana misurata, che
 dipende dalla macchina e dalle build debug rispetto a quelle release).
 
-## Manifest (`armatura-ci.json`)
+## Manifest (`osatura-ci.json`)
 
 ```json
 {
-  "schema": "armatura-ci/1",
+  "schema": "osatura-ci/1",
   "project": "animation.json",
   "goldens": "goldens",
   "defaults": { "max_de": 6.0 },
@@ -66,7 +66,7 @@ univoci; ogni controllo ha bisogno di un progetto; gli intervalli sono controlla
 | --- | --- | --- |
 | `render` | fotogrammi (elenco `frames`, oppure `step`, per impostazione predefinita primo/centrale/ultimo), `scale`, `size` (i container di layout vengono risolti di nuovo), `renderer`: `raster` (tiny-skia), `float` (rasterizzatore f32, quantizzato a 8 bit) o `svg` (confronto esatto del testo) | l'immagine differisce dal golden oltre le soglie, non esiste alcun golden, o la dimensione è cambiata |
 | `validate` | il progetto compila; risultati del linter alla severità `lint` (`error` predefinito, `warn`, `info`, `off`) | qualsiasi risultato di questo tipo o un errore di compilazione |
-| `fuzz` | il pose fuzzer (`samples`, `seed`, `frame`) | tasso di fallimento superiore a `max_fail_rate` (predefinito 0). Il controllo **blocca per impostazione predefinita** (`gate` non impostato significa `true`); viene solo riportato, con stato `info` e senza mai fallire, quando `"gate": false` o `max_fail_rate` è 1 o più (un limite che non può fallire non viene mai mostrato come superato). Il comando `armatura fuzz` è uno strumento separato di sola segnalazione, a meno che non gli si passi `--gate` o `--max-fail-rate` |
+| `fuzz` | il pose fuzzer (`samples`, `seed`, `frame`) | tasso di fallimento superiore a `max_fail_rate` (predefinito 0). Il controllo **blocca per impostazione predefinita** (`gate` non impostato significa `true`); viene solo riportato, con stato `info` e senza mai fallire, quando `"gate": false` o `max_fail_rate` è 1 o più (un limite che non può fallire non viene mai mostrato come superato). Il comando `osatura fuzz` è uno strumento separato di sola segnalazione, a meno che non gli si passi `--gate` o `--max-fail-rate` |
 | `limits` | `max_layers`, `max_bones`, `max_channels`, `max_frames`, `max_canvas_pixels`, `max_file_bytes` | un conteggio supera il proprio limite |
 | `export-size` | byte di `gif`, `apng`, `lottie`, `html` o `svg-frames` (esportatori esistenti) | maggiore di `max_bytes` |
 | `determinism` | ogni fotogramma renderizzato due volte dallo stesso motore e da un motore appena caricato; lo SHA-256 dei pixel (o del testo SVG) deve coincidere; `renderers` predefiniti raster, float, svg | qualsiasi digest differisce |
@@ -118,7 +118,7 @@ viene letto, quindi un file modificato a mano o corrotto è un errore (exit 2), 
 
 ### Report
 
-`--json` è il risultato completo (schema `armatura-ci-report/1`; metriche, regioni, soglie usate).
+`--json` è il risultato completo (schema `osatura-ci-report/1`; metriche, regioni, soglie usate).
 `--junit` è un XML JUnit con un test case per controllo. `--html` è una pagina autonoma (nessuna risorsa
 esterna): riepilogo, tabella dei controlli, e per ogni fotogramma fallito il golden, il rendering corrente e una
 mappa delle differenze come data URI PNG incorporati, un pulsante di scambio per alternare tra golden e corrente, e
@@ -146,11 +146,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install Rust
         run: rustup toolchain install stable --profile minimal
-      - name: Build armatura
-        run: cargo build --release -p armatura-cli
+      - name: Build osatura
+        run: cargo build --release -p osatura-cli
       - name: Animation checks
         run: |
-          ./target/release/armatura ci run animation/armatura-ci.json \
+          ./target/release/osatura ci run animation/osatura-ci.json \
             --junit ci-out/junit.xml --html ci-out/report.html --json ci-out/report.json \
             --artifacts ci-out/frames
       - name: Upload report
@@ -167,7 +167,7 @@ jobs:
 ```
 
 Il codice di uscita 1 (regressione visiva o un budget) e 2 (impossibile valutare) fanno entrambi fallire il job; il report
-viene caricato in ogni caso. Per accettare una modifica voluta, esegui `armatura ci bless` in locale, controlla il
+viene caricato in ogni caso. Per accettare una modifica voluta, esegui `osatura ci bless` in locale, controlla il
 diff di `goldens/` e fanne il commit.
 
 ## Script shell generico (esempio, non eseguito)
@@ -176,11 +176,11 @@ diff di `goldens/` e fanne il commit.
 #!/bin/sh
 # ci.sh - run animation checks; works in any CI that can run a shell and keep files.
 set -u
-MANIFEST="${1:-animation/armatura-ci.json}"
+MANIFEST="${1:-animation/osatura-ci.json}"
 OUT="${OUT:-ci-out}"
 mkdir -p "$OUT"
 
-armatura ci run "$MANIFEST" \
+osatura ci run "$MANIFEST" \
   --junit "$OUT/junit.xml" --html "$OUT/report.html" --json "$OUT/report.json" \
   --artifacts "$OUT/frames"
 code=$?

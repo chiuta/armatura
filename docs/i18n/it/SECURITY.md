@@ -2,13 +2,13 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # Sicurezza
 
-*Modello di minaccia, protezioni integrate, lacune note, come segnalare un problema e come installare lo studio in sicurezza. Documentazione CC-BY-4.0. Ricavata dai sorgenti (`armatura-core/src/{api,assets,fsutil,expr,script}.rs`, `armatura-cli/src/{http,studio,collab_srv}.rs`), da `ROADMAP.md` sezione 9 (ondate di revisione da 1 a 4) e dai test indicati qui sotto. **ARMATURA non ha mai avuto un audit di sicurezza indipendente.** Le ondate di revisione sono state svolte dal progetto stesso; considera questa pagina come una descrizione delle intenzioni e di ciò che i test coprono, non come una garanzia.*
+*Modello di minaccia, protezioni integrate, lacune note, come segnalare un problema e come installare lo studio in sicurezza. Documentazione CC-BY-4.0. Ricavata dai sorgenti (`osatura-core/src/{api,assets,fsutil,expr,script}.rs`, `osatura-cli/src/{http,studio,collab_srv}.rs`), da `ROADMAP.md` sezione 9 (ondate di revisione da 1 a 4) e dai test indicati qui sotto. **OSATURA non ha mai avuto un audit di sicurezza indipendente.** Le ondate di revisione sono state svolte dal progetto stesso; considera questa pagina come una descrizione delle intenzioni e di ciò che i test coprono, non come una garanzia.*
 
 Indice: [1 Modello di minaccia](#1-modello-di-minaccia) - [2 Server HTTP dello studio](#2-server-http-dello-studio) - [3 Autenticazione e collaborazione](#3-autenticazione-e-collaborazione) - [4 Risoluzione degli asset e limiti sull'input](#4-risoluzione-degli-asset-e-limiti-sullinput) - [5 Sandbox di espressioni e script](#5-sandbox-di-espressioni-e-script) - [6 File, collegamenti simbolici e dati temporanei](#6-file-collegamenti-simbolici-e-dati-temporanei) - [7 Programmi esterni (ffmpeg)](#7-programmi-esterni-ffmpeg) - [8 Librerie (C ABI, WASM, facciata)](#8-librerie-c-abi-wasm-facciata) - [9 Lacune note](#9-lacune-note) - [10 Segnalare una vulnerabilità](#10-segnalare-una-vulnerabilità) - [11 Checklist di hardening per chi installa](#11-checklist-di-hardening-per-chi-installa) - [12 Reverse proxy con TLS: nginx e Caddy](#12-reverse-proxy-con-tls-nginx-e-caddy)
 
 ## 1. Modello di minaccia
 
-Ciò che ARMATURA elabora: **file di progetto** (JSON), immagini, audio, file di importazione Lottie / OCA / in stile glTF, file di mappatura e, nello studio, richieste HTTP da un browser. Nel modello qui sotto i file di progetto sono *dati non fidati*: un progetto ricevuto da altri può essere ostile, e aprirlo non deve eseguire codice, leggere file fuori dalla sua cartella né esaurire le risorse della macchina.
+Ciò che OSATURA elabora: **file di progetto** (JSON), immagini, audio, file di importazione Lottie / OCA / in stile glTF, file di mappatura e, nello studio, richieste HTTP da un browser. Nel modello qui sotto i file di progetto sono *dati non fidati*: un progetto ricevuto da altri può essere ostile, e aprirlo non deve eseguire codice, leggere file fuori dalla sua cartella né esaurire le risorse della macchina.
 
 | Attore | Può | Obiettivo ipotizzato | Difese principali |
 |---|---|---|---|
@@ -23,7 +23,7 @@ Fuori ambito: la protezione da un amministratore locale malevolo, da una toolcha
 
 ## 2. Server HTTP dello studio
 
-`armatura studio` serve l'editor con una propria piccola implementazione HTTP/1.1 (`armatura-cli/src/http.rs`, solo libreria standard, nessun framework web di terze parti). Il comportamento, con i test che lo fissano (test unitari di `armatura-cli`, `tests/robust.rs`, `tests/wave4.rs`, `tests/source_offer.rs` e gli smoke test Chromium):
+`osatura studio` serve l'editor con una propria piccola implementazione HTTP/1.1 (`osatura-cli/src/http.rs`, solo libreria standard, nessun framework web di terze parti). Il comportamento, con i test che lo fissano (test unitari di `osatura-cli`, `tests/robust.rs`, `tests/wave4.rs`, `tests/source_offer.rs` e gli smoke test Chromium):
 
 **Limiti**
 
@@ -63,7 +63,7 @@ L'opzione `--collab-token T` (o il token richiesto da un `--bind` non locale) ab
 * **Back-off.** Per indirizzo IP del client, dal **5°** fallimento consecutivo: 2, 4, 8, 16, poi 30 secondi di risposte 429; vengono tracciati fino a 512 indirizzi client. Il token corretto è sempre accettato, anche durante un back-off (così un attaccante non può chiudere fuori il proprietario). Il back-off rallenta i tentativi alla cieca; non ferma un attacco distribuito. **Dietro un reverse proxy ogni client appare con l'indirizzo del proxy**, quindi condividono un unico contatore di back-off: un'ondata di richieste errate da un visitatore ritarda il contatore dei fallimenti per tutti, ma il token corretto continua a funzionare.
 * **Segreti dei partecipanti.** Ogni collaboratore riceve un segreto casuale a 128 bit (`X-Collab-Secret`) che identifica il suo flusso; al massimo 32 partecipanti e 64 flussi di eventi.
 * **Integrità del log.** Il log della sessione è un file di testo, una riga per operazione: `<hash> <json>`, concatenata con SHA-256 (formato versione 2). Modificare, cancellare o riordinare una riga spezza la catena, cosa che viene segnalata al caricamento del log. Ogni richiesta è sottoposta a `fdatasync` prima della risposta, il file è creato con modo 0600 e riscritto atomicamente. La catena rileva danni accidentali e manomissioni occasionali; **non è firmata**, quindi chi può scrivere il file può ricostruire una catena valida.
-* **Token per partecipante (ondata 7, opzionale).** `--collab-secret-file F` sostituisce il bearer condiviso unico con token derivati da un segreto: `ap1.<name>.<expires>.<mac>` con `mac` = HMAC-SHA-256 (RFC 2104, SHA-256 proprio, vettori di test RFC 4231 nei test) calcolato sul nome e sulla scadenza. L'host li genera con `armatura collab-token NAME --secret-file F --ttl SECONDS` (predefinito 8 ore, al massimo 30 giorni) e ne consegna uno personale a ciascuna persona. Un token è legato a un solo nome (un partecipante che entra ottiene quel nome qualunque cosa invii la pagina, quindi nessuno può entrare spacciandosi per un altro), scade da solo, è verificato per ricalcolo (nessuna tabella sul server, nulla da rubarvi tranne il segreto stesso) e il suo cookie riceve un `Max-Age` pari alla vita residua. `--collab-revoke NAMES` rifiuta i token di quei nomi prima della scadenza; cambiare il segreto revoca tutto. Il file del segreto deve essere privato (modo 600 su Unix, altrimenti lo studio rifiuta di avviarsi), di almeno 16 caratteri, e non viene mai accettato come argomento da riga di comando. `--collab-token` e `--collab-secret-file` possono essere combinati; ciascuno soddisfa la regola per cui un bind non di loopback richiede una credenziale. La scadenza è controllata **per richiesta**: un flusso di eventi già aperto resta aperto fino alla sua fine, e la connessione successiva viene rifiutata. A un token scaduto o revocato si risponde `401` con il motivo, e non alimenta il back-off dei tentativi.
+* **Token per partecipante (ondata 7, opzionale).** `--collab-secret-file F` sostituisce il bearer condiviso unico con token derivati da un segreto: `ap1.<name>.<expires>.<mac>` con `mac` = HMAC-SHA-256 (RFC 2104, SHA-256 proprio, vettori di test RFC 4231 nei test) calcolato sul nome e sulla scadenza. L'host li genera con `osatura collab-token NAME --secret-file F --ttl SECONDS` (predefinito 8 ore, al massimo 30 giorni) e ne consegna uno personale a ciascuna persona. Un token è legato a un solo nome (un partecipante che entra ottiene quel nome qualunque cosa invii la pagina, quindi nessuno può entrare spacciandosi per un altro), scade da solo, è verificato per ricalcolo (nessuna tabella sul server, nulla da rubarvi tranne il segreto stesso) e il suo cookie riceve un `Max-Age` pari alla vita residua. `--collab-revoke NAMES` rifiuta i token di quei nomi prima della scadenza; cambiare il segreto revoca tutto. Il file del segreto deve essere privato (modo 600 su Unix, altrimenti lo studio rifiuta di avviarsi), di almeno 16 caratteri, e non viene mai accettato come argomento da riga di comando. `--collab-token` e `--collab-secret-file` possono essere combinati; ciascuno soddisfa la regola per cui un bind non di loopback richiede una credenziale. La scadenza è controllata **per richiesta**: un flusso di eventi già aperto resta aperto fino alla sua fine, e la connessione successiva viene rifiutata. A un token scaduto o revocato si risponde `401` con il motivo, e non alimenta il back-off dei tentativi.
 * **Limite di frequenza (ondata 7).** `--collab-rate N` consente N richieste al secondo per indirizzo client, con raffiche di 2N (token bucket); oltre si risponde `429` con `Retry-After`. Il valore predefinito è 100 al secondo quando è richiesta una credenziale e nessun limite altrimenti; 0 lo disattiva. Viene applicato dopo l'autenticazione e per **indirizzo** (la sorgente di una connessione), non per connessione TCP, perché un limite per connessione si aggira aprendo più connessioni; dietro un reverse proxy tutti i client condividono l'indirizzo del proxy, quindi limita anche sul proxy (sezione 12).
 * **Avvisi sull'indirizzo di bind (ondata 7).** Un `--bind` non di loopback stampa un avviso all'avvio (HTTP semplice; per `0.0.0.0` / `::` che lo studio è in ascolto su ogni interfaccia; per un token condiviso che non ha nomi e non scade mai).
 * **Nessun TLS, nessun account.** Il server parla HTTP semplice. Un token che viaggia su una rete è leggibile da chiunque si trovi sul percorso. Metti lo studio dietro un reverse proxy che termina il TLS o un tunnel SSH / VPN (sezione 11). Non ci sono account utente, ruoli o permessi per progetto: il token concede pieno accesso in modifica.
@@ -74,7 +74,7 @@ L'opzione `--collab-token T` (o il token richiesto da un `--bind` non locale) ab
 * **File di progetto.** `load_project` legge solo file regolari (niente dispositivi, niente pipe), fino a 256 MB (`--max-input-bytes N` per cambiarlo). `MAX_JSON_BYTES` della facciata è 256 MiB.
 * **Progetti derivati.** I comandi che scrivono un progetto derivato validano rispetto alla directory del progetto *in ingresso*; quando l'output è altrove, i percorsi relativi degli asset dei file esistenti vengono riscritti oppure un avviso dice che l'output non li troverà (`--allow-external-assets` li rende assoluti).
 * **Rendering.** La facciata rifiuta immagini più grandi di 16384 px per lato (`MAX_RENDER_SIDE`) e scale fuori da 0.05-4; i livelli C e wasm rifiutano output superiori a 256 MiB prima di allocare. Altri limiti della facciata: fps in (0, 1000], fotogrammi da 1 a 200000, stage fino a 32768, 4096 ossa, grandezze entro 1e7, `lod_levels` da 1 a 12, campioni di `fuzz` fino a 100000, colori di `trace` da 2 a 64 ([API.md](API.md)).
-* **Nessun panic sull'input.** I test con input ostili si trovano in `armatura-cli/tests/robust.rs` e nei test delle ondate; test in stile fuzz coprono i parser. Un panic raggiungibile dall'input è trattato come una vulnerabilità.
+* **Nessun panic sull'input.** I test con input ostili si trovano in `osatura-cli/tests/robust.rs` e nei test delle ondate; test in stile fuzz coprono i parser. Un panic raggiungibile dall'input è trattato come una vulnerabilità.
 * **I corpi dello studio** sono limitati a 32 MB; le modifiche passano per la stessa validazione dei file.
 
 ## 5. Sandbox di espressioni e script
@@ -88,7 +88,7 @@ L'opzione `--collab-token T` (o il token richiesto da un `--bind` non locale) ab
 * **Dati privati.** I log di collaborazione e gli altri file che solo il proprietario deve poter leggere sono creati con modo 0600 (`write_atomic_private`). Le directory temporanee sono create in modo esclusivo con modo 0700 (`private_temp_dir`), così un nome prevedibile in un `/tmp` condiviso non può essere creato in anticipo da un altro utente. I valori casuali (token per i nuovi partecipanti, nomi temporanei) provengono da `/dev/urandom` (`fsutil::random_bytes`); il generatore deterministico con seed del motore non viene mai usato per i segreti.
 * **Impostazioni dell'interfaccia.** Il `ui.json` dello studio ignora le chiavi sconosciute con un avviso e viene copiato in `ui.json.bak` (poi `.bak.1`, ...) prima del primo salvataggio.
 * **Windows / non Unix.** I modi di permesso sopra indicati valgono su Unix. Su Windows e macOS la suite di test passa in CI (i controlli solo POSIX vengono saltati su Windows), ma i controlli su symlink, permessi e `/dev/urandom` girano solo su Linux e macOS e nessuno ha rivisto a mano il comportamento di Windows.
-* **Binari non firmati e app a finestra.** Gli eseguibili di release non sono firmati; verifica i download con `SHA256SUMS.txt`. `armatura-studio` avvia lo stesso server locale (solo `127.0.0.1`, porta libera casuale) e lo mostra nella web view di sistema (WebView2 / WKWebView); la sua web view è esposta come una scheda del browser su quell'indirizzo e non ha avuto una revisione di sicurezza separata.
+* **Binari non firmati e app a finestra.** Gli eseguibili di release non sono firmati; verifica i download con `SHA256SUMS.txt`. `osatura-studio` avvia lo stesso server locale (solo `127.0.0.1`, porta libera casuale) e lo mostra nella web view di sistema (WebView2 / WKWebView); la sua web view è esposta come una scheda del browser su quell'indirizzo e non ha avuto una revisione di sicurezza separata.
 
 ## 7. Programmi esterni (ffmpeg)
 
@@ -127,14 +127,14 @@ Elenco onesto; vedi [LIMITATIONS.md](LIMITATIONS.md) per l'elenco più ampio dei
 ## 10. Segnalare una vulnerabilità
 
 * **Non aprire una issue pubblica** per una vulnerabilità. Invia una segnalazione privata al maintainer: **`alexio@trom.tf`**. *(Segnaposto: l'indirizzo compare nell'avviso di `--version` del programma e nei documenti di licenza; il proprietario deve confermarlo come contatto per la sicurezza e può sostituirlo con un indirizzo dedicato o un canale di advisory privato prima del primo rilascio.)*
-* Includi: versione (`armatura --version`) e piattaforma, il progetto o la richiesta che provoca il problema (un file minimo è la cosa migliore), cosa ti aspettavi e cosa è successo, e se vuoi essere citato.
+* Includi: versione (`osatura --version`) e piattaforma, il progetto o la richiesta che provoca il problema (un file minimo è la cosa migliore), cosa ti aspettavi e cosa è successo, e se vuoi essere citato.
 * Cosa aspettarsi *(un'intenzione, non un contratto: questo è un progetto di una sola persona)*: una conferma di ricezione in tempi ragionevoli, una correzione sviluppata in privato, un test di regressione aggiunto alla suite, una nota in [CHANGELOG.md](CHANGELOG.md) e un riconoscimento se lo desideri. Lascia il tempo per una correzione prima di pubblicare i dettagli.
 * Versioni supportate: solo l'ultima pre-release (`v0.1.0-alpha.3` una volta pubblicata) e l'albero attuale su `main` sono supportati.
 * Le segnalazioni sull'esposizione di rete dello studio quando è deliberatamente in bind su un indirizzo pubblico senza reverse proxy sono prima di tutto problemi di documentazione: vedi sezione 11.
 
 ## 11. Checklist di hardening per chi installa
 
-Per chiunque esegua `armatura studio` per più di una persona o fuori da localhost.
+Per chiunque esegua `osatura studio` per più di una persona o fuori da localhost.
 
 1. [ ] Preferisci **non** esporlo. Utente singolo: lascia il bind predefinito (`127.0.0.1`) e usa un tunnel SSH (`ssh -L 8080:127.0.0.1:8080 host`).
 2. [ ] Se è esposto, **termina il TLS** in un reverse proxy (nginx, Caddy, ...) davanti ad esso; non esporre mai la porta HTTP semplice a Internet.
@@ -158,9 +158,9 @@ Lo studio parla HTTP semplice. Per qualunque uso oltre la tua macchina eseguilo 
 Avvia lo studio su loopback e indica il suo host pubblico, in modo che i controlli su Host e Origin accettino il proxy e nient'altro:
 
 ```
-armatura studio demo.json --port 8080 --bind 127.0.0.1 \
+osatura studio demo.json --port 8080 --bind 127.0.0.1 \
   --allow-host studio.example.org --public-origin https://studio.example.org \
-  --collab-secret-file /etc/armatura/collab.secret --collab-log /var/lib/armatura/session.log
+  --collab-secret-file /etc/osatura/collab.secret --collab-log /var/lib/osatura/session.log
 ```
 
 Con un `--public-origin` `https://` il cookie di login riceve l'attributo `Secure`. Il flusso di eventi (`/api/collab/events`) è Server-Sent Events: il proxy non deve metterlo in buffer e deve consentire letture lunghe.
@@ -168,7 +168,7 @@ Con un `--public-origin` `https://` il cookie di login riceve l'attributo `Secur
 **nginx** (certificati dalla tua CA o da `certbot`):
 
 ```
-limit_req_zone $binary_remote_addr zone=armatura:10m rate=20r/s;
+limit_req_zone $binary_remote_addr zone=osatura:10m rate=20r/s;
 
 server {
     listen 80;
@@ -186,7 +186,7 @@ server {
     client_max_body_size 64m;
 
     location / {
-        limit_req zone=armatura burst=60 nodelay;
+        limit_req zone=osatura burst=60 nodelay;
         proxy_pass http://127.0.0.1:8080;
         proxy_http_version 1.1;
         proxy_set_header Host $host;

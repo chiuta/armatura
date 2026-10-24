@@ -1,8 +1,8 @@
-# Guide du rigging d'ARMATURA
+# Guide du rigging d'OSATURA
 
 Ce guide couvre tout ce qui fait bouger un dessin : os, contraintes, cinématique inverse,
 skinning, déformateurs, physique, auto-rigging, symétrie, changement de vue, rigs de visage et travail de caméra.
-Chaque exemple a été exécuté avec le vrai binaire (`armatura 0.1.0`, build debug, Linux) et les chiffres
+Chaque exemple a été exécuté avec le vrai binaire (`osatura 0.1.0`, build debug, Linux) et les chiffres
 cités sont ceux qu'il a affichés. Si vous n'avez pas encore construit de premier projet, commencez par
 [GETTING_STARTED.md](GETTING_STARTED.md). Les options de chaque commande figurent dans
 [CLI_REFERENCE.md](CLI_REFERENCE.md) ; le format de fichier est décrit dans [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
@@ -17,19 +17,19 @@ Licence de ce document : CC-BY-4.0.
 ## 1. Deux façons d'éditer un rig
 
 * **Commandes et `script`.** La plupart des modifications de rig ont une commande (`autorig`, `cage`, `physics`, `skin`...) ou
-  une fonction Rhai dans `armatura script` (`add_bone`, `add_ik`, `add_aim`, `add_copy_rotation`, `add_pin`,
+  une fonction Rhai dans `osatura script` (`add_bone`, `add_ik`, `add_aim`, `add_copy_rotation`, `add_pin`,
   `set_layer`, `set_bone`, `set_parent`, `delete_bone`...). Un script est du type tout ou rien : si une requête
   est rejetée, rien n'est écrit. Un script peut contenir au plus 5000 requêtes.
 * **JSON.** Quelques éléments n'ont ni commande ni setter de script : `soft` et `stretch` de l'IK, les ressorts, les déformateurs
   vectoriels (lattice, spine, pin) et les poids de skin par ancre. Modifiez le JSON du projet (n'importe quel éditeur, un
-  script Python ou le panneau JSON du studio), puis lancez `armatura check`.
+  script Python ou le panneau JSON du studio), puis lancez `osatura check`.
 
 `check`, `lint`, `explain` et `render --bones` sont les quatre commandes que vous utiliserez en permanence pendant le rigging.
 `explain` est la plus précieuse : elle liste, dans l'ordre, chaque valeur de repos, canal, contrainte et contribution d'IK
 qui a produit la transformation finale d'un os, de sorte que vous n'avez jamais à deviner pourquoi quelque chose se trouve là où il est.
 
 ```
-$ armatura explain con1.json b3 0
+$ osatura explain con1.json b3 0
 - bone 'b3' (length 80), parent 'b2'
 - ancestry: b3 ← b2 ← b1
 - rest pose: offset (80.00, 0.00), angle 0.00°
@@ -102,7 +102,7 @@ Les limites d'angle sont des propriétés de l'os (`set_bone(name, "angle_min", 
 Elles bornent la rotation **animée** : si vous animez `b1` à 60 degrés, il est maintenu à 20 :
 
 ```
-$ armatura explain l2.json b1 12
+$ osatura explain l2.json b1 12
 - channel #0 BoneAngle: keys → 60.000 (2 key(s), Hold outside range); mode replace, weight 1.00
 - angle limits: animated rotation is clamped to [-20, 20]°
 - result at frame 12: head (60.0, 150.0), tip (135.2, 177.4), world angle 20.0°
@@ -147,7 +147,7 @@ d = json.load(open('03-ik.json'))        # the Buddy project of GETTING_STARTED.
 d['ik'][0]['soft'] = 0.5                 # or: d['ik'][0]['stretch'] = 1.5
 json.dump(d, open('ik_soft.json', 'w'))
 EOF
-armatura check ik_soft.json
+osatura check ik_soft.json
 ```
 
 Sur le bras de Buddy (portée de 80 depuis l'épaule en (160,140)) avec le goal en (250,140), à 90 de distance :
@@ -174,7 +174,7 @@ sur la plage échantillonnée, pas un bug.
 
 ## 5. Skinning
 
-ARMATURA dispose de quatre mécanismes de skinning ; choisissez selon le type de dessin dont vous disposez.
+OSATURA dispose de quatre mécanismes de skinning ; choisissez selon le type de dessin dont vous disposez.
 
 ### 5.1 Ancres vectorielles avec poids (JSON)
 
@@ -205,7 +205,7 @@ d["channels"] = [{"target":"b2","prop":"bone_angle","source":"keys","track":{"ke
     {"frame":0,"value":0,"ease":ease},{"frame":12,"value":50,"ease":ease},{"frame":24,"value":0,"ease":ease}]}}]
 json.dump(d, open('lab.json','w'), indent=1)
 EOF
-armatura check lab.json && armatura render lab.json 12 lab12.png --bones
+osatura check lab.json && osatura render lab.json 12 lab12.png --bones
 ```
 ```
 ok: 'Lab' 400×300 @ 24 fps, 24 frames, 3 bones, 0 ik, 1 layers, 1 channels
@@ -227,7 +227,7 @@ ses coins. Subdivisez la forme (ajoutez des ancres le long des bords) avant de l
 Pour un dessin matriciel, tracez la silhouette alpha en un maillage de triangles, puis calculez les poids par diffusion de chaleur :
 
 ```
-armatura mesh-trace flag.json flag_m.json flag density=12
+osatura mesh-trace flag.json flag_m.json flag density=12
 ```
 ```
 wrote flag_m.json: 369 vertices (178 on the outline), 558 triangles, area 17237 px2
@@ -235,7 +235,7 @@ wrote flag_m.json: 369 vertices (178 on the outline), 558 triangles, area 17237 
 ok: ...
 ```
 ```
-armatura skin-diffuse flag_m.json flag flag_s.json --influences 4
+osatura skin-diffuse flag_m.json flag flag_s.json --influences 4
 ```
 
 `skin-diffuse <project> <layer> <out> [--influences N]` attribue à chaque sommet du maillage jusqu'à N poids d'os. Elle
@@ -260,13 +260,13 @@ set_layer("hat_red", "bone", "neck");
 set_layer("hat_blue", "bone", "neck");
 set_layer("tail_shape", "bone", "tail");
 EOF
-armatura script blob.json k0.json hats.rhai
-armatura skin k0.json k1.json add hat red hat_red
-armatura skin k1.json k2.json add hat blue hat_blue
-armatura skin k2.json k3.json bones hat red tail        # the tail exists only with the red hat
-armatura skin k3.json k4.json apply hat blue            # show blue, hide red
-armatura skin k4.json k5.json schedule hat 0:red,12:blue
-armatura check k5.json
+osatura script blob.json k0.json hats.rhai
+osatura skin k0.json k1.json add hat red hat_red
+osatura skin k1.json k2.json add hat blue hat_blue
+osatura skin k2.json k3.json bones hat red tail        # the tail exists only with the red hat
+osatura skin k3.json k4.json apply hat blue            # show blue, hide red
+osatura skin k4.json k5.json schedule hat 0:red,12:blue
+osatura check k5.json
 ```
 
 `apply` affiche un skin et masque les autres du même groupe. `schedule` anime ce choix avec des **clés en escalier
@@ -298,9 +298,9 @@ maillage d'image. **Si une forme a trop peu d'ancres, elle se déformera à pein
 ### Cage (coordonnées de valeur moyenne)
 
 ```
-$ armatura cage lab0.json c1.json strip auto verts=3 pad=10
+$ osatura cage lab0.json c1.json strip auto verts=3 pad=10
 added cage 'cage' (12 vertices) to 'strip'; wrote c1.json
-$ armatura cage-pose c1.json c2.json strip 12 move=1:0,-40 ease=ease_in_out
+$ osatura cage-pose c1.json c2.json strip 12 move=1:0,-40 ease=ease_in_out
 keyed cage 'cage' on 'strip' at frame 12; wrote c2.json
 ```
 
@@ -336,10 +336,10 @@ déformateur seul.
 ### Déformer une sélection : `warp-pivot`, `soft-scale`, `layer-pivot`
 
 ```
-armatura warp-pivot c1.json w1.json strip 12 deformer=cage verts=1-2 rotate=25 pivot=centroid radius=60 falloff=smooth ease=ease_in_out
-armatura soft-scale c1.json w2.json strip 12 deformer=cage scale=1.5
-armatura soft-scale c1.json w3.json strip 12 height=60 aspect=free
-armatura layer-pivot lab0.json w4.json strip pivot=60,150
+osatura warp-pivot c1.json w1.json strip 12 deformer=cage verts=1-2 rotate=25 pivot=centroid radius=60 falloff=smooth ease=ease_in_out
+osatura soft-scale c1.json w2.json strip 12 deformer=cage scale=1.5
+osatura soft-scale c1.json w3.json strip 12 height=60 aspect=free
+osatura layer-pivot lab0.json w4.json strip pivot=60,150
 ```
 
 `warp-pivot` fait pivoter, met à l'échelle ou déplace une sélection de points de contrôle (cage, lattice, cloth, pin, spine, ou un
@@ -363,7 +363,7 @@ Le tissu (cloth) exige un maillage en **grille**. Un maillage libre tracé est r
 `cloth needs a grid mesh; the layer has a free-form (traced) mesh`. Demandez une grille avec `cols=` et `rows=` :
 
 ```
-$ armatura cloth flag.json flag_c.json flag pin=top gravity=900 wind=140,0 gust=0.5 cols=8 rows=10 from=0 to=35
+$ osatura cloth flag.json flag_c.json flag pin=top gravity=900 wind=140,0 gust=0.5 cols=8 rows=10 from=0 to=35
 baked cloth on 'flag' (180 channels); wrote flag_c.json
 ```
 
@@ -379,10 +379,10 @@ et vous pouvez voir de faibles raccords de triangles dans un rendu PNG à fort z
 `physics` simule une chaîne d'os (gravité, vent, collisions) et bake le résultat en clés d'angle d'os ordinaires.
 
 ```
-armatura physics lab0.json ph1.json b2,b3 preset=tail gravity=600 --allow-empty
-armatura physics lab0.json ph2.json b2,b3 preset=hair circle=200,230,30
-armatura physics lab0.json ph3.json b2,b3 gravity=600 capsule=150,200,250,220,15 wind=40,0 gust=0.5
-armatura physics lab.json  ph4.json b2,b3 gravity=300 drive=b1:0.5 vortex=b1:0.8:0.2:120
+osatura physics lab0.json ph1.json b2,b3 preset=tail gravity=600 --allow-empty
+osatura physics lab0.json ph2.json b2,b3 preset=hair circle=200,230,30
+osatura physics lab0.json ph3.json b2,b3 gravity=600 capsule=150,200,250,220,15 wind=40,0 gust=0.5
+osatura physics lab.json  ph4.json b2,b3 gravity=300 drive=b1:0.5 vortex=b1:0.8:0.2:120
 ```
 
 * `preset=` vaut `hair`, `tail`, `rope`, `antenna` ou `cape`.
@@ -408,7 +408,7 @@ Un `Spring` ajoute à un os un suivi amorti à l'évaluation, sans rien baker. I
 Pour retrouver un ressenti que vous avez dessiné, ajustez-le :
 
 ```
-$ armatura spring-fit --start 0 --samples 0.3,0.7,1.1,1.2,1.05,0.95,1.0,1.02 --fps 24
+$ osatura spring-fit --start 0 --samples 0.3,0.7,1.1,1.2,1.05,0.95,1.0,1.02 --fps 24
 frequency 3.36 Hz, damping 0.52 (rms error 0.055 of the step size)
 add to the project: {"bone": "<bone>", "frequency": 3.36, "damping": 0.52}
 ```
@@ -418,11 +418,11 @@ d'équivalent ; `export --report` liste ce qui a été approximé.
 
 ## 8. Auto-rig, étiquetage et `coach`
 
-Nommez vos os et vos calques avec des mots standard (`arm_upper_l`, `thigh_r`, `eye_l`, `mouth`) et ARMATURA peut
+Nommez vos os et vos calques avec des mots standard (`arm_upper_l`, `thigh_r`, `eye_l`, `mouth`) et OSATURA peut
 reconnaître leurs rôles :
 
 ```
-$ armatura tag biped.json | head -8
+$ osatura tag biped.json | head -8
 bone  hips                     -> hips           (90%)
 bone  torso                    -> torso          (80%)
 bone  head                     -> head           (90%)
@@ -435,7 +435,7 @@ no bone found for: neck, face.eye.l, face.eye.r, face.brow.l, ...
 `autorig <in> <out> [seed]` ajoute ensuite une automatisation non destructive à partir de ces rôles :
 
 ```
-$ armatura autorig biped.json ar.json 7
+$ osatura autorig biped.json ar.json 7
 + IK arm_l -> arm_l_ctrl (mix 0, bend +1)
 + IK arm_r -> arm_r_ctrl (mix 0, bend +1)
 + IK leg_l -> leg_l_ctrl (mix 0, bend -1)
@@ -451,7 +451,7 @@ ajouté est de la donnée ordinaire : supprimez ce dont vous ne voulez pas. Les 
 (`- arm_l: upper/lower bone not found`, `- breathing: no torso bone`, `- blink: no eye layers`) ; lisez donc le rapport.
 
 **Piège.** `autorig` est une commande de projet à projet et la sortie peut être l'entrée. Sur un fichier auquel vous tenez,
-écrivez vers un nouveau nom : `armatura autorig buddy.json buddy.json` remplace `buddy.json` (l'écriture est atomique, mais
+écrivez vers un nouveau nom : `osatura autorig buddy.json buddy.json` remplace `buddy.json` (l'écriture est atomique, mais
 il n'y a pas d'annulation).
 
 `coach <project>` lit l'animation et affiche des suggestions sur le timing et les principes d'animation ; `lint` vérifie le rig
@@ -466,9 +466,9 @@ changent de signe. Les canaux reflétés **remplacent** les canaux du projet. Su
 a conservé ses valeurs. `diff` liste les six canaux modifiés :
 
 ```
-$ armatura mirror walk.json mir.json
+$ osatura mirror walk.json mir.json
 wrote mir.json
-$ armatura diff walk.json mir.json
+$ osatura diff walk.json mir.json
 ~ channel 'arm_upper_l:BoneAngle' changed (track)
 ~ channel 'arm_upper_r:BoneAngle' changed (track)
 ...
@@ -488,8 +488,8 @@ Un turnaround (face, trois-quarts, profil) est un calque switch avec un enfant p
 cat > ctl.rhai <<'EOF'
 add_bone("view_ctrl", "", 10, 20, 20, 0);
 EOF
-armatura script biped.json v0.json ctl.rhai
-armatura view-swap v0.json v1.json mouth view_ctrl.bone_offset_x "-40:0,0:2,40:4"
+osatura script biped.json v0.json ctl.rhai
+osatura view-swap v0.json v1.json mouth view_ctrl.bone_offset_x "-40:0,0:2,40:4"
 ```
 
 Canal produit : un canal `driven` `layer_switch` ← `view_ctrl.bone_offset_x` avec une courbe en escalier (enfant 0 en dessous de 0,
@@ -500,7 +500,7 @@ doit être un switch (`child index 5 is out of range (the layer has 3)`).
 l'`offset_x` mélange des poses mémorisées :
 
 ```
-$ armatura slider biped.json sl.json look "0:head.bone_angle=0;24:head.bone_angle=15"
+$ osatura slider biped.json sl.json look "0:head.bone_angle=0;24:head.bone_angle=15"
 controller bone: ctrl_look (animate its offset_x)
 ```
 
@@ -509,7 +509,7 @@ controller bone: ctrl_look (animate its offset_x)
 Pour passer un objet d'une main à l'autre (ou pour ramasser un accessoire) sans à-coup :
 
 ```
-$ armatura parent-switch biped.json ps.json arm_upper_r 0:torso,12:head
+$ osatura parent-switch biped.json ps.json arm_upper_r 0:torso,12:head
 wrote ps.json
 ```
 
@@ -535,7 +535,7 @@ l'œil. `autorig` l'exécute. Sur un rig sans calques d'iris/pupille, elle écri
 `layer_scale_y` animé par clés ou procédural sur le calque de l'œil :
 
 ```
-$ armatura idle blink p1.json i1.json --target eye_l --prop layer_scale_y --interval 2 --seed 4 --closed 0.1
+$ osatura idle blink p1.json i1.json --target eye_l --prop layer_scale_y --interval 2 --seed 4 --closed 0.1
 wrote i1.json
 ```
 
@@ -561,12 +561,12 @@ présentés, avec des chiffres de précision honnêtes, dans la [section sur le 
 Vérifié sur le biped en marche :
 
 ```
-armatura shot walk.json sh1.json wide 200 180 1          # name x y zoom
-armatura shot sh1.json sh2.json close 200 100 2.2
-armatura camera-seq sh2.json sh3.json 0:wide,12:close,23:wide
-armatura parallax sh3.json px.json sky,ground 0.2 1.0
-armatura dof px.json 12 dof.png --focus 1.0 --strength 10
-armatura dof-export px.json dof.gif --from 0 --to 11 --scale 0.5     # 80 KB
+osatura shot walk.json sh1.json wide 200 180 1          # name x y zoom
+osatura shot sh1.json sh2.json close 200 100 2.2
+osatura camera-seq sh2.json sh3.json 0:wide,12:close,23:wide
+osatura parallax sh3.json px.json sky,ground 0.2 1.0
+osatura dof px.json 12 dof.png --focus 1.0 --strength 10
+osatura dof-export px.json dof.gif --from 0 --to 11 --scale 0.5     # 80 KB
 ```
 
 Les effets de calque (flou, ombre portée, teinte, remplissage, contour, posterize...) peuvent s'appliquer par calque ou en chaîne : voir le

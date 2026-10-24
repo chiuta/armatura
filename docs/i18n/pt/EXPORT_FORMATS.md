@@ -3,12 +3,12 @@ SPDX-License-Identifier: CC-BY-4.0
 Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio)
 -->
 
-# Formatos de exportação e importação do ARMATURA
+# Formatos de exportação e importação do OSATURA
 
-O que cada formato de arquivo que o ARMATURA grava ou lê preserva, aproxima e descarta, qual comando o produz e como
-verificar o resultado. Este texto é licenciado sob CC-BY-4.0. Versão documentada: **armatura 0.1.0**.
+O que cada formato de arquivo que o OSATURA grava ou lê preserva, aproxima e descarta, qual comando o produz e como
+verificar o resultado. Este texto é licenciado sob CC-BY-4.0. Versão documentada: **osatura 0.1.0**.
 
-Cada linha de comando abaixo foi executada contra o projeto de demonstração embutido (`armatura demo demo.json`) ou contra uma cópia de 8 quadros dele
+Cada linha de comando abaixo foi executada contra o projeto de demonstração embutido (`osatura demo demo.json`) ou contra uma cópia de 8 quadros dele
 (`small.json`, o mesmo projeto com `"frames": 8`). Os tamanhos citados vêm desse projeto de 8 quadros e 640x480 e servem apenas
 de orientação: eles variam com quadros, âncoras e camadas, não com algo fixo. Os detalhes dos comandos (todas as opções,
 todos os erros) estão em [CLI_REFERENCE.md](CLI_REFERENCE.md); o formato de arquivo do próprio projeto está em
@@ -40,7 +40,7 @@ todos os erros) estão em [CLI_REFERENCE.md](CLI_REFERENCE.md); o formato de arq
 
 | Você quer... | Use | Por quê |
 |---|---|---|
-| A aparência exata, compartilhada em um único arquivo, que toca em qualquer navegador e permite navegar pela linha do tempo | `.html` | Quadros SVG inline desenhados pelo renderizador próprio do ARMATURA; nada é aproximado. |
+| A aparência exata, compartilhada em um único arquivo, que toca em qualquer navegador e permite navegar pela linha do tempo | `.html` | Quadros SVG inline desenhados pelo renderizador próprio do OSATURA; nada é aproximado. |
 | Uma animação vetorial pequena para uma página web ou app com um player Lottie | `.json` ou `.lottie` | Vetorial, independente de resolução, pequeno; mas veja a lista de descartes (imagens, traços de largura variável, áudio...). |
 | Uma prévia em loop para chat ou um README | `.gif` | Funciona em qualquer lugar; 256 cores por quadro, transparência de 1 bit, sem som. |
 | Um substituto do GIF com cor total e alfa | `.apng` | RGBA de 8 bits sem perdas; maior que o GIF. |
@@ -86,11 +86,11 @@ com `export would write about N million values ...`.
 ### SVG (`render ... out.svg`, `frames`)
 
 ```
-$ armatura render demo.json 12 f12.svg --bones
+$ osatura render demo.json 12 f12.svg --bones
 wrote f12.svg
-$ armatura frames demo.json fr            # fr/frame_0000.svg ... frame_0047.svg
+$ osatura frames demo.json fr            # fr/frame_0000.svg ... frame_0047.svg
 ```
-A saída vetorial do renderizador próprio do ARMATURA: caminhos, gradientes, traços com perfis de largura, tracejados, modos de mesclagem, máscaras e efeitos de
+A saída vetorial do renderizador próprio do OSATURA: caminhos, gradientes, traços com perfis de largura, tracejados, modos de mesclagem, máscaras e efeitos de
 camada são gravados como SVG. `--bones` desenha a sobreposição do esqueleto. Para `.svg`, `--scale` deixa o viewBox do documento inalterado. **Descartes/limites conhecidos:** o renderizador não informa nenhum; como um dado visualizador de SVG trata modos de mesclagem e filtros depende
 desse visualizador. `--proxy N` grava um proxy de navegação simplificado que descarta traços finos, gradientes e modos de mesclagem (não serve para
 entregas). **Validação:** abra em um navegador, ou `python3 -c "import xml.dom.minidom,sys; xml.dom.minidom.parse(sys.argv[1])" f12.svg`.
@@ -99,16 +99,16 @@ entregas). **Validação:** abra em um navegador, ou `python3 -c "import xml.dom
 
 RGBA de 8 bits, sRGB, renderizado pelo rasterizador próprio do motor. `--scale N` em (0, 16] multiplica o tamanho em pixels. Um projeto com
 `"background": null` é renderizado transparente onde nada é desenhado. Por padrão não há gerenciamento de cor: os valores se misturam no espaço codificado em sRGB.
-Desde a wave 7, um projeto pode optar pela composição em luz linear (`armatura color-space p.json out.json linear`, campo `color_space`):
+Desde a wave 7, um projeto pode optar pela composição em luz linear (`osatura color-space p.json out.json linear`, campo `color_space`):
 as saídas raster, GIF, APNG, vídeo e `render-hdr` passam então a ser compostas em luz linear f32 e convertidas para sRGB uma única vez; SVG e
 Lottie não mudam (LIMITATIONS L-22).
 
 ### PNG de 16 bits e OpenEXR (`render-hdr`)
 
 ```
-$ armatura render-hdr small.json 3 f.exr                           # HALF, 640x480, 465,611 bytes
-$ armatura render-hdr small.json 3 f2.exr linear --precision float # FLOAT, 923,211 bytes
-$ armatura render-hdr small.json 3 f4.png                          # 16-bit/colour RGBA, sRGB-encoded
+$ osatura render-hdr small.json 3 f.exr                           # HALF, 640x480, 465,611 bytes
+$ osatura render-hdr small.json 3 f2.exr linear --precision float # FLOAT, 923,211 bytes
+$ osatura render-hdr small.json 3 f4.png                          # 16-bit/colour RGBA, sRGB-encoded
 ```
 * **OpenEXR:** parte única, scanline, **sem compressão**, canais `A B G R`, luz linear, alfa pré-multiplicado. `HALF` por padrão,
   `FLOAT` com `--precision float` (ou `--float32`). A palavra `linear` não tem efeito no EXR (sempre linear).
@@ -128,7 +128,7 @@ vale para `.gif .apng .webm .mp4 .png`; nos outros formatos é recusado (`unknow
 ### Sprite sheet PNG (`export ... out.png`)
 
 ```
-$ armatura export small.json out3.png --columns 4 --scale 0.25
+$ osatura export small.json out3.png --columns 4 --scale 0.25
 wrote out3.atlas.json
 wrote out3.png                    # 4 columns x 2 rows of 160x120 tiles
 ```
@@ -139,7 +139,7 @@ O atlas costumava ser `out3.json` e podia sobrescrever silenciosamente um arquiv
 ### GIF (`export ... out.gif`)
 
 ```
-$ armatura export small.json out.gif --scale 0.5
+$ osatura export small.json out.gif --scale 0.5
 wrote out.gif                      # 8 frames, 83 KB
 ```
 * Uma imagem por quadro de origem, **em loop infinito**, uma paleta local de até 256 cores por quadro (quantizada, sem dithering).
@@ -165,9 +165,9 @@ e nesse caso use WebM ou GIF. **Validação:** `ffprobe` com `-count_frames` (8 
 ### WebM (`export ... out.webm`) e MP4 (`export ... out.mp4`)
 
 ```
-$ armatura export small.json out.mp4  --scale 0.5     # h264, yuv420p, 320x240, 8 frames
-$ armatura export small.json out.webm --scale 0.5     # vp9, yuv420p + alpha_mode=1
-$ armatura export small.json out.webm --codec av1     # needs an ffmpeg with libaom-av1
+$ osatura export small.json out.mp4  --scale 0.5     # h264, yuv420p, 320x240, 8 frames
+$ osatura export small.json out.webm --scale 0.5     # vp9, yuv420p + alpha_mode=1
+$ osatura export small.json out.webm --codec av1     # needs an ffmpeg with libaom-av1
 ```
 * **MP4:** H.264 (`libx264`), `yuv420p`, **sem alfa**. Áudio AAC quando o projeto tem trilhas de som.
 * **WebM:** VP9 (`libvpx-vp9`, padrão) ou AV1 (`libaom-av1`, `--codec av1`); o canal alfa é mantido (`yuva420p`, tag do contêiner
@@ -185,7 +185,7 @@ $ armatura export small.json out.webm --codec av1     # needs an ffmpeg with lib
 ## 5. Player HTML
 
 ```
-$ armatura export small.json out.html
+$ osatura export small.json out.html
 wrote out.html                     # 66 KB for 8 frames
 ```
 Um arquivo HTML autocontido: **cada quadro como SVG inline**, um botão de reproduzir/pausar, um controle deslizante (range input) e um rótulo de quadro,
@@ -205,11 +205,11 @@ nada além de um navegador. A imagem é exatamente o que o renderizador SVG prod
 ## 6. Lottie (.json) e dotLottie (.lottie)
 
 ```
-$ armatura export small.json out.json --report rep.json
+$ osatura export small.json out.json --report rep.json
 wrote out.json
 warning: [variable-width-stroke] ink: variable-width stroke profiles are not supported by Lottie; the constant base width is used
 warning: [gradient-anisotropic] shadow: a gradient on a layer with non-uniform scale or skew is approximated (Lottie gradients are not sheared)
-$ armatura export small.json out.lottie       # a zip: manifest.json + animations/animation.json
+$ osatura export small.json out.lottie       # a zip: manifest.json + animations/animation.json
 ```
 
 ### Como é construído
@@ -256,7 +256,7 @@ os tamanhos estão em unidades do palco (LIMITATIONS L-23).
 
 ### dotLottie (`.lottie`)
 
-Um zip com `manifest.json` (`{"animations":[{"autoplay":true,"id":"animation","loop":true}],"generator":"ARMATURA","version":"1"}`) e
+Um zip com `manifest.json` (`{"animations":[{"autoplay":true,"id":"animation","loop":true}],"generator":"OSATURA","version":"1"}`) e
 `animations/animation.json` (o mesmo Lottie acima, compactado com deflate: 46,843 bytes viraram um arquivo de 11,515 bytes). `--report` funciona da mesma
 forma. **Importar** um `.lottie` não é suportado (`import-lottie` precisa do JSON; descompacte `animations/animation.json` antes).
 
@@ -264,10 +264,10 @@ forma. **Importar** um `.lottie` não é suportado (`import-lottie` precisa do J
 
 * `python3 -m json.tool out.json > /dev/null` para verificar a boa formação; `python3 -c "import json;d=json.load(open('out.json'));print(d['v'],d['fr'],d['op'],len(d['layers']))"`.
 * `unzip -l out.lottie` deve mostrar exatamente as duas entradas.
-* Ida e volta: `armatura import-lottie out.json back.json` seguido de `armatura check back.json` verifica que o ARMATURA consegue ler a própria
+* Ida e volta: `osatura import-lottie out.json back.json` seguido de `osatura check back.json` verifica que o OSATURA consegue ler a própria
   saída (a ida e volta tem perdas: o rig se perde).
 * **Nenhum player Lottie independente estava disponível** quando isto foi escrito (LIMITATIONS L-28): a saída foi verificada contra o layout de campos do Lottie
-  e contra o importador do próprio ARMATURA. Teste no seu player de destino (lottie-web, player dotLottie, Skottie, ...) e leia os
+  e contra o importador do próprio OSATURA. Teste no seu player de destino (lottie-web, player dotLottie, Skottie, ...) e leia os
   avisos; se a exatidão importa, use `.html` ou vídeo.
 * **Dicas de tamanho:** `export-fit --format lottie` pesquisa quatro parâmetros (`decimals`, `path_eps`, `key_tol`, `frame_step`) contra um orçamento de bytes;
   `lod` reduz as âncoras antes da exportação; `size-report` mostra o tamanho do Lottie com baking por camada (seção 13).
@@ -276,12 +276,12 @@ forma. **Importar** um `.lottie` não é suportado (`import-lottie` precisa do J
 ## 7. glTF binário (.glb)
 
 ```
-$ armatura export small.json out.glb
+$ osatura export small.json out.glb
 wrote out.glb
 warning: [glb-limit] blend mode Screen of 'sun' is not exported (glTF materials only alpha-blend); it is drawn as normal
 warning: [glb-limit] animated opacity of 'target' is not exported (frozen at frame 0)
 ```
-glTF 2.0 binário (magic `glTF`, versão 2, `"generator": "armatura"`), apenas recursos do núcleo. O projeto deve ter ossos
+glTF 2.0 binário (magic `glTF`, versão 2, `"generator": "osatura"`), apenas recursos do núcleo. O projeto deve ter ossos
 (`the project has no bones to export` caso contrário).
 
 * **Exato:** a hierarquia de ossos e sua animação (amostrada a cada quadro, interpolação linear, shear descartado).
@@ -307,8 +307,8 @@ glTF 2.0 binário (magic `glTF`, versão 2, `"generator": "armatura"`), apenas r
 ## 8. Pasta Open Cel Animation (OCA)
 
 ```
-$ armatura export-oca small.json oca1                 # one layer "render" with all composited frames
-$ armatura export-oca small.json oca2 --layers        # one OCA layer per top-level layer
+$ osatura export-oca small.json oca1                 # one layer "render" with all composited frames
+$ osatura export-oca small.json oca2 --layers        # one OCA layer per top-level layer
 wrote oca2/small.oca
 ```
 Grava `<out_dir>/<project name>.oca` (JSON, `ocaVersion` 1.1) mais cels PNG `layerN/fNNNN.png`. Sem `--layers` há uma camada
@@ -325,7 +325,7 @@ As importações criam um projeto **novo** (não se mesclam a um projeto existen
 ### SVG (`import-svg`)
 
 ```
-$ armatura import-svg art.svg svg.json
+$ osatura import-svg art.svg svg.json
 warning: unsupported paint 'url(#g)'; using grey
 warning: <text> is not supported and was skipped
 wrote svg.json (3 paths)
@@ -339,7 +339,7 @@ vetorial `svg`**. Ignorados com uma linha `warning:` (impressa no **stdout**): `
 ### OpenRaster (`import-ora`)
 
 ```
-$ armatura import-ora art.ora ora.json --fps 12 --frames 24
+$ osatura import-ora art.ora ora.json --fps 12 --frames 24
 ```
 Uma **camada de imagem por camada raster** (PNG embutido), ordem de baixo para cima, camadas ocultas mantidas porém invisíveis, grupos achatados, opacidade,
 visibilidade e posição por camada, e as operações de composição `svg:` comuns (multiply, screen, overlay, darken, lighten, color-dodge,
@@ -351,7 +351,7 @@ ORA. A importação de PSD não está implementada (LIMITATIONS L-32).
 ### Lottie (`import-lottie`)
 
 ```
-$ armatura import-lottie in.json out.json [fx.json]
+$ osatura import-lottie in.json out.json [fx.json]
 warning: layer 'text' of type 5 skipped
 imported 1 layers; wrote out.json
 ```
@@ -378,8 +378,8 @@ Um **subconjunto** deliberado; cada recurso ignorado é uma linha `warning:`.
 ### Imagens, GIF e APNG como camadas quadro a quadro
 
 ```
-$ armatura import-seq demo.json is.json frames seq hold=2 loop=on start=4 x=10 y=20      # folder of PNGs
-$ armatura import-anim demo.json ia.json gifl dof.gif loop=off start=0                    # animated GIF/APNG
+$ osatura import-seq demo.json is.json frames seq hold=2 loop=on start=4 x=10 y=20      # folder of PNGs
+$ osatura import-anim demo.json ia.json gifl dof.gif loop=off start=0                    # animated GIF/APNG
 ```
 `import-seq` pega todos os PNGs de uma pasta na ordem dos nomes de arquivo (todos do mesmo tamanho); `import-anim` lê um GIF ou APNG animado usando os
 atrasos do próprio arquivo (um PNG simples dá um quadro). Ambos adicionam uma camada switch com uma imagem embutida por quadro mais um canal de passos; funcionam em um projeto
@@ -391,8 +391,8 @@ vetoriais (`trace` lê o canal alfa; `autotrace` quantiza as cores e ajusta curv
 ### BVH (`import-bvh`, `mocap-info`, `mocap-match`, `mocap-retarget`)
 
 ```
-$ armatura mocap-info walk.bvh
-$ armatura import-bvh demo.json walk.bvh ib.json --joint-map LeftUpLeg=thigh,LeftLeg=shin --axis Zrotation --tol 0.5
+$ osatura mocap-info walk.bvh
+$ osatura import-bvh demo.json walk.bvh ib.json --joint-map LeftUpLeg=thigh,LeftLeg=shin --axis Zrotation --tol 0.5
 wrote ib.json (+2 channels from 4 BVH frames)
 ```
 `import-bvh` mapeia canais de rotação de juntas escolhidos para ossos como canais `bone_angle` com keys, amostrados no fps e no número de quadros do projeto
@@ -405,7 +405,7 @@ reduzido.
 ### MIDI e outras entradas ao vivo (`live-map`)
 
 ```
-$ armatura live-map small.json song.mid mapping.json out.json
+$ osatura live-map small.json song.mid mapping.json out.json
 3 events -> +1 channels (K keys in them), 0 trigger keys set, 0 takes, 0 events (0 after the last frame skipped); wrote out.json
 ```
 Um **Standard MIDI File** (`.mid`; mensagens MIDI 1.0, running status, eventos meta de tempo, divisão em ticks ou SMPTE) ou um JSON de eventos
@@ -461,13 +461,13 @@ independente descrevem o que o exportador grava.
 
 ## 13. Como deixar os arquivos menores
 
-1. **Veja onde estão os bytes:** `armatura size-report project.json` lista o arquivo do projeto, o Lottie com baking e a página HTML por camada,
+1. **Veja onde estão os bytes:** `osatura size-report project.json` lista o arquivo do projeto, o Lottie com baking e a página HTML por camada,
    imagem e canal (`--json` para scripts).
-2. **Ajuste a um orçamento automaticamente:** `armatura export-fit project.json out.json --max-size 50KB --format lottie` pesquisa os parâmetros do exportador e
+2. **Ajuste a um orçamento automaticamente:** `osatura export-fit project.json out.json --max-size 50KB --format lottie` pesquisa os parâmetros do exportador e
    mantém o melhor SSIM que couber. Formatos: `lottie`, `html`, `gif`, `apng`, `webm`, `project` (um JSON de projeto enxugado). `--measure gzip` orça o
    tamanho em gzip, `--min-ssim X` define um piso de qualidade, `--max-seconds N` é um limite real de tempo de relógio (o melhor resultado até então é mantido). Sai com código 1 com o
    menor resultado quando o orçamento não pode ser cumprido.
-3. **Reduza primeiro a arte:** `armatura lod project.json --tolerance-px 1 --levels 3 --out-dir lv --verify` grava projetos de nível de detalhe com um
+3. **Reduza primeiro a arte:** `osatura lod project.json --tolerance-px 1 --levels 3 --out-dir lv --verify` grava projetos de nível de detalhe com um
    erro declarado (e, com `--verify`, medido) em pixels de saída; `lod-pick --screen-px WxH` escolhe o nível mais grosseiro para uma dada tela.
 4. **Por formato:**
    * Lottie/HTML/GLB crescem com `frames x anchors`: menos quadros, menos âncoras, um fps menor, intervalos de keys aparados (ferramentas `keys`).
@@ -479,7 +479,7 @@ independente descrevem o que o exportador grava.
 
 ## 14. Requisitos do ffmpeg
 
-O ARMATURA nunca inclui nem faz link com o ffmpeg; ele executa o `ffmpeg` (e o `ffprobe`) encontrado no `PATH` como um **subprocesso externo** da sua própria instalação.
+O OSATURA nunca inclui nem faz link com o ffmpeg; ele executa o `ffmpeg` (e o `ffprobe`) encontrado no `PATH` como um **subprocesso externo** da sua própria instalação.
 
 | Necessário para | Encoder/decoder | Verificado em |
 |---|---|---|
@@ -501,8 +501,8 @@ Se o ffmpeg estiver ausente, o comando falha com `cannot run ffmpeg (...)` e nã
 * [PATENT_NOTES.md](PATENT_NOTES.md) registra o que **não** foi avaliado. Para exportação, a linha relevante é *Codecs de vídeo e áudio via ffmpeg
   (`export` .mp4 / .webm, `soundtrack`)*: H.264 e AAC são cobertos por pools de licenciamento; VP9 e AV1 são divulgados como livres de royalties, mas reivindicações de pools e individuais
   foram anunciadas para ambos; **status: não avaliado, não trate VP9/AV1 como liberados.** Como o ffmpeg é a instalação do próprio usuário, toda
-  escolha de codec é responsabilidade do usuário, e o ARMATURA não deve incluir o ffmpeg.
-* Os gravadores determinísticos de raster, GIF, APNG, PNG, SVG, OpenEXR, OCA, ORA, glTF e Lottie são implementações próprias do ARMATURA a partir de descrições públicas de
+  escolha de codec é responsabilidade do usuário, e o OSATURA não deve incluir o ffmpeg.
+* Os gravadores determinísticos de raster, GIF, APNG, PNG, SVG, OpenEXR, OCA, ORA, glTF e Lottie são implementações próprias do OSATURA a partir de descrições públicas de
   formato (clean-room, veja CLEANROOM.md). Seu status de patentes não foi avaliado além disso: PATENT_NOTES.md lista apenas as áreas acima
   (puppeteering guiado por rosto, máquinas de estados e data binding, FABRIK/MVC/pesos, preenchimento stencil-then-cover, codecs).
 * GIF: as patentes do LZW expiraram há muito tempo em todas as jurisdições; isto é conhecimento geral, não uma liberação registrada no repositório.
@@ -514,25 +514,25 @@ Se o ffmpeg estiver ausente, o comando falha com `cannot run ffmpeg (...)` e nã
 
 | Formato | Verificação | Esperado |
 |---|---|---|
-| qualquer projeto | `armatura check out.json` | `ok: ...` (também depois de `import-*`) |
+| qualquer projeto | `osatura check out.json` | `ok: ...` (também depois de `import-*`) |
 | GIF | `ffprobe -v error -count_frames -select_streams v -show_entries stream=nb_read_frames -of csv=p=0 out.gif` | contagem de quadros (8) |
 | APNG | o mesmo comando em `out.apng` | contagem de quadros (8) |
 | MP4 | `ffprobe -v error -show_entries stream=codec_name,width,height,pix_fmt,nb_frames,r_frame_rate -of csv=p=0 out.mp4` | `h264,320,240,yuv420p,24/1,8` |
 | WebM | o mesmo em `out.webm` com `:stream_tags=alpha_mode` | `vp9,...,yuv420p,...,1` (alpha_mode 1) |
 | EXR | `ffprobe f.exr` | `exr 640x480 gbrapf32le` |
 | Lottie | `python3 -c "import json;d=json.load(open('out.json'));print(d['v'],d['fr'],d['op'],d['w'],d['h'],len(d['layers']))"` | `5.7.0 24.0 8 640.0 480.0 12` |
-| Avisos do Lottie | `armatura export p.json out.json --report rep.json` | `rep.json` lista cada aproximação |
+| Avisos do Lottie | `osatura export p.json out.json --report rep.json` | `rep.json` lista cada aproximação |
 | dotLottie | `unzip -l out.lottie` | somente `manifest.json` e `animations/animation.json` |
-| Ida e volta do Lottie | `armatura import-lottie out.json back.json && armatura check back.json` | `ok:` |
+| Ida e volta do Lottie | `osatura import-lottie out.json back.json && osatura check back.json` | `ok:` |
 | GLB | `python3 -c "import struct;b=open('out.glb','rb').read();print(b[:4],struct.unpack('<II',b[4:12]),len(b))"` | `b'glTF' (2, N)` com N igual ao comprimento |
 | HTML | `grep -c '<svg' out.html`; `grep -o 'http[^"<]*' out.html` | um `<svg` por quadro; somente a URL do namespace SVG |
 | SVG | abra em um navegador ou analise como XML | bem formado |
 | Sprite sheet | `python3 -m json.tool out.atlas.json` | `{index,x,y,w,h}` por quadro |
 | OCA | `python3 -m json.tool <name>.oca` | todo cel referenciado existe |
-| Regressão visual | `armatura ci diff a.png b.png --metric ssim` | saída 0 quando iguais; veja [CI.md](CI.md) |
+| Regressão visual | `osatura ci diff a.png b.png --metric ssim` | saída 0 quando iguais; veja [CI.md](CI.md) |
 
-Para verificações visuais de uma exportação com perdas em comparação com o original, `armatura export-fit` já informa SSIM e CIEDE2000 em relação à renderização original, e
-`armatura compare` grava uma imagem de antes/depois/diferença de dois projetos.
+Para verificações visuais de uma exportação com perdas em comparação com o original, `osatura export-fit` já informa SSIM e CIEDE2000 em relação à renderização original, e
+`osatura compare` grava uma imagem de antes/depois/diferença de dois projetos.
 
 ## 17. Diferenças em relação a outros documentos
 

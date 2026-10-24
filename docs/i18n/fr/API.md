@@ -1,14 +1,14 @@
-# API Rust d'ARMATURA et politique de stabilité
+# API Rust d'OSATURA et politique de stabilité
 
-*Version de la façade 1.4.0 (`armatura_core::api::API_VERSION`). Public : développeurs Rust qui intègrent le moteur, et mainteneurs qui modifient la façade. Licence de la documentation CC-BY-4.0 ; exemples de code MPL-2.0.*
+*Version de la façade 1.4.0 (`osatura_core::api::API_VERSION`). Public : développeurs Rust qui intègrent le moteur, et mainteneurs qui modifient la façade. Licence de la documentation CC-BY-4.0 ; exemples de code MPL-2.0.*
 
-Voici la référence de l'**API Rust prise en charge** de `armatura-core` : le module façade `armatura_core::api` et son import en une ligne `armatura_core::prelude`. Elle liste chaque élément public, les règles qui garantissent la stabilité de l'API, et des exemples testés. Chaque exemple de ce fichier est compilé et exécuté sur les sources actuelles avant la publication du fichier (voir [Comment les exemples sont vérifiés](#comment-les-exemples-sont-vérifiés)).
+Voici la référence de l'**API Rust prise en charge** de `osatura-core` : le module façade `osatura_core::api` et son import en une ligne `osatura_core::prelude`. Elle liste chaque élément public, les règles qui garantissent la stabilité de l'API, et des exemples testés. Chaque exemple de ce fichier est compilé et exécuté sur les sources actuelles avant la publication du fichier (voir [Comment les exemples sont vérifiés](#comment-les-exemples-sont-vérifiés)).
 
 Sommaire : [Ce qui est couvert](#ce-qui-est-couvert) - [Obtenir la crate](#obtenir-la-crate) - [Politique de stabilité](#politique-de-stabilité) - [Règles semver](#règles-semver) - [Feature flags](#feature-flags) - [Sécurité des threads](#sécurité-des-threads) - [Déterminisme](#déterminisme) - [Limites](#limites-et-plages-darguments) - [Erreurs](#erreurs) - [Référence : `Animation`](#référence--animation) - [Référence : `Player`](#référence--player) - [Référence : fonctions libres](#référence--fonctions-libres-outils-contrôle-de-version-ci) - [Référence : types](#référence--types) - [Exemples](#exemples) - [Autres langages](#autres-langages) - [Annexe : JSON machine et JSON de bindings](#annexe--json-de-machine-et-json-de-binding)
 
 ## Ce qui est couvert
 
-Seuls `armatura_core::api` et `armatura_core::prelude` constituent l'API Rust publique prise en charge. La façade se compose de :
+Seuls `osatura_core::api` et `osatura_core::prelude` constituent l'API Rust publique prise en charge. La façade se compose de :
 
 * `Animation` : un projet validé et son historique d'annulation (chargement, interrogation, rendu, export, édition, outils) ;
 * `Player` : une machine à états en cours d'exécution, avec mise en page, défilement et niveau de détail (1.1, 1.2) ;
@@ -16,37 +16,37 @@ Seuls `armatura_core::api` et `armatura_core::prelude` constituent l'API Rust pu
 * des types valeur simples (`AnimationInfo`, `RenderSettings`, `Image`, `LodLevel`, `SizeFit`, `MocapReport`, `FuzzSummary`, `VcsCommit`, `VcsConflict`, `CiOutcome`, `CiInit`, ...) et les énumérations `Interpolation`, `ExportFormat`, `FitFormat`, `CiMode`, `VcsMergeOutcome`, `VcsChoice` ;
 * le type d'erreur `ApiError` (qui implémente `std::error::Error` et `Display`).
 
-L'ABI C (`armatura-capi`, en-tête `armatura.h`) et le module WebAssembly (`armatura-wasm`) sont écrits uniquement contre cette façade et ont leurs propres versions : [C_ABI.md](C_ABI.md), [WASM.md](WASM.md).
+L'ABI C (`osatura-capi`, en-tête `osatura.h`) et le module WebAssembly (`osatura-wasm`) sont écrits uniquement contre cette façade et ont leurs propres versions : [C_ABI.md](C_ABI.md), [WASM.md](WASM.md).
 
 ### Ce qui n'est PAS couvert
 
-Tous les autres modules de `armatura-core` (`engine`, `project`, `edit`, `svg`, `raster`, `physics`, `vcs`, `ci`, ...) et les réexportations à la racine (`Engine`, `Project`, ...). Ils sont `pub` et `#[doc(hidden)]` uniquement parce que l'outil en ligne de commande, le studio, les tests de l'ABI C et les tests unitaires les utilisent ; ils peuvent changer ou disparaître dans n'importe quelle version, et leurs textes `Err(String)` ne constituent pas non plus un contrat. Si vous avez besoin d'un élément accessible uniquement par ces modules, demandez un ajout à la façade (une version mineure) plutôt que de dépendre des internes.
+Tous les autres modules de `osatura-core` (`engine`, `project`, `edit`, `svg`, `raster`, `physics`, `vcs`, `ci`, ...) et les réexportations à la racine (`Engine`, `Project`, ...). Ils sont `pub` et `#[doc(hidden)]` uniquement parce que l'outil en ligne de commande, le studio, les tests de l'ABI C et les tests unitaires les utilisent ; ils peuvent changer ou disparaître dans n'importe quelle version, et leurs textes `Err(String)` ne constituent pas non plus un contrat. Si vous avez besoin d'un élément accessible uniquement par ces modules, demandez un ajout à la façade (une version mineure) plutôt que de dépendre des internes.
 
 Le format JSON du projet possède son propre champ de version `format` (actuellement 1) ; un projet écrit par une version plus récente est refusé avec `InvalidJson`. Voir [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
 
 ## Obtenir la crate
 
-ARMATURA n'est pas publié sur un registre ; dépendez-en par chemin (ou par git) depuis votre workspace :
+OSATURA n'est pas publié sur un registre ; dépendez-en par chemin (ou par git) depuis votre workspace :
 
 ```toml
 [dependencies]
-armatura-core = { path = "../armatura/armatura-core", default-features = false }
+osatura-core = { path = "../osatura/osatura-core", default-features = false }
 ```
 
-`default-features = false` supprime le moteur de script Rhai (voir [Feature flags](#feature-flags)) ; la façade n'en a pas besoin. Ensuite, `use armatura_core::prelude::*;`. La version de la crate (`0.1.0`) et la version de la façade (`API_VERSION`) sont indépendantes : la façade suit semver, la version de la crate ne promet encore rien. Aucune version minimale de Rust prise en charge n'est déclarée ; le workspace est développé et testé avec Rust 1.97 (édition 2021).
+`default-features = false` supprime le moteur de script Rhai (voir [Feature flags](#feature-flags)) ; la façade n'en a pas besoin. Ensuite, `use osatura_core::prelude::*;`. La version de la crate (`0.1.0`) et la version de la façade (`API_VERSION`) sont indépendantes : la façade suit semver, la version de la crate ne promet encore rien. Aucune version minimale de Rust prise en charge n'est déclarée ; le workspace est développé et testé avec Rust 1.97 (édition 2021).
 
 ## Politique de stabilité
 
-1. **Le fichier de surface.** `armatura-core/src/api_surface.txt` liste chaque élément public de `src/api.rs` (types, champs, variantes, constantes et signatures de méthodes, un par ligne). Le test unitaire `api::tests::api_surface_snapshot` reconstruit cette liste à partir de `api.rs` et échoue lorsqu'elle diffère du fichier versionné. Tout changement de la surface est donc une modification délibérée et relue des deux fichiers.
-2. **Le test du prelude.** `armatura-core/tests/prelude_surface.rs` est compilé comme une crate *externe*. Il importe les noms de la façade uniquement via `armatura_core::prelude` et appelle un sous-ensemble représentatif (chargement, rendu, édition, export, `Player`, les outils, les wrappers de contrôle de version et de CI, gestion des entrées invalides). Si un nom qu'il utilise cesse d'être réexporté depuis le prelude, ou si une signature change d'une manière que ces appels détectent, ce test cesse de compiler. Il vérifie aussi `API_VERSION == "1.4.0"`, de sorte qu'un changement de version y est également une modification consciente. Il n'énumère pas chaque nom du prelude : ajouter un nom à la liste de réexportation reste donc une étape manuelle.
+1. **Le fichier de surface.** `osatura-core/src/api_surface.txt` liste chaque élément public de `src/api.rs` (types, champs, variantes, constantes et signatures de méthodes, un par ligne). Le test unitaire `api::tests::api_surface_snapshot` reconstruit cette liste à partir de `api.rs` et échoue lorsqu'elle diffère du fichier versionné. Tout changement de la surface est donc une modification délibérée et relue des deux fichiers.
+2. **Le test du prelude.** `osatura-core/tests/prelude_surface.rs` est compilé comme une crate *externe*. Il importe les noms de la façade uniquement via `osatura_core::prelude` et appelle un sous-ensemble représentatif (chargement, rendu, édition, export, `Player`, les outils, les wrappers de contrôle de version et de CI, gestion des entrées invalides). Si un nom qu'il utilise cesse d'être réexporté depuis le prelude, ou si une signature change d'une manière que ces appels détectent, ce test cesse de compiler. Il vérifie aussi `API_VERSION == "1.4.0"`, de sorte qu'un changement de version y est également une modification consciente. Il n'énumère pas chaque nom du prelude : ajouter un nom à la liste de réexportation reste donc une étape manuelle.
 3. **Limites de la vérification.** L'instantané est une analyse de texte des signatures sur une seule ligne dans `api.rs`, et non une comparaison au niveau du compilateur comme `cargo-public-api` : un changement sémantique qui conserve le texte de la signature (par exemple une erreur différente pour la même entrée) n'est pas détecté, et une signature sur plusieurs lignes passerait inaperçue (le fichier garde les signatures sur une seule ligne pour cette raison). La liste de réexportation du prelude (`lib.rs`) est vérifiée par le test externe, pas par l'instantané.
 4. **Caché ne veut pas dire pris en charge.** Les modules `#[doc(hidden)] pub` existent pour les consommateurs du workspace. Ils sont hors de la promesse même s'ils compilent chez vous.
 5. **Comment modifier la façade** (mainteneurs ; voir aussi [DEVELOPMENT.md](DEVELOPMENT.md)) :
    * modifiez `api.rs` (signatures sur une ligne, commentaire de documentation, un doc-test pour les nouvelles fonctions libres, tests unitaires) ;
    * ajoutez les nouveaux noms publics à la liste de réexportation du `prelude` dans `lib.rs`, et à `tests/prelude_surface.rs` ;
    * incrémentez `API_VERSION` (et `API_VERSION_MAJOR` en cas de rupture) selon les règles ci-dessous, ainsi que la version vérifiée dans `prelude_surface.rs` ;
-   * régénérez délibérément le fichier de surface : `ARMATURA_BLESS=1 cargo test -p armatura-core api::` et relisez le diff de `api_surface.txt` ;
-   * mettez à jour ce fichier, et `armatura-capi` / `armatura-wasm` uniquement si le nouvel élément doit franchir ces frontières (leur version d'ABI évolue séparément, les ajouts la conservent).
+   * régénérez délibérément le fichier de surface : `OSATURA_BLESS=1 cargo test -p osatura-core api::` et relisez le diff de `api_surface.txt` ;
+   * mettez à jour ce fichier, et `osatura-capi` / `osatura-wasm` uniquement si le nouvel élément doit franchir ces frontières (leur version d'ABI évolue séparément, les ajouts la conservent).
 
 ## Règles semver
 
@@ -61,20 +61,20 @@ armatura-core = { path = "../armatura/armatura-core", default-features = false }
 Conséquences pour les appelants :
 
 * **Les énumérations et structs publics de la façade sont `#[non_exhaustive]`.** Ajoutez une branche générique lorsque vous faites un `match` sur `ApiError`, `Interpolation`, `ExportFormat`, `FitFormat`, `CiMode`, `VcsMergeOutcome` ou `VcsChoice` ; une nouvelle variante est une version mineure. Vous ne pouvez pas construire les structs par un littéral en dehors de la crate (et `Image`, `SizeFit` et les structs de rapport sont des résultats que vous ne faites que lire). Les réglages se construisent avec des constructeurs : `RenderSettings::new(scale).with_bones(true)`, `MocapSettings::new().with_smooth(2)`.
-* **Les chaînes à l'intérieur des résultats sont des données, pas un contrat.** `VcsConflict::kind` vaut aujourd'hui l'une des valeurs `"BothChanged"`, `"DeleteEdit"`, `"KeyRetimed"`, `"OrderConflict"`, `"ArrayConflict"` et *peut gagner des valeurs dans les versions mineures*. Les rapports JSON (`FuzzSummary::json`, `CiOutcome::json`) portent leurs propres noms de schéma (`armatura-fuzz-report` v1, `armatura-ci/1`). Les textes des messages d'erreur sont destinés aux humains.
-* **Stabilité du comportement.** Le rendu et l'évaluation sont déterministes (voir plus bas), mais la sortie en pixels peut changer dans une version mineure lorsqu'un bug du rastériseur ou d'un effet est corrigé ; les images de référence enregistrées par la CI d'animation en sont un rappel. Ne calculez pas de hachage des pixels rendus entre versions d'ARMATURA ou entre machines sans tolérance.
+* **Les chaînes à l'intérieur des résultats sont des données, pas un contrat.** `VcsConflict::kind` vaut aujourd'hui l'une des valeurs `"BothChanged"`, `"DeleteEdit"`, `"KeyRetimed"`, `"OrderConflict"`, `"ArrayConflict"` et *peut gagner des valeurs dans les versions mineures*. Les rapports JSON (`FuzzSummary::json`, `CiOutcome::json`) portent leurs propres noms de schéma (`osatura-fuzz-report` v1, `osatura-ci/1`). Les textes des messages d'erreur sont destinés aux humains.
+* **Stabilité du comportement.** Le rendu et l'évaluation sont déterministes (voir plus bas), mais la sortie en pixels peut changer dans une version mineure lorsqu'un bug du rastériseur ou d'un effet est corrigé ; les images de référence enregistrées par la CI d'animation en sont un rappel. Ne calculez pas de hachage des pixels rendus entre versions d'OSATURA ou entre machines sans tolérance.
 
 Historique des versions de la façade : 1.0 (chargement, interrogation, rendu, export, édition, annulation) - 1.1 (`Player`, machines à états, data bindings) - 1.2 (mise en page, défilement et niveau de détail sur `Player` ; `lod_levels`, `fit_to_size`, `retarget_bvh`, `fuzz`, `from_image`, `trace_image_svg`, `vcs_log`, `ci_run`) - 1.3 (opérations d'écriture de contrôle de version et de CI, `DirtyTree` / `MergeInProgress` / `Conflicts`, `CiOutcome::updated` / `blessed`) - 1.4 (création de calques et d'os, `bake_physics`, export APNG et EXR, `vcs_branches` / `vcs_branch_delete` / `vcs_status` / `vcs_diff` / `vcs_show` / `vcs_gc` / `vcs_fsck`).
 
 ## Feature flags
 
-`armatura-core` possède une seule feature Cargo :
+`osatura-core` possède une seule feature Cargo :
 
 | Feature | Par défaut | Effet |
 |---|---|---|
 | `scripting` | activée | Compile le module de script en bac à sable basé sur Rhai (`script.rs`), utilisé uniquement par la commande `script` de la ligne de commande. Tire `rhai` et, à travers lui, `smartstring` (MPL-2.0+, la seule crate tierce à copyleft faible de l'arbre). |
 
-La façade n'a **aucune** fonctionnalité derrière une feature : chaque élément documenté ici existe avec `default-features = false`. `armatura-capi`, `armatura-wasm` et `armatura-gpu` dépendent de core sans la feature, donc ils ne contiennent aucune crate tierce MPL ; `armatura-cli --no-default-features` fait de même et signale alors la commande `script` comme indisponible. Les back-ends de rendu ne sont pas des features : le rastériseur CPU est toujours utilisé par la façade ; le moteur de rendu GPU facultatif est une crate distincte (`armatura-gpu`) et une feature de la CLI (`gpu`), et n'est pas accessible via cette API.
+La façade n'a **aucune** fonctionnalité derrière une feature : chaque élément documenté ici existe avec `default-features = false`. `osatura-capi`, `osatura-wasm` et `osatura-gpu` dépendent de core sans la feature, donc ils ne contiennent aucune crate tierce MPL ; `osatura-cli --no-default-features` fait de même et signale alors la commande `script` comme indisponible. Les back-ends de rendu ne sont pas des features : le rastériseur CPU est toujours utilisé par la façade ; le moteur de rendu GPU facultatif est une crate distincte (`osatura-gpu`) et une feature de la CLI (`gpu`), et n'est pas accessible via cette API.
 
 ## Sécurité des threads
 
@@ -86,7 +86,7 @@ La façade n'a **aucune** fonctionnalité derrière une feature : chaque éléme
 
 ## Déterminisme
 
-Même projet, mêmes arguments, même build d'ARMATURA et même machine : mêmes octets. Cela vaut pour `render_rgba` / `render_png` / `render_svg`, `bone_world`, chaque export, `lod_levels` et `fuzz` (pour une graine donnée), `fit_to_size` et pour un `Player` (mêmes entrées et mêmes appels à `advance` donnent la même pose ; `advance` découpe le temps en morceaux d'au plus 1/60 s, donc la façon dont vous découpez le temps n'importe qu'en dessous de cette résolution). Les choix aléatoires à l'intérieur du moteur (bruit, particules, fuzzing, clusters de tracé) utilisent des générateurs à graine, jamais l'horloge. Ce qui n'est *pas* promis : des pixels de bord anticrénelés identiques entre systèmes d'exploitation, CPU, compilateurs ou versions de `libm` différents, entre cibles 32 et 64 bits, ou entre versions d'ARMATURA. Les images de référence exactes à l'octet près n'ont été vérifiées qu'entre processus sur une seule machine Linux x86-64 (voir [LIMITATIONS.md](LIMITATIONS.md)) ; utilisez des tolérances (la CI d'animation le fait) pour tout ce qui traverse des machines.
+Même projet, mêmes arguments, même build d'OSATURA et même machine : mêmes octets. Cela vaut pour `render_rgba` / `render_png` / `render_svg`, `bone_world`, chaque export, `lod_levels` et `fuzz` (pour une graine donnée), `fit_to_size` et pour un `Player` (mêmes entrées et mêmes appels à `advance` donnent la même pose ; `advance` découpe le temps en morceaux d'au plus 1/60 s, donc la façon dont vous découpez le temps n'importe qu'en dessous de cette résolution). Les choix aléatoires à l'intérieur du moteur (bruit, particules, fuzzing, clusters de tracé) utilisent des générateurs à graine, jamais l'horloge. Ce qui n'est *pas* promis : des pixels de bord anticrénelés identiques entre systèmes d'exploitation, CPU, compilateurs ou versions de `libm` différents, entre cibles 32 et 64 bits, ou entre versions d'OSATURA. Les images de référence exactes à l'octet près n'ont été vérifiées qu'entre processus sur une seule machine Linux x86-64 (voir [LIMITATIONS.md](LIMITATIONS.md)) ; utilisez des tolérances (la CI d'animation le fait) pour tout ce qui traverse des machines.
 
 ## Limites et plages d'arguments
 
@@ -208,11 +208,11 @@ Remarques : la borne du niveau de détail couvre la géométrie et les clés de 
 | `vcs_show(path, rev)` | `Result<VcsShow, ApiError>` | (1.4) un commit et ses modifications par rapport à son premier parent |
 | `vcs_gc(path)` | `Result<VcsGc, ApiError>` | (1.4) supprime les objets inaccessibles ; s'interrompt sans rien supprimer si l'historique ne peut pas être lu |
 | `vcs_fsck(path)` | `Result<Vec<String>, ApiError>` | (1.4) problèmes d'intégrité, vide si tout est sain |
-| `ci_init(project, manifest, write_goldens)` | `Result<CiInit, ApiError>` | écrit un manifeste calibré par défaut (n'écrase jamais un fichier existant ; nom par défaut `armatura-ci.json` à côté du projet) ; enregistre éventuellement les images de référence tout de suite |
+| `ci_init(project, manifest, write_goldens)` | `Result<CiInit, ApiError>` | écrit un manifeste calibré par défaut (n'écrase jamais un fichier existant ; nom par défaut `osatura-ci.json` à côté du projet) ; enregistre éventuellement les images de référence tout de suite |
 | `ci_run_mode(manifest, CiMode)` | `Result<CiOutcome, ApiError>` | `Verify`, `Update` (réenregistre toutes les images de référence des vérifications de rendu), `Bless` (accepte uniquement celles qui échouent ou manquent) |
 | `ci_bless(manifest)` | `Result<CiOutcome, ApiError>` | raccourci pour `Bless` |
 
-L'historique est stocké à côté du fichier de projet (`.armatura-vcs/`) ; les messages de commit et les auteurs sont du texte brut. Un conflit contient le pointeur d'identité `path`, un `kind`, une `description`, et les valeurs `base` / `ours` / `theirs` sous forme de texte JSON (`None` = absent à cet endroit). Après une fusion conflictuelle, le fichier de projet contient l'état fusionné avec les éléments en conflit à la valeur de la branche courante, et un état en attente est enregistré jusqu'à ce que vous résolviez chaque conflit puis fassiez `vcs_commit`, ou `vcs_abort`. Les ressources binaires qu'un projet référence ne sont pas versionnées, seulement leurs chaînes de chemin. La fusion sémantique, ses types de conflit et ses limites sont décrits dans [ROADMAP.md](ROADMAP.md) section 9 (élément I-01) et dans [LIMITATIONS.md](LIMITATIONS.md).
+L'historique est stocké à côté du fichier de projet (`.osatura-vcs/`) ; les messages de commit et les auteurs sont du texte brut. Un conflit contient le pointeur d'identité `path`, un `kind`, une `description`, et les valeurs `base` / `ours` / `theirs` sous forme de texte JSON (`None` = absent à cet endroit). Après une fusion conflictuelle, le fichier de projet contient l'état fusionné avec les éléments en conflit à la valeur de la branche courante, et un état en attente est enregistré jusqu'à ce que vous résolviez chaque conflit puis fassiez `vcs_commit`, ou `vcs_abort`. Les ressources binaires qu'un projet référence ne sont pas versionnées, seulement leurs chaînes de chemin. La fusion sémantique, ses types de conflit et ses limites sont décrits dans [ROADMAP.md](ROADMAP.md) section 9 (élément I-01) et dans [LIMITATIONS.md](LIMITATIONS.md).
 
 Hors de la façade : les surcharges de mappage d'os du mocap, le réglage fin du tracé au-delà du nombre de couleurs, les options de fit au-delà du format et du budget, le rendu GPU, le studio, la collaboration, le serveur d'agent, les nombreuses commandes de création et de baking (physique, foot lock, aimants, autorig, ...), la suppression / liste des branches, diff, show, status, gc, fsck, et les options de CI comme prune, `--only` et les artefacts. Utilisez la CLI pour cela ([CLI_REFERENCE.md](CLI_REFERENCE.md)).
 
@@ -248,12 +248,12 @@ Hors de la façade : les surcharges de mappage d'os du mocap, le réglage fin du
 
 ## Exemples
 
-Tous sont complets et ont été exécutés. Ils supposent `use armatura_core::prelude::*;`.
+Tous sont complets et ont été exécutés. Ils supposent `use osatura_core::prelude::*;`.
 
 ### Charger, évaluer, rendre, exporter
 
 ```rust
-use armatura_core::prelude::*;
+use osatura_core::prelude::*;
 use std::error::Error;
 
 /// Load a project, query it, render one frame and export the whole animation.
@@ -297,7 +297,7 @@ pub fn quick(project_path: &str) -> Result<(), Box<dyn Error>> {
 ### Édition, annulation et gestion des erreurs
 
 ```rust
-use armatura_core::prelude::*;
+use osatura_core::prelude::*;
 
 /// Edits are validated, undoable and all-or-nothing.
 pub fn edit_and_errors() {
@@ -334,7 +334,7 @@ pub fn edit_and_errors() {
 ### Lecture interactive avec une machine à états
 
 ```rust
-use armatura_core::prelude::*;
+use osatura_core::prelude::*;
 use std::error::Error;
 
 /// Run a state machine of a project (machine.json has machine "hero", layer "body", bool input "excited").
@@ -373,7 +373,7 @@ pub fn play(project_path: &str) -> Result<(), Box<dyn Error>> {
 ### Mise en page, défilement et niveau de détail
 
 ```rust
-use armatura_core::prelude::*;
+use osatura_core::prelude::*;
 use std::error::Error;
 
 /// Layout, scrolling and level of detail on a Player (scroll.json has one scroll region "list").
@@ -408,7 +408,7 @@ pub fn layout_and_lod(project_path: &str) -> Result<(), Box<dyn Error>> {
 ### Rendu sur plusieurs threads
 
 ```rust
-use armatura_core::prelude::*;
+use osatura_core::prelude::*;
 
 /// `Animation` and `Player` are `Send + Sync`: read-only calls (`&self`) may run on several threads.
 pub fn render_in_parallel() -> Result<(), ApiError> {
@@ -431,7 +431,7 @@ pub fn render_in_parallel() -> Result<(), ApiError> {
 ### Contrôle de version et CI d'animation
 
 ```rust
-use armatura_core::prelude::*;
+use osatura_core::prelude::*;
 
 /// Version control of a project file and animation CI, from Rust.
 pub fn history(dir: &std::path::Path) -> Result<(), ApiError> {
@@ -487,7 +487,7 @@ pub fn history(dir: &std::path::Path) -> Result<(), ApiError> {
 ### Mocap, fuzzing, tracé, niveau de détail et export à taille cible
 
 ```rust
-use armatura_core::prelude::*;
+use osatura_core::prelude::*;
 
 const RIG: &str = r#"{"format":1,"name":"rig","width":400.0,"height":400.0,"fps":30.0,"frames":10,"background":null,
  "camera":{"position":null,"zoom":1.0,"rotation":0.0},
@@ -517,7 +517,7 @@ pub fn tools() -> Result<(), ApiError> {
     let demo = Animation::demo();
     let fuzz = demo.fuzz(50, 1)?;
     println!("{} of {} samples failed (max severity {:.2})", fuzz.failures, fuzz.samples, fuzz.max_severity);
-    let _full_report: &str = &fuzz.json;                    // schema "armatura-fuzz-report" v1
+    let _full_report: &str = &fuzz.json;                    // schema "osatura-fuzz-report" v1
 
     // Bitmap tracing: PNG/JPEG bytes -> SVG, or straight into an animation.
     let png = demo.render_png(0.0, &RenderSettings::new(0.25))?;
@@ -540,20 +540,20 @@ pub fn tools() -> Result<(), ApiError> {
 
 ### Comment les exemples sont vérifiés
 
-Le code ci-dessus est le code qui a été exécuté : ce fichier est généré à partir des sources d'exemple, qui ont été compilées avec `cargo` contre `armatura-core` puis exécutées (les fichiers de projet utilisés sont la sortie de `armatura demo`, `take-record`, `clip add` et `machine add`, plus un projet avec un conteneur et une région de défilement). Les doc-tests de `api.rs` (`cargo test --doc -p armatura-core` : 19 doc-tests, dont 18 sur des fonctions de la façade dans `api.rs` et l'exemple de niveau crate dans `lib.rs` ; environ 170 s dans un build de debug, car chacun compile un programme) couvrent les wrappers de contrôle de version et de CI dans le dépôt lui-même.
+Le code ci-dessus est le code qui a été exécuté : ce fichier est généré à partir des sources d'exemple, qui ont été compilées avec `cargo` contre `osatura-core` puis exécutées (les fichiers de projet utilisés sont la sortie de `osatura demo`, `take-record`, `clip add` et `machine add`, plus un projet avec un conteneur et une région de défilement). Les doc-tests de `api.rs` (`cargo test --doc -p osatura-core` : 19 doc-tests, dont 18 sur des fonctions de la façade dans `api.rs` et l'exemple de niveau crate dans `lib.rs` ; environ 170 s dans un build de debug, car chacun compile un programme) couvrent les wrappers de contrôle de version et de CI dans le dépôt lui-même.
 
 ## Autres langages
 
 La façade est la source de vérité unique pour les autres bindings. Couverture :
 
-| Capacité | Façade Rust | ABI C (`armatura.h`) | WebAssembly / JS |
+| Capacité | Façade Rust | ABI C (`osatura.h`) | WebAssembly / JS |
 |---|---|---|---|
-| Charger, valider, infos, noms d'os / matrices monde | oui | `armatura_open`, `_bone_*`, `_frame_count`, ... | `arm_open`, `load()` (pas de matrices d'os) |
-| Rendu RGBA | oui | `armatura_render_rgba` | `arm_render_rgba`, `rgba()` |
+| Charger, valider, infos, noms d'os / matrices monde | oui | `osatura_open`, `_bone_*`, `_frame_count`, ... | `arm_open`, `load()` (pas de matrices d'os) |
+| Rendu RGBA | oui | `osatura_render_rgba` | `arm_render_rgba`, `rgba()` |
 | Rendu SVG / PNG / formats d'export | oui | non | SVG oui (`svg()`), PNG / export non |
 | Édition des clés, annuler / rétablir | oui | non | non |
-| `Player` : entrées, advance, état, événements, rendu | oui | `armatura_player_*` | `arm_player_*`, `startPlayer()`, ... |
-| Mise en page, défilement, niveau de détail | oui | `armatura_player_set_canvas`, `_scroll_*`, `_set_screen`, `_lod_level` | `arm_player_set_canvas / layout / scroll_* / set_screen` |
+| `Player` : entrées, advance, état, événements, rendu | oui | `osatura_player_*` | `arm_player_*`, `startPlayer()`, ... |
+| Mise en page, défilement, niveau de détail | oui | `osatura_player_set_canvas`, `_scroll_*`, `_set_screen`, `_lod_level` | `arm_player_set_canvas / layout / scroll_* / set_screen` |
 | Outils, contrôle de version, CI | oui | non | non |
 
 La version de l'ABI C reste 1 parce que tous les ajouts jusqu'ici étaient additifs. Le binaire wasm est compilé et testé sous Node en CI mais n'a pas été exécuté dans un navigateur ; voir [WASM.md](WASM.md).

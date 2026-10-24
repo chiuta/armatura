@@ -31,7 +31,7 @@ A translation keeps the **structure** of its source exactly. `python3 scripts/i1
 3. Keep every inline code span (`` `like this` ``) unchanged: commands, options, identifiers, file names, JSON keys, field values, error messages.
 4. Keep every link target and image path **exactly as in the source**. Translate only the link text. (`python3 scripts/i18n.py fix-links` rewrites the targets afterwards for the translated location and the translated heading anchors.)
 5. Keep the first two lines (the SPDX and copyright comments) unchanged.
-6. Keep proper names (ARMATURA, Rust, Lottie, glTF, ffmpeg, ...), standard and licence names (MPL-2.0, AGPL-3.0-or-later, CC-BY-4.0, DCO), crate names, and ids such as `L-01`, `R-045`, `I-07`.
+6. Keep proper names (OSATURA, Rust, Lottie, glTF, ffmpeg, ...), standard and licence names (MPL-2.0, AGPL-3.0-or-later, CC-BY-4.0, DCO), crate names, and ids such as `L-01`, `R-045`, `I-07`.
 7. In `LIMITATIONS.md` keep the words `High`, `Medium` and `Low` in the *Severity* column exactly as written (they are values that tools read).
 8. Do not add, remove or reorder content. Do not add translator notes. Do not summarise.
 9. Dates, numbers and units stay as in the source; month names may be localised.

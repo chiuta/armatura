@@ -7,7 +7,7 @@
 ## 1. Bevor irgendetwas veröffentlicht wird
 
 - [ ] **[blocker]** Den Sicherheitskontakt bestätigen oder ersetzen (`alexio@trom.tf` ist ein Platzhalter in `docs/SECURITY.md`, in `--version` und in den Lizenzdokumenten).
-- [ ] **[blocker]** Den Namen „ARMATURA" in den Markenregistern recherchieren, die dir wichtig sind (EUIPO, USPTO, OSIM), sowie in App-Stores / Paketregistern. Siehe `TRADEMARK.md`. Bei einer Kollision vor dem ersten Release umbenennen (der Name steckt im Binary, in Crates und Dokumentation).
+- [ ] **[blocker]** Den Namen „OSATURA" in den Markenregistern recherchieren, die dir wichtig sind (EUIPO, USPTO, OSIM), sowie in App-Stores / Paketregistern. Siehe `TRADEMARK.md`. Bei einer Kollision vor dem ersten Release umbenennen (der Name steckt im Binary, in Crates und Dokumentation).
 - [ ] **[blocker]** Einen Anwalt bitten, `LICENSING.md`, die Aufteilung MPL-2.0 / AGPL-3.0, `docs/THIRD_PARTY.md` und `docs/PATENT_NOTES.md` zu prüfen. Entscheiden, ob du Dual-Lizenzierung willst; wenn ja, wird ein CLA *vor* der Annahme externer Beiträge benötigt (heute: nur DCO).
 - [ ] Die Bedingungen der Graphics-Gems-Referenz zur Kurvenanpassung prüfen (in `CLEANROOM.md` aus dem Gedächtnis zitiert); die Formulierung zur unabhängigen Implementierung nur beibehalten, wenn sie zutrifft.
 - [x] `reuse lint` und `cargo deny check` bestehen in CI (der Job `licences`); führe sie einmal auch auf deinem Rechner aus.
@@ -30,7 +30,7 @@
 
 - [ ] Das Studio 3 bis 5 Animatoren eine Woche lang mit einer kurzen Aufgabe geben (eine Figur riggen, einen Walk Cycle erstellen, ein GIF exportieren). Festhalten, wo sie stecken bleiben; jeden Fall als Issue anlegen.
 - [ ] Auf echten Browsern (Chrome, Firefox, Safari), einem Touch-Gerät und in einer Sitzung nur mit Tastatur testen.
-- [ ] Auf einem echten **Windows 11** und einem echten **Mac**: das Archiv entpacken, `armatura.exe` (Windows) und `armatura-studio` doppelklicken, ein Projekt riggen und exportieren und berichten, was fehlschlägt (L-74 bis L-76).
+- [ ] Auf einem echten **Windows 11** und einem echten **Mac**: das Archiv entpacken, `osatura.exe` (Windows) und `osatura-studio` doppelklicken, ein Projekt riggen und exportieren und berichten, was fehlschlägt (L-74 bis L-76).
 - [ ] Gesichtsdetektor / Mocap / Sprachfunktionen mit echten Daten ausprobieren; ehrlich berichten, dass sie begrenzt sind (L-12, L-13).
 
 ## 5. Sicherheit beim Betrieb (wenn du das Studio oder die Zusammenarbeit hostest)

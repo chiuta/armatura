@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 
-# Glosarul ARMATURA
+# Glosarul OSATURA
 
-Termeni de domeniu folosiți în cod și în documentație, în ordine alfabetică (a termenilor englezi). „Vezi” trimite la modulul (în `armatura-core/src`, dacă nu se precizează altfel) sau la documentul în care termenul este implementat sau specificat. Documente: [PROJECT_FORMAT.md](PROJECT_FORMAT.md), [ARCHITECTURE.md](ARCHITECTURE.md). Sursele tehnicilor sunt enumerate în `CLEANROOM.md`.
+Termeni de domeniu folosiți în cod și în documentație, în ordine alfabetică (a termenilor englezi). „Vezi” trimite la modulul (în `osatura-core/src`, dacă nu se precizează altfel) sau la documentul în care termenul este implementat sau specificat. Documente: [PROJECT_FORMAT.md](PROJECT_FORMAT.md), [ARCHITECTURE.md](ARCHITECTURE.md). Sursele tehnicilor sunt enumerate în `CLEANROOM.md`.
 
 **Constrângere aim.** O constrângere care rotește un os astfel încât axa lui +x să indice spre capul altui os, plus un offset. Vezi `rig`; PROJECT_FORMAT secțiunea 4.3.
 
@@ -59,7 +59,7 @@ Termeni de domeniu folosiți în cod și în documentație, în ordine alfabetic
 
 **Constrângere copy-rotation.** O constrângere care face ca un os să corespundă rotației în lume a altui os. Vezi `rig`.
 
-**CRDT.** Tip de date replicat fără conflicte: o structură pe care replicile o pot edita independent și o pot îmbina la același rezultat fără coordonare. ARMATURA folosește un CRDT bazat pe operații. Vezi `collab`; ARCHITECTURE secțiunea 10. Termeni înrudiți: registru LWW, RGA, ceas Lamport, ceas vectorial, tombstone.
+**CRDT.** Tip de date replicat fără conflicte: o structură pe care replicile o pot edita independent și o pot îmbina la același rezultat fără coordonare. OSATURA folosește un CRDT bazat pe operații. Vezi `collab`; ARCHITECTURE secțiunea 10. Termeni înrudiți: registru LWW, RGA, ceas Lamport, ceas vectorial, tombstone.
 
 **Easing Bezier cubic.** O curbă de easing în stil CSS definită de două puncte de control între (0,0) și (1,1). Vezi `anim`.
 
@@ -123,9 +123,9 @@ Termeni de domeniu folosiți în cod și în documentație, în ordine alfabetic
 
 **Efect de strat.** Un filtru pe strat (blur, drop shadow, tint, fill) randat pe un canvas în afara ecranului. Vezi `layerfx`.
 
-**Nivel de detaliu (LOD).** O versiune simplificată a unui proiect, produsă sub o limită de eroare declarată în pixeli, pentru previzualizare rapidă sau rezultat mic. Vezi `lod`, `armatura lod`.
+**Nivel de detaliu (LOD).** O versiune simplificată a unui proiect, produsă sub o limită de eroare declarată în pixeli, pentru previzualizare rapidă sau rezultat mic. Vezi `lod`, `osatura lod`.
 
-**Linter.** Verificatorul consultativ (`armatura lint`) care raportează probleme de calitate a animației cu coduri precum L011 și L012. Separat de validare. Vezi `lint`.
+**Linter.** Verificatorul consultativ (`osatura lint`) care raportează probleme de calitate a animației cu coduri precum L011 și L012. Separat de validare. Vezi `lint`.
 
 **Strat liquid.** Un strat de metaball-uri al cărui contur este izocontur al unui câmp de sumă de influențe. Vezi `fx`.
 
@@ -155,7 +155,7 @@ Termeni de domeniu folosiți în cod și în documentație, în ordine alfabetic
 
 **Op.** O editare exprimată ca `set`, `insert`, `remove` sau `batch` pe un pointer JSON RFC 6901; are o inversă pentru anulare. Vezi `edit`.
 
-**OT.** Transformare operațională: o alternativă la CRDT care rescrie operațiile concurente una față de alta, de obicei cu un server central. ARMATURA nu o folosește; folosește un CRDT cu un secvențiator central. Vezi ARCHITECTURE secțiunea 10.
+**OT.** Transformare operațională: o alternativă la CRDT care rescrie operațiile concurente una față de alta, de obicei cu un server central. OSATURA nu o folosește; folosește un CRDT cu un secvențiator central. Vezi ARCHITECTURE secțiunea 10.
 
 **Parallax.** Un factor pe strat care scalează mișcarea camerei, astfel încât straturile îndepărtate se mișcă mai puțin. Este și valoarea de adâncime folosită pentru adâncimea de câmp. Vezi PROJECT_FORMAT secțiunea 10.1.
 
@@ -201,7 +201,7 @@ world)`. Vezi `rig`.
 
 **Skin (animație).** O variantă denumită de straturi, oase, constrângeri sau IK care poate fi activată într-un grup, cum ar fi costumele. Vezi `skins`.
 
-**Skinning.** Deformarea geometriei prin amestecarea transformărilor oaselor, cu greutăți pe ancoră sau pe vârf. ARMATURA normalizează greutățile și tratează greutățile goale ca statice. Vezi `engine`, `weights`.
+**Skinning.** Deformarea geometriei prin amestecarea transformărilor oaselor, cu greutăți pe ancoră sau pe vârf. OSATURA normalizează greutățile și tratează greutățile goale ca statice. Vezi `engine`, `weights`.
 
 **Soft IK.** O opțiune IK care atenuează extensia aproape de întinderea completă pentru a evita redresarea bruscă. Interval de la 0 la 0,9. Vezi `rig`.
 
@@ -214,7 +214,7 @@ world)`. Vezi `rig`.
 
 **Arc (os).** Un arc amortizat de ordinul doi care face ca rotația unui os să întârzie și să depășească ținta; se face bake la încărcare, astfel încât orice cadru poate fi evaluat. Vezi PROJECT_FORMAT secțiunea 4.4.
 
-**SSIM.** Indice de similaritate structurală (Wang et al. 2004): o măsură a calității imaginii din medii locale, variante și covarianță. ARMATURA folosește o versiune pe blocuri. Vezi `percep`.
+**SSIM.** Indice de similaritate structurală (Wang et al. 2004): o măsură a calității imaginii din medii locale, variante și covarianță. OSATURA folosește o versiune pe blocuri. Vezi `percep`.
 
 **Scenă (stage).** Spațiul de coordonate al imaginii de ieșire: pixeli, +x spre dreapta, +y în jos.
 

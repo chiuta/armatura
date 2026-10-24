@@ -7,7 +7,7 @@
 ## 1. Avant de publier quoi que ce soit
 
 - [ ] **[bloquant]** Confirmez ou remplacez le contact de sécurité (`alexio@trom.tf` est un espace réservé dans `docs/SECURITY.md`, `--version` et les documents de licence).
-- [ ] **[bloquant]** Recherchez le nom « ARMATURA » dans les registres de marques qui vous concernent (EUIPO, USPTO, OSIM) ainsi que dans les boutiques d'applications / registres de paquets. Voir `TRADEMARK.md`. En cas de conflit, changez de nom avant la première publication (le nom apparaît dans le binaire, les crates, la documentation).
+- [ ] **[bloquant]** Recherchez le nom « OSATURA » dans les registres de marques qui vous concernent (EUIPO, USPTO, OSIM) ainsi que dans les boutiques d'applications / registres de paquets. Voir `TRADEMARK.md`. En cas de conflit, changez de nom avant la première publication (le nom apparaît dans le binaire, les crates, la documentation).
 - [ ] **[bloquant]** Demandez à un juriste de relire `LICENSING.md`, la répartition MPL-2.0 / AGPL-3.0, `docs/THIRD_PARTY.md` et `docs/PATENT_NOTES.md`. Décidez si vous voulez une double licence ; si oui, un CLA est nécessaire *avant* d'accepter des contributions extérieures (aujourd'hui : DCO uniquement).
 - [ ] Vérifiez les conditions de la référence d'ajustement de courbes de Graphics Gems (citée de mémoire dans `CLEANROOM.md`) ; ne conservez la formulation d'implémentation indépendante que si elle est exacte.
 - [x] `reuse lint` et `cargo deny check` passent en CI (le job `licences`) ; exécutez-les aussi une fois sur votre machine.
@@ -30,7 +30,7 @@
 
 - [ ] Donnez le studio à 3 à 5 animateurs pendant une semaine avec une courte tâche (rigger un personnage, réaliser un cycle de marche, exporter un GIF). Notez où ils bloquent ; ouvrez une issue pour chaque cas.
 - [ ] Testez sur de vrais navigateurs (Chrome, Firefox, Safari), un appareil tactile et une session au clavier uniquement.
-- [ ] Sur un vrai **Windows 11** et un vrai **Mac** : décompressez l'archive, double-cliquez sur `armatura.exe` (Windows) et sur `armatura-studio`, rigguez et exportez un projet, et signalez ce qui échoue (L-74 à L-76).
+- [ ] Sur un vrai **Windows 11** et un vrai **Mac** : décompressez l'archive, double-cliquez sur `osatura.exe` (Windows) et sur `osatura-studio`, rigguez et exportez un projet, et signalez ce qui échoue (L-74 à L-76).
 - [ ] Essayez le détecteur de visages / la mocap / les fonctions vocales avec des données réelles ; indiquez honnêtement qu'elles sont limitées (L-12, L-13).
 
 ## 5. Sécurité du déploiement (si vous hébergez le studio ou la collaboration)

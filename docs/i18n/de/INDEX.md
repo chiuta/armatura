@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
-# ARMATURA-Dokumentationsindex
+# OSATURA-Dokumentationsindex
 
 *Beginne hier, um die richtige Seite zu finden. Alle Dokumente sind englisches Markdown unter CC-BY-4.0, mit Ausnahme der generierten Dateien zu Drittanbietern (siehe deren Header). Die rumänische README ist [../README.ro.md](../../../README.de.md).*
 
-ARMATURA ist eine 2D-Vektor-Rigging- und Animations-Engine in Rust. Es ist ein Alpha-Projekt (die ersten Builds sind als Entwurfs-Vorabversion `v0.1.0-alpha.3` vorbereitet; die Crates stehen weiterhin auf 0.1.0); lies [LIMITATIONS.md](LIMITATIONS.md), bevor du dich auf eine Funktion verlässt.
+OSATURA ist eine 2D-Vektor-Rigging- und Animations-Engine in Rust. Es ist ein Alpha-Projekt (die ersten Builds sind als Entwurfs-Vorabversion `v0.1.0-alpha.3` vorbereitet; die Crates stehen weiterhin auf 0.1.0); lies [LIMITATIONS.md](LIMITATIONS.md), bevor du dich auf eine Funktion verlässt.
 
 Inhalt: [Alle Dokumente](#alle-dokumente) - [Lesepfade nach Zielgruppe](#lesepfade-nach-zielgruppe) - [Dokumente im Stammverzeichnis des Repositorys](#dokumente-im-stammverzeichnis-des-repositorys) - [Wo jede Frage beantwortet wird](#wo-jede-frage-beantwortet-wird) - [Konventionen](#in-den-dokumenten-verwendete-konventionen)
 
@@ -13,7 +13,7 @@ Inhalt: [Alle Dokumente](#alle-dokumente) - [Lesepfade nach Zielgruppe](#lesepfa
 | Dokument | Was es ist | Zielgruppe |
 |---|---|---|
 | [GETTING_STARTED.md](GETTING_STARTED.md) | Installation, erstes Projekt, erstes Rendern und Exportieren, erste Studio-Sitzung | alle, als Erstes zu lesen |
-| [CLI_REFERENCE.md](CLI_REFERENCE.md) | Jeder `armatura`-Befehl, jede Option, jeder Exit-Code und jedes Beispiel | Anwender, Skript-Autoren, CI-Autoren |
+| [CLI_REFERENCE.md](CLI_REFERENCE.md) | Jeder `osatura`-Befehl, jede Option, jeder Exit-Code und jedes Beispiel | Anwender, Skript-Autoren, CI-Autoren |
 | [STUDIO.md](STUDIO.md) | Der Browser-Editor: Panels, Tastenkürzel, Zusammenarbeit, Scrub-Vorschauen | Animatoren, Rigger |
 | [RIGGING_GUIDE.md](RIGGING_GUIDE.md) | Ein Rig bauen: Knochen, IK, Skinning, Deformer, Driver, Zustandsautomaten, Layout | Rigger, Technical Artists |
 | [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md) | Keys, Easing, Clips und Takes, Physik, Lip-Sync, Audio, Wahl des Exports | Animatoren |
@@ -23,13 +23,13 @@ Inhalt: [Alle Dokumente](#alle-dokumente) - [Lesepfade nach Zielgruppe](#lesepfa
 | [GLOSSARY.md](GLOSSARY.md) | Begriffe aus Engine, Dokumentation und CLI | alle |
 | [FAQ.md](FAQ.md) | Kurze Antworten auf häufige Fragen | alle |
 | [API.md](API.md) | Die stabile Rust-Fassade (Version 1.4.0): Aufrufe, Fehler, Grenzen, Beispiele | Rust-Integratoren |
-| [C_ABI.md](C_ABI.md) | Die C-Schnittstelle (`armatura-capi`): Funktionen, Speicherregeln, C- und Python-Beispiele | Integratoren für C, C++, Python, Go, C# |
+| [C_ABI.md](C_ABI.md) | Die C-Schnittstelle (`osatura-capi`): Funktionen, Speicherregeln, C- und Python-Beispiele | Integratoren für C, C++, Python, Go, C# |
 | [WASM.md](WASM.md) | WebAssembly-Modul und JavaScript-Wrapper. **Status: in CI gebaut und unter Node getestet, nie in einem Browser ausgeführt**; enthält die Checkliste für den ersten Lauf im Browser | Webentwickler |
-| [CI.md](CI.md) | Animations-CI (`armatura ci`): Manifest, Schwellwerte, Goldens, Berichte, Pipeline-Beispiele | Technical Artists, Build-Ingenieure |
+| [CI.md](CI.md) | Animations-CI (`osatura ci`): Manifest, Schwellwerte, Goldens, Berichte, Pipeline-Beispiele | Technical Artists, Build-Ingenieure |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Bauen, Tests, Konventionen, Checkliste für neue Module, Release-Checkliste, Debugging | Mitwirkende, Maintainer |
 | [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Schritte auf Eigentümerseite vor und nach der Veröffentlichung der Entwurfsversion | Eigentümer |
 | [SECURITY.md](SECURITY.md) | Bedrohungsmodell, eingebaute Schutzmaßnahmen, bekannte Lücken, Meldung, Härtungs-Checkliste | Sicherheits-Reviewer, Betreiber |
-| [LIMITATIONS.md](LIMITATIONS.md) | Nummerierte Liste bekannter Einschränkungen mit Schweregrad, Umgehung und Roadmap-ID | alle, die ARMATURA bewerten |
+| [LIMITATIONS.md](LIMITATIONS.md) | Nummerierte Liste bekannter Einschränkungen mit Schweregrad, Umgehung und Roadmap-ID | alle, die OSATURA bewerten |
 | [PATENT_NOTES.md](PATENT_NOTES.md) | Hinweis zum Patentstatus (keine Rechtsberatung) | Lizenznehmer, Juristen |
 | [THIRD_PARTY.md](THIRD_PARTY.md) | Generiertes Verzeichnis der Crates und Lizenzen von Drittanbietern | Lizenznehmer, Paketierer |
 | [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md) | Generierte Lizenztexte der Abhängigkeiten, die mit Binärdateien auszuliefern sind | Paketierer |
@@ -50,7 +50,7 @@ Jeder Pfad ist eine Reihenfolge, keine Vorschrift. Hör auf, wenn du hast, was d
 
 **Mitwirkende.** [../CONTRIBUTING.md](CONTRIBUTING.md) (DCO) -> [DEVELOPMENT.md](DEVELOPMENT.md) -> ARCHITECTURE -> [../CLEANROOM.md](CLEANROOM.md) -> [../ROADMAP.md](ROADMAP.md) Abschnitt 9 (was es gibt und was nicht) -> LIMITATIONS (etwas zum Beheben aussuchen).
 
-**Sicherheits-Reviewer oder Betreiber.** [SECURITY.md](SECURITY.md) -> [DEVELOPMENT.md](DEVELOPMENT.md) Abschnitt 3 (was getestet wird) -> LIMITATIONS Abschnitt 2 und 11 -> `armatura-cli/src/http.rs`, `studio.rs`, `collab_srv.rs`, `armatura-core/src/assets.rs`, `fsutil.rs` -> [CI.md](CI.md) Einschränkungen.
+**Sicherheits-Reviewer oder Betreiber.** [SECURITY.md](SECURITY.md) -> [DEVELOPMENT.md](DEVELOPMENT.md) Abschnitt 3 (was getestet wird) -> LIMITATIONS Abschnitt 2 und 11 -> `osatura-cli/src/http.rs`, `studio.rs`, `collab_srv.rs`, `osatura-core/src/assets.rs`, `fsutil.rs` -> [CI.md](CI.md) Einschränkungen.
 
 **Lizenznehmer, Paketierer oder Jurist.** [../LICENSING.md](LICENSING.md) -> [../LICENSE](../../../LICENSE) und [../LICENSES/](../../../LICENSES/) -> [THIRD_PARTY.md](THIRD_PARTY.md) -> [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md) -> [PATENT_NOTES.md](PATENT_NOTES.md) -> [../TRADEMARK.md](TRADEMARK.md) -> [../CLEANROOM.md](CLEANROOM.md) -> Release-Checkliste in [DEVELOPMENT.md](DEVELOPMENT.md) Abschnitt 7.
 

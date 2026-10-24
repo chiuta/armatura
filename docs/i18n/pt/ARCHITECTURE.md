@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 
-# Arquitetura do ARMATURA
+# Arquitetura do OSATURA
 
 Este documento explica como o workspace é organizado, como os dados fluem de um arquivo de projeto até
 os pixels, quais garantias o motor oferece e quais não oferece, e como estendê-lo. O detalhamento por campo
@@ -13,7 +13,7 @@ Conteúdo
 
 1. [Crates e grafo de dependências](#1-crates-e-grafo-de-dependências)
 2. [Fluxo de dados](#2-fluxo-de-dados)
-3. [Mapa de módulos do armatura-core](#3-mapa-de-módulos-do-armatura-core)
+3. [Mapa de módulos do osatura-core](#3-mapa-de-módulos-do-osatura-core)
 4. [O padrão de bake não destrutivo](#4-o-padrão-de-bake-não-destrutivo)
 5. [Editor, ops e desfazer](#5-editor-ops-e-desfazer)
 6. [Determinismo: garantias e limites](#6-determinismo-garantias-e-limites)
@@ -30,19 +30,19 @@ Conteúdo
 
 | Crate | Licença | Tipo | Papel |
 | --- | --- | --- | --- |
-| `armatura-core` | MPL-2.0 | biblioteca | Tudo que não é front end: modelo de dados, motor, renderizadores, ferramentas, núcleo de colaboração. Feature padrão `scripting`. |
-| `armatura-cli` | AGPL-3.0-or-later | binário `armatura` | Linha de comando, o servidor web do Studio e as rotas HTTP de colaboração. Depende do core com `default-features = false` e reexpõe `scripting`; feature opcional `gpu`. |
-| `armatura-capi` | MPL-2.0 | `cdylib`, `staticlib`, `rlib` | ABI C (`armatura.h`, `ABI_VERSION` 1). Depende do core com `default-features = false`. |
-| `armatura-wasm` | MPL-2.0 | `cdylib`, `rlib` | Módulo WebAssembly `extern "C"` simples, sem wasm-bindgen. Depende do core com `default-features = false`. |
-| `armatura-gpu` | MPL-2.0 | biblioteca | Renderizador wgpu opcional. Depende do core com `default-features = false`. |
+| `osatura-core` | MPL-2.0 | biblioteca | Tudo que não é front end: modelo de dados, motor, renderizadores, ferramentas, núcleo de colaboração. Feature padrão `scripting`. |
+| `osatura-cli` | AGPL-3.0-or-later | binário `osatura` | Linha de comando, o servidor web do Studio e as rotas HTTP de colaboração. Depende do core com `default-features = false` e reexpõe `scripting`; feature opcional `gpu`. |
+| `osatura-capi` | MPL-2.0 | `cdylib`, `staticlib`, `rlib` | ABI C (`osatura.h`, `ABI_VERSION` 1). Depende do core com `default-features = false`. |
+| `osatura-wasm` | MPL-2.0 | `cdylib`, `rlib` | Módulo WebAssembly `extern "C"` simples, sem wasm-bindgen. Depende do core com `default-features = false`. |
+| `osatura-gpu` | MPL-2.0 | biblioteca | Renderizador wgpu opcional. Depende do core com `default-features = false`. |
 
 ```mermaid
 graph TD
-    core["armatura-core (MPL-2.0)"]
-    cli["armatura-cli (AGPL-3.0-or-later)<br/>binary: armatura"]
-    capi["armatura-capi<br/>C ABI"]
-    wasm["armatura-wasm<br/>wasm32 extern C"]
-    gpu["armatura-gpu<br/>wgpu 30 (optional)"]
+    core["osatura-core (MPL-2.0)"]
+    cli["osatura-cli (AGPL-3.0-or-later)<br/>binary: osatura"]
+    capi["osatura-capi<br/>C ABI"]
+    wasm["osatura-wasm<br/>wasm32 extern C"]
+    gpu["osatura-gpu<br/>wgpu 30 (optional)"]
     rhai["rhai (feature: scripting)"]
     core -.->|scripting| rhai
     cli --> core
@@ -53,10 +53,10 @@ graph TD
 ```
 
 ```text
-            armatura-cli  (AGPL, bin "armatura")
-              |        \.........(feature "gpu").........  armatura-gpu
+            osatura-cli  (AGPL, bin "osatura")
+              |        \.........(feature "gpu").........  osatura-gpu
               v                                              |
-  armatura-capi --->  armatura-core  <---  armatura-wasm  <--+  (gpu also depends on core)
+  osatura-capi --->  osatura-core  <---  osatura-wasm  <--+  (gpu also depends on core)
                           :
                           :.....(feature "scripting")..... rhai
 ```
@@ -64,9 +64,9 @@ graph TD
 Por que as licenças diferem: o core é MPL-2.0 para que aplicações de código fechado possam incorporá-lo por meio da
 biblioteca, da ABI C ou do módulo WASM sem adotar a AGPL; a linha de comando e o servidor do Studio
 são AGPL. Todo arquivo-fonte traz uma linha SPDX igual à licença da sua crate; um teste
-(`armatura-cli/tests/spdx_audit.rs`) e `scripts/licence-audit.sh` verificam isso. Veja `LICENSING.md`.
+(`osatura-cli/tests/spdx_audit.rs`) e `scripts/licence-audit.sh` verificam isso. Veja `LICENSING.md`.
 
-Estabilidade: somente `armatura_core::api` e `armatura_core::prelude` constituem a superfície estável
+Estabilidade: somente `osatura_core::api` e `osatura_core::prelude` constituem a superfície estável
 (`API_VERSION` 1.4.0). Um teste de snapshot compara os itens públicos com `api_surface.txt`; mudar a
 superfície obriga a uma edição consciente desse arquivo e a uma decisão de versão.
 
@@ -89,7 +89,7 @@ superfície obriga a uma edição consciente desse arquivo e a uma decisão de v
      +--> svg::      vector text (SVG)
      +--> raster::   tiny-skia, 8-bit RGBA
      +--> fraster::  own f32 scanline rasteriser (HDR / EXR path)
-     +--> armatura-gpu  wgpu, stencil-then-cover
+     +--> osatura-gpu  wgpu, stencil-then-cover
      +--> export / gltf / lottie_export / open_formats / ...
 ```
 
@@ -108,9 +108,9 @@ Pontos de entrada que envolvem essa cadeia:
 Os renderizadores só enxergam um `Frame`. Eles nunca reexecutam a lógica do rig, de modo que IK, skinning e deformadores são
 implementados uma única vez, em `engine`.
 
-## 3. Mapa de módulos do armatura-core
+## 3. Mapa de módulos do osatura-core
 
-`armatura-core/src` tem cerca de 100 módulos. Eles são agrupados por área. Para cada módulo, a "base" é
+`osatura-core/src` tem cerca de 100 módulos. Eles são agrupados por área. Para cada módulo, a "base" é
 o padrão público, o artigo ou a técnica de livro didático registrados em `CLEANROOM.md`; "projeto próprio" significa que o
 registro clean-room não cita nenhuma fonte externa. Nomes terminados em `_tests` são módulos de teste e foram omitidos.
 
@@ -317,7 +317,7 @@ avaliação.
 
 ## 8. Visão geral de segurança
 
-A versão curta: o ARMATURA lê JSON e arquivos de assets não confiáveis, e o Studio escuta em um
+A versão curta: o OSATURA lê JSON e arquivos de assets não confiáveis, e o Studio escuta em um
 socket de rede. As defesas são em camadas: limites rigorosos de carregamento (magnitude, tamanho, limites de contagem), confinamento
 de caminhos para assets, um servidor HTTP somente com a std com
 prazos e verificações de host/origin, autenticação por token para a colaboração e um motor de scripting
@@ -325,7 +325,7 @@ em sandbox com limites explícitos. O modelo de ameaças e as medidas de hardeni
 
 ## 9. Arquitetura do servidor do Studio
 
-`armatura studio` serve uma única página HTML (`studio.html`) e uma API JSON a partir de um único processo.
+`osatura studio` serve uma única página HTML (`studio.html`) e uma API JSON a partir de um único processo.
 
 ```text
  browser  <--HTTP/1.1-->  http.rs  (accept loop; bounded connection threads, I/O only)
@@ -336,7 +336,7 @@ em sandbox com limites explícitos. O modelo de ameaças e as medidas de hardeni
                              |   uiconfig.rs  command registry, key map
                              |   collab_srv.rs  /api/collab/* routes
                              v
-                      armatura-core: Editor, Engine, raster, svg, scrub, collab
+                      osatura-core: Editor, Engine, raster, svg, scrub, collab
 ```
 
 - **http.rs** é um servidor HTTP/1.1 somente com a std (a dependência anterior `tiny_http` foi removida após uma
@@ -386,7 +386,7 @@ comparado em tempo constante, com um limite de taxa que responde 429. Cada parti
 (`X-Collab-Secret`) para que um usuário não possa agir como outro. O transporte é HTTP simples, sem TLS:
 coloque um proxy que termine TLS na frente para qualquer uso além de uma rede confiável.
 
-`armatura collab-sim` executa muitos clientes simulados contra um hub no mesmo processo, que é como a convergência
+`osatura collab-sim` executa muitos clientes simulados contra um hub no mesmo processo, que é como a convergência
 é testada.
 
 ## 11. Notas de desempenho
@@ -435,7 +435,7 @@ Regras gerais para qualquer alteração:
 
 Exemplo: um novo número por camada.
 
-1. Adicione o campo a `Layer` em `armatura-core/src/project.rs` com
+1. Adicione o campo a `Layer` em `osatura-core/src/project.rs` com
    `#[serde(default = "...", skip_serializing_if = "...")]`, para que arquivos antigos carreguem sem alterações e os valores padrão
    não sejam gravados de volta. Adicionar um campo opcional não altera `FORMAT_VERSION`.
 2. Adicione a validação em `Engine::new` (finito, intervalo) com uma mensagem que nomeie a camada.
@@ -456,10 +456,10 @@ Exemplo: um novo número por camada.
 
 ### 12.2 Adicionar um comando da CLI
 
-1. Escreva a lógica em `armatura-core` como uma função com entrada tipada e `Result<_, String>` ou uma
+1. Escreva a lógica em `osatura-core` como uma função com entrada tipada e `Result<_, String>` ou uma
    lista de erros; a CLI deve apenas interpretar as flags e imprimir. Isso mantém a lógica utilizável a partir da C ABI,
    do WASM e do Studio.
-2. Em `armatura-cli/src/main.rs`, adicione uma entrada em `USAGE`. `usage_for`, `documented_options` e
+2. Em `osatura-cli/src/main.rs`, adicione uma entrada em `USAGE`. `usage_for`, `documented_options` e
    `check_flags` a leem, e um teste compara USAGE com o parser, de modo que uma flag que o parser
    aceita mas USAGE não menciona faz o teste falhar.
 3. Registre as opções que recebem um valor em `VALUE_OPTS` (ou na tabela `takes_value` de cada comando).
@@ -468,13 +468,13 @@ Exemplo: um novo número por camada.
 6. Grave os projetos por meio de `write_json` (revalida e reescreve os caminhos dos assets). Se o comando grava
    um tipo de arquivo diferente da entrada, chame `guard_out` para que um caminho de saída digitado errado não possa
    sobrescrever o projeto de entrada.
-7. Testes em `armatura-cli/tests/`: `e2e.rs` para o caminho feliz, `robust.rs` para entrada hostil,
+7. Testes em `osatura-cli/tests/`: `e2e.rs` para o caminho feliz, `robust.rs` para entrada hostil,
    `fixes.rs` ou `wave4.rs` para regressões; `scripts/e2e.sh` executa o fluxo completo.
 8. Documente-o na referência de comandos.
 
 ### 12.3 Adicionar um exportador
 
-1. Coloque o escritor em `armatura-core` (por exemplo ao lado de `export.rs`, `gltf.rs` ou
+1. Coloque o escritor em `osatura-core` (por exemplo ao lado de `export.rs`, `gltf.rs` ou
    `lottie_export.rs`). Ele recebe um `Engine` ou `Project`, avalia os quadros por meio de
    `evaluate_checked` e não deve ler estado privado.
 2. Decida e documente o que ele não consegue representar. Emita avisos, não suposições, para recursos descartados.
@@ -492,23 +492,23 @@ Exemplo: um novo número por camada.
 
 | Crate | Feature | Padrão | Efeito |
 | --- | --- | --- | --- |
-| `armatura-core` | `scripting` | ativada | Compila a API de scripting Rhai (`script`, `scriptops`). Traz `rhai` e sua dependência `smartstring` (MPL-2.0). |
-| `armatura-cli` | `scripting` | ativada | Habilita `armatura-core/scripting` e o comando `script`. `--no-default-features` a remove. |
-| `armatura-cli` | `gpu` | desativada | Traz `armatura-gpu` e adiciona o comando `render-gpu`. Mantida desativada para que as compilações comuns continuem pequenas. |
+| `osatura-core` | `scripting` | ativada | Compila a API de scripting Rhai (`script`, `scriptops`). Traz `rhai` e sua dependência `smartstring` (MPL-2.0). |
+| `osatura-cli` | `scripting` | ativada | Habilita `osatura-core/scripting` e o comando `script`. `--no-default-features` a remove. |
+| `osatura-cli` | `gpu` | desativada | Traz `osatura-gpu` e adiciona o comando `render-gpu`. Mantida desativada para que as compilações comuns continuem pequenas. |
 
-`armatura-capi`, `armatura-wasm` e `armatura-gpu` usam o core com `default-features = false`, portanto
+`osatura-capi`, `osatura-wasm` e `osatura-gpu` usam o core com `default-features = false`, portanto
 não carregam o motor de scripting.
 
 ## 14. Alvos de compilação
 
 | Alvo | Comando | Observações |
 | --- | --- | --- |
-| CLI e Studio | `cargo build -p armatura-cli` (adicione `--release` para ganhar velocidade) | Binário `armatura`. |
-| CLI com GPU | `cargo build -p armatura-cli --features gpu` | wgpu 30 apenas com Vulkan e GL. Verificado somente em Mesa llvmpipe. |
-| Biblioteca | `cargo build -p armatura-core` | API Rust. |
-| Biblioteca C | `cargo build -p armatura-capi` | `cdylib`, `staticlib` e o header `armatura-capi/armatura.h`; `ABI_VERSION` 1. |
-| WebAssembly | `armatura-wasm/build-wasm.sh` (requer `rustup target add wasm32-unknown-unknown`) | Interface extern "C" simples, com `index.html` e helpers em `js/`. O ambiente de desenvolvimento não conseguiu instalar o alvo; o módulo é compilado (perfil release) por `.github/workflows/release.yml` e um build de depuração é testado sob o Node por `ci.yml`. O próprio script não é o que o CI executa. |
-| Aplicativo de janela (Windows, macOS) | `cargo build --release -p armatura-gui` | Binário `armatura-studio`: janela `tao` + web view `wry` em torno do estúdio; um stub no Linux. |
+| CLI e Studio | `cargo build -p osatura-cli` (adicione `--release` para ganhar velocidade) | Binário `osatura`. |
+| CLI com GPU | `cargo build -p osatura-cli --features gpu` | wgpu 30 apenas com Vulkan e GL. Verificado somente em Mesa llvmpipe. |
+| Biblioteca | `cargo build -p osatura-core` | API Rust. |
+| Biblioteca C | `cargo build -p osatura-capi` | `cdylib`, `staticlib` e o header `osatura-capi/osatura.h`; `ABI_VERSION` 1. |
+| WebAssembly | `osatura-wasm/build-wasm.sh` (requer `rustup target add wasm32-unknown-unknown`) | Interface extern "C" simples, com `index.html` e helpers em `js/`. O ambiente de desenvolvimento não conseguiu instalar o alvo; o módulo é compilado (perfil release) por `.github/workflows/release.yml` e um build de depuração é testado sob o Node por `ci.yml`. O próprio script não é o que o CI executa. |
+| Aplicativo de janela (Windows, macOS) | `cargo build --release -p osatura-gui` | Binário `osatura-studio`: janela `tao` + web view `wry` em torno do estúdio; um stub no Linux. |
 | Testes | `cargo test --workspace` | Fluxo de shell de ponta a ponta em `scripts/e2e.sh`; auditoria de licenças em `scripts/licence-audit.sh`. |
 
-Os membros padrão do workspace não incluem `armatura-gpu`.
+Os membros padrão do workspace não incluem `osatura-gpu`.

@@ -84,7 +84,7 @@
  "ae": "Arhitectură",
  "ah": "Șase crate-uri, un workspace",
  "a1": "Motor, formate, unelte și fațada Rust stabilă.",
- "a2": "Binarul armatura, studioul din browser și serverul de colaborare.",
+ "a2": "Binarul osatura, studioul din browser și serverul de colaborare.",
  "a3": "ABI C: header, bibliotecă partajată și statică; rulat și sub ASan/UBSan.",
  "a4": "ABI WebAssembly și wrapper JS. Construit în CI și testat sub Node; încă nerulat într-un browser.",
  "a5": "Randor wgpu opțional, nu membru implicit.",
@@ -96,12 +96,12 @@
  "l4": "Proiectele și randările tale rămân ale tale. Numele și logo-ul nu sunt acoperite de aceste licențe. Nu e sfat juridic; revizuirea de către un avocat e încă în așteptare.",
  "gse": "Începe",
  "gsh": "Construiește un rig diseară",
- "gsp": "Clonează-l, rulează armatura demo și deschide studioul pe rezultat.",
+ "gsp": "Clonează-l, rulează osatura demo și deschide studioul pe rezultat.",
  "g1": "Deschide repository-ul",
  "g2": "Primii pași",
  "g3": "Citește limitările",
  "sup": "Dacă îți este de folos:",
- "foot": "Pagină de prezentare pentru proiectul ARMATURA. Nume și logo: vezi TRADEMARK.md.",
+ "foot": "Pagină de prezentare pentru proiectul OSATURA. Nume și logo: vezi TRADEMARK.md.",
  "vy": [
   "1338 de teste plus 19 doc-teste trec local (24 oct. 2026, Linux x86-64); aceeași suită și clippy trec pe GitHub Actions pentru Linux, macOS și Windows",
   "Modulul WebAssembly se construiește în CI, iar testul wrapperului trece pe el sub Node; cargo-deny și REUSE trec",
@@ -113,7 +113,7 @@
   "Lansatorul pentru Windows și aplicația cu fereastră au fost încercate de o singură persoană (Windows 11, alpha.2); nimeni nu le-a folosit pe macOS; binarele nu sunt semnate",
   "Studioul nu a fost folosit de o persoană în producție și nici într-un alt browser decât Chromium",
   "Niciodată un GPU real, o cameră web, o fotografie sau un fișier de captură de mișcare; fără audit de securitate, revizuire juridică sau căutare de brevete",
-  "Numele ARMATURA intră în conflict cu o marcă înregistrată în clasele de software 9 și 42 (căutare EUIPO); niciun avocat nu l-a evaluat"
+  "Numele OSATURA (redenumit din ARMATURA după un conflict în registrul UE) a fost căutat doar la EUIPO; OSIM, WIPO și opinia unui avocat sunt încă deschise"
  ],
  "nDocs": "Docs",
  "nStudio": "Studio",
@@ -189,8 +189,8 @@
   "mnt": "Mentenanță"
  },
  "notices": "THIRD_PARTY_NOTICES.md — 1,4 MB de texte de licență generate. Prea mare pentru a fi încorporat; deschide pe GitHub.",
- "metaTitle": "ARMATURA — rigging și animație vectorială 2D în Rust",
- "metaDesc": "ARMATURA: motor de rigging și animație vectorială 2D în Rust. Oase, IK, skinning, deformatoare, runtime cu mașini de stări, CLI, studio în browser și biblioteci.",
+ "metaTitle": "OSATURA — rigging și animație vectorială 2D în Rust",
+ "metaDesc": "OSATURA: motor de rigging și animație vectorială 2D în Rust. Oase, IK, skinning, deformatoare, runtime cu mașini de stări, CLI, studio în browser și biblioteci.",
  "trNote": "Tradus din engleză. Dacă există diferențe, originalul în engleză are prioritate.",
  "trView": "Vezi originalul în engleză",
  "trShow": "Arată traducerea",

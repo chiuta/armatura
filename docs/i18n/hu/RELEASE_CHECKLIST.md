@@ -7,7 +7,7 @@
 ## 1. Bármi közzététele előtt
 
 - [ ] **[blocker]** Erősítsd meg vagy cseréld le a biztonsági kapcsolattartót (az `alexio@trom.tf` helyőrző a `docs/SECURITY.md`-ben, a `--version` kimenetében és a licencdokumentumokban).
-- [ ] **[blocker]** Keresd meg az „ARMATURA” nevet a számodra fontos védjegynyilvántartásokban (EUIPO, USPTO, OSIM), valamint az alkalmazásboltokban / csomagnyilvántartókban. Lásd `TRADEMARK.md`. Ha ütközik, nevezd át az első kiadás előtt (a név megjelenik a binárisban, a crate-ekben, a dokumentációban).
+- [ ] **[blocker]** Keresd meg az „OSATURA” nevet a számodra fontos védjegynyilvántartásokban (EUIPO, USPTO, OSIM), valamint az alkalmazásboltokban / csomagnyilvántartókban. Lásd `TRADEMARK.md`. Ha ütközik, nevezd át az első kiadás előtt (a név megjelenik a binárisban, a crate-ekben, a dokumentációban).
 - [ ] **[blocker]** Kérj meg egy jogászt, hogy vizsgálja át a `LICENSING.md`-t, az MPL-2.0 / AGPL-3.0 felosztást, a `docs/THIRD_PARTY.md`-t és a `docs/PATENT_NOTES.md`-t. Döntsd el, szeretnél-e kettős licencelést; ha igen, CLA kell *mielőtt* külső hozzájárulásokat fogadsz el (ma: csak DCO).
 - [ ] Ellenőrizd a Graphics Gems görbeillesztési hivatkozás feltételeit (a `CLEANROOM.md`-ben emlékezetből idézve); a független megvalósításra vonatkozó megfogalmazást csak akkor tartsd meg, ha pontos.
 - [x] A `reuse lint` és a `cargo deny check` sikeres a CI-ben (a `licences` job); egyszer futtasd le őket a saját gépeden is.
@@ -30,7 +30,7 @@
 
 - [ ] Add oda a studiót 3–5 animátornak egy hétre egy rövid feladattal (rigelj meg egy karaktert, készíts járásciklust, exportálj egy GIF-et). Jegyezd fel, hol akadnak el; mindegyikből nyiss egy issue-t.
 - [ ] Teszteld valódi böngészőkben (Chrome, Firefox, Safari), érintőképernyős eszközön és csak billentyűzettel.
-- [ ] Egy valódi **Windows 11** és egy valódi **Mac** gépen: csomagold ki az archívumot, kattints duplán az `armatura.exe` (Windows) és az `armatura-studio` fájlra, rigelj meg és exportálj egy projektet, és jelentsd, mi hibázik (L-74–L-76).
+- [ ] Egy valódi **Windows 11** és egy valódi **Mac** gépen: csomagold ki az archívumot, kattints duplán az `osatura.exe` (Windows) és az `osatura-studio` fájlra, rigelj meg és exportálj egy projektet, és jelentsd, mi hibázik (L-74–L-76).
 - [ ] Próbáld ki az arcdetektor / mocap / hang funkciókat valódi adatokkal; őszintén jelezd, hogy korlátozottak (L-12, L-13).
 
 ## 5. Üzemeltetési biztonság (ha te üzemelteted a studiót vagy az együttműködést)

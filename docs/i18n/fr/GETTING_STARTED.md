@@ -1,11 +1,11 @@
-# Prise en main d'ARMATURA
+# Prise en main d'OSATURA
 
 Ce guide vous mène d'un dépôt fraîchement cloné à un petit personnage animé que vous aurez construit, rigué,
 animé par clés, mis en boucle, rendu et exporté en n'utilisant que la ligne de commande. Chaque commande ci-dessous a été
 exécutée pour de vrai pendant la rédaction de cette page ; les sorties affichées sont celles qui ont été imprimées.
 
 Comment cela a été vérifié : Linux, `rustc 1.97.0`, `ffmpeg 6.1.1`, et le build **debug** du binaire
-(`cargo build -p armatura-cli`). Un build release exécute le même code plus vite. La suite de tests passe aussi sous macOS et Windows dans GitHub Actions ; les commandes de cette page n'ont été exécutées à la main que sous Linux. Aucune version minimale
+(`cargo build -p osatura-cli`). Un build release exécute le même code plus vite. La suite de tests passe aussi sous macOS et Windows dans GitHub Actions ; les commandes de cette page n'ont été exécutées à la main que sous Linux. Aucune version minimale
 supportée de Rust n'est déclarée dans le dépôt ; 1.97.0 est simplement le compilateur qui a été testé.
 
 Licence de la documentation : CC-BY-4.0. Voir aussi [RIGGING_GUIDE.md](RIGGING_GUIDE.md),
@@ -16,70 +16,70 @@ des commandes dans [CLI_REFERENCE.md](CLI_REFERENCE.md).
 
 | Prérequis | Nécessaire pour | Remarques |
 |---|---|---|
-| Chaîne d'outils Rust (`rustc`, `cargo`) | compiler ARMATURA | à installer depuis <https://rustup.rs> ; canal stable |
-| Un navigateur web | le studio (`armatura studio`) | seul Chromium a été testé, voir [STUDIO.md](STUDIO.md) |
+| Chaîne d'outils Rust (`rustc`, `cargo`) | compiler OSATURA | à installer depuis <https://rustup.rs> ; canal stable |
+| Un navigateur web | le studio (`osatura studio`) | seul Chromium a été testé, voir [STUDIO.md](STUDIO.md) |
 | `ffmpeg` dans le `PATH` (facultatif) | `.mp4`, `.webm`, mixage du son dans la vidéo/le HTML, `sound mix`, `face-track` sur un fichier vidéo | tout le reste fonctionne sans lui |
 
 Sans `ffmpeg`, les commandes qui en ont besoin s'arrêtent avec un message clair et n'écrivent rien :
 
 ```
-$ PATH=/nonexistent armatura export buddy-final.json o.mp4
+$ PATH=/nonexistent osatura export buddy-final.json o.mp4
 cannot run ffmpeg (No such file or directory (os error 2)); install it or export a GIF/HTML instead
 ```
 
 Aucun GPU n'est requis. Le moteur de rendu GPU facultatif (`render-gpu`) ne fait pas partie du build par défaut.
 
-**Pas de Rust ? Utilisez une archive précompilée.** Quand le propriétaire a publié la préversion en brouillon `v0.1.0-alpha.3`, la [page des versions](https://github.com/chiuta/armatura/releases) propose `armatura-windows-x86_64.zip`, `armatura-macos-arm64.tar.gz`, `armatura-linux-x86_64.tar.gz` et `SHA256SUMS.txt`. Vérifiez l'archive avec les sommes de contrôle (`sha256sum -c SHA256SUMS.txt --ignore-missing`, ou `Get-FileHash` sous Windows), décompressez-la et lancez `armatura` (`armatura.exe`) depuis le dossier décompressé ; sautez la compilation de la section 2 et lisez « Windows : double-clic sur `armatura.exe` » et « Le studio dans une fenêtre » vers la fin de cette page. Les programmes ne sont pas signés : le système vous avertira la première fois. Tout ce qui suit a été exécuté avec une compilation locale des mêmes sources.
+**Pas de Rust ? Utilisez une archive précompilée.** Quand le propriétaire a publié la préversion en brouillon `v0.1.0-alpha.3`, la [page des versions](https://github.com/chiuta/armatura/releases) propose `osatura-windows-x86_64.zip`, `osatura-macos-arm64.tar.gz`, `osatura-linux-x86_64.tar.gz` et `SHA256SUMS.txt`. Vérifiez l'archive avec les sommes de contrôle (`sha256sum -c SHA256SUMS.txt --ignore-missing`, ou `Get-FileHash` sous Windows), décompressez-la et lancez `osatura` (`osatura.exe`) depuis le dossier décompressé ; sautez la compilation de la section 2 et lisez « Windows : double-clic sur `osatura.exe` » et « Le studio dans une fenêtre » vers la fin de cette page. Les programmes ne sont pas signés : le système vous avertira la première fois. Tout ce qui suit a été exécuté avec une compilation locale des mêmes sources.
 
 ## 2. Le compiler
 
 À la racine du dépôt :
 
 ```
-cargo build --release -p armatura-cli
+cargo build --release -p osatura-cli
 ```
 
-Le binaire est `target/release/armatura`. Placez-le dans votre `PATH`, ou créez un alias :
+Le binaire est `target/release/osatura`. Placez-le dans votre `PATH`, ou créez un alias :
 
 ```
-export PATH="$PWD/target/release:$PATH"      # or: alias armatura=$PWD/target/release/armatura
-armatura --version
+export PATH="$PWD/target/release:$PATH"      # or: alias osatura=$PWD/target/release/osatura
+osatura --version
 ```
 
 `--version` affiche la version, la licence (AGPL-3.0-or-later pour la CLI et le studio, MPL-2.0 pour les
-bibliothèques du moteur) et l'offre de code source. Lancer `armatura` sans argument affiche l'aide complète ;
-`armatura <command> --help` affiche l'aide d'une seule commande.
+bibliothèques du moteur) et l'offre de code source. Lancer `osatura` sans argument affiche l'aide complète ;
+`osatura <command> --help` affiche l'aide d'une seule commande.
 
-Vous pouvez aussi l'exécuter sans l'installer : `cargo run --release -p armatura-cli -- demo demo.json`.
+Vous pouvez aussi l'exécuter sans l'installer : `cargo run --release -p osatura-cli -- demo demo.json`.
 
 Compiler l'outil en ligne de commande avec `--no-default-features` supprime la commande `script` (le moteur
 de script Rhai) ; ce tutoriel utilise `script`, conservez donc les fonctionnalités par défaut.
 
 ## 3. Premiers pas avec la démo intégrée
 
-`armatura demo` écrit un projet d'exemple complet : un bras avec skinning, une jambe en IK, un calque de commutation de lip-sync,
+`osatura demo` écrit un projet d'exemple complet : un bras avec skinning, une jambe en IK, un calque de commutation de lip-sync,
 un arrière-plan en parallaxe et un mouvement de caméra.
 
 ```
-$ armatura demo demo.json
+$ osatura demo demo.json
 wrote demo.json
-$ armatura check demo.json
-ok: 'ARMATURA demo' 640×480 @ 24 fps, 48 frames, 6 bones, 1 ik, 14 layers, 14 channels
+$ osatura check demo.json
+ok: 'OSATURA demo' 640×480 @ 24 fps, 48 frames, 6 bones, 1 ik, 14 layers, 14 channels
 ```
 
 `check` compile le projet exactement comme le ferait le moteur de rendu : un projet qui passe `check` peut donc être
 rendu. Dessinons maintenant une image fixe, avec les os en surimpression, et exportons une animation :
 
 ```
-$ armatura render demo.json 12 frame12.png --bones
+$ osatura render demo.json 12 frame12.png --bones
 wrote frame12.png
-$ armatura render demo.json 12 frame12.svg
+$ osatura render demo.json 12 frame12.svg
 wrote frame12.svg
-$ armatura export demo.json demo.gif
+$ osatura export demo.json demo.gif
 wrote demo.gif
-$ armatura export demo.json demo.html
+$ osatura export demo.json demo.html
 wrote demo.html
-$ armatura export demo.json demo.lottie
+$ osatura export demo.json demo.lottie
 warning: [gradient-anisotropic] shadow: a gradient on a layer with non-uniform scale or skew is approximated (Lottie gradients are not sheared)
 wrote demo.lottie
 ```
@@ -90,14 +90,14 @@ Ce que vous venez de faire :
   `--scale N` effectue le rendu à N fois la taille du canevas (0 < N <= 16).
 * `export` choisit le format d'après l'extension du fichier : `.gif`, `.html` (une page de lecteur autonome),
   `.json` (Lottie), `.lottie` (dotLottie), `.apng`, `.webm`, `.mp4`, `.glb`, `.png` (sprite sheet).
-* Les lignes `warning:` sont la partie honnête : Lottie ne peut pas tout représenter de ce que sait faire ARMATURA. Chaque
+* Les lignes `warning:` sont la partie honnête : Lottie ne peut pas tout représenter de ce que sait faire OSATURA. Chaque
   limitation est affichée sur stderr, et `--report r.json` écrit la même liste au format JSON.
 * Ouvrez `demo.html` dans un navigateur pour lire l'animation ; ni serveur ni réseau n'interviennent.
 
 Pour explorer de façon interactive :
 
 ```
-armatura studio demo.json --port 8080
+osatura studio demo.json --port 8080
 ```
 
 et ouvrez <http://127.0.0.1:8080/>. Voir [STUDIO.md](STUDIO.md).
@@ -117,7 +117,7 @@ Travaillez dans un répertoire vide. Chaque étape écrit un nouveau fichier num
 cat > buddy.json <<'EOF'
 {"format": 1, "name": "Buddy", "width": 320, "height": 240, "fps": 24, "frames": 24}
 EOF
-armatura check buddy.json
+osatura check buddy.json
 ```
 ```
 ok: 'Buddy' 320×240 @ 24 fps, 24 frames, 0 bones, 0 ik, 0 layers, 0 channels
@@ -138,7 +138,7 @@ add_rect("upper_arm", 160, 134, 40, 12, "#3d405b");
 add_rect("forearm", 200, 134, 40, 12, "#81b29a");
 ```
 ```
-$ armatura script buddy.json 01-shapes.json shapes.rhai
+$ osatura script buddy.json 01-shapes.json shapes.rhai
 6 request(s) applied; wrote 01-shapes.json
 ```
 
@@ -164,9 +164,9 @@ set_layer("upper_arm", "bone", "arm_up");
 set_layer("forearm", "bone", "arm_low");
 ```
 ```
-$ armatura script 01-shapes.json 02-bones.json bones.rhai
+$ osatura script 01-shapes.json 02-bones.json bones.rhai
 9 request(s) applied; wrote 02-bones.json
-$ armatura render 02-bones.json 0 rig.png --bones --scale 2
+$ osatura render 02-bones.json 0 rig.png --bones --scale 2
 wrote rig.png
 ```
 
@@ -188,7 +188,7 @@ Au lieu d'animer par clés les angles de l'épaule et du coude, laissez le solve
 add_ik("arm_ik", ["arm_up", "arm_low"], "hand_ctrl", 1);
 ```
 ```
-$ armatura script 02-bones.json 03-ik.json ik.rhai
+$ osatura script 02-bones.json 03-ik.json ik.rhai
 1 request(s) applied; wrote 03-ik.json
 ```
 
@@ -211,9 +211,9 @@ set_key("neck", "bone_angle", 16, 10, "smooth");
 set_key("neck", "bone_angle", 24, 0, "smooth");
 ```
 ```
-$ armatura script 03-ik.json 04-keys.json keys.rhai
+$ osatura script 03-ik.json 04-keys.json keys.rhai
 6 request(s) applied; wrote 04-keys.json
-$ armatura timeline 04-keys.json
+$ osatura timeline 04-keys.json
 timeline: 24 frames at 24 fps, 2 channels
 Bones
   hand_ctrl
@@ -234,9 +234,9 @@ Les deux canaux commencent et finissent à la même valeur (l'image 24 répète 
 `loop-solve` vérifie la jonction et règle les canaux en boucle :
 
 ```
-$ armatura loop-solve 04-keys.json buddy-final.json
+$ osatura loop-solve 04-keys.json buddy-final.json
 wrote buddy-final.json: 2 channel(s) adjusted, seam 0.000 -> 0.000
-$ armatura lint buddy-final.json
+$ osatura lint buddy-final.json
 0 finding(s), 0 error(s)
 ```
 
@@ -252,17 +252,17 @@ il se termine avec le code 1 lorsqu'il trouve des erreurs, ce qui permet de l'in
 ### Étape 7 : la regarder, la rendre (2 minutes)
 
 ```
-$ armatura stats buddy-final.json
+$ osatura stats buddy-final.json
 ```
 affiche un résumé JSON (ici : 5 os, 1 chaîne d'IK, 6 calques, 2 canaux, 6 clés). Rendez des images fixes et une
 séquence d'images complète :
 
 ```
-$ armatura render buddy-final.json 12 frame12.png --scale 2
+$ osatura render buddy-final.json 12 frame12.png --scale 2
 wrote frame12.png
-$ armatura render buddy-final.json 12 frame12.svg
+$ osatura render buddy-final.json 12 frame12.svg
 wrote frame12.svg
-$ armatura frames buddy-final.json frames --png
+$ osatura frames buddy-final.json frames --png
 wrote 24 frames to frames
 $ ls frames | head -3
 frame_0000.png
@@ -279,11 +279,11 @@ les mêmes octets sur toute machine avec le même build, ce qui rend possibles l
 ### Étape 8 : exporter (2 minutes)
 
 ```
-$ armatura export buddy-final.json buddy.gif
+$ osatura export buddy-final.json buddy.gif
 wrote buddy.gif
-$ armatura export buddy-final.json buddy.html
+$ osatura export buddy-final.json buddy.html
 wrote buddy.html
-$ armatura export buddy-final.json buddy.json --report buddy-report.json
+$ osatura export buddy-final.json buddy.json --report buddy-report.json
 wrote buddy.json
 $ cat buddy-report.json
 {
@@ -291,9 +291,9 @@ $ cat buddy-report.json
   "format": "lottie",
   "warnings": []
 }
-$ armatura export buddy-final.json buddy.mp4        # needs ffmpeg
+$ osatura export buddy-final.json buddy.mp4        # needs ffmpeg
 wrote buddy.mp4
-$ armatura export buddy-final.json buddy.apng
+$ osatura export buddy-final.json buddy.apng
 wrote buddy.apng
 ```
 
@@ -307,14 +307,14 @@ Quelques règles à retenir :
   project buddy-final.json with output of the same name`), et refusent d'écrire à travers un lien symbolique
   sauf si vous passez `--follow-symlinks`. Les commandes qui transforment un projet en un autre
   (`script`, `loop-solve`, `walk`, `autorig`...) n'ont *pas* cette vérification : elles écrivent de façon atomique, donc
-  `armatura script p.json p.json x.rhai` modifie le fichier sur place. Utilisez des noms distincts tant que vous ne faites pas confiance à un script.
+  `osatura script p.json p.json x.rhai` modifie le fichier sur place. Utilisez des noms distincts tant que vous ne faites pas confiance à un script.
 * Le GIF a 256 couleurs et une transparence sur 1 bit ; pour un alpha progressif, utilisez `.apng` ou `.webm`.
-* Lancez `armatura export-fit` (voir [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md)) lorsque vous devez respecter un budget d'octets.
+* Lancez `osatura export-fit` (voir [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md)) lorsque vous devez respecter un budget d'octets.
 
 ### Étape 9 (facultative) : le modifier dans le studio
 
 ```
-armatura studio buddy-final.json --port 8080
+osatura studio buddy-final.json --port 8080
 ```
 
 Faites glisser les calques, sélectionnez une clé dans la dope sheet, appuyez sur `Space` pour lire. Rien n'est écrit dans votre fichier
@@ -330,11 +330,11 @@ tant que vous n'appuyez pas sur **Enregistrer** (`Ctrl+S`).
 | Canal (une propriété animée) | `channels` | `set_key`, `keys`, `keyedit`, expressions, bruit, bakes |
 | Clip, take, machine à états, liaison | `clips`, `machines`, `bindings` | `take-record`, `clip`, `machine`, `bind` |
 
-Tout est du JSON brut, ce qui explique que les diffs (`armatura diff a.json b.json`), la gestion de versions
-(`armatura vcs`) et les scripts fonctionnent. Les champs inconnus sont signalés par des avertissements et ignorés :
+Tout est du JSON brut, ce qui explique que les diffs (`osatura diff a.json b.json`), la gestion de versions
+(`osatura vcs`) et les scripts fonctionnent. Les champs inconnus sont signalés par des avertissements et ignorés :
 
 ```
-$ armatura check unk.json
+$ osatura check unk.json
 warning: unknown field bogus (ignored)
 ok: 'X' 100×100 @ 24 fps, 10 frames, 0 bones, 0 ik, 0 layers, 0 channels
 ```
@@ -351,17 +351,17 @@ sont refusés, sauf si vous passez `--allow-external-assets` (voir [FAQ.md](FAQ.
 * Questions et messages d'erreur : [FAQ.md](FAQ.md). Limites connues : [LIMITATIONS.md](LIMITATIONS.md).
 * Chaque commande et chaque option : [CLI_REFERENCE.md](CLI_REFERENCE.md) ; le format de fichier : [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
 
-## Windows : double-clic sur `armatura.exe`
+## Windows : double-clic sur `osatura.exe`
 
-`armatura.exe` est un programme en ligne de commande. Depuis 0.1.0-alpha.2, l'ouvrir depuis l'Explorateur (double-clic) crée `Documents\ARMATURA\first-rig.json` (un fichier existant n'est jamais écrasé), démarre le studio sur `http://127.0.0.1:8080` et l'ouvre dans votre navigateur ; la fenêtre de console reste ouverte tant que le studio tourne, fermez-la pour l'arrêter. Ouvert depuis un terminal sans argument, il affiche l'utilisation comme avant. Dans 0.1.0-alpha.1, un double-clic affichait seulement l'utilisation et la fenêtre se fermait aussitôt.
+`osatura.exe` est un programme en ligne de commande. Depuis 0.1.0-alpha.2, l'ouvrir depuis l'Explorateur (double-clic) crée `Documents\OSATURA\first-rig.json` (un fichier existant n'est jamais écrasé), démarre le studio sur `http://127.0.0.1:8080` et l'ouvre dans votre navigateur ; la fenêtre de console reste ouverte tant que le studio tourne, fermez-la pour l'arrêter. Ouvert depuis un terminal sans argument, il affiche l'utilisation comme avant. Dans 0.1.0-alpha.1, un double-clic affichait seulement l'utilisation et la fenêtre se fermait aussitôt.
 
-Les exécutables **ne sont pas signés** : Windows SmartScreen affiche « Éditeur inconnu » (choisissez *Informations complémentaires* puis *Exécuter quand même*) et Gatekeeper de macOS vous demande d'approuver le programme dans *Réglages Système > Confidentialité et sécurité*. Vérifiez d'abord le téléchargement avec `SHA256SUMS.txt`. Si le port 8080 est occupé, lancez `armatura studio first-rig.json --port 8090` depuis un terminal.
+Les exécutables **ne sont pas signés** : Windows SmartScreen affiche « Éditeur inconnu » (choisissez *Informations complémentaires* puis *Exécuter quand même*) et Gatekeeper de macOS vous demande d'approuver le programme dans *Réglages Système > Confidentialité et sécurité*. Vérifiez d'abord le téléchargement avec `SHA256SUMS.txt`. Si le port 8080 est occupé, lancez `osatura studio first-rig.json --port 8090` depuis un terminal.
 
-## Le studio dans une fenêtre : `armatura-studio` (Windows et macOS)
+## Le studio dans une fenêtre : `osatura-studio` (Windows et macOS)
 
-Les archives Windows et macOS contiennent un second programme, `armatura-studio` (`armatura-studio.exe`), une petite fenêtre native autour du studio du navigateur : il démarre le moteur `armatura` du même dossier en tant que `studio` sur un port local libre, affiche la page dans une fenêtre WebView2 (intégré à Windows 11 ; un Windows plus ancien a besoin du runtime Evergreen) ou WKWebView (macOS), et arrête le serveur à la fermeture de la fenêtre. Aucune fenêtre de console n'apparaît. Gardez-le dans le même dossier que `armatura(.exe)`.
+Les archives Windows et macOS contiennent un second programme, `osatura-studio` (`osatura-studio.exe`), une petite fenêtre native autour du studio du navigateur : il démarre le moteur `osatura` du même dossier en tant que `studio` sur un port local libre, affiche la page dans une fenêtre WebView2 (intégré à Windows 11 ; un Windows plus ancien a besoin du runtime Evergreen) ou WKWebView (macOS), et arrête le serveur à la fermeture de la fenêtre. Aucune fenêtre de console n'apparaît. Gardez-le dans le même dossier que `osatura(.exe)`.
 
 * **Exports** (GIF, lecteur HTML, Lottie) : une boîte de dialogue native « Enregistrer sous » s'ouvre, démarrant dans le dossier du projet, et un message indique le fichier une fois enregistré. (alpha.2 les enregistrait silencieusement dans votre dossier Téléchargements ; alpha.3 vous demande.)
-* Double-cliquez dessus pour travailler sur `Documents/ARMATURA/first-rig.json` (créé à partir de la démo intégrée s'il manque), ou lancez-le avec `armatura-studio my-project.json` (par exemple via « Ouvrir avec »).
-* `armatura-studio --selftest` démarre le serveur, récupère la page et l'arrête sans fenêtre ; le code de sortie est 0 si cela a fonctionné (la CI l'exécute sous Windows et macOS).
-* **Limites.** La fenêtre a été utilisée sur un vrai bureau Windows 11 (alpha.2 : le studio et les exports ont fonctionné) ; la boîte de dialogue « Enregistrer sous » d'alpha.3 est compilée et auto-testée en CI mais personne ne l'a encore essayée, et personne n'a utilisé la fenêtre sous macOS. Les autres fonctions de type navigateur qui dépendent du système (glisser-déposer depuis l'Explorateur ou le Finder, ouverture de fichiers depuis les sélecteurs propres au studio) sont celles de la vue web du système et ne sont pas testées. Il n'y a pas de fenêtre Linux (elle aurait besoin des paquets système GTK / WebKitGTK) : utilisez `armatura studio` et un navigateur. Le programme n'est pas signé (voir plus haut).
+* Double-cliquez dessus pour travailler sur `Documents/OSATURA/first-rig.json` (créé à partir de la démo intégrée s'il manque), ou lancez-le avec `osatura-studio my-project.json` (par exemple via « Ouvrir avec »).
+* `osatura-studio --selftest` démarre le serveur, récupère la page et l'arrête sans fenêtre ; le code de sortie est 0 si cela a fonctionné (la CI l'exécute sous Windows et macOS).
+* **Limites.** La fenêtre a été utilisée sur un vrai bureau Windows 11 (alpha.2 : le studio et les exports ont fonctionné) ; la boîte de dialogue « Enregistrer sous » d'alpha.3 est compilée et auto-testée en CI mais personne ne l'a encore essayée, et personne n'a utilisé la fenêtre sous macOS. Les autres fonctions de type navigateur qui dépendent du système (glisser-déposer depuis l'Explorateur ou le Finder, ouverture de fichiers depuis les sélecteurs propres au studio) sont celles de la vue web du système et ne sont pas testées. Il n'y a pas de fenêtre Linux (elle aurait besoin des paquets système GTK / WebKitGTK) : utilisez `osatura studio` et un navigateur. Le programme n'est pas signé (voir plus haut).

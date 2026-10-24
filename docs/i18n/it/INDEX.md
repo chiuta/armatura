@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
-# Indice della documentazione di ARMATURA
+# Indice della documentazione di OSATURA
 
 *Parti da qui per trovare la pagina giusta. Tutti i documenti sono Markdown in inglese con licenza CC-BY-4.0, tranne i file di terze parti generati (vedi le loro intestazioni). Il README in rumeno è [../README.ro.md](../../../README.it.md).*
 
-ARMATURA è un motore di rigging e animazione vettoriale 2D in Rust. È un progetto alpha (le prime build sono preparate come pre-release in bozza `v0.1.0-alpha.3`; i crate sono ancora 0.1.0); leggi [LIMITATIONS.md](LIMITATIONS.md) prima di fare affidamento su una funzionalità.
+OSATURA è un motore di rigging e animazione vettoriale 2D in Rust. È un progetto alpha (le prime build sono preparate come pre-release in bozza `v0.1.0-alpha.3`; i crate sono ancora 0.1.0); leggi [LIMITATIONS.md](LIMITATIONS.md) prima di fare affidamento su una funzionalità.
 
 Indice: [Tutti i documenti](#tutti-i-documenti) - [Percorsi di lettura per destinatario](#percorsi-di-lettura-per-destinatario) - [Documenti nella radice del repository](#documenti-nella-radice-del-repository) - [Dove trovare la risposta a ogni domanda](#dove-trovare-la-risposta-a-ogni-domanda) - [Convenzioni](#convenzioni-usate-nei-documenti)
 
@@ -13,7 +13,7 @@ Indice: [Tutti i documenti](#tutti-i-documenti) - [Percorsi di lettura per desti
 | Documento | Cos'è | Destinatari |
 |---|---|---|
 | [GETTING_STARTED.md](GETTING_STARTED.md) | Installazione, primo progetto, primo render ed esportazione, prima sessione nello studio | tutti, prima lettura |
-| [CLI_REFERENCE.md](CLI_REFERENCE.md) | Ogni comando `armatura`, opzione, codice di uscita ed esempio | utenti, autori di script, autori di CI |
+| [CLI_REFERENCE.md](CLI_REFERENCE.md) | Ogni comando `osatura`, opzione, codice di uscita ed esempio | utenti, autori di script, autori di CI |
 | [STUDIO.md](STUDIO.md) | L'editor nel browser: pannelli, scorciatoie, collaborazione, anteprime di scrub | animatori, rigger |
 | [RIGGING_GUIDE.md](RIGGING_GUIDE.md) | Costruire un rig: ossa, IK, skinning, deformatori, driver, macchine a stati, layout | rigger, technical artist |
 | [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md) | Chiavi, easing, clip e take, fisica, lip-sync, audio, scelte di esportazione | animatori |
@@ -23,13 +23,13 @@ Indice: [Tutti i documenti](#tutti-i-documenti) - [Percorsi di lettura per desti
 | [GLOSSARY.md](GLOSSARY.md) | Termini usati nel motore, nella documentazione e nella CLI | tutti |
 | [FAQ.md](FAQ.md) | Risposte brevi alle domande frequenti | tutti |
 | [API.md](API.md) | La facciata Rust stabile (versione 1.4.0): chiamate, errori, limiti, esempi | integratori Rust |
-| [C_ABI.md](C_ABI.md) | L'interfaccia C (`armatura-capi`): funzioni, regole di memoria, esempi in C e Python | integratori C, C++, Python, Go, C# |
+| [C_ABI.md](C_ABI.md) | L'interfaccia C (`osatura-capi`): funzioni, regole di memoria, esempi in C e Python | integratori C, C++, Python, Go, C# |
 | [WASM.md](WASM.md) | Modulo WebAssembly e wrapper JavaScript. **Stato: compilato e testato sotto Node in CI, mai eseguito in un browser**; include la checklist per la prima esecuzione in un browser | sviluppatori web |
-| [CI.md](CI.md) | CI dell'animazione (`armatura ci`): manifest, soglie, fotogrammi di riferimento, report, esempi di pipeline | technical artist, build engineer |
+| [CI.md](CI.md) | CI dell'animazione (`osatura ci`): manifest, soglie, fotogrammi di riferimento, report, esempi di pipeline | technical artist, build engineer |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Compilazione, test, convenzioni, checklist per un nuovo modulo, checklist di release, debug | contributori, maintainer |
 | [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Passi a carico del titolare prima e dopo la pubblicazione della release in bozza | titolare |
 | [SECURITY.md](SECURITY.md) | Modello delle minacce, protezioni integrate, lacune note, segnalazione, checklist di hardening | revisori della sicurezza, chi installa in produzione |
-| [LIMITATIONS.md](LIMITATIONS.md) | Elenco numerato dei limiti noti con gravità, soluzione alternativa e id della roadmap | chiunque valuti ARMATURA |
+| [LIMITATIONS.md](LIMITATIONS.md) | Elenco numerato dei limiti noti con gravità, soluzione alternativa e id della roadmap | chiunque valuti OSATURA |
 | [PATENT_NOTES.md](PATENT_NOTES.md) | Nota sullo stato dei brevetti (non è consulenza legale) | licenziatari, avvocati |
 | [THIRD_PARTY.md](THIRD_PARTY.md) | Inventario generato dei crate di terze parti e delle licenze | licenziatari, packager |
 | [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md) | Testi delle licenze delle dipendenze generati, da distribuire con i binari | packager |
@@ -50,7 +50,7 @@ Ogni percorso è un ordine, non un obbligo. Fermati quando hai ciò che ti serve
 
 **Contributore.** [../CONTRIBUTING.md](CONTRIBUTING.md) (DCO) -> [DEVELOPMENT.md](DEVELOPMENT.md) -> ARCHITECTURE -> [../CLEANROOM.md](CLEANROOM.md) -> [../ROADMAP.md](ROADMAP.md) sezione 9 (cosa esiste e cosa no) -> LIMITATIONS (scegli qualcosa da correggere).
 
-**Revisore della sicurezza o chi installa in produzione.** [SECURITY.md](SECURITY.md) -> [DEVELOPMENT.md](DEVELOPMENT.md) sezione 3 (cosa viene testato) -> LIMITATIONS sezioni 2 e 11 -> `armatura-cli/src/http.rs`, `studio.rs`, `collab_srv.rs`, `armatura-core/src/assets.rs`, `fsutil.rs` -> limiti di [CI.md](CI.md).
+**Revisore della sicurezza o chi installa in produzione.** [SECURITY.md](SECURITY.md) -> [DEVELOPMENT.md](DEVELOPMENT.md) sezione 3 (cosa viene testato) -> LIMITATIONS sezioni 2 e 11 -> `osatura-cli/src/http.rs`, `studio.rs`, `collab_srv.rs`, `osatura-core/src/assets.rs`, `fsutil.rs` -> limiti di [CI.md](CI.md).
 
 **Licenziatario, packager o avvocato.** [../LICENSING.md](LICENSING.md) -> [../LICENSE](../../../LICENSE) e [../LICENSES/](../../../LICENSES/) -> [THIRD_PARTY.md](THIRD_PARTY.md) -> [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md) -> [PATENT_NOTES.md](PATENT_NOTES.md) -> [../TRADEMARK.md](TRADEMARK.md) -> [../CLEANROOM.md](CLEANROOM.md) -> checklist di release in [DEVELOPMENT.md](DEVELOPMENT.md) sezione 7.
 

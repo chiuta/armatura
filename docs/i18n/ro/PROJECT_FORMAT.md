@@ -1,13 +1,13 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 
-# Formatul de proiect ARMATURA
+# Formatul de proiect OSATURA
 
-Aceasta este referința pentru fișierul de proiect ARMATURA: un singur document JSON care
+Aceasta este referința pentru fișierul de proiect OSATURA: un singur document JSON care
 conține scena, rig-ul, desenul și animația. Este scrisă pornind de la structurile
-serde din `armatura-core/src/project.rs` și de la modulele la care acestea fac referire,
-iar fiecare exemplu din secțiunile 13-15 a fost verificat cu binarul `armatura`
-(`armatura check`, `armatura render`, `armatura explain`).
+serde din `osatura-core/src/project.rs` și de la modulele la care acestea fac referire,
+iar fiecare exemplu din secțiunile 13-15 a fost verificat cu binarul `osatura`
+(`osatura check`, `osatura render`, `osatura explain`).
 
 Cuprins
 
@@ -63,7 +63,7 @@ Tabelele de câmpuri de mai jos folosesc această notație: **Req** înseamnă c
    să eșueze cu `invalid JSON in <file>: value ... is outside the supported range of +-1e7 ...`. Literalii întregi
    sunt prinși mai târziu, de reverificarea din `Engine::new` (vezi secțiunea 12).
 3. Aplică bariera de format: un `format` mai mare decât `FORMAT_VERSION` al build-ului (în prezent `1`) este
-   respins cu `project format 2 is newer than this build supports (1); update ARMATURA`.
+   respins cu `project format 2 is newer than this build supports (1); update OSATURA`.
 
 `Engine::new` (sau `Engine::with_asset_dir`) validează apoi întregul proiect și returnează toate
 problemele găsite sub formă de listă. CLI le afișează astfel:
@@ -86,7 +86,7 @@ nu au supraviețuit:
 warning: unknown field layers[0].paths[0].fil (ignored)
 ```
 
-`armatura check` afișează aceste avertismente. Valorile egale cu cea implicită nu sunt raportate (scriitorul
+`osatura check` afișează aceste avertismente. Valorile egale cu cea implicită nu sunt raportate (scriitorul
 omite valorile implicite, deci un `"visible": true` explicit este în regulă). Câteva structuri sunt stricte în loc de
 permisive și resping cheile necunoscute cu o eroare gravă: `Transition` și `Condition` ale mașinilor, configurația CI, configurația
 live-input, overlay-urile și configurația parametrilor feței; fișierele de configurare sunt citite cu `parse_strict`.
@@ -94,7 +94,7 @@ live-input, overlay-urile și configurația parametrilor feței; fișierele de c
 ### Parcursul dus-întors al metadatelor editorului
 
 Proiectul se serializează cu `skip_serializing_if` pentru listele opționale. Un fișier scris de mână poate
-fi mai scurt decât ce scrie `armatura` înapoi; ambele sunt echivalente.
+fi mai scurt decât ce scrie `osatura` înapoi; ambele sunt echivalente.
 
 ## 3. Câmpuri de nivel superior
 
@@ -107,7 +107,7 @@ fi mai scurt decât ce scrie `armatura` înapoi; ambele sunt echivalente.
 | `fps` | number | **Req** | `(0, 1000]` | Cadre pe secundă. |
 | `frames` | integer (`u32`) | **Req** | `1..=200000` | Lungimea timeline-ului. Indicii cadrelor sunt `0..frames-1`. Un literal float precum `48.0` este respins: `invalid type: floating point `48.0`, expected u32`. |
 | `background` | `Rgba` sau null | null (transparent) | | Culoarea scenei din spatele tuturor. |
-| `color_space` | string | `"srgb"` (nu se scrie) | `srgb`, `linear` | Spațiul în care compozitoarele raster și float amestecă. `linear`: culorile sunt convertite în lumină liniară, compuse în f32 și convertite înapoi o singură dată (un negru 50 % peste alb este 188/255, nu 128/255). Se setează cu `armatura color-space`. SVG, Lottie, randorul GPU, `dof` și `fx` îl ignoră. |
+| `color_space` | string | `"srgb"` (nu se scrie) | `srgb`, `linear` | Spațiul în care compozitoarele raster și float amestecă. `linear`: culorile sunt convertite în lumină liniară, compuse în f32 și convertite înapoi o singură dată (un negru 50 % peste alb este 188/255, nu 128/255). Se setează cu `osatura color-space`. SVG, Lottie, randorul GPU, `dof` și `fx` îl ignoră. |
 | `camera` | object | valori implicite | secțiunea 10 | Camera globală. |
 | `bones` | array | `[]` | cel mult 4096 | Scheletul, secțiunea 4. |
 | `ik` | array | `[]` | | Lanțuri IK. |
@@ -380,8 +380,8 @@ Exemplu de umplere cu gradient radial și stroke (din exemplul cu minge):
 "stroke": {"paint": "#3d2c2e", "width": 2}
 ```
 
-Linterul (`armatura lint`) avertizează despre probleme de gradient (L011), chei de switch (L012) și probleme de date de editor (L013); vezi
-`armatura-core/src/lint.rs`.
+Linterul (`osatura lint`) avertizează despre probleme de gradient (L011), chei de switch (L012) și probleme de date de editor (L013); vezi
+`osatura-core/src/lint.rs`.
 
 ## 7. Deformatoare, efecte, normal map
 
@@ -701,7 +701,7 @@ Offseturile containerelor se adaugă la poziția stratului și se înmulțesc î
 
 ### 11.6 `lods[]`
 
-O înregistrare a unei treceri de nivel de detaliu (level-of-detail) scrise de `armatura lod`: `level`, `tolerance_px`, `scale`,
+O înregistrare a unei treceri de nivel de detaliu (level-of-detail) scrise de `osatura lod`: `level`, `tolerance_px`, `scale`,
 `declared_px`, `bound_stage`, `path_px`, `mesh_px`, `keys_px`, `cull_px`, `stats`
 (`path_anchors`, `mesh_vertices`, `keys`, `layers`, `bytes`) și `notes`. Este documentația a ceea ce a
 făcut o trecere; randarea nu o citește niciodată.
@@ -710,7 +710,7 @@ făcut o trecere; randarea nu o citește niciodată.
 ## 12. Reguli de validare, limite și mesaje de eroare
 
 `Engine::new` validează într-o singură trecere și returnează toate problemele. Tabelul listează ce este impus;
-mesajele între ghilimele au fost produse de `armatura check` pe fișiere stricate intenționat.
+mesajele între ghilimele au fost produse de `osatura check` pe fișiere stricate intenționat.
 
 ### 12.1 Limite globale
 
@@ -722,7 +722,7 @@ mesajele între ghilimele au fost produse de `armatura check` pe fișiere strica
 | width, height | `<= 32768` | `width and height must be at most 32768` |
 | orice float | `abs <= 1e7` | `value 100000000.0 at /bones/0/length is outside the supported range of +-1e7 (coordinates, scales, offsets and key values must stay below it)` |
 | oase | cel mult 4096 | `at most 4096 bones` |
-| format | `<= 1` | `project format 2 is newer than this build supports (1); update ARMATURA` |
+| format | `<= 1` | `project format 2 is newer than this build supports (1); update OSATURA` |
 | dimensiune JSON | CLI `--max-input-bytes`, implicit 256 MiB; API `MAX_JSON_BYTES` 256 MiB | |
 
 Limita 1e7 se aplică de două ori. La încărcare, un literal float care o depășește eșuează la parsare, iar mesajul
@@ -804,12 +804,12 @@ al stratului în afara 0..1 (limitat), `ik_mix` și `constraint_weight` în afar
 animației, skin-uri invalide (`skins::validate`), clipuri (`clipstack::validate`, și ținte de pistă din take care nu se rezolvă,
 ținând cont de `rename`), `channel_meta` și `lods`. Fixture-urile din `out/` se încarcă fără avertismente.
 
-`armatura check` afișează avertismentele de lint de acest fel; linter-ul complet (`armatura lint`) are mai multe reguli (de la L001 în sus).
+`osatura check` afișează avertismentele de lint de acest fel; linter-ul complet (`osatura lint`) are mai multe reguli (de la L001 în sus).
 
 ## 13. Exemplul 1: minge care sare
 
-Verificat cu `armatura check` (`ok: 'bouncing ball' 320×240 @ 24 fps, 48 frames, 0 bones, 0 ik,
-3 layers, 5 channels`) și `armatura render ball.json 7 out.png`. Ce demonstrează:
+Verificat cu `osatura check` (`ok: 'bouncing ball' 320×240 @ 24 fps, 48 frames, 0 bones, 0 ik,
+3 layers, 5 channels`) și `osatura render ball.json 7 out.png`. Ce demonstrează:
 
 - `layer_y` cu chei și easing `bounce` pe primul segment: mingea cade de la y=40 până la
   podea, la y=170, și sare de trei ori. Prima lovitură ajunge la aproximativ cadrul 7.2 (24 / 3.352).
@@ -938,8 +938,8 @@ Verificat cu `armatura check` (`ok: 'bouncing ball' 320×240 @ 24 fps, 48 frames
 
 ## 14. Exemplul 2: braț cu rig și IK
 
-Verificat cu `armatura check` (3 bones, 1 ik, 3 layers, 2 channels). `armatura explain arm.json
-24` raportează vârful la (170, 190), egal cu osul `target`, iar `armatura render arm.json 24
+Verificat cu `osatura check` (3 bones, 1 ik, 3 layers, 2 channels). `osatura explain arm.json
+24` raportează vârful la (170, 190), egal cu osul `target`, iar `osatura render arm.json 24
 out.png --bones` desenează scheletul. Ce demonstrează:
 
 - `upper` este o rădăcină cu o limită de unghi; `lower` este copilul ei (`rest_offset` `[90, 0]` este egal cu
@@ -1088,7 +1088,7 @@ out.png --bones` desenează scheletul. Ce demonstrează:
 
 ## 15. Exemplul 3: gură cu strat switch
 
-Verificat cu `armatura check` și prin randarea cadrelor 0, 5 și 9, care arată trei guri
+Verificat cu `osatura check` și prin randarea cadrelor 0, 5 și 9, care arată trei guri
 diferite. Cheile din afara intervalului sunt limitate: o valoare de cheie 7 arată copilul 2, iar -3 arată copilul 0.
 
 ```json

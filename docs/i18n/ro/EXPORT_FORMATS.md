@@ -3,12 +3,12 @@ SPDX-License-Identifier: CC-BY-4.0
 Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio)
 -->
 
-# Formatele de export și import ARMATURA
+# Formatele de export și import OSATURA
 
-Ce păstrează, ce aproximează și ce pierde fiecare format de fișier pe care ARMATURA îl scrie sau îl citește, ce comandă îl produce și cum se
-verifică rezultatul. Acest text este licențiat CC-BY-4.0. Versiunea documentată: **armatura 0.1.0**.
+Ce păstrează, ce aproximează și ce pierde fiecare format de fișier pe care OSATURA îl scrie sau îl citește, ce comandă îl produce și cum se
+verifică rezultatul. Acest text este licențiat CC-BY-4.0. Versiunea documentată: **osatura 0.1.0**.
 
-Fiecare linie de comandă de mai jos a fost rulată pe proiectul demo încorporat (`armatura demo demo.json`) sau pe o copie de 8 cadre a acestuia
+Fiecare linie de comandă de mai jos a fost rulată pe proiectul demo încorporat (`osatura demo demo.json`) sau pe o copie de 8 cadre a acestuia
 (`small.json`, același proiect cu `"frames": 8`). Dimensiunile citate provin din acel proiect de 8 cadre, 640x480, și au doar rol
 orientativ: ele cresc odată cu cadrele, ancorele și straturile, nu sunt valori fixe. Detaliile comenzilor (fiecare opțiune,
 fiecare eroare) se află în [CLI_REFERENCE.md](CLI_REFERENCE.md); formatul de fișier al proiectului în sine este descris în
@@ -40,7 +40,7 @@ fiecare eroare) se află în [CLI_REFERENCE.md](CLI_REFERENCE.md); formatul de f
 
 | Vrei... | Folosește | De ce |
 |---|---|---|
-| Aspectul exact, distribuit ca un singur fișier, rulează în orice browser, cu derulare (scrub) | `.html` | Cadre SVG inline desenate de randerul propriu al ARMATURA; nimic nu este aproximat. |
+| Aspectul exact, distribuit ca un singur fișier, rulează în orice browser, cu derulare (scrub) | `.html` | Cadre SVG inline desenate de randerul propriu al OSATURA; nimic nu este aproximat. |
 | O animație vectorială mică pentru o pagină web sau o aplicație cu un player Lottie | `.json` sau `.lottie` | Vectorial, independent de rezoluție, mic; dar vezi lista de pierderi (imagini, trasee cu lățime variabilă, audio...). |
 | O previzualizare în buclă pentru chat sau un README | `.gif` | Funcționează peste tot; 256 de culori pe cadru, transparență pe 1 bit, fără sunet. |
 | Un înlocuitor pentru GIF, cu culoare completă și alpha | `.apng` | RGBA pe 8 biți, fără pierderi; mai mare decât GIF. |
@@ -86,11 +86,11 @@ cu `export would write about N million values ...`.
 ### SVG (`render ... out.svg`, `frames`)
 
 ```
-$ armatura render demo.json 12 f12.svg --bones
+$ osatura render demo.json 12 f12.svg --bones
 wrote f12.svg
-$ armatura frames demo.json fr            # fr/frame_0000.svg ... frame_0047.svg
+$ osatura frames demo.json fr            # fr/frame_0000.svg ... frame_0047.svg
 ```
-Ieșirea vectorială a randerului propriu al ARMATURA: căile, gradientele, trasee cu profile de lățime, liniile punctate, modurile de blend, măștile și efectele
+Ieșirea vectorială a randerului propriu al OSATURA: căile, gradientele, trasee cu profile de lățime, liniile punctate, modurile de blend, măștile și efectele
 de strat sunt scrise ca SVG. `--bones` desenează suprapunerea scheletului. Pentru `.svg`, `--scale` lasă viewBox-ul documentului neschimbat. **Pierderi/limite cunoscute:** randerul nu raportează niciuna; modul în care un anumit vizualizator SVG tratează modurile de blend și filtrele depinde
 de acel vizualizator. `--proxy N` scrie un proxy de scrub simplificat, care renunță la traseele fine, gradiente și moduri de blend (nu este pentru
 livrabile). **Validare:** deschide-l într-un browser sau rulează `python3 -c "import xml.dom.minidom,sys; xml.dom.minidom.parse(sys.argv[1])" f12.svg`.
@@ -99,16 +99,16 @@ livrabile). **Validare:** deschide-l într-un browser sau rulează `python3 -c "
 
 RGBA pe 8 biți, sRGB, randat de rasterizatorul propriu al motorului. `--scale N` în (0, 16] înmulțește dimensiunea în pixeli. Un proiect cu
 `"background": null` se randează transparent acolo unde nu se desenează nimic. Implicit nu este gestionat prin management al culorii: valorile se amestecă în spațiul codificat sRGB.
-Începând cu wave 7, un proiect poate opta pentru compunere în lumină liniară (`armatura color-space p.json out.json linear`, câmpul `color_space`):
+Începând cu wave 7, un proiect poate opta pentru compunere în lumină liniară (`osatura color-space p.json out.json linear`, câmpul `color_space`):
 ieșirile raster, GIF, APNG, video și `render-hdr` sunt atunci compuse în lumină liniară f32 și convertite o singură dată în sRGB; SVG și
 Lottie nu se schimbă (LIMITATIONS L-22).
 
 ### PNG pe 16 biți și OpenEXR (`render-hdr`)
 
 ```
-$ armatura render-hdr small.json 3 f.exr                           # HALF, 640x480, 465,611 bytes
-$ armatura render-hdr small.json 3 f2.exr linear --precision float # FLOAT, 923,211 bytes
-$ armatura render-hdr small.json 3 f4.png                          # 16-bit/colour RGBA, sRGB-encoded
+$ osatura render-hdr small.json 3 f.exr                           # HALF, 640x480, 465,611 bytes
+$ osatura render-hdr small.json 3 f2.exr linear --precision float # FLOAT, 923,211 bytes
+$ osatura render-hdr small.json 3 f4.png                          # 16-bit/colour RGBA, sRGB-encoded
 ```
 * **OpenEXR:** o singură parte, scanline, **necomprimat**, canale `A B G R`, lumină liniară, alpha premultiplicat. `HALF` implicit,
   `FLOAT` cu `--precision float` (sau `--float32`). Cuvântul `linear` nu are efect pentru EXR (întotdeauna liniar).
@@ -128,7 +128,7 @@ se aplică la `.gif .apng .webm .mp4 .png`; la alte formate este refuzat (`unkno
 ### Sprite sheet PNG (`export ... out.png`)
 
 ```
-$ armatura export small.json out3.png --columns 4 --scale 0.25
+$ osatura export small.json out3.png --columns 4 --scale 0.25
 wrote out3.atlas.json
 wrote out3.png                    # 4 columns x 2 rows of 160x120 tiles
 ```
@@ -139,7 +139,7 @@ Atlasul se numea înainte `out3.json` și putea suprascrie în tăcere un fișie
 ### GIF (`export ... out.gif`)
 
 ```
-$ armatura export small.json out.gif --scale 0.5
+$ osatura export small.json out.gif --scale 0.5
 wrote out.gif                      # 8 frames, 83 KB
 ```
 * O imagine pe cadru sursă, **buclă infinită**, o paletă locală de până la 256 de culori pe cadru (cuantizată, fără dithering).
@@ -165,9 +165,9 @@ caz în care folosește WebM sau GIF. **Validare:** `ffprobe` cu `-count_frames`
 ### WebM (`export ... out.webm`) și MP4 (`export ... out.mp4`)
 
 ```
-$ armatura export small.json out.mp4  --scale 0.5     # h264, yuv420p, 320x240, 8 frames
-$ armatura export small.json out.webm --scale 0.5     # vp9, yuv420p + alpha_mode=1
-$ armatura export small.json out.webm --codec av1     # needs an ffmpeg with libaom-av1
+$ osatura export small.json out.mp4  --scale 0.5     # h264, yuv420p, 320x240, 8 frames
+$ osatura export small.json out.webm --scale 0.5     # vp9, yuv420p + alpha_mode=1
+$ osatura export small.json out.webm --codec av1     # needs an ffmpeg with libaom-av1
 ```
 * **MP4:** H.264 (`libx264`), `yuv420p`, **fără alpha**. Audio AAC când proiectul are piste de sunet.
 * **WebM:** VP9 (`libvpx-vp9`, implicit) sau AV1 (`libaom-av1`, `--codec av1`); canalul alpha este păstrat (`yuva420p`, eticheta de container
@@ -185,7 +185,7 @@ $ armatura export small.json out.webm --codec av1     # needs an ffmpeg with lib
 ## 5. Player HTML
 
 ```
-$ armatura export small.json out.html
+$ osatura export small.json out.html
 wrote out.html                     # 66 KB for 8 frames
 ```
 Un fișier HTML autonom: **fiecare cadru ca SVG inline**, un buton play/pause, un scrubber (range input) și o etichetă de cadru,
@@ -205,11 +205,11 @@ decât de un browser. Imaginea este exact ceea ce produce randerul SVG, deci est
 ## 6. Lottie (.json) și dotLottie (.lottie)
 
 ```
-$ armatura export small.json out.json --report rep.json
+$ osatura export small.json out.json --report rep.json
 wrote out.json
 warning: [variable-width-stroke] ink: variable-width stroke profiles are not supported by Lottie; the constant base width is used
 warning: [gradient-anisotropic] shadow: a gradient on a layer with non-uniform scale or skew is approximated (Lottie gradients are not sheared)
-$ armatura export small.json out.lottie       # a zip: manifest.json + animations/animation.json
+$ osatura export small.json out.lottie       # a zip: manifest.json + animations/animation.json
 ```
 
 ### Cum este construit
@@ -256,7 +256,7 @@ dimensiunile sunt în unități de scenă (LIMITATIONS L-23).
 
 ### dotLottie (`.lottie`)
 
-Un zip cu `manifest.json` (`{"animations":[{"autoplay":true,"id":"animation","loop":true}],"generator":"ARMATURA","version":"1"}`) și
+Un zip cu `manifest.json` (`{"animations":[{"autoplay":true,"id":"animation","loop":true}],"generator":"OSATURA","version":"1"}`) și
 `animations/animation.json` (același Lottie ca mai sus, comprimat deflate: 46,843 de octeți au devenit un fișier de 11,515 octeți). `--report` funcționează în același
 mod. **Importul** unui `.lottie` nu este acceptat (`import-lottie` are nevoie de JSON; dezarhivează mai întâi `animations/animation.json`).
 
@@ -264,10 +264,10 @@ mod. **Importul** unui `.lottie` nu este acceptat (`import-lottie` are nevoie de
 
 * `python3 -m json.tool out.json > /dev/null` pentru corectitudinea formei; `python3 -c "import json;d=json.load(open('out.json'));print(d['v'],d['fr'],d['op'],len(d['layers']))"`.
 * `unzip -l out.lottie` trebuie să arate exact cele două intrări.
-* Dus-întors: `armatura import-lottie out.json back.json` urmat de `armatura check back.json` verifică faptul că ARMATURA își poate citi propria
+* Dus-întors: `osatura import-lottie out.json back.json` urmat de `osatura check back.json` verifică faptul că OSATURA își poate citi propria
   ieșire (dus-întorsul are pierderi: rig-ul dispare).
 * **Nu a fost disponibil niciun player Lottie independent** la momentul scrierii (LIMITATIONS L-28): ieșirea a fost verificată față de structura câmpurilor
-  Lottie și față de importatorul propriu al ARMATURA. Testează în playerul tău țintă (lottie-web, dotLottie player, Skottie, ...) și citește
+  Lottie și față de importatorul propriu al OSATURA. Testează în playerul tău țintă (lottie-web, dotLottie player, Skottie, ...) și citește
   avertismentele; dacă exactitatea contează, folosește `.html` sau video.
 * **Sfaturi de dimensiune:** `export-fit --format lottie` caută prin patru parametri (`decimals`, `path_eps`, `key_tol`, `frame_step`) în raport cu un buget de octeți;
   `lod` reduce ancorele înainte de export; `size-report` arată dimensiunea Lottie coapte (baked) pe fiecare strat (secțiunea 13).
@@ -276,12 +276,12 @@ mod. **Importul** unui `.lottie` nu este acceptat (`import-lottie` are nevoie de
 ## 7. glTF binar (.glb)
 
 ```
-$ armatura export small.json out.glb
+$ osatura export small.json out.glb
 wrote out.glb
 warning: [glb-limit] blend mode Screen of 'sun' is not exported (glTF materials only alpha-blend); it is drawn as normal
 warning: [glb-limit] animated opacity of 'target' is not exported (frozen at frame 0)
 ```
-glTF 2.0 binar (magic `glTF`, versiunea 2, `"generator": "armatura"`), doar funcționalități de bază. Proiectul trebuie să aibă oase
+glTF 2.0 binar (magic `glTF`, versiunea 2, `"generator": "osatura"`), doar funcționalități de bază. Proiectul trebuie să aibă oase
 (altfel `the project has no bones to export`).
 
 * **Exact:** ierarhia oaselor și animația ei (eșantionată la fiecare cadru, interpolare liniară, shear eliminat).
@@ -307,8 +307,8 @@ glTF 2.0 binar (magic `glTF`, versiunea 2, `"generator": "armatura"`), doar func
 ## 8. Folderul Open Cel Animation (OCA)
 
 ```
-$ armatura export-oca small.json oca1                 # one layer "render" with all composited frames
-$ armatura export-oca small.json oca2 --layers        # one OCA layer per top-level layer
+$ osatura export-oca small.json oca1                 # one layer "render" with all composited frames
+$ osatura export-oca small.json oca2 --layers        # one OCA layer per top-level layer
 wrote oca2/small.oca
 ```
 Scrie `<out_dir>/<project name>.oca` (JSON, `ocaVersion` 1.1) plus cel-uri PNG `layerN/fNNNN.png`. Fără `--layers` există un singur strat
@@ -325,7 +325,7 @@ Importurile creează un proiect **nou** (nu se îmbină într-unul existent), da
 ### SVG (`import-svg`)
 
 ```
-$ armatura import-svg art.svg svg.json
+$ osatura import-svg art.svg svg.json
 warning: unsupported paint 'url(#g)'; using grey
 warning: <text> is not supported and was skipped
 wrote svg.json (3 paths)
@@ -339,7 +339,7 @@ vectorial `svg`**. Sărite cu o linie `warning:` (afișată pe **stdout**): `<te
 ### OpenRaster (`import-ora`)
 
 ```
-$ armatura import-ora art.ora ora.json --fps 12 --frames 24
+$ osatura import-ora art.ora ora.json --fps 12 --frames 24
 ```
 Un **strat de imagine pentru fiecare strat raster** (PNG încorporat), ordine de jos în sus, straturile ascunse sunt păstrate, dar invizibile, grupurile sunt aplatizate, opacitatea,
 vizibilitatea și poziția pe strat, precum și operațiile de compunere uzuale `svg:` (multiply, screen, overlay, darken, lighten, color-dodge,
@@ -351,7 +351,7 @@ ORA. Importul PSD nu este implementat (LIMITATIONS L-32).
 ### Lottie (`import-lottie`)
 
 ```
-$ armatura import-lottie in.json out.json [fx.json]
+$ osatura import-lottie in.json out.json [fx.json]
 warning: layer 'text' of type 5 skipped
 imported 1 layers; wrote out.json
 ```
@@ -378,8 +378,8 @@ Un **subset** deliberat; fiecare funcționalitate sărită este o linie `warning
 ### Imagini, GIF și APNG ca straturi cadru-cu-cadru
 
 ```
-$ armatura import-seq demo.json is.json frames seq hold=2 loop=on start=4 x=10 y=20      # folder of PNGs
-$ armatura import-anim demo.json ia.json gifl dof.gif loop=off start=0                    # animated GIF/APNG
+$ osatura import-seq demo.json is.json frames seq hold=2 loop=on start=4 x=10 y=20      # folder of PNGs
+$ osatura import-anim demo.json ia.json gifl dof.gif loop=off start=0                    # animated GIF/APNG
 ```
 `import-seq` preia toate PNG-urile dintr-un folder în ordinea numelor de fișier (toate de aceeași dimensiune); `import-anim` citește un GIF sau APNG animat folosind
 întârzierile proprii ale fișierului (un PNG simplu dă un cadru). Ambele adaugă un strat switch cu o imagine încorporată pe cadru plus un canal cu pas; lucrează pe un proiect
@@ -391,8 +391,8 @@ vectoriale (`trace` citește canalul alpha; `autotrace` cuantizează culorile ș
 ### BVH (`import-bvh`, `mocap-info`, `mocap-match`, `mocap-retarget`)
 
 ```
-$ armatura mocap-info walk.bvh
-$ armatura import-bvh demo.json walk.bvh ib.json --joint-map LeftUpLeg=thigh,LeftLeg=shin --axis Zrotation --tol 0.5
+$ osatura mocap-info walk.bvh
+$ osatura import-bvh demo.json walk.bvh ib.json --joint-map LeftUpLeg=thigh,LeftLeg=shin --axis Zrotation --tol 0.5
 wrote ib.json (+2 channels from 4 BVH frames)
 ```
 `import-bvh` mapează canalele de rotație ale articulațiilor alese pe oase, ca canale `bone_angle` cu chei, eșantionate la fps-ul și numărul de cadre ale proiectului
@@ -405,7 +405,7 @@ redusă.
 ### MIDI și alte intrări live (`live-map`)
 
 ```
-$ armatura live-map small.json song.mid mapping.json out.json
+$ osatura live-map small.json song.mid mapping.json out.json
 3 events -> +1 channels (K keys in them), 0 trigger keys set, 0 takes, 0 events (0 after the last frame skipped); wrote out.json
 ```
 Un **Standard MIDI File** (`.mid`; mesaje MIDI 1.0, running status, meta-evenimente de tempo, diviziune în ticks sau SMPTE) sau un JSON de evenimente
@@ -461,13 +461,13 @@ descriu ce scrie exportatorul.
 
 ## 13. Fișiere mai mici
 
-1. **Vezi unde sunt octeții:** `armatura size-report project.json` listează fișierul proiectului, Lottie-ul baked și pagina HTML pe straturi,
+1. **Vezi unde sunt octeții:** `osatura size-report project.json` listează fișierul proiectului, Lottie-ul baked și pagina HTML pe straturi,
    imagini și canale (`--json` pentru scripturi).
-2. **Încadrează automat într-un buget:** `armatura export-fit project.json out.json --max-size 50KB --format lottie` caută prin parametrii exportatorului și
+2. **Încadrează automat într-un buget:** `osatura export-fit project.json out.json --max-size 50KB --format lottie` caută prin parametrii exportatorului și
    păstrează cel mai bun SSIM care se încadrează. Formate: `lottie`, `html`, `gif`, `apng`, `webm`, `project` (un JSON de proiect subțiat). `--measure gzip` bugetează
    dimensiunea gzip, `--min-ssim X` stabilește un prag de calitate, `--max-seconds N` este o limită reală de timp (se păstrează cel mai bun rezultat de până atunci). Cod de ieșire 1 cu cel mai
    mic rezultat când bugetul nu poate fi atins.
-3. **Redu mai întâi grafica:** `armatura lod project.json --tolerance-px 1 --levels 3 --out-dir lv --verify` scrie proiecte cu niveluri de detaliu, cu o
+3. **Redu mai întâi grafica:** `osatura lod project.json --tolerance-px 1 --levels 3 --out-dir lv --verify` scrie proiecte cu niveluri de detaliu, cu o
    eroare declarată (și, cu `--verify`, măsurată) în pixeli de ieșire; `lod-pick --screen-px WxH` alege nivelul cel mai grosier pentru un ecran dat.
 4. **Pe format:**
    * Lottie/HTML/GLB cresc cu `frames x anchors`: mai puține cadre, mai puține ancore, un fps mai mic, intervale de chei tăiate (unelte `keys`).
@@ -479,7 +479,7 @@ descriu ce scrie exportatorul.
 
 ## 14. Cerințe ffmpeg
 
-ARMATURA nu include și nu leagă niciodată ffmpeg; rulează `ffmpeg` (și `ffprobe`) găsit în `PATH` ca **subproces extern** al propriei tale instalări.
+OSATURA nu include și nu leagă niciodată ffmpeg; rulează `ffmpeg` (și `ffprobe`) găsit în `PATH` ca **subproces extern** al propriei tale instalări.
 
 | Necesar pentru | Encoder/decoder | Verificat pe |
 |---|---|---|
@@ -501,8 +501,8 @@ Dacă ffmpeg lipsește, comanda eșuează cu `cannot run ffmpeg (...)` și nu sc
 * [PATENT_NOTES.md](PATENT_NOTES.md) consemnează ce **nu** a fost analizat. Pentru export, rândul relevant este *Video and audio codecs through ffmpeg
   (`export` .mp4 / .webm, `soundtrack`)*: H.264 și AAC sunt acoperite de pool-uri de licențiere; VP9 și AV1 sunt promovate ca fără redevențe, dar pentru ambele au fost anunțate
   pretenții ale unor pool-uri și ale unor titulari individuali; **stare: neevaluat, nu considera VP9/AV1 drept clarificate.** Deoarece ffmpeg este instalarea proprie a utilizatorului, fiecare
-  alegere de codec este responsabilitatea utilizatorului, iar ARMATURA nu trebuie să includă ffmpeg.
-* Writer-ii deterministi pentru raster, GIF, APNG, PNG, SVG, OpenEXR, OCA, ORA, glTF și Lottie sunt implementări proprii ARMATURA, pornind de la descrieri publice
+  alegere de codec este responsabilitatea utilizatorului, iar OSATURA nu trebuie să includă ffmpeg.
+* Writer-ii deterministi pentru raster, GIF, APNG, PNG, SVG, OpenEXR, OCA, ORA, glTF și Lottie sunt implementări proprii OSATURA, pornind de la descrieri publice
   ale formatelor (clean-room, vezi CLEANROOM.md). Starea lor privind brevetele nu este evaluată dincolo de aceasta: PATENT_NOTES.md listează doar domeniile de mai sus
   (puppeteering condus de față, mașini de stări și data binding, FABRIK/MVC/greutăți, umplere stencil-then-cover, codec-uri).
 * GIF: brevetele LZW au expirat de mult în toate jurisdicțiile; aceasta este cunoaștere generală, nu o clarificare consemnată în depozit.
@@ -514,25 +514,25 @@ Dacă ffmpeg lipsește, comanda eșuează cu `cannot run ffmpeg (...)` și nu sc
 
 | Format | Verificare | Rezultat așteptat |
 |---|---|---|
-| orice proiect | `armatura check out.json` | `ok: ...` (și după `import-*`) |
+| orice proiect | `osatura check out.json` | `ok: ...` (și după `import-*`) |
 | GIF | `ffprobe -v error -count_frames -select_streams v -show_entries stream=nb_read_frames -of csv=p=0 out.gif` | numărul de cadre (8) |
 | APNG | aceeași comandă pe `out.apng` | numărul de cadre (8) |
 | MP4 | `ffprobe -v error -show_entries stream=codec_name,width,height,pix_fmt,nb_frames,r_frame_rate -of csv=p=0 out.mp4` | `h264,320,240,yuv420p,24/1,8` |
 | WebM | la fel pe `out.webm` cu `:stream_tags=alpha_mode` | `vp9,...,yuv420p,...,1` (alpha_mode 1) |
 | EXR | `ffprobe f.exr` | `exr 640x480 gbrapf32le` |
 | Lottie | `python3 -c "import json;d=json.load(open('out.json'));print(d['v'],d['fr'],d['op'],d['w'],d['h'],len(d['layers']))"` | `5.7.0 24.0 8 640.0 480.0 12` |
-| Avertismente Lottie | `armatura export p.json out.json --report rep.json` | `rep.json` listează fiecare aproximare |
+| Avertismente Lottie | `osatura export p.json out.json --report rep.json` | `rep.json` listează fiecare aproximare |
 | dotLottie | `unzip -l out.lottie` | doar `manifest.json` și `animations/animation.json` |
-| Dus-întors Lottie | `armatura import-lottie out.json back.json && armatura check back.json` | `ok:` |
+| Dus-întors Lottie | `osatura import-lottie out.json back.json && osatura check back.json` | `ok:` |
 | GLB | `python3 -c "import struct;b=open('out.glb','rb').read();print(b[:4],struct.unpack('<II',b[4:12]),len(b))"` | `b'glTF' (2, N)` cu N egal cu lungimea |
 | HTML | `grep -c '<svg' out.html`; `grep -o 'http[^"<]*' out.html` | un `<svg` pe cadru; doar URL-ul namespace-ului SVG |
 | SVG | deschide într-un browser sau parsează ca XML | bine format |
 | Sprite sheet | `python3 -m json.tool out.atlas.json` | `{index,x,y,w,h}` pe cadru |
 | OCA | `python3 -m json.tool <name>.oca` | fiecare cel referit există |
-| Regresie vizuală | `armatura ci diff a.png b.png --metric ssim` | cod de ieșire 0 când sunt egale; vezi [CI.md](CI.md) |
+| Regresie vizuală | `osatura ci diff a.png b.png --metric ssim` | cod de ieșire 0 când sunt egale; vezi [CI.md](CI.md) |
 
-Pentru verificări vizuale ale unui export cu pierderi față de original, `armatura export-fit` raportează deja SSIM și CIEDE2000 față de randarea originală, iar
-`armatura compare` scrie o imagine înainte/după/diferență a două proiecte.
+Pentru verificări vizuale ale unui export cu pierderi față de original, `osatura export-fit` raportează deja SSIM și CIEDE2000 față de randarea originală, iar
+`osatura compare` scrie o imagine înainte/după/diferență a două proiecte.
 
 ## 17. Diferențe față de alte documente
 

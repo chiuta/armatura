@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
-# Az ARMATURA dokumentációjának tartalomjegyzéke
+# Az OSATURA dokumentációjának tartalomjegyzéke
 
 *Itt kezdj, hogy megtaláld a megfelelő oldalt. Minden dokumentum angol nyelvű Markdown CC-BY-4.0 licenc alatt, kivéve a generált harmadik féltől származó fájlokat (lásd a fejlécüket). A román README itt található: [../README.ro.md](../../../README.hu.md).*
 
-Az ARMATURA egy Rustban írt 2D vektoros riggelő és animációs motor. Alfa projekt (az első buildek a `v0.1.0-alpha.3` előzetes kiadás-vázlatként készülnek; a crate-ek továbbra is 0.1.0); mielőtt egy funkcióra támaszkodnál, olvasd el a [LIMITATIONS.md](LIMITATIONS.md) fájlt.
+Az OSATURA egy Rustban írt 2D vektoros riggelő és animációs motor. Alfa projekt (az első buildek a `v0.1.0-alpha.3` előzetes kiadás-vázlatként készülnek; a crate-ek továbbra is 0.1.0); mielőtt egy funkcióra támaszkodnál, olvasd el a [LIMITATIONS.md](LIMITATIONS.md) fájlt.
 
 Tartalom: [Minden dokumentum](#minden-dokumentum) - [Olvasási útvonalak célközönség szerint](#olvasási-útvonalak-célközönség-szerint) - [A tároló gyökerében lévő dokumentumok](#a-tároló-gyökerében-lévő-dokumentumok) - [Hol található válasz az egyes kérdésekre](#hol-található-válasz-az-egyes-kérdésekre) - [Konvenciók](#a-dokumentumokban-használt-konvenciók)
 
@@ -13,7 +13,7 @@ Tartalom: [Minden dokumentum](#minden-dokumentum) - [Olvasási útvonalak célk�
 | Dokumentum | Mi ez | Célközönség |
 |---|---|---|
 | [GETTING_STARTED.md](GETTING_STARTED.md) | Telepítés, első projekt, első renderelés és export, első stúdió-munkamenet | mindenki, első olvasmány |
-| [CLI_REFERENCE.md](CLI_REFERENCE.md) | Minden `armatura` parancs, opció, kilépési kód és példa | felhasználók, szkriptelők, CI-szerzők |
+| [CLI_REFERENCE.md](CLI_REFERENCE.md) | Minden `osatura` parancs, opció, kilépési kód és példa | felhasználók, szkriptelők, CI-szerzők |
 | [STUDIO.md](STUDIO.md) | A böngészős szerkesztő: panelek, gyorsbillentyűk, együttműködés, görgetési előnézetek | animátorok, riggerek |
 | [RIGGING_GUIDE.md](RIGGING_GUIDE.md) | Rig építése: csontok, IK, skinning, deformerek, driverek, állapotgépek, elrendezés | riggerek, technikai művészek |
 | [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md) | Kulcsok, easing, klipek és take-ek, fizika, lip-sync, hang, exportválasztás | animátorok |
@@ -23,13 +23,13 @@ Tartalom: [Minden dokumentum](#minden-dokumentum) - [Olvasási útvonalak célk�
 | [GLOSSARY.md](GLOSSARY.md) | A motorban, a dokumentációban és a CLI-ben használt fogalmak | mindenki |
 | [FAQ.md](FAQ.md) | Rövid válaszok gyakori kérdésekre | mindenki |
 | [API.md](API.md) | A stabil Rust homlokzat (1.4.0-s verzió): hívások, hibák, korlátok, példák | Rust-integrátorok |
-| [C_ABI.md](C_ABI.md) | A C interfész (`armatura-capi`): függvények, memóriaszabályok, C- és Python-példák | C, C++, Python, Go, C# integrátorok |
+| [C_ABI.md](C_ABI.md) | A C interfész (`osatura-capi`): függvények, memóriaszabályok, C- és Python-példák | C, C++, Python, Go, C# integrátorok |
 | [WASM.md](WASM.md) | WebAssembly modul és JavaScript wrapper. **Állapot: a CI-ben lefordítva és Node alatt tesztelve, böngészőben soha nem futtatva**; tartalmazza az első böngészős futtatás ellenőrzőlistáját | webfejlesztők |
-| [CI.md](CI.md) | Animációs CI (`armatura ci`): manifeszt, küszöbök, referenciaképek, jelentések, pipeline-példák | technikai művészek, build-mérnökök |
+| [CI.md](CI.md) | Animációs CI (`osatura ci`): manifeszt, küszöbök, referenciaképek, jelentések, pipeline-példák | technikai művészek, build-mérnökök |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Fordítás, tesztek, konvenciók, új modul ellenőrzőlistája, kiadási ellenőrzőlista, hibakeresés | közreműködők, karbantartók |
 | [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | A tulajdonosi lépések a vázlatkiadás közzététele előtt és után | tulajdonos |
 | [SECURITY.md](SECURITY.md) | Fenyegetésmodell, beépített védelmek, ismert hiányosságok, bejelentés, megerősítési ellenőrzőlista | biztonsági átnézők, telepítők |
-| [LIMITATIONS.md](LIMITATIONS.md) | Az ismert korlátok számozott listája súlyossággal, kerülőmegoldással és ütemterv-azonosítóval | mindenki, aki az ARMATURA-t értékeli |
+| [LIMITATIONS.md](LIMITATIONS.md) | Az ismert korlátok számozott listája súlyossággal, kerülőmegoldással és ütemterv-azonosítóval | mindenki, aki az OSATURA-t értékeli |
 | [PATENT_NOTES.md](PATENT_NOTES.md) | Szabadalmi állapotjegyzet (nem jogi tanács) | licencbirtokosok, jogászok |
 | [THIRD_PARTY.md](THIRD_PARTY.md) | A harmadik féltől származó crate-ek és licencek generált jegyzéke | licencbirtokosok, csomagolók |
 | [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md) | A függőségek generált licencszövegei, a binárisokkal együtt szállítandók | csomagolók |
@@ -50,7 +50,7 @@ Minden útvonal egy sorrend, nem követelmény. Állj meg, ha megvan, amire szü
 
 **Közreműködő.** [../CONTRIBUTING.md](CONTRIBUTING.md) (DCO) -> [DEVELOPMENT.md](DEVELOPMENT.md) -> ARCHITECTURE -> [../CLEANROOM.md](CLEANROOM.md) -> [../ROADMAP.md](ROADMAP.md) 9. szakasz (mi van meg, és mi nincs) -> LIMITATIONS (válassz valamit javításra).
 
-**Biztonsági átnéző vagy telepítő.** [SECURITY.md](SECURITY.md) -> [DEVELOPMENT.md](DEVELOPMENT.md) 3. szakasz (mi van tesztelve) -> LIMITATIONS 2. és 11. szakasz -> `armatura-cli/src/http.rs`, `studio.rs`, `collab_srv.rs`, `armatura-core/src/assets.rs`, `fsutil.rs` -> [CI.md](CI.md) korlátok.
+**Biztonsági átnéző vagy telepítő.** [SECURITY.md](SECURITY.md) -> [DEVELOPMENT.md](DEVELOPMENT.md) 3. szakasz (mi van tesztelve) -> LIMITATIONS 2. és 11. szakasz -> `osatura-cli/src/http.rs`, `studio.rs`, `collab_srv.rs`, `osatura-core/src/assets.rs`, `fsutil.rs` -> [CI.md](CI.md) korlátok.
 
 **Licencbirtokos, csomagoló vagy jogász.** [../LICENSING.md](LICENSING.md) -> [../LICENSE](../../../LICENSE) és [../LICENSES/](../../../LICENSES/) -> [THIRD_PARTY.md](THIRD_PARTY.md) -> [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md) -> [PATENT_NOTES.md](PATENT_NOTES.md) -> [../TRADEMARK.md](TRADEMARK.md) -> [../CLEANROOM.md](CLEANROOM.md) -> kiadási ellenőrzőlista a [DEVELOPMENT.md](DEVELOPMENT.md) 7. szakaszában.
 

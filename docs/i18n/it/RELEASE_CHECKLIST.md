@@ -7,7 +7,7 @@
 ## 1. Prima di pubblicare qualsiasi cosa
 
 - [ ] **[blocker]** Conferma o sostituisci il contatto per la sicurezza (`alexio@trom.tf` è un segnaposto in `docs/SECURITY.md`, in `--version` e nei documenti di licenza).
-- [ ] **[blocker]** Cerca il nome "ARMATURA" nei registri dei marchi che ti interessano (EUIPO, USPTO, OSIM) e negli app store / registri dei pacchetti. Vedi `TRADEMARK.md`. Se c'è un conflitto, cambia nome prima della prima release (il nome compare nel binario, nei crate, nella documentazione).
+- [ ] **[blocker]** Cerca il nome "OSATURA" nei registri dei marchi che ti interessano (EUIPO, USPTO, OSIM) e negli app store / registri dei pacchetti. Vedi `TRADEMARK.md`. Se c'è un conflitto, cambia nome prima della prima release (il nome compare nel binario, nei crate, nella documentazione).
 - [ ] **[blocker]** Chiedi a un avvocato di rivedere `LICENSING.md`, la suddivisione MPL-2.0 / AGPL-3.0, `docs/THIRD_PARTY.md` e `docs/PATENT_NOTES.md`. Decidi se vuoi la doppia licenza; in tal caso serve un CLA *prima* di accettare contributi esterni (oggi: solo DCO).
 - [ ] Verifica i termini del riferimento sull'approssimazione di curve di Graphics Gems (citato a memoria in `CLEANROOM.md`); mantieni la formulazione sull'implementazione indipendente solo se è accurata.
 - [x] `reuse lint` e `cargo deny check` passano in CI (il job `licences`); eseguili una volta anche sulla tua macchina.
@@ -30,7 +30,7 @@
 
 - [ ] Dai lo studio a 3-5 animatori per una settimana con un breve compito (fare il rig di un personaggio, realizzare un ciclo di camminata, esportare una GIF). Registra dove si bloccano; apri una issue per ciascun caso.
 - [ ] Prova su browser reali (Chrome, Firefox, Safari), su un dispositivo touch e in una sessione solo da tastiera.
-- [ ] Su un vero **Windows 11** e su un vero **Mac**: decomprimi l'archivio, fai doppio clic su `armatura.exe` (Windows) e su `armatura-studio`, fai il rig e l'esportazione di un progetto e segnala che cosa non funziona (da L-74 a L-76).
+- [ ] Su un vero **Windows 11** e su un vero **Mac**: decomprimi l'archivio, fai doppio clic su `osatura.exe` (Windows) e su `osatura-studio`, fai il rig e l'esportazione di un progetto e segnala che cosa non funziona (da L-74 a L-76).
 - [ ] Prova le funzioni di rilevamento del volto / mocap / voce con dati reali; riporta onestamente che sono limitate (L-12, L-13).
 
 ## 5. Sicurezza del deployment (se ospiti lo studio o la collaborazione)

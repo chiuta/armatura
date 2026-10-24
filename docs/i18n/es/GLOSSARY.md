@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 
-# Glosario de ARMATURA
+# Glosario de OSATURA
 
 Términos del dominio usados en el código y en la documentación, en el orden alfabético del original en inglés. "Véase" remite
-al módulo (en `armatura-core/src` salvo que se indique otra cosa) o al documento donde el término se implementa o
+al módulo (en `osatura-core/src` salvo que se indique otra cosa) o al documento donde el término se implementa o
 se especifica. Documentos: [PROJECT_FORMAT.md](PROJECT_FORMAT.md), [ARCHITECTURE.md](ARCHITECTURE.md).
 Las fuentes de las técnicas se enumeran en `CLEANROOM.md`.
 
@@ -92,7 +92,7 @@ alineación y ajuste de línea, que posiciona capas y otros contenedores. Véase
 `rig`.
 
 **CRDT.** Tipo de datos replicado libre de conflictos: una estructura que las réplicas pueden editar de forma independiente y
-fusionar con el mismo resultado sin coordinación. ARMATURA usa un CRDT basado en operaciones. Véase `collab`;
+fusionar con el mismo resultado sin coordinación. OSATURA usa un CRDT basado en operaciones. Véase `collab`;
 ARCHITECTURE sección 10. Relacionados: registro LWW, RGA, reloj de Lamport, reloj vectorial, tombstone.
 
 **Suavizado Bézier cúbico.** Una curva de suavizado al estilo CSS definida por dos puntos de control entre (0,0) y
@@ -187,9 +187,9 @@ PROJECT_FORMAT sección 5.
 Véase `layerfx`.
 
 **Nivel de detalle (LOD).** Una versión simplificada de un proyecto producida con una cota de error declarada en
-píxeles, para una vista previa rápida o una salida pequeña. Véase `lod`, `armatura lod`.
+píxeles, para una vista previa rápida o una salida pequeña. Véase `lod`, `osatura lod`.
 
-**Linter.** El comprobador consultivo (`armatura lint`) que informa de problemas de calidad de la animación con códigos
+**Linter.** El comprobador consultivo (`osatura lint`) que informa de problemas de calidad de la animación con códigos
 como L011 y L012. Distinto de la validación. Véase `lint`.
 
 **Capa líquida.** Una capa de metaballs cuyo contorno es el isocontorno de un campo de suma de influencias. Véase
@@ -232,7 +232,7 @@ iluminación por capa. Véase `postfx`; PROJECT_FORMAT sección 7.3.
 inversa para deshacer. Véase `edit`.
 
 **OT.** Transformación operacional: una alternativa a los CRDT que reescribe operaciones concurrentes unas contra otras,
-normalmente con un servidor central. ARMATURA no la usa; usa un CRDT con un secuenciador central. Véase ARCHITECTURE
+normalmente con un servidor central. OSATURA no la usa; usa un CRDT con un secuenciador central. Véase ARCHITECTURE
 sección 10.
 
 **Parallax.** Un factor por capa que escala el movimiento de la cámara, de modo que las capas lejanas se mueven menos. También es el
@@ -293,7 +293,7 @@ sección 4.
 grupo, como los vestuarios. Véase `skins`.
 
 **Skinning.** Deformar la geometría mezclando las transformaciones de los huesos, ponderadas por ancla o vértice.
-ARMATURA normaliza los pesos y trata los pesos vacíos como estáticos. Véase `engine`, `weights`.
+OSATURA normaliza los pesos y trata los pesos vacíos como estáticos. Véase `engine`, `weights`.
 
 **IK suave.** Una opción de IK que suaviza la extensión cerca del alcance máximo para evitar un chasquido hasta quedar recta.
 Rango de 0 a 0,9. Véase `rig`.
@@ -310,7 +310,7 @@ de reposo y volviéndolas a unir a la curva deformada. Véase PROJECT_FORMAT sec
 cargar para que pueda evaluarse cualquier fotograma. Véase PROJECT_FORMAT sección 4.4.
 
 **SSIM.** Índice de similitud estructural (Wang et al. 2004): una medida de calidad de imagen a partir de medias locales,
-varianzas y covarianza. ARMATURA usa una versión por bloques. Véase `percep`.
+varianzas y covarianza. OSATURA usa una versión por bloques. Véase `percep`.
 
 **Escenario (stage).** El espacio de coordenadas de la imagen de salida: píxeles, +x a la derecha, +y hacia abajo.
 

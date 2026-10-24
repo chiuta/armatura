@@ -1,15 +1,15 @@
-# Animáció-CI (`armatura ci`)
+# Animáció-CI (`osatura ci`)
 
 Kezeld az animációt tesztelhető kódként: egy manifest ellenőrzéseket sorol fel, egy CI-feladat lefuttatja őket, a sikertelen
 vizuális változáshoz pedig jelentés tartozik, amely megmutatja, mi mozdult el. Minden helyi, offline és
 determinisztikus; a metrikák tankönyviek (CIEDE2000, SSIM, MSE/PSNR, DCT-hash).
 
 ```
-armatura ci init  <project.json> [--out armatura-ci.json] [--no-goldens]
-armatura ci run   [manifest] [--update] [--bless] [--prune] [--only a,b]
+osatura ci init  <project.json> [--out osatura-ci.json] [--no-goldens]
+osatura ci run   [manifest] [--update] [--bless] [--prune] [--only a,b]
                   [--junit out.xml] [--html out.html] [--json out.json] [--artifacts dir] [--quiet]
-armatura ci bless [manifest] [--only a,b] [--prune]
-armatura ci diff  a.png b.png [--metric ssim|de2000|de76|mse] [--tol T] [--pixel-de D] [--aa N]
+osatura ci bless [manifest] [--only a,b] [--prune]
+osatura ci diff  a.png b.png [--metric ssim|de2000|de76|mse] [--tol T] [--pixel-de D] [--aa N]
                   [--ignore x,y,w,h;x,y,w,h] [--out heat.png] [--side s.png] [--overlay o.png] [--flicker f.gif]
 ```
 
@@ -20,10 +20,10 @@ hibás manifest, olvashatatlan vagy meghamisított golden, ismeretlen opció).
 ## Gyors kezdés
 
 ```
-armatura ci init animation.json        # writes armatura-ci.json and goldens/ next to the project
-armatura ci run --html report.html     # verify; exit 1 and a report on regressions
-armatura ci bless                      # after reviewing the report: accept the new look
-git add armatura-ci.json goldens       # commit the goldens with the change that caused them
+osatura ci init animation.json        # writes osatura-ci.json and goldens/ next to the project
+osatura ci run --html report.html     # verify; exit 1 and a report on regressions
+osatura ci bless                      # after reviewing the report: accept the new look
+git add osatura-ci.json goldens       # commit the goldens with the change that caused them
 ```
 
 Az `init` a projekt jelenlegi állapotára kalibrálja a manifestet: nagyjából hat egyenletesen elosztott képkocka proxy
@@ -33,11 +33,11 @@ addig semmit sem őriz, amíg le nem viszed), korlátok 50 %-os ráhagyással, e
 ma tisztán ismétlődik), és egy tájékoztató jellegű renderelési sebességkeret (a mért medián 4-szerese, amely
 a géptől és a debug, illetve release build közti különbségtől függ).
 
-## Manifest (`armatura-ci.json`)
+## Manifest (`osatura-ci.json`)
 
 ```json
 {
-  "schema": "armatura-ci/1",
+  "schema": "osatura-ci/1",
   "project": "animation.json",
   "goldens": "goldens",
   "defaults": { "max_de": 6.0 },
@@ -65,7 +65,7 @@ egyediek; minden ellenőrzéshez kell projekt; a tartományok ellenőrzöttek).
 | --- | --- | --- |
 | `render` | képkockák (`frames` lista, vagy `step`, alapértelmezés az első/középső/utolsó), `scale`, `size` (a layout container-ek újraszámolódnak), `renderer`: `raster` (tiny-skia), `float` (f32 rasztereződő, 8 bitre kvantálva) vagy `svg` (pontos szövegösszehasonlítás) | a kép a küszöbökön túl eltér a golden-től, nincs golden, vagy a méret megváltozott |
 | `validate` | a projekt lefordul; lint-találatok a `lint` súlyossággal (`error` alapértelmezett, `warn`, `info`, `off`) | bármely ilyen találat vagy fordítási hiba |
-| `fuzz` | a pózfuzzer (`samples`, `seed`, `frame`) | a hibaarány meghaladja a `max_fail_rate` értéket (alapértelmezés 0). Az ellenőrzés **alapértelmezés szerint kapuz** (a `gate` hiánya `true`-t jelent); csak jelentve van, `info` státusszal és sosem bukva, ha `"gate": false` vagy a `max_fail_rate` 1 vagy több (a soha el nem bukható korlátot sosem mutatja sikeresként). Az `armatura fuzz` parancs külön, csak jelentő eszköz, hacsak nem kapja a `--gate` vagy `--max-fail-rate` kapcsolót |
+| `fuzz` | a pózfuzzer (`samples`, `seed`, `frame`) | a hibaarány meghaladja a `max_fail_rate` értéket (alapértelmezés 0). Az ellenőrzés **alapértelmezés szerint kapuz** (a `gate` hiánya `true`-t jelent); csak jelentve van, `info` státusszal és sosem bukva, ha `"gate": false` vagy a `max_fail_rate` 1 vagy több (a soha el nem bukható korlátot sosem mutatja sikeresként). Az `osatura fuzz` parancs külön, csak jelentő eszköz, hacsak nem kapja a `--gate` vagy `--max-fail-rate` kapcsolót |
 | `limits` | `max_layers`, `max_bones`, `max_channels`, `max_frames`, `max_canvas_pixels`, `max_file_bytes` | egy darabszám meghaladja a korlátját |
 | `export-size` | a `gif`, `apng`, `lottie`, `html` vagy `svg-frames` bájtjai (meglévő exportálók) | nagyobb, mint a `max_bytes` |
 | `determinism` | minden képkockát ugyanaz a motor kétszer, és egy frissen betöltött motor is renderel; a pixelek (vagy az SVG-szöveg) SHA-256 értékének egyeznie kell; a `renderers` alapértelmezése raster, float, svg | bármely digest eltér |
@@ -114,7 +114,7 @@ Az SVG golden-ek ugyanígy elnevezett `.svg` fájlok. A golden-t olvasáskor a n
 
 ### Jelentések
 
-A `--json` a teljes eredmény (séma: `armatura-ci-report/1`; metrikák, régiók, használt küszöbök).
+A `--json` a teljes eredmény (séma: `osatura-ci-report/1`; metrikák, régiók, használt küszöbök).
 A `--junit` JUnit XML, ellenőrzésenként egy teszteset. A `--html` egyetlen önálló oldal (külső
 erőforrások nélkül): összegzés, ellenőrzéstábla, és minden sikertelen képkockához a golden, az aktuális render és egy
 különbségtérkép beágyazott PNG data URI-kként, egy csere gomb a golden és az aktuális közti villogtatáshoz, és
@@ -142,11 +142,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install Rust
         run: rustup toolchain install stable --profile minimal
-      - name: Build armatura
-        run: cargo build --release -p armatura-cli
+      - name: Build osatura
+        run: cargo build --release -p osatura-cli
       - name: Animation checks
         run: |
-          ./target/release/armatura ci run animation/armatura-ci.json \
+          ./target/release/osatura ci run animation/osatura-ci.json \
             --junit ci-out/junit.xml --html ci-out/report.html --json ci-out/report.json \
             --artifacts ci-out/frames
       - name: Upload report
@@ -163,7 +163,7 @@ jobs:
 ```
 
 Az 1-es (vizuális regresszió vagy keret) és a 2-es (nem lehetett kiértékelni) kilépési kód egyaránt elbuktatja a feladatot; a jelentés
-mindkét esetben feltöltődik. Egy szándékos változtatás elfogadásához futtasd helyben az `armatura ci bless` parancsot, nézd át a
+mindkét esetben feltöltődik. Egy szándékos változtatás elfogadásához futtasd helyben az `osatura ci bless` parancsot, nézd át a
 `goldens/` különbségét, és commitold.
 
 ## Általános shell-szkript (példa, nem futtatva)
@@ -172,11 +172,11 @@ mindkét esetben feltöltődik. Egy szándékos változtatás elfogadásához fu
 #!/bin/sh
 # ci.sh - run animation checks; works in any CI that can run a shell and keep files.
 set -u
-MANIFEST="${1:-animation/armatura-ci.json}"
+MANIFEST="${1:-animation/osatura-ci.json}"
 OUT="${OUT:-ci-out}"
 mkdir -p "$OUT"
 
-armatura ci run "$MANIFEST" \
+osatura ci run "$MANIFEST" \
   --junit "$OUT/junit.xml" --html "$OUT/report.html" --json "$OUT/report.json" \
   --artifacts "$OUT/frames"
 code=$?

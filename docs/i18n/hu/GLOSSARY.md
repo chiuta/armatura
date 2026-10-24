@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 
-# ARMATURA szószedet
+# OSATURA szószedet
 
 A kódban és a dokumentációban használt szakkifejezések, az angol ábécésorrendben. A „Lásd” arra a
-modulra (az `armatura-core/src` mappában, ha nincs másként jelölve) vagy dokumentumra utal, ahol a kifejezést
+modulra (az `osatura-core/src` mappában, ha nincs másként jelölve) vagy dokumentumra utal, ahol a kifejezést
 megvalósítják vagy meghatározzák. Dokumentumok: [PROJECT_FORMAT.md](PROJECT_FORMAT.md), [ARCHITECTURE.md](ARCHITECTURE.md).
 A technikák forrásai a `CLEANROOM.md` fájlban vannak felsorolva.
 
@@ -91,7 +91,7 @@ sortöréssel, amely rétegeket és más konténereket pozicionál. Lásd `conta
 `rig`.
 
 **CRDT.** Conflict-free replicated data type: olyan adatszerkezet, amelyet a replikák függetlenül szerkeszthetnek, és
-koordináció nélkül ugyanarra az eredményre egyesíthetők. Az ARMATURA műveletalapú CRDT-t használ. Lásd `collab`;
+koordináció nélkül ugyanarra az eredményre egyesíthetők. Az OSATURA műveletalapú CRDT-t használ. Lásd `collab`;
 ARCHITECTURE 10. szakasz. Kapcsolódó: LWW register, RGA, Lamport-óra, vektoróra, tombstone.
 
 **Köbös Bézier easing (Cubic Bezier easing).** CSS-stílusú easing-görbe, amelyet a (0,0) és (1,1) közötti két kontrollpont határoz meg. Lásd `anim`.
@@ -185,9 +185,9 @@ PROJECT_FORMAT 5. szakasz.
 Lásd `layerfx`.
 
 **Részletességi szint (LOD) (Level of detail).** Egy projekt egyszerűsített változata, amelyet megadott, pixelben mért hibahatár alatt állítanak elő, gyors előnézethez vagy kis kimenethez.
-Lásd `lod`, `armatura lod`.
+Lásd `lod`, `osatura lod`.
 
-**Linter.** A tanácsadó ellenőrző (`armatura lint`), amely az animáció minőségi problémáit jelzi olyan kódokkal, mint
+**Linter.** A tanácsadó ellenőrző (`osatura lint`), amely az animáció minőségi problémáit jelzi olyan kódokkal, mint
 az L011 és az L012. Különbözik az érvényesítéstől. Lásd `lint`.
 
 **Folyadékréteg (Liquid layer).** Metaballokból álló réteg, amelynek körvonala egy hatásösszeg-mező izokontúrja. Lásd
@@ -230,7 +230,7 @@ megvilágítás használja. Lásd `postfx`; PROJECT_FORMAT 7.3. szakasz.
 van inverze. Lásd `edit`.
 
 **OT.** Operational transformation: a CRDT-k alternatívája, amely az egyidejű műveleteket egymáshoz képest írja át,
-általában központi szerverrel. Az ARMATURA nem használja; CRDT-t használ központi szekvenszerrel. Lásd ARCHITECTURE 10. szakasz.
+általában központi szerverrel. Az OSATURA nem használja; CRDT-t használ központi szekvenszerrel. Lásd ARCHITECTURE 10. szakasz.
 
 **Parallax.** Rétegenkénti tényező, amely a kamera mozgását skálázza, így a távoli rétegek kevesebbet mozognak. Egyben a
 mélységélességhez használt mélységérték. Lásd PROJECT_FORMAT 10.1. szakasz.
@@ -290,7 +290,7 @@ PROJECT_FORMAT 4. szakasz.
 például jelmezek. Lásd `skins`.
 
 **Skinning.** A geometria deformálása a csontok transzformációinak keverésével, horgonyonként vagy csúcsonként súlyozva.
-Az ARMATURA normalizálja a súlyokat, és az üres súlyokat statikusnak tekinti. Lásd `engine`, `weights`.
+Az OSATURA normalizálja a súlyokat, és az üres súlyokat statikusnak tekinti. Lásd `engine`, `weights`.
 
 **Soft IK.** IK-opció, amely a teljes kinyúlás közelében simítja a nyúlást, hogy elkerülje az egyenesre pattanást. Tartomány: 0-tól
 0,9-ig. Lásd `rig`.
@@ -307,7 +307,7 @@ görbére vetíti, majd a deformált görbéhez köti újra. Lásd PROJECT_FORMA
 bármely képkocka kiértékelhető. Lásd PROJECT_FORMAT 4.4. szakasz.
 
 **SSIM.** Structural similarity index (Wang et al. 2004): képminőségi mérték helyi középértékekből, szórásokból és kovarianciából.
-Az ARMATURA blokkos változatot használ. Lásd `percep`.
+Az OSATURA blokkos változatot használ. Lásd `percep`.
 
 **Színpad (Stage).** A kimeneti kép koordinátatere: pixelek, +x jobbra, +y lefelé.
 

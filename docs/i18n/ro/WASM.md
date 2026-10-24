@@ -1,53 +1,53 @@
-# ARMATURA pentru WebAssembly
+# OSATURA pentru WebAssembly
 
-*Versiunea ABI 1 (`arm_abi_version()`). Crate `armatura-wasm`, wrapper JavaScript `armatura-wasm/js/armatura.js`, pagină demo `armatura-wasm/index.html`, script de build `armatura-wasm/build-wasm.sh`. Public țintă: dezvoltatorii web care vor să redea proiecte ARMATURA într-un browser sau în node și prima persoană care rulează modulul într-un browser. Documentație CC-BY-4.0; exemple de cod MPL-2.0.*
+*Versiunea ABI 1 (`arm_abi_version()`). Crate `osatura-wasm`, wrapper JavaScript `osatura-wasm/js/osatura.js`, pagină demo `osatura-wasm/index.html`, script de build `osatura-wasm/build-wasm.sh`. Public țintă: dezvoltatorii web care vor să redea proiecte OSATURA într-un browser sau în node și prima persoană care rulează modulul într-un browser. Documentație CC-BY-4.0; exemple de cod MPL-2.0.*
 
 > ## STARE: CONSTRUIT ȘI TESTAT ÎN CI, NICIODATĂ RULAT ÎNTR-UN BROWSER
 >
-> **La 24 oct. 2026 modulul este construit pe GitHub Actions** (`wasm32-unknown-unknown`, build debug în `ci.yml`, build release în `release.yml`) și **testul wrapper-ului trece față de modulul real sub Node 20** (`node armatura-wasm/js/test.mjs demo.json`, inclusiv partea sa cu modulul real). Build-ul release este atașat la pre-lansarea ciornă `v0.1.0-alpha.3` ca `armatura-web.tar.gz` (aproximativ 0,9 MB comprimat, cu `armatura.js` și pagina demo). **Nu a fost niciodată încărcat într-un browser**: nimic din această pagină despre browsere, viteză sau memorie nu este comportament observat, iar mediul de dezvoltare în sine tot nu poate instala ținta (descărcarea bibliotecii sale standard este blocată acolo).
+> **La 24 oct. 2026 modulul este construit pe GitHub Actions** (`wasm32-unknown-unknown`, build debug în `ci.yml`, build release în `release.yml`) și **testul wrapper-ului trece față de modulul real sub Node 20** (`node osatura-wasm/js/test.mjs demo.json`, inclusiv partea sa cu modulul real). Build-ul release este atașat la pre-lansarea ciornă `v0.1.0-alpha.3` ca `osatura-web.tar.gz` (aproximativ 0,9 MB comprimat, cu `osatura.js` și pagina demo). **Nu a fost niciodată încărcat într-un browser**: nimic din această pagină despre browsere, viteză sau memorie nu este comportament observat, iar mediul de dezvoltare în sine tot nu poate instala ținta (descărcarea bibliotecii sale standard este blocată acolo).
 >
 > Ce a fost testat și până unde ajunge acest lucru:
 >
 > | Strat | Test | Dovedește | Nu dovedește |
 > |---|---|---|---|
-> | Funcțiile ABI Rust (`arm_*`) | `cargo test -p armatura-wasm`: 8 teste unitare pe **gazdă**, apelând direct funcțiile exportate | verificarea argumentelor, codurile de eroare, protocolul bufferului de ieșire, mașinile de stări, apelurile de layout / derulare / nivel de detaliu, refuzul ieșirilor supradimensionate înainte de alocare | comportamentul modulului compilat |
-> | Modulul compilat | CI: `cargo build --target wasm32-unknown-unknown`, apoi `node armatura-wasm/js/test.mjs demo.json` cu `.wasm` real | că dependențele compilează pentru wasm32, că modulul exportă ce așteaptă wrapperul și că încărcarea, randarea și apelurile mașinii de stări funcționează sub motorul WebAssembly din Node | browserele, viteza și memoria în release, panic-urile (un trap), pagina demo |
+> | Funcțiile ABI Rust (`arm_*`) | `cargo test -p osatura-wasm`: 8 teste unitare pe **gazdă**, apelând direct funcțiile exportate | verificarea argumentelor, codurile de eroare, protocolul bufferului de ieșire, mașinile de stări, apelurile de layout / derulare / nivel de detaliu, refuzul ieșirilor supradimensionate înainte de alocare | comportamentul modulului compilat |
+> | Modulul compilat | CI: `cargo build --target wasm32-unknown-unknown`, apoi `node osatura-wasm/js/test.mjs demo.json` cu `.wasm` real | că dependențele compilează pentru wasm32, că modulul exportă ce așteaptă wrapperul și că încărcarea, randarea și apelurile mașinii de stări funcționează sub motorul WebAssembly din Node | browserele, viteza și memoria în release, panic-urile (un trap), pagina demo |
 > | Wrapperul JavaScript | același script față de un **mock JavaScript** al exporturilor (trei secțiuni de mock: randare, mașină de stări, layout) | secvențele de apeluri ale wrapperului, transmiterea șirurilor, traducerea erorilor, copierea rezultatelor | - |
 > | Pagina demo | încărcată în Chromium headless **fără** fișierul `.wasm` | căile de import ale modulului se rezolvă, iar pagina raportează „wasm not found” în loc să se blocheze | orice randare într-un browser |
-> | Dependențe | `cargo tree -p armatura-wasm`: fără `rhai` / `smartstring` în arbore | motorul de scripting nu face parte din modul | - |
+> | Dependențe | `cargo tree -p osatura-wasm`: fără `rhai` / `smartstring` în arbore | motorul de scripting nu face parte din modul | - |
 >
-> **Riscuri rămase:** (1) *Rezolvat în CI:* compilarea `zip`, `tiny-skia`, `png`, `gif`, `jpeg-decoder`, `i_overlay` și a dependențelor lor pentru `wasm32-unknown-unknown`. (2) `std::time::Instant` / `SystemTime`, `process::id` și `thread::spawn` dau **panic** pe `wasm32-unknown-unknown`: de la valul 7 core nu le mai apelează direct. Fiecare utilizare trece prin `armatura_core::clock` (un tip de marcaj temporal, `unix_seconds`, `process_id`; constructorul de proxy-uri LOD revine la thread-ul apelant când nu se poate crea un thread), care pe această țintă citește un ceas furnizat de gazdă (exportul `arm_set_clock(mono_ms, unix_ms)`, alimentat de wrapperul JavaScript cu `performance.now()` și `Date.now()` înainte de `load`, `svg` și `rgba`; o gazdă care nu îl apelează niciodată obține durate de 0, deci bugetele de timp nu expiră niciodată) și nu dă niciodată panic. Un test (`armatura-core/tests/wasm_safety.rs`) eșuează când apare o utilizare directă nouă în afara `clock.rs`; testul Node din CI exersează căile pe care le atinge, nu pe toate. Rhai (care ar avea nevoie și de feature-ul său `no_time`) nu face parte din build. (3) Modulele legate de sistemul de fișiere și de procese compilează, dar eșuează la rulare: `audio.rs` (deschidere de fișier), `soundtrack.rs` (ffprobe), `snapshots.rs`, `open_formats.rs` (directoare de export), `agent.rs` (salvare) și încărcarea imaginilor și a hărților normale cu cale relativă în `engine.rs`, `meshtrace.rs` și `postfx.rs`; ele returnează erori în loc să funcționeze într-un browser și niciun feature cargo nu le blochează. (4) Funcțiile în virgulă mobilă (`sin`, `cos`, `powf`, ...) provin dintr-o bibliotecă matematică diferită pe wasm32, deci pixelii randați pot diferi ușor de cei nativi (pasul 6 al listei de verificare măsoară diferența). (5) Pe `wasm32-unknown-unknown` implicit este `panic = "abort"`, `catch_unwind` nu poate intercepta nimic, iar un panic Rust blochează (trap) întreaga instanță (`WebAssembly.RuntimeError: unreachable`). Vezi [lista de verificare](#lista-de-verificare-pentru-prima-persoană-care-îl-poate-rula-într-un-browser) de la sfârșit.
+> **Riscuri rămase:** (1) *Rezolvat în CI:* compilarea `zip`, `tiny-skia`, `png`, `gif`, `jpeg-decoder`, `i_overlay` și a dependențelor lor pentru `wasm32-unknown-unknown`. (2) `std::time::Instant` / `SystemTime`, `process::id` și `thread::spawn` dau **panic** pe `wasm32-unknown-unknown`: de la valul 7 core nu le mai apelează direct. Fiecare utilizare trece prin `osatura_core::clock` (un tip de marcaj temporal, `unix_seconds`, `process_id`; constructorul de proxy-uri LOD revine la thread-ul apelant când nu se poate crea un thread), care pe această țintă citește un ceas furnizat de gazdă (exportul `arm_set_clock(mono_ms, unix_ms)`, alimentat de wrapperul JavaScript cu `performance.now()` și `Date.now()` înainte de `load`, `svg` și `rgba`; o gazdă care nu îl apelează niciodată obține durate de 0, deci bugetele de timp nu expiră niciodată) și nu dă niciodată panic. Un test (`osatura-core/tests/wasm_safety.rs`) eșuează când apare o utilizare directă nouă în afara `clock.rs`; testul Node din CI exersează căile pe care le atinge, nu pe toate. Rhai (care ar avea nevoie și de feature-ul său `no_time`) nu face parte din build. (3) Modulele legate de sistemul de fișiere și de procese compilează, dar eșuează la rulare: `audio.rs` (deschidere de fișier), `soundtrack.rs` (ffprobe), `snapshots.rs`, `open_formats.rs` (directoare de export), `agent.rs` (salvare) și încărcarea imaginilor și a hărților normale cu cale relativă în `engine.rs`, `meshtrace.rs` și `postfx.rs`; ele returnează erori în loc să funcționeze într-un browser și niciun feature cargo nu le blochează. (4) Funcțiile în virgulă mobilă (`sin`, `cos`, `powf`, ...) provin dintr-o bibliotecă matematică diferită pe wasm32, deci pixelii randați pot diferi ușor de cei nativi (pasul 6 al listei de verificare măsoară diferența). (5) Pe `wasm32-unknown-unknown` implicit este `panic = "abort"`, `catch_unwind` nu poate intercepta nimic, iar un panic Rust blochează (trap) întreaga instanță (`WebAssembly.RuntimeError: unreachable`). Vezi [lista de verificare](#lista-de-verificare-pentru-prima-persoană-care-îl-poate-rula-într-un-browser) de la sfârșit.
 
 Cuprins: [Ce este](#ce-este) - [Construirea](#construirea) - [Modelul de memorie și ABI-ul](#modelul-de-memorie-și-abi-ul) - [Referința exporturilor](#referința-exporturilor) - [Wrapperul JavaScript](#wrapperul-javascript) - [Pagina demo](#pagina-demo) - [Diferențe față de ABI-ul C](#diferențe-față-de-abi-ul-c) - [Aspecte încă neșlefuite](#aspecte-încă-neșlefuite) - [Lista de verificare](#lista-de-verificare-pentru-prima-persoană-care-îl-poate-rula-într-un-browser)
 
 ## Ce este
 
-`armatura-wasm` este un `cdylib` de **funcții `extern "C"` simple** (fără `wasm-bindgen`, fără cod de legătură generat) peste fațada Rust stabilă ([API.md](API.md)). Compilat pentru `wasm32-unknown-unknown`, dă un modul care poate deschide un proiect, randa cadre ca text SVG sau pixeli RGBA și rula mașini de stări cu layout, derulare și nivel de detaliu. Nu poate edita, exporta, face control al versiunilor sau rula unelte; nu are sistem de fișiere, rețea, audio sau thread-uri. `armatura.js` este un modul ES fără dependențe (browsere și node >= 18) care ascunde manipularea pointerilor.
+`osatura-wasm` este un `cdylib` de **funcții `extern "C"` simple** (fără `wasm-bindgen`, fără cod de legătură generat) peste fațada Rust stabilă ([API.md](API.md)). Compilat pentru `wasm32-unknown-unknown`, dă un modul care poate deschide un proiect, randa cadre ca text SVG sau pixeli RGBA și rula mașini de stări cu layout, derulare și nivel de detaliu. Nu poate edita, exporta, face control al versiunilor sau rula unelte; nu are sistem de fișiere, rețea, audio sau thread-uri. `osatura.js` este un modul ES fără dependențe (browsere și node >= 18) care ascunde manipularea pointerilor.
 
-Licență: MPL-2.0 (crate și wrapper). Modulul depinde de `armatura-core` cu `default-features = false`: fără motor de scripting și fără niciun crate terț cu licență MPL.
+Licență: MPL-2.0 (crate și wrapper). Modulul depinde de `osatura-core` cu `default-features = false`: fără motor de scripting și fără niciun crate terț cu licență MPL.
 
 ## Construirea
 
-Nu trebuie să îl construiești: ciorna de lansare conține `armatura-web.tar.gz` (modul, wrapper, pagină demo). Ca să îl construiești singur ai nevoie de o mașină pe care ținta poate fi instalată (și, opțional, de `wasm-opt` din Binaryen pentru reducerea dimensiunii). CI îl construiește cu `cargo build --release --target wasm32-unknown-unknown -p armatura-wasm --locked`.
+Nu trebuie să îl construiești: ciorna de lansare conține `osatura-web.tar.gz` (modul, wrapper, pagină demo). Ca să îl construiești singur ai nevoie de o mașină pe care ținta poate fi instalată (și, opțional, de `wasm-opt` din Binaryen pentru reducerea dimensiunii). CI îl construiește cu `cargo build --release --target wasm32-unknown-unknown -p osatura-wasm --locked`.
 
 ```sh
 rustup target add wasm32-unknown-unknown
-./armatura-wasm/build-wasm.sh
+./osatura-wasm/build-wasm.sh
 ```
 
-Scriptul (`armatura-wasm/build-wasm.sh`, un script shell POSIX) face exact următoarele, din rădăcina repository-ului:
+Scriptul (`osatura-wasm/build-wasm.sh`, un script shell POSIX) face exact următoarele, din rădăcina repository-ului:
 
-1. `cargo build --target wasm32-unknown-unknown --release -p armatura-wasm`
-2. copiază `target/wasm32-unknown-unknown/release/armatura_wasm.wasm` în `armatura-wasm/armatura_wasm.wasm`;
+1. `cargo build --target wasm32-unknown-unknown --release -p osatura-wasm`
+2. copiază `target/wasm32-unknown-unknown/release/osatura_wasm.wasm` în `osatura-wasm/osatura_wasm.wasm`;
 3. dacă `wasm-opt` se află în `PATH`, rescrie acel fișier cu `wasm-opt -Oz`;
 4. afișează dimensiunea rezultatului și un indiciu pentru a rula testul node sau a servi demo-ul.
 
-**Scriptul în sine nu este ceea ce rulează CI** (CI apelează direct `cargo build` și copiază modulul). Indiciul său de final spune `node armatura-wasm/js/test.mjs`; cu un `.wasm` real prezent, testul are nevoie în plus de o cale de proiect ca prim argument (`node armatura-wasm/js/test.mjs project.json`), altfel se oprește cu „pass a project JSON path as argv[2]”. Modulul release din ciornă are aproximativ 0,9 MB ca arhivă comprimată; dimensiunile brute și cele după `wasm-opt -Oz` nu sunt consemnate aici.
+**Scriptul în sine nu este ceea ce rulează CI** (CI apelează direct `cargo build` și copiază modulul). Indiciul său de final spune `node osatura-wasm/js/test.mjs`; cu un `.wasm` real prezent, testul are nevoie în plus de o cale de proiect ca prim argument (`node osatura-wasm/js/test.mjs project.json`), altfel se oprește cu „pass a project JSON path as argv[2]”. Modulul release din ciornă are aproximativ 0,9 MB ca arhivă comprimată; dimensiunile brute și cele după `wasm-opt -Oz` nu sunt consemnate aici.
 
 Apoi servește folderul prin HTTP (browserele nu încarcă module sau `.wasm` de la `file://`) și deschide pagina demo:
 
 ```sh
-cd armatura-wasm && python3 -m http.server 8000      # then open http://localhost:8000/index.html
+cd osatura-wasm && python3 -m http.server 8000      # then open http://localhost:8000/index.html
 ```
 
 Dacă folosești `WebAssembly.instantiateStreaming` (wrapperul o face când îi transmiți un `Response`), serverul trebuie să trimită `Content-Type: application/wasm`; calea prin URL a wrapperului folosește `fetch(...).arrayBuffer()` și nu are o astfel de cerință. Dacă pagina ta setează un Content-Security-Policy, acesta trebuie să permită compilarea WebAssembly (`'wasm-unsafe-eval'` în `script-src`).
@@ -108,12 +108,12 @@ Toate apelurile `arm_player_*`, cu excepția `arm_player_start`, au nevoie de un
 
 ## Wrapperul JavaScript
 
-`armatura-wasm/js/armatura.js` exportă `class Armatura` (și ca export implicit). Fiecare metodă care schimbă ceva returnează `this`, deci apelurile se pot înlănțui. Erorile sunt aruncate ca `Error` cu mesajul motorului.
+`osatura-wasm/js/osatura.js` exportă `class Osatura` (și ca export implicit). Fiecare metodă care schimbă ceva returnează `this`, deci apelurile se pot înlănțui. Erorile sunt aruncate ca `Error` cu mesajul motorului.
 
 | Membru | Descriere |
 |---|---|
 | `static async instantiate(source, imports = {})` | returnează obiectul brut de exporturi. `source`: un `ArrayBuffer` sau un tablou tipizat (octeți), un `Response` (folosește `instantiateStreaming`; necesită MIME `application/wasm`) sau un șir URL / `URL` (folosește `fetch` + `arrayBuffer`). Modulul nu are importuri, deci `imports` rămâne `{}`. |
-| `static async create(source, project)` | `source` este fie exporturi deja instanțiate (un obiect cu `arm_open`), fie orice acceptă `instantiate`; `project` este text JSON sau un obiect simplu (se aplică `JSON.stringify`). Returnează un `Armatura`. |
+| `static async create(source, project)` | `source` este fie exporturi deja instanțiate (un obiect cu `arm_open`), fie orice acceptă `instantiate`; `project` este text JSON sau un obiect simplu (se aplică `JSON.stringify`). Returnează un `Osatura`. |
 | `load(project)` | încarcă sau înlocuiește proiectul; aruncă la eșec și atunci **păstrează utilizabil proiectul încărcat anterior**. Completează `frames`, `fps`, `width`, `height`. |
 | `frames`, `fps`, `width`, `height` | date de la ultimul `load` (`width` / `height` în unități de scenă, float-uri) |
 | `svg(n, showBones = false)` | `string`: document SVG pentru cadrul `n` (cadre fracționare permise, limitate) |
@@ -136,20 +136,20 @@ Toate apelurile `arm_player_*`, cu excepția `arm_player_start`, au nevoie de un
 | `stop()` | oprește `play` / `playMachine` |
 | `close()` | oprește și eliberează handle-ul; apelează-l când ai terminat |
 
-Wrapperul face căutările `x.memory.buffer` în interiorul fiecărui apel și copiază rezultatele cu `.slice()`, deci creșterea memoriei nu poate lăsa un view învechit. Fiecare obiect `Armatura` deține un handle; creează mai multe obiecte (pot partaja același `exports`) pentru a ține mai multe proiecte. Nu partaja un obiect între task-uri async concurente care intercalează apelurile și citirile rezultatelor: rezultatul fiecărui apel stă în bufferul de ieșire al handle-ului până la următorul apel.
+Wrapperul face căutările `x.memory.buffer` în interiorul fiecărui apel și copiază rezultatele cu `.slice()`, deci creșterea memoriei nu poate lăsa un view învechit. Fiecare obiect `Osatura` deține un handle; creează mai multe obiecte (pot partaja același `exports`) pentru a ține mai multe proiecte. Nu partaja un obiect între task-uri async concurente care intercalează apelurile și citirile rezultatelor: rezultatul fiecărui apel stă în bufferul de ieșire al handle-ului până la următorul apel.
 
 ### Exemplu (secvența de apeluri)
 
 Aceasta este exact secvența de apeluri pe care o exersează testul node. **A fost rulată față de mock-ul JavaScript** (înlocuitorul din `test.mjs` cu răspunsuri predefinite: mașina `hero`, stratul `body`, intrarea bool `go`, regiunea de derulare `list`), nu față de un modul real.
 
 ```js
-import { Armatura } from './js/armatura.js';
+import { Osatura } from './js/osatura.js';
 
-// 1. Instantiate the module once (a URL in the browser; in node pass the bytes: readFileSync('armatura_wasm.wasm')).
-const exports = await Armatura.instantiate('./armatura_wasm.wasm');
+// 1. Instantiate the module once (a URL in the browser; in node pass the bytes: readFileSync('osatura_wasm.wasm')).
+const exports = await Osatura.instantiate('./osatura_wasm.wasm');
 
 // 2. Load a project (JSON text or a plain object). Throws Error(<engine message>) when it is invalid.
-const anim = await Armatura.create(exports, projectJsonText);
+const anim = await Osatura.create(exports, projectJsonText);
 console.log(`${anim.width}x${anim.height} stage units, ${anim.frames} frames @ ${anim.fps} fps`);
 
 // 3. Render. Frames may be fractional and are clamped to the timeline.
@@ -179,10 +179,10 @@ anim.close();
 ```html
 <canvas id="c"></canvas>
 <script type="module">
-  import { Armatura } from './js/armatura.js';
-  const x = await Armatura.instantiate('./armatura_wasm.wasm');
+  import { Osatura } from './js/osatura.js';
+  const x = await Osatura.instantiate('./osatura_wasm.wasm');
   const text = await (await fetch('./project.json')).text();
-  const anim = await Armatura.create(x, text);
+  const anim = await Osatura.create(x, text);
 
   // Timeline playback: requestAnimationFrame loop, loops at the end, returns a stop function.
   const stop = anim.play(document.getElementById('c'), { scale: 1, loop: true });
@@ -195,7 +195,7 @@ anim.close();
 
 ## Pagina demo
 
-`armatura-wasm/index.html` este o pagină minimală: importă wrapperul, instanțiază `./armatura_wasm.wasm` și oferă un câmp de fișier (proiect `.json`) și un buton Stop. Alegerea unui fișier creează un `Armatura`, afișează `WIDTHxHEIGHT, N frames @ FPS fps` și pornește `play(canvas)`; erorile motorului sunt afișate în textul de lângă butoane. Dacă modulul nu poate fi descărcat sau compilat, afișează `wasm not found (not built yet): <reason>`. Testată doar în această stare „nefinalizat”, în Chromium headless: pagina se încarcă, importul modulului se rezolvă, apare mesajul (cu pagina 404 a serverului în rolul de „modul”, motivul este `expected magic word 00 61 73 6d, found 3c 21 44 4f`, vezi mai jos). Tot ce depășește acest punct este neverificat.
+`osatura-wasm/index.html` este o pagină minimală: importă wrapperul, instanțiază `./osatura_wasm.wasm` și oferă un câmp de fișier (proiect `.json`) și un buton Stop. Alegerea unui fișier creează un `Osatura`, afișează `WIDTHxHEIGHT, N frames @ FPS fps` și pornește `play(canvas)`; erorile motorului sunt afișate în textul de lângă butoane. Dacă modulul nu poate fi descărcat sau compilat, afișează `wasm not found (not built yet): <reason>`. Testată doar în această stare „nefinalizat”, în Chromium headless: pagina se încarcă, importul modulului se rezolvă, apare mesajul (cu pagina 404 a serverului în rolul de „modul”, motivul este `expected magic word 00 61 73 6d, found 3c 21 44 4f`, vezi mai jos). Tot ce depășește acest punct este neverificat.
 
 ## Diferențe față de ABI-ul C
 
@@ -204,8 +204,8 @@ anim.close();
 | Șiruri de intrare | terminate cu NUL | `(ptr, len)` copiate cu `arm_alloc` |
 | Rezultate de ieșire | buffere oferite de apelant | bufferul de ieșire al handle-ului (`arm_out_ptr/len`), valid până la următorul apel cu ieșire |
 | Interogarea dimensiunii | un buffer `NULL` returnează dimensiunea | nu este necesară: apelul returnează lungimea, iar datele sunt deja în bufferul de ieșire |
-| Textul erorii | șirul NUL `armatura_last_error()`, per thread | octeți `arm_error_ptr/len`, global |
-| Matrici de oase | `armatura_bone_world` | neexportat |
+| Textul erorii | șirul NUL `osatura_last_error()`, per thread | octeți `arm_error_ptr/len`, global |
+| Matrici de oase | `osatura_bone_world` | neexportat |
 | SVG | neexportat | `arm_render_svg`, `arm_player_render_svg` |
 | Evenimente | tiparul de interogare a dimensiunii, păstrate dacă bufferul e prea mic | întotdeauna consumate |
 | Dimensiunea scenei | întregi rotunjiți | float-uri |
@@ -214,7 +214,7 @@ anim.close();
 
 Găsite la citirea codului; niciunul nu a fost văzut eșuând:
 
-* `Armatura.instantiate(url)` verifică `response.ok` și erorile fetch și raportează URL-ul și starea HTTP (teste cu fetch simulat în `armatura-wasm/js/test.mjs`; rulate sub node și, în CI, față de modulul real).
+* `Osatura.instantiate(url)` verifică `response.ok` și erorile fetch și raportează URL-ul și starea HTTP (teste cu fetch simulat în `osatura-wasm/js/test.mjs`; rulate sub node și, în CI, față de modulul real).
 * `frame()` cu `kind: 'svg'` returnează `{ svg }`, nu un șir ca `svg()`.
 * Indiciul afișat de `build-wasm.sh` include acum argumentul `<project.json>` de care are nevoie `test.mjs`.
 * `play()` desenează convertind fiecare cadru în RGBA pe CPU și apelând `putImageData`; nu există audio, pauză sau căutare (seeking).
@@ -224,16 +224,16 @@ Găsite la citirea codului; niciunul nu a fost văzut eșuând:
 
 Pașii 1 și 5 au fost făcuți de CI pe 24 oct. 2026 (build-ul și rularea Node; pasul 3 este implicat de acea rulare, dar lista exporturilor nu a fost afișată; pasul 4, dimensiunea, nu a fost consemnat); restul, mai ales pașii 11–13 din browser, sunt încă deschiși. Parcurge-le în ordine; oprește-te la primul eșec și notează mesajul exact. Elementele marcate (risc) corespund riscurilor de mai sus. Când ai rezultate, actualizează [LIMITATIONS.md](LIMITATIONS.md) (secțiunea 1), linia R-090 din secțiunea 9 a ROADMAP.md și caseta de stare a acestei pagini.
 
-1. **Instalează ținta și construiește.** `rustup target add wasm32-unknown-unknown && ./armatura-wasm/build-wasm.sh`. (risc) Așteaptă-te să vezi dacă `zip`, `tiny-skia`, `png`, `gif`, `jpeg-decoder` și `i_overlay` compilează. Notează compilatorul și `rustc --version`.
-2. **Fără motor de scripting.** `cargo tree --target wasm32-unknown-unknown -p armatura-wasm | grep -ci 'rhai\|smartstring'` trebuie să afișeze 0.
-3. **Privește exporturile.** În node: `WebAssembly.Module.exports(new WebAssembly.Module(fs.readFileSync('armatura-wasm/armatura_wasm.wasm')))`. Așteaptă-te la `memory` și la cele 36 de funcții din [tabelul exporturilor](#referința-exporturilor), și la **niciun import** (`WebAssembly.Module.imports(...)` gol). Dacă `memory` lipsește sau apar importuri (de exemplu `env.*` dintr-un feature std), wrapperul trebuie adaptat.
+1. **Instalează ținta și construiește.** `rustup target add wasm32-unknown-unknown && ./osatura-wasm/build-wasm.sh`. (risc) Așteaptă-te să vezi dacă `zip`, `tiny-skia`, `png`, `gif`, `jpeg-decoder` și `i_overlay` compilează. Notează compilatorul și `rustc --version`.
+2. **Fără motor de scripting.** `cargo tree --target wasm32-unknown-unknown -p osatura-wasm | grep -ci 'rhai\|smartstring'` trebuie să afișeze 0.
+3. **Privește exporturile.** În node: `WebAssembly.Module.exports(new WebAssembly.Module(fs.readFileSync('osatura-wasm/osatura_wasm.wasm')))`. Așteaptă-te la `memory` și la cele 36 de funcții din [tabelul exporturilor](#referința-exporturilor), și la **niciun import** (`WebAssembly.Module.imports(...)` gol). Dacă `memory` lipsește sau apar importuri (de exemplu `env.*` dintr-un feature std), wrapperul trebuie adaptat.
 4. **Dimensiune.** Notează dimensiunea înainte și după `wasm-opt -Oz`, precum și dimensiunile gzip / brotli. Nimic nu a fost măsurat vreodată.
-5. **Rulează testul node cu un proiect real.** `armatura demo demo.json && node armatura-wasm/js/test.mjs demo.json` trebuie să afișeze `real wasm tests: ok` după cele trei secțiuni de mock.
-6. **Compară cu randerul nativ.** Pentru cadrele 0, 12 și 47 ale demo-ului, la scalele 0.5 și 1, compară `Armatura.rgba` cu `armatura render demo.json N out.png --scale S` decodat în RGBA. (risc) Așteaptă-te la diferențe mici la marginile anti-aliasate (bibliotecă matematică diferită); raportează diferența absolută maximă și medie și fracțiunea de pixeli peste 24/255. O diferență mare indică un bug real.
+5. **Rulează testul node cu un proiect real.** `osatura demo demo.json && node osatura-wasm/js/test.mjs demo.json` trebuie să afișeze `real wasm tests: ok` după cele trei secțiuni de mock.
+6. **Compară cu randerul nativ.** Pentru cadrele 0, 12 și 47 ale demo-ului, la scalele 0.5 și 1, compară `Osatura.rgba` cu `osatura render demo.json N out.png --scale S` decodat în RGBA. (risc) Așteaptă-te la diferențe mici la marginile anti-aliasate (bibliotecă matematică diferită); raportează diferența absolută maximă și medie și fracțiunea de pixeli peste 24/255. O diferență mare indică un bug real.
 7. **Exersează player-ul.** Construiește proiectul din exemplul ABI-ului C (demo + `take-record` + `clip add` + `machine add`, vezi [C_ABI.md](C_ABI.md)), comandă `startPlayer`, `setBool`, `advance`, `state`, `events`, `playerRgba`; și proiectul cu un container și o regiune de derulare pentru `setCanvas`, `scrollDrag`, `scrollRelease`, `scrollInfo`, `setScreen` (ultimul construiește niveluri de detaliu: măsoară-i timpul, este lent neoptimizat și nu a fost cronometrat pe wasm).
 8. **Căi fail-safe.** Oferă un proiect invalid, un șir gol, un fișier aleatoriu de 5 MB, un proiect cu o cale de imagine `source.file` și un proiect cu o coloană sonoră. Fiecare caz trebuie să producă un `Error` aruncat cu un mesaj, nu un trap. (risc) Un trap (`RuntimeError: unreachable`) în oricare dintre ele este un bug de raportat; cei mai probabili candidați sunt `Instant` / `SystemTime` sau apeluri către sistemul de fișiere ajunse pe o cale neașteptată.
 9. **Randare mare.** `rgba(0, 4)` pe demo (2560 x 1920) și o scenă de 12000 x 12000 la scala 1 (trebuie refuzată cu mesajul „more than the limit”, nu să rămână fără memorie). Urmărește creșterea memoriei și confirmă că wrapperul încă funcționează după ce memoria a crescut (view-urile sunt recitite la fiecare apel).
-10. **Adâncimea stivei.** `wasm32-unknown-unknown` oferă thread-ului principal o stivă implicită mică (1 MiB în toolchain-urile actuale). Deschide un proiect cu grupuri adânc imbricate și un lanț lung de expresii (vezi `armatura-cli/tests/robust.rs` pentru intrări ostile) și confirmă că nu apare un trap de depășire a stivei.
+10. **Adâncimea stivei.** `wasm32-unknown-unknown` oferă thread-ului principal o stivă implicită mică (1 MiB în toolchain-urile actuale). Deschide un proiect cu grupuri adânc imbricate și un lanț lung de expresii (vezi `osatura-cli/tests/robust.rs` pentru intrări ostile) și confirmă că nu apare un trap de depășire a stivei.
 11. **Rulare în browser.** Servește folderul, deschide `index.html` în Chromium și Firefox, alege un proiect, confirmă redarea, redimensionarea, închide și redeschide mai multe proiecte (verificare de scurgeri: memoria nu trebuie să crească fără limită; `close()` eliberează handle-ul).
 12. **`instantiateStreaming` și CSP.** Servește cu și fără `Content-Type: application/wasm`, și cu un CSP care omite `'wasm-unsafe-eval'`; documentează ce se întâmplă.
 13. **Performanță.** Măsoară timpul `rgba(n, 1)` pentru demo-ul 640 x 480 (nativ release: aproximativ 14 ms pe cadru) și pentru un proiect greu; notează cadrele pe secundă ale lui `play()` în browser.

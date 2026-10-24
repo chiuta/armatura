@@ -1,11 +1,11 @@
-# Első lépések az ARMATURA-val
+# Első lépések az OSATURA-val
 
 Ez az útmutató egy friss checkouttól elvezet egy kis animált karakterig, amelyet kizárólag a parancssor
 használatával építesz fel, riggelsz, kulcsolsz, hurkolsz, renderelsz és exportálsz. Az alábbi parancsok
 mindegyikét valóban lefuttattuk az oldal írása közben; a bemutatott kimenetek a ténylegesen kiírt kimenetek.
 
 Hogyan ellenőriztük: Linux, `rustc 1.97.0`, `ffmpeg 6.1.1` és a bináris **debug** buildje
-(`cargo build -p armatura-cli`). A release build ugyanazt a kódot futtatja gyorsabban. A tesztkészlet macOS-en és Windowson is sikeres a GitHub Actionsön; az ezen az oldalon szereplő parancsokat kézzel csak Linuxon futtattuk. A tárolóban nincs
+(`cargo build -p osatura-cli`). A release build ugyanazt a kódot futtatja gyorsabban. A tesztkészlet macOS-en és Windowson is sikeres a GitHub Actionsön; az ezen az oldalon szereplő parancsokat kézzel csak Linuxon futtattuk. A tárolóban nincs
 megadva minimálisan támogatott Rust-verzió; az 1.97.0 egyszerűen az a fordító, amellyel teszteltünk.
 
 A dokumentáció licence: CC-BY-4.0. Lásd még: [RIGGING_GUIDE.md](RIGGING_GUIDE.md),
@@ -16,70 +16,70 @@ parancslista a [CLI_REFERENCE.md](CLI_REFERENCE.md) fájlban.
 
 | Követelmény | Mihez kell | Megjegyzések |
 |---|---|---|
-| Rust eszközlánc (`rustc`, `cargo`) | az ARMATURA fordításához | telepítsd innen: <https://rustup.rs>; stabil csatorna |
-| Egy böngésző | a stúdióhoz (`armatura studio`) | csak Chromiumot teszteltünk, lásd [STUDIO.md](STUDIO.md) |
+| Rust eszközlánc (`rustc`, `cargo`) | az OSATURA fordításához | telepítsd innen: <https://rustup.rs>; stabil csatorna |
+| Egy böngésző | a stúdióhoz (`osatura studio`) | csak Chromiumot teszteltünk, lásd [STUDIO.md](STUDIO.md) |
 | `ffmpeg` a `PATH`-on (opcionális) | `.mp4`, `.webm`, hang keverése videóba/HTML-be, `sound mix`, `face-track` videófájlon | minden más nélküle is működik |
 
 `ffmpeg` nélkül az őt igénylő parancsok érthető üzenettel leállnak, és semmit sem írnak ki:
 
 ```
-$ PATH=/nonexistent armatura export buddy-final.json o.mp4
+$ PATH=/nonexistent osatura export buddy-final.json o.mp4
 cannot run ffmpeg (No such file or directory (os error 2)); install it or export a GIF/HTML instead
 ```
 
 GPU-t nem igényel. Az opcionális GPU-renderer (`render-gpu`) nem része az alapértelmezett buildnek.
 
-**Nincs Rustod? Használj előre elkészített archívumot.** Amikor a tulajdonos közzétette a `v0.1.0-alpha.3` előzetes kiadás-vázlatot, a [Releases oldal](https://github.com/chiuta/armatura/releases) kínálja az `armatura-windows-x86_64.zip`, `armatura-macos-arm64.tar.gz`, `armatura-linux-x86_64.tar.gz` és `SHA256SUMS.txt` fájlokat. Ellenőrizd az archívumot az összegekkel (`sha256sum -c SHA256SUMS.txt --ignore-missing`, Windowson `Get-FileHash`), csomagold ki, és futtasd az `armatura` (`armatura.exe`) programot a kicsomagolt mappából; a 2. szakasz fordítását hagyd ki, és olvasd el az oldal vége felé a „Windows: az `armatura.exe` dupla kattintása” és „A stúdió ablakban” részt. A programok nincsenek kódaláírással ellátva, ezért a rendszer az első alkalommal figyelmeztetni fog. Minden alább szereplőt ugyanennek a forrásnak helyi buildjével futtattunk.
+**Nincs Rustod? Használj előre elkészített archívumot.** Amikor a tulajdonos közzétette a `v0.1.0-alpha.3` előzetes kiadás-vázlatot, a [Releases oldal](https://github.com/chiuta/armatura/releases) kínálja az `osatura-windows-x86_64.zip`, `osatura-macos-arm64.tar.gz`, `osatura-linux-x86_64.tar.gz` és `SHA256SUMS.txt` fájlokat. Ellenőrizd az archívumot az összegekkel (`sha256sum -c SHA256SUMS.txt --ignore-missing`, Windowson `Get-FileHash`), csomagold ki, és futtasd az `osatura` (`osatura.exe`) programot a kicsomagolt mappából; a 2. szakasz fordítását hagyd ki, és olvasd el az oldal vége felé a „Windows: az `osatura.exe` dupla kattintása” és „A stúdió ablakban” részt. A programok nincsenek kódaláírással ellátva, ezért a rendszer az első alkalommal figyelmeztetni fog. Minden alább szereplőt ugyanennek a forrásnak helyi buildjével futtattunk.
 
 ## 2. Fordítás
 
 A tároló gyökeréből:
 
 ```
-cargo build --release -p armatura-cli
+cargo build --release -p osatura-cli
 ```
 
-A bináris a `target/release/armatura`. Tedd a `PATH`-ra, vagy készíts hozzá aliast:
+A bináris a `target/release/osatura`. Tedd a `PATH`-ra, vagy készíts hozzá aliast:
 
 ```
-export PATH="$PWD/target/release:$PATH"      # or: alias armatura=$PWD/target/release/armatura
-armatura --version
+export PATH="$PWD/target/release:$PATH"      # or: alias osatura=$PWD/target/release/osatura
+osatura --version
 ```
 
 A `--version` kiírja a verziót, a licencet (AGPL-3.0-or-later a CLI-re és a stúdióra, MPL-2.0 a
-motorkönyvtárakra) és a forráskód-ajánlatot. Az `armatura` argumentumok nélküli futtatása kiírja a teljes
-súgót; az `armatura <command> --help` egyetlen parancs használatát írja ki.
+motorkönyvtárakra) és a forráskód-ajánlatot. Az `osatura` argumentumok nélküli futtatása kiírja a teljes
+súgót; az `osatura <command> --help` egyetlen parancs használatát írja ki.
 
-Telepítés nélkül is futtathatod: `cargo run --release -p armatura-cli -- demo demo.json`.
+Telepítés nélkül is futtathatod: `cargo run --release -p osatura-cli -- demo demo.json`.
 
 A parancssori eszköz `--no-default-features` kapcsolóval történő fordítása elhagyja a `script` parancsot (a
 Rhai szkriptmotort); ez a bemutató használja a `script` parancsot, ezért hagyd meg az alapértelmezett funkciókat.
 
 ## 3. Első lépések a beépített demóval
 
-Az `armatura demo` egy teljes példaprojektet ír ki: egy skinnelt kart, egy IK-lábat, egy lip-sync
+Az `osatura demo` egy teljes példaprojektet ír ki: egy skinnelt kart, egy IK-lábat, egy lip-sync
 kapcsolóréteget, egy parallax hátteret és egy kameramozgást.
 
 ```
-$ armatura demo demo.json
+$ osatura demo demo.json
 wrote demo.json
-$ armatura check demo.json
-ok: 'ARMATURA demo' 640×480 @ 24 fps, 48 frames, 6 bones, 1 ik, 14 layers, 14 channels
+$ osatura check demo.json
+ok: 'OSATURA demo' 640×480 @ 24 fps, 48 frames, 6 bones, 1 ik, 14 layers, 14 channels
 ```
 
 A `check` pontosan úgy fordítja le a projektet, ahogy a renderer tenné, ezért az a projekt, amely átmegy a
 `check`-en, renderelhető. Most rajzolj egy állóképet a csontok rávetítésével, és exportálj egy animációt:
 
 ```
-$ armatura render demo.json 12 frame12.png --bones
+$ osatura render demo.json 12 frame12.png --bones
 wrote frame12.png
-$ armatura render demo.json 12 frame12.svg
+$ osatura render demo.json 12 frame12.svg
 wrote frame12.svg
-$ armatura export demo.json demo.gif
+$ osatura export demo.json demo.gif
 wrote demo.gif
-$ armatura export demo.json demo.html
+$ osatura export demo.json demo.html
 wrote demo.html
-$ armatura export demo.json demo.lottie
+$ osatura export demo.json demo.lottie
 warning: [gradient-anisotropic] shadow: a gradient on a layer with non-uniform scale or skew is approximated (Lottie gradients are not sheared)
 wrote demo.lottie
 ```
@@ -90,14 +90,14 @@ Mit csináltál az imént:
   csontvázat, a `--scale N` a vászonméret N-szeresén renderel (0 < N <= 16).
 * Az `export` a fájlkiterjesztésből választ formátumot: `.gif`, `.html` (önálló lejátszóoldal),
   `.json` (Lottie), `.lottie` (dotLottie), `.apng`, `.webm`, `.mp4`, `.glb`, `.png` (sprite sheet).
-* A `warning:` sorok az őszinte rész: a Lottie nem tud mindent ábrázolni, amit az ARMATURA. Minden
+* A `warning:` sorok az őszinte rész: a Lottie nem tud mindent ábrázolni, amit az OSATURA. Minden
   korlátozást kiír az stderr-re, a `--report r.json` pedig ugyanezt a listát JSON-ként írja ki.
 * Nyisd meg a `demo.html` fájlt böngészőben az animáció lejátszásához; nincs szükség szerverre és hálózatra.
 
 Interaktív felfedezéshez:
 
 ```
-armatura studio demo.json --port 8080
+osatura studio demo.json --port 8080
 ```
 
 és nyisd meg a <http://127.0.0.1:8080/> címet. Lásd [STUDIO.md](STUDIO.md).
@@ -117,7 +117,7 @@ Dolgozz egy üres könyvtárban. Minden lépés új, számozott fájlt ír, így
 cat > buddy.json <<'EOF'
 {"format": 1, "name": "Buddy", "width": 320, "height": 240, "fps": 24, "frames": 24}
 EOF
-armatura check buddy.json
+osatura check buddy.json
 ```
 ```
 ok: 'Buddy' 320×240 @ 24 fps, 24 frames, 0 bones, 0 ik, 0 layers, 0 channels
@@ -138,7 +138,7 @@ add_rect("upper_arm", 160, 134, 40, 12, "#3d405b");
 add_rect("forearm", 200, 134, 40, 12, "#81b29a");
 ```
 ```
-$ armatura script buddy.json 01-shapes.json shapes.rhai
+$ osatura script buddy.json 01-shapes.json shapes.rhai
 6 request(s) applied; wrote 01-shapes.json
 ```
 
@@ -164,9 +164,9 @@ set_layer("upper_arm", "bone", "arm_up");
 set_layer("forearm", "bone", "arm_low");
 ```
 ```
-$ armatura script 01-shapes.json 02-bones.json bones.rhai
+$ osatura script 01-shapes.json 02-bones.json bones.rhai
 9 request(s) applied; wrote 02-bones.json
-$ armatura render 02-bones.json 0 rig.png --bones --scale 2
+$ osatura render 02-bones.json 0 rig.png --bones --scale 2
 wrote rig.png
 ```
 
@@ -188,7 +188,7 @@ A váll- és könyökszögek kulcsolása helyett hagyd, hogy a solver a `hand_ct
 add_ik("arm_ik", ["arm_up", "arm_low"], "hand_ctrl", 1);
 ```
 ```
-$ armatura script 02-bones.json 03-ik.json ik.rhai
+$ osatura script 02-bones.json 03-ik.json ik.rhai
 1 request(s) applied; wrote 03-ik.json
 ```
 
@@ -211,9 +211,9 @@ set_key("neck", "bone_angle", 16, 10, "smooth");
 set_key("neck", "bone_angle", 24, 0, "smooth");
 ```
 ```
-$ armatura script 03-ik.json 04-keys.json keys.rhai
+$ osatura script 03-ik.json 04-keys.json keys.rhai
 6 request(s) applied; wrote 04-keys.json
-$ armatura timeline 04-keys.json
+$ osatura timeline 04-keys.json
 timeline: 24 frames at 24 fps, 2 channels
 Bones
   hand_ctrl
@@ -233,9 +233,9 @@ Mindkét csatorna ugyanazzal az értékkel kezdődik és végződik (a 24. képk
 erre van szükség. A `loop-solve` ellenőrzi az illesztést, és a csatornákat hurkosra állítja:
 
 ```
-$ armatura loop-solve 04-keys.json buddy-final.json
+$ osatura loop-solve 04-keys.json buddy-final.json
 wrote buddy-final.json: 2 channel(s) adjusted, seam 0.000 -> 0.000
-$ armatura lint buddy-final.json
+$ osatura lint buddy-final.json
 0 finding(s), 0 error(s)
 ```
 
@@ -251,17 +251,17 @@ hiba esetén 1-gyel lép ki, így biztonságosan betehető szkriptbe vagy CI-fel
 ### 7. lépés: nézd meg, renderelj (2 perc)
 
 ```
-$ armatura stats buddy-final.json
+$ osatura stats buddy-final.json
 ```
 JSON-összefoglalót ír ki (itt: 5 csont, 1 IK-lánc, 6 réteg, 2 csatorna, 6 kulcs). Renderelj állóképeket és
 egy teljes képkockasorozatot:
 
 ```
-$ armatura render buddy-final.json 12 frame12.png --scale 2
+$ osatura render buddy-final.json 12 frame12.png --scale 2
 wrote frame12.png
-$ armatura render buddy-final.json 12 frame12.svg
+$ osatura render buddy-final.json 12 frame12.svg
 wrote frame12.svg
-$ armatura frames buddy-final.json frames --png
+$ osatura frames buddy-final.json frames --png
 wrote 24 frames to frames
 $ ls frames | head -3
 frame_0000.png
@@ -278,11 +278,11 @@ referenciakocka-ellenőrzéseit.
 ### 8. lépés: export (2 perc)
 
 ```
-$ armatura export buddy-final.json buddy.gif
+$ osatura export buddy-final.json buddy.gif
 wrote buddy.gif
-$ armatura export buddy-final.json buddy.html
+$ osatura export buddy-final.json buddy.html
 wrote buddy.html
-$ armatura export buddy-final.json buddy.json --report buddy-report.json
+$ osatura export buddy-final.json buddy.json --report buddy-report.json
 wrote buddy.json
 $ cat buddy-report.json
 {
@@ -290,9 +290,9 @@ $ cat buddy-report.json
   "format": "lottie",
   "warnings": []
 }
-$ armatura export buddy-final.json buddy.mp4        # needs ffmpeg
+$ osatura export buddy-final.json buddy.mp4        # needs ffmpeg
 wrote buddy.mp4
-$ armatura export buddy-final.json buddy.apng
+$ osatura export buddy-final.json buddy.apng
 wrote buddy.apng
 ```
 
@@ -306,14 +306,14 @@ Néhány megjegyezni való szabály:
   project buddy-final.json with output of the same name`), és szimbolikus linken keresztül sem ír, hacsak
   meg nem adod a `--follow-symlinks` kapcsolót. Az egyik projektet a másikba alakító parancsok
   (`script`, `loop-solve`, `walk`, `autorig`...) esetében *nincs* ilyen ellenőrzés: atomi módon írnak, így
-  az `armatura script p.json p.json x.rhai` helyben szerkeszt. Használj eltérő neveket, amíg meg nem bízol egy szkriptben.
+  az `osatura script p.json p.json x.rhai` helyben szerkeszt. Használj eltérő neveket, amíg meg nem bízol egy szkriptben.
 * A GIF 256 színű és 1 bites átlátszóságú; sima alfához használd az `.apng` vagy `.webm` formátumot.
-* Futtasd az `armatura export-fit` parancsot (lásd [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md)), ha bájtkeretet kell eltalálnod.
+* Futtasd az `osatura export-fit` parancsot (lásd [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md)), ha bájtkeretet kell eltalálnod.
 
 ### 9. lépés (opcionális): szerkesztés a stúdióban
 
 ```
-armatura studio buddy-final.json --port 8080
+osatura studio buddy-final.json --port 8080
 ```
 
 Húzd a rétegeket, jelölj ki egy kulcsot a dope sheetben, nyomd meg a `Space` billentyűt a lejátszáshoz. A fájlodba
@@ -329,11 +329,11 @@ semmi sem íródik, amíg meg nem nyomod a **Save** gombot (`Ctrl+S`).
 | Csatorna (animált tulajdonság) | `channels` | `set_key`, `keys`, `keyedit`, kifejezések, zaj, bake-ek |
 | Klip, take, állapotgép, kötés | `clips`, `machines`, `bindings` | `take-record`, `clip`, `machine`, `bind` |
 
-Minden egyszerű JSON, ezért működnek a diffek (`armatura diff a.json b.json`), a verziókezelés
-(`armatura vcs`) és a szkriptek. Az ismeretlen mezőket figyelmeztetésként jelzi, és figyelmen kívül hagyja:
+Minden egyszerű JSON, ezért működnek a diffek (`osatura diff a.json b.json`), a verziókezelés
+(`osatura vcs`) és a szkriptek. Az ismeretlen mezőket figyelmeztetésként jelzi, és figyelmen kívül hagyja:
 
 ```
-$ armatura check unk.json
+$ osatura check unk.json
 warning: unknown field bogus (ignored)
 ok: 'X' 100×100 @ 24 fps, 10 frames, 0 bones, 0 ik, 0 layers, 0 channels
 ```
@@ -350,17 +350,17 @@ használatát elutasítja, hacsak meg nem adod az `--allow-external-assets` kapc
 * Kérdések és hibaüzenetek: [FAQ.md](FAQ.md). Ismert korlátok: [LIMITATIONS.md](LIMITATIONS.md).
 * Minden parancs és kapcsoló: [CLI_REFERENCE.md](CLI_REFERENCE.md); a fájlformátum: [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
 
-## Windows: az `armatura.exe` dupla kattintása
+## Windows: az `osatura.exe` dupla kattintása
 
-Az `armatura.exe` parancssori program. A 0.1.0-alpha.2 óta az Intézőből megnyitva (dupla kattintással) létrehozza a `Documents\ARMATURA\first-rig.json` fájlt (meglévő fájlt soha nem ír felül), elindítja a stúdiót a `http://127.0.0.1:8080` címen, és megnyitja a böngésződben; a konzolablak a stúdió futása alatt nyitva marad, a bezárásával állítod le. Terminálból argumentumok nélkül megnyitva, mint korábban, kiírja a használati szöveget. A 0.1.0-alpha.1-ben a dupla kattintás csak kiírta a használati szöveget, és az ablak azonnal bezárult.
+Az `osatura.exe` parancssori program. A 0.1.0-alpha.2 óta az Intézőből megnyitva (dupla kattintással) létrehozza a `Documents\OSATURA\first-rig.json` fájlt (meglévő fájlt soha nem ír felül), elindítja a stúdiót a `http://127.0.0.1:8080` címen, és megnyitja a böngésződben; a konzolablak a stúdió futása alatt nyitva marad, a bezárásával állítod le. Terminálból argumentumok nélkül megnyitva, mint korábban, kiírja a használati szöveget. A 0.1.0-alpha.1-ben a dupla kattintás csak kiírta a használati szöveget, és az ablak azonnal bezárult.
 
-A futtatható fájlok **nincsenek kódaláírással ellátva**: a Windows SmartScreen „Ismeretlen közzétevőt” mutat (válaszd a *További információ*, majd a *Futtatás mindenképpen* lehetőséget), a macOS Gatekeeper pedig kéri, hogy hagyd jóvá a programot a *Rendszerbeállítások > Adatvédelem és biztonság* alatt. Előbb ellenőrizd a letöltést a `SHA256SUMS.txt` fájllal. Ha a 8080-as port foglalt, futtasd terminálból az `armatura studio first-rig.json --port 8090` parancsot.
+A futtatható fájlok **nincsenek kódaláírással ellátva**: a Windows SmartScreen „Ismeretlen közzétevőt” mutat (válaszd a *További információ*, majd a *Futtatás mindenképpen* lehetőséget), a macOS Gatekeeper pedig kéri, hogy hagyd jóvá a programot a *Rendszerbeállítások > Adatvédelem és biztonság* alatt. Előbb ellenőrizd a letöltést a `SHA256SUMS.txt` fájllal. Ha a 8080-as port foglalt, futtasd terminálból az `osatura studio first-rig.json --port 8090` parancsot.
 
-## A stúdió ablakban: `armatura-studio` (Windows és macOS)
+## A stúdió ablakban: `osatura-studio` (Windows és macOS)
 
-A Windows és macOS archívumok tartalmaznak egy második programot, az `armatura-studio` (`armatura-studio.exe`) fájlt, egy kis natív ablakot a böngészős stúdió körül: ugyanabból a mappából elindítja az `armatura` motort `studio` módban egy szabad helyi porton, megjeleníti az oldalt egy WebView2 (a Windows 11-ben beépített; a régebbi Windowshoz az Evergreen futtatókörnyezet kell) vagy WKWebView (macOS) ablakban, és az ablak bezárásakor leállítja a szervert. Konzolablak nem jelenik meg. Tartsd ugyanabban a mappában, mint az `armatura(.exe)` fájlt.
+A Windows és macOS archívumok tartalmaznak egy második programot, az `osatura-studio` (`osatura-studio.exe`) fájlt, egy kis natív ablakot a böngészős stúdió körül: ugyanabból a mappából elindítja az `osatura` motort `studio` módban egy szabad helyi porton, megjeleníti az oldalt egy WebView2 (a Windows 11-ben beépített; a régebbi Windowshoz az Evergreen futtatókörnyezet kell) vagy WKWebView (macOS) ablakban, és az ablak bezárásakor leállítja a szervert. Konzolablak nem jelenik meg. Tartsd ugyanabban a mappában, mint az `osatura(.exe)` fájlt.
 
 * **Exportok** (GIF, HTML-lejátszó, Lottie): natív „Mentés másként” párbeszédablak nyílik, amely a projekt mappájában indul, és egy üzenet megnevezi a fájlt, amikor elmentődött. (Az alpha.2 némán a Letöltések mappába mentette őket; az alpha.3 rákérdez.)
-* Kattints rá duplán, hogy a `Documents/ARMATURA/first-rig.json` fájlon dolgozz (a beépített demóból jön létre, ha hiányzik), vagy indítsd `armatura-studio my-project.json` formában (például a „Megnyitás ezzel” menüből).
-* Az `armatura-studio --selftest` ablak nélkül elindítja a szervert, lekéri az oldalt, és leállítja; a kilépési kód 0, ha ez sikerült (a CI Windowson és macOS-en lefuttatja).
-* **Korlátok.** Az ablakot valódi Windows 11 asztalon használták (alpha.2: a stúdió és az exportok működtek); az alpha.3 Mentés másként párbeszédablaka le van fordítva és a CI-ben önteszttel ellenőrizve, de még senki nem próbálta ki, és macOS-en senki nem használta az ablakot. A többi, rendszert igénylő böngészőszerű funkció (húzás az Intézőből vagy a Finderből, fájlok megnyitása a stúdió saját választóiból) a rendszer webnézetének funkciója, és nincs tesztelve. Linuxos ablak nincs (GTK / WebKitGTK rendszercsomagokat igényelne): használd az `armatura studio` parancsot és egy böngészőt. A program nincs kódaláírással ellátva (lásd fent).
+* Kattints rá duplán, hogy a `Documents/OSATURA/first-rig.json` fájlon dolgozz (a beépített demóból jön létre, ha hiányzik), vagy indítsd `osatura-studio my-project.json` formában (például a „Megnyitás ezzel” menüből).
+* Az `osatura-studio --selftest` ablak nélkül elindítja a szervert, lekéri az oldalt, és leállítja; a kilépési kód 0, ha ez sikerült (a CI Windowson és macOS-en lefuttatja).
+* **Korlátok.** Az ablakot valódi Windows 11 asztalon használták (alpha.2: a stúdió és az exportok működtek); az alpha.3 Mentés másként párbeszédablaka le van fordítva és a CI-ben önteszttel ellenőrizve, de még senki nem próbálta ki, és macOS-en senki nem használta az ablakot. A többi, rendszert igénylő böngészőszerű funkció (húzás az Intézőből vagy a Finderből, fájlok megnyitása a stúdió saját választóiból) a rendszer webnézetének funkciója, és nincs tesztelve. Linuxos ablak nincs (GTK / WebKitGTK rendszercsomagokat igényelne): használd az `osatura studio` parancsot és egy böngészőt. A program nincs kódaláírással ellátva (lásd fent).

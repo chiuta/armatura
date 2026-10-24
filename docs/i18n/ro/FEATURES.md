@@ -1,15 +1,15 @@
-# ARMATURA — matricea de funcționalități + liste de verificare pentru produsul de referință și concurenți
+# OSATURA — matricea de funcționalități + liste de verificare pentru produsul de referință și concurenți
 
 > Formularea versiunilor: toate crate-urile sunt `0.1.0` (primele build-uri sunt pre-lansarea ciornă `v0.1.0-alpha.3`); „v0.5 / v0.6 / v0.7" din acest depozit sunt *niveluri de funcționalități* (vezi [CHANGELOG.md](CHANGELOG.md)), iar secțiunea 9 din `ROADMAP.md` este autoritatea privind ceea ce este construit.
 
 Starea sinceră a ceea ce există. **✅ gata și testat · 🟡 parțial · ❌ neimplementat.**
 
-> Notă privind domeniul: ARMATURA este un motor implementat independent (pe baza specificațiilor și lucrărilor publice; listele de funcționalități ale concurenților au fost consultate pentru stabilirea domeniului; nu a fost copiat niciun cod sursă al terților; vezi CLEANROOM.md pentru dezvăluirea cercetării), nu o re-implementare a vreunui
+> Notă privind domeniul: OSATURA este un motor implementat independent (pe baza specificațiilor și lucrărilor publice; listele de funcționalități ale concurenților au fost consultate pentru stabilirea domeniului; nu a fost copiat niciun cod sursă al terților; vezi CLEANROOM.md pentru dezvăluirea cercetării), nu o re-implementare a vreunui
 > produs comercial și **nu** atinge paritatea cu o suită comercială veche de 25 de ani
 > (GUI matur, instrumente de desen, intrare live, 3D, ecosistem). Primele tabele sunt organizate pe
 > capabilități; **a doua jumătate a acestui fișier** este o listă de verificare, versiune cu versiune, a funcționalităților
 > documentate public ale produsului de referință (sursele sunt listate la final), cu
-> starea ARMATURA pentru fiecare. „Inovațiile" sunt revendicate doar în raport cu tehnica generică,
+> starea OSATURA pentru fiecare. „Inovațiile" sunt revendicate doar în raport cu tehnica generică,
 > nu ca fiind dovedit absente din orice alt instrument.
 
 ---
@@ -99,13 +99,13 @@ Ea înlocuiește listele răzlețe de „candidați #" de mai jos; detaliile și
 | Runtime WASM, API Rust stabil + C ABI, scripting în sandbox (R-090…R-093) | 🟡 (R-091, R-092, R-093 gata; la R-090 modulul wasm se construiește și trece testul wrapper-ului sub Node în CI, dar nu a fost niciodată rulat într-un browser) | 🟢 | API propriu |
 | **Server agent / MCP** peste operații de patch: inspectare, editare (atomică, cu anulare), lint, siguranță, randare, salvare doar în propriul fișier (R-094) | ✅ | 🟢 | protocol JSON-RPC deschis |
 | GUI complet: gizmo-uri, timeline, editor de grafice (R-100…R-103) | 🟡 (R-101, R-102 gata; paginile R-100 și R-103 există, dar autorul nu le-a rulat niciodată într-un browser real) | 🟢 | widget-uri generice; aspect propriu |
-| Control de versiuni al animației cu merge semantic, diff perceptual CI, explain-this-pixel (I-01, I-06, I-07) | ✅ (I-01 `armatura vcs`, I-06 `armatura ci`, I-07 `explain`) | 🟢 | idei proprii |
+| Control de versiuni al animației cu merge semantic, diff perceptual CI, explain-this-pixel (I-01, I-06, I-07) | ✅ (I-01 `osatura vcs`, I-06 `osatura ci`, I-07 `explain`) | 🟢 | idei proprii |
 | Pose fuzzing cu hărți termice de stres, export cu țintă de dimensiune, nivel de detaliu determinist cu o limită de eroare declarată (I-03, I-10, I-11) | 🟡 (toate trei construite; limita I-11 nu acoperă efectele, căile cu skin, valorile conduse de IK sau pozele mașinii de stări) | 🟢 | idei proprii, matematică de manual |
 
 ## Nivelul 6 — Frontieră (nivel de cercetare)
 | Funcționalitate | Stare | IP | Bază sigură / condiție |
 |---|---|---|---|
-| Randare GPU cu teste de paritate cu CPU (R-110) | 🟡 (crate-ul `armatura-gpu` construit și testat; rulare pe hardware limitată, vezi ROADMAP) | 🟢 | wgpu (permisiv) |
+| Randare GPU cu teste de paritate cu CPU (R-110) | 🟡 (crate-ul `osatura-gpu` construit și testat; rulare pe hardware limitată, vezi ROADMAP) | 🟢 | wgpu (permisiv) |
 | Editare multi-utilizator în timp real peste jurnalul de operații (R-111) | 🟡 (gata, cu un jurnal de sesiune persistent opțional `--collab-log`; participanții și istoricul de anulare nu sunt persistați; HTTP simplu, token partajat) | 🟢 | literatura CRDT |
 | Runtime de data-binding / layout (R-091, R-095) | ✅ (design propriu; verificarea brevetelor nefăcută, docs/PATENT_NOTES.md) | 🟠 | verifică brevetele înainte de livrare |
 | Instrumente asistate de ML (R-112) | 🟡 | 🟠 | doar metode clasice, fără ponderi de model: `autotrace` (k-means, potrivire Bézier Schneider, mod linie Zhang-Suen) și sugestii învățate din pozele tale (PCA, kernel-uri, MLP mic opțional într-un format propriu de ponderi); fără deep learning |
@@ -118,7 +118,7 @@ Ea înlocuiește listele răzlețe de „candidați #" de mai jos; detaliile și
 - Includerea de encodere **H.264/H.265/AAC**.
 
 ## Condiții valabile pentru fiecare rând 🟢
-Jurnal de proveniență păstrat (`CLEANROOM.md`; implementare independentă, nu clean-room strict); doar dependențe permisive (regenerează cu `scripts/licence-audit.sh`; în prezent 363 de crate-uri terțe pentru toate platformele, toate de clasă MIT / Apache-2.0 / BSD / Zlib / Unlicense, cu excepția a șase crate-uri MPL-2.0 (smartstring prin funcționalitatea `scripting`, activă implicit, și cinci prin aplicația cu fereastră `armatura-gui`); vezi docs/THIRD_PARTY.md); nicio ilustrație sau audio terță livrată fără propriul fișier de licență; numele **ARMATURA** verificat într-o căutare de mărci comerciale înainte de lansare.
+Jurnal de proveniență păstrat (`CLEANROOM.md`; implementare independentă, nu clean-room strict); doar dependențe permisive (regenerează cu `scripts/licence-audit.sh`; în prezent 363 de crate-uri terțe pentru toate platformele, toate de clasă MIT / Apache-2.0 / BSD / Zlib / Unlicense, cu excepția a șase crate-uri MPL-2.0 (smartstring prin funcționalitatea `scripting`, activă implicit, și cinci prin aplicația cu fereastră `osatura-gui`); vezi docs/THIRD_PARTY.md); nicio ilustrație sau audio terță livrată fără propriul fișier de licență; numele **OSATURA** verificat într-o căutare de mărci comerciale înainte de lansare.
 
 
 # Tabele detaliate de capabilități
@@ -222,10 +222,10 @@ pixeli de randare, exportatoare, anulare/refacere în editor, audio, particule, 
 Referință: Moho (fost Anime Studio), 1999 → 14.5 „SHOWTIME" (12 oct. 2026). Listele de funcționalități provin
 din paginile de lansare ale furnizorului și din presa de specialitate (vezi Surse). Lacune în evidență: pentru Anime Studio 6–8,
 12.5 și 14.1 nu am găsit o listă publică detaliată, deci sunt acoperite doar prin
-istoricul general. Starea este cea a ARMATURA: ✅ există echivalent · 🟡 parțial / abordare diferită · ❌ lipsește.
+istoricul general. Starea este cea a OSATURA: ✅ există echivalent · 🟡 parțial / abordare diferită · ❌ lipsește.
 
 ## Versiuni timpurii (1999 – Anime Studio 8, doar istoric general)
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | Particule | ✅ strat emițător determinist |
 | Măști de strat | ✅ măști alfa + inversare |
@@ -240,7 +240,7 @@ istoricul general. Starea este cea a ARMATURA: ✅ există echivalent · 🟡 pa
 | Smart bones, IK | 🟡 canale conduse / ✅ 2 oase + FABRIK |
 
 ## Anime Studio 9 (2013)
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | 64 de biți, accelerare GPU | 🟡 Rust nativ pe 64 de biți; doar rasterizator CPU (fără GPU) |
 | Smart Bones (cadrane de control al îndoirii articulațiilor) | 🟡 canalele conduse mapează orice valoare pe oricare alta; fără UI/acțiuni de tip cadran |
@@ -249,7 +249,7 @@ istoricul general. Starea este cea a ARMATURA: ✅ există echivalent · 🟡 pa
 | Multi-touch Wacom | ❌ |
 
 ## Anime Studio 10 (2014)
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | Constrângeri de unghi independente (globale) | 🟡 copy-rotation către un os de control o aproximează |
 | Squash & stretch | 🟡 scara osului este animabilă; fără squash/stretch automat |
@@ -260,7 +260,7 @@ istoricul general. Starea este cea a ARMATURA: ✅ există echivalent · 🟡 pa
 | Import de obiecte 3D | ❌ |
 
 ## Anime Studio 11 (2015)
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | Animație cadru cu cadru | ✅ straturi switch + canale de expunere |
 | Referențiere de straturi (duplicate legate) | ❌ |
@@ -272,7 +272,7 @@ istoricul general. Starea este cea a ARMATURA: ✅ există echivalent · 🟡 pa
 | Îmbinare de contururi, instrumentul Color Points | ❌ |
 
 ## Moho 12 (2016) și 12.x
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | Mânere Bézier | ✅ |
 | Instrumente freehand îmbunătățite | ❌ |
@@ -284,7 +284,7 @@ istoricul general. Starea este cea a ARMATURA: ✅ există echivalent · 🟡 pa
 | UI reproiectat, ancorare de oase, auto-freeze al poziției | ❌ |
 
 ## Moho 13 (2019)
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | Bitmap cadru cu cadru + onion skin | 🟡 straturi de imagine PNG în interiorul straturilor switch; fără onion skin, fără desen bitmap |
 | Instrumente de desen bitmap / pensule personalizate | ❌ |
@@ -295,7 +295,7 @@ istoricul general. Starea este cea a ARMATURA: ✅ există echivalent · 🟡 pa
 | Personaje incluse | ❌ |
 
 ## Moho 13.5 (2021) și 13.5.x
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | Vitruvian Bones (schimbă desenele *și* seturile de oase) | 🟡 straturile switch schimbă desenele; fără schimbarea seturilor de oase |
 | Quad mesh-uri (perspectivă) | 🟡 mesh-ul grilă + lattice dau warp-uri de formă liberă; fără quad proiectiv |
@@ -307,7 +307,7 @@ istoricul general. Starea este cea a ARMATURA: ✅ există echivalent · 🟡 pa
 | Licențe flotante | n/a |
 
 ## Moho 14 (2023)
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | Motor grafic nou, efecte în timp real (blur, umbră, zgomot) | ❌ fără filtre de blur/umbră/zgomot; moduri de amestec ✅ |
 | Liquid Shapes (îmbinare/scădere/intersecție/amestec) | 🟡 lichid metaball ✅ + operații booleene pe poligoane ✅; nu același model de formă |
@@ -324,7 +324,7 @@ istoricul general. Starea este cea a ARMATURA: ✅ există echivalent · 🟡 pa
 | Actualizarea interfeței de scripting (Lua 5.4) | ❌ |
 
 ## Moho 14.1 – 14.2 (2023-11, 2024-06)
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | (14.1: nu s-au găsit detalii publice) | — |
 | Decalaj animat al profilului de curbă | ❌ (profilurile de lățime sunt statice) |
@@ -343,14 +343,14 @@ istoricul general. Starea este cea a ARMATURA: ✅ există echivalent · 🟡 pa
 | Export ProRes cu alfa | ❌ (doar GIF/PNG/MP4) |
 
 ## Moho 14.3 (2024-12)
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | Opacitate de pensulă per punct (condusă de presiune) | ❌ |
 | Derivă de culoare după presiunea creionului | ❌ |
 | Controale ale instrumentului freehand/lățime de linie | ❌ |
 
 ## Moho 14.4 „SIDE QUEST" (2025-11)
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | Export către Unreal / Unity / Godot | ❌ |
 | Export glTF către Blender / instrumente 3D | 🟡 (`.glb`: forme din cadrul 0, oase, ponderi morph) |
@@ -361,7 +361,7 @@ istoricul general. Starea este cea a ARMATURA: ✅ există echivalent · 🟡 pa
 | Creare mai ușoară de cicluri | ✅ extrapolare loop + generator de ciclu de mers |
 
 ## Moho 14.5 „SHOWTIME" (2026-10-12)
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | Live Playback (webcam / gamepad / microfon, webcam virtual, OBS) | ❌ |
 | Urmărire facială → oase / Smart Bones / mesh | 🟡 (detector antrenat sintetic, `face-bake`; nevalidat pe fețe reale) |
@@ -383,7 +383,7 @@ istoricul general. Starea este cea a ARMATURA: ✅ există echivalent · 🟡 pa
 | Linux prin Wine/Proton | ✅ Rust nativ (Linux/macOS/Windows); arhive prefabricate pentru Windows x86-64, macOS arm64 și Linux x86-64 în pre-lansarea ciornă; testat de CI pe toate trei, de o persoană doar pe Linux |
 
 ## Sinteză (doar produsul de referință; concurenții urmează mai jos)
-Din funcționalitățile documentate ale produsului de referință, ARMATURA acoperă nucleul de **rigging, deformare,
+Din funcționalitățile documentate ale produsului de referință, OSATURA acoperă nucleul de **rigging, deformare,
 animație procedurală, matematică de compoziție și export** (aproximativ: schelet/IK/constrângeri,
 deformare de mesh și lattice, chei și expresii, măști/amestecuri/gradienți, particule,
 metaballs/operații booleene, GIF/MP4/HTML/Lottie), dar nu are **instrumente de desen, intrare live, 3D,
@@ -410,7 +410,7 @@ Sursa: PDF-ul cu istoricul versiunilor găzduit de furnizor (lostmarble.com, „
 paginile de presă pentru Anime Studio 7 și 8. Înlocuiește rândurile „doar istoric general" din partea de sus a
 listei de verificare a produsului de referință. Nici aici nu s-au găsit: detalii despre 8.x, 10.1.x, 11.1, 12.5, 14.1.
 
-| Versiune | Funcționalități documentate | ARMATURA |
+| Versiune | Funcționalități documentate | OSATURA |
 |---|---|---|
 | Moho 1 (1999) | BeOS, port pentru Windows, ieșire Flash | ❌ Flash/SWF (învechit) |
 | 2.x | I/O QuickTime, randare până la 4096², umbrire de strat, straturi switch, mostre de culoare în stiluri, legare flexibilă a oaselor, import Illustrator îmbunătățit | ✅ straturi switch, 🟡 legare pe ponderi, ❌ import Illustrator, ✅ scări raster mari (≤16×) |
@@ -438,10 +438,10 @@ Synfig Studio, OpenToonz, TVPaint Animation 12, Adobe Animate, Cavalry, Procreat
 Effects), Blender Grease Pencil. Elementele de mai jos sunt cele **care nu apar deja** în lista de verificare
 a produsului de referință. Calitatea surselor variază: majoritatea rândurilor provin din paginile de funcționalități/lansare
 ale furnizorilor, pe care le-am preluat; rândurile marcate † provin din cunoștințe generale sau doar dintr-un titlu/cuprins și nu au fost confirmate pe o pagină.
-Starea este cea a ARMATURA: ✅ · 🟡 · ❌.
+Starea este cea a OSATURA: ✅ · 🟡 · ❌.
 
 ## Rigging, constrângeri, deformare
-| Funcționalitate | Văzută în | ARMATURA |
+| Funcționalitate | Văzută în | OSATURA |
 |---|---|---|
 | Instrumente pentru ponderi: sudarea ponderilor între mesh-uri, copiere/lipire de ponderi între vârfuri | Spine 4.2 | ❌ (doar auto-skin, fără pictare) |
 | Constrângeri de fizică a oaselor (inerție, vânt, gravitație, mix) | Spine 4.2 | 🟡 arcuri amortizate (frecvență/amortizare); fără vânt/gravitație/inerție |
@@ -470,7 +470,7 @@ Starea este cea a ARMATURA: ✅ · 🟡 · ❌.
 | Auto-rigging, controlere, dinamică de arcuri | Duik † | 🟡 arcuri ✅; auto-rig ❌ |
 
 ## Animație, timeline, interactivitate
-| Funcționalitate | Văzută în | ARMATURA |
+| Funcționalitate | Văzută în | OSATURA |
 |---|---|---|
 | Mixarea animațiilor: blend/crossfade între animații concurente la runtime | Spine | 🟡 moduri Add/Multiply + ponderi; `crossfade` precalculat; fără tranziții la runtime |
 | Dopesheet + editor de grafice + previzualizare la runtime | Spine, Rive, OpenToonz | ❌ (datele o permit; fără UI) |
@@ -498,7 +498,7 @@ Starea este cea a ARMATURA: ✅ · 🟡 · ❌.
 | Cameră 2D bazată pe chei, cu temporizare pe timeline | TVPaint 12 | ✅ |
 
 ## Desen, pictură, instrumente bitmap
-| Funcționalitate | Văzută în | ARMATURA |
+| Funcționalitate | Văzută în | OSATURA |
 |---|---|---|
 | Pensulă: randomizare (număr de ștampile, decalaj), hârtii duale, pensule multitexturate | Harmony 24, TVPaint 12 | ❌ |
 | Opacitatea creionului după presiune/înclinare/viteză/taper/fade | Harmony 24 | ❌ |
@@ -517,7 +517,7 @@ Starea este cea a ARMATURA: ✅ · 🟡 · ❌.
 | >50 de tipuri de straturi (fractali, filtre, distorsiuni) | Synfig | ❌ (≈7 tipuri de straturi) |
 
 ## Efecte și compoziție
-| Funcționalitate | Văzută în | ARMATURA |
+| Funcționalitate | Văzută în | OSATURA |
 |---|---|---|
 | Rețea de compoziție în vedere de noduri cu porturi denumite | Harmony 24 | ❌ (arbore de straturi + măști/amestecuri) |
 | Mattes, grupuri sub composite | Harmony | ✅ măști, grupuri izolate |
@@ -533,7 +533,7 @@ Starea este cea a ARMATURA: ✅ · 🟡 · ❌.
 | Motor audio (voce off, muzică, SFX) | Procreate Dreams | ❌ |
 
 ## 3D, pipeline, interschimb, runtime-uri
-| Funcționalitate | Văzută în | ARMATURA |
+| Funcționalitate | Văzută în | OSATURA |
 |---|---|---|
 | Scenă 3D, poziționare de oase FBX, graf de scenă Vulkan, desen pe plan în perspectivă | Harmony 24 | ❌ |
 | Randare externă prin Maya / Blender | Harmony 24 | ❌ |
@@ -588,7 +588,7 @@ Starea este cea a ARMATURA: ✅ · 🟡 · ❌.
 Legenda ca mai sus: ✅ gata, 🟡 parțial, ❌ încă nu. Sunt listate doar funcționalitățile confirmate pe paginile furnizorilor/proiectelor sau în presă. Nu s-au folosit site-uri de piraterie; web.archive.org nu este accesibil din acest mediu, așa că unele versiuni mai vechi rămân nedocumentate (vezi „Lacune cunoscute").
 
 ## Toon Boom Harmony 20 (note de lansare ale furnizorului)
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | Editor centerline: ștergere de puncte, opțiune de netezime | ❌ |
 | Linii de creion texturate → contururi de pensulă texturate; pipetă pentru textura creionului | ❌ |
@@ -609,7 +609,7 @@ Legenda ca mai sus: ✅ gata, 🟡 parțial, ❌ încă nu. Sunt listate doar fu
 | Control Center: copiere/import/rulare de script în lot pe scene, coadă de randare | ❌ |
 
 ## OpenToonz 1.7
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | Mod linie dreaptă pentru pensulă | ❌ |
 | Suport pentru pensule GIMP + MyPaint | ❌ |
@@ -626,7 +626,7 @@ Legenda ca mai sus: ✅ gata, 🟡 parțial, ❌ încă nu. Sunt listate doar fu
 | Suport Haiku OS | n/a |
 
 ## Synfig 1.4.2 (și 1.4.0 din runda 1)
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | Export Lottie incl. straturi avansate de contur și blur, gamma | 🟡 export Lottie ✅ (forme/transformare); blur ❌ |
 | Editor de scurtături de tastatură, scurtături de instrumente cu o singură tastă | ❌ |
@@ -666,7 +666,7 @@ Anime Studio 8.x, 10.1.x, 11.1; detalii Moho 12.5 și 14.1; Spine 3.0–4.1 (blo
 WebSearch restricționat la youtube.com returnează titluri de videoclipuri; WebFetch returnează **descrierea/lista de capitole** a fiecărui videoclip (fără transcrieri). Sunt listate doar funcționalitățile numite acolo; „nou în versiunea X" este așa cum afirmă cel care a încărcat videoclipul (adesea furnizorul).
 
 ## Moho 14.1 (descrierea videoclipului)
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | Afișare/ascundere mânere în instrumentul Curvature | ❌ (fără canvas GUI) |
 | Efectele de formă Shaded și Halo vizibile în modul de editare | 🟡 gradienți ✅; efecte halo/shade ❌ |
@@ -681,7 +681,7 @@ WebSearch restricționat la youtube.com returnează titluri de videoclipuri; Web
 Paginile de titlu/descriere nu au oferit o listă de funcționalități (videoclip depășit; descărcarea gratuită 12.5 a fost retrasă). Titlurile conexe menționează tutoriale Smart Bones, rig-uri 2.5D Smart Warp și instalarea „Mynd Tools" — Smart Bones 🟡 (canale/morphs), Smart Warp 🟡 (lattice FFD ✅).
 
 ## Spine
-| Versiune | Funcționalitate | ARMATURA |
+| Versiune | Funcționalitate | OSATURA |
 |---|---|---|
 | 3.7 | Suport audio | ❌ (WAV analizat doar pentru lip-sync) |
 | 3.7 | Exporturi refăcute | 🟡 |
@@ -703,7 +703,7 @@ Paginile de titlu/descriere nu au oferit o listă de funcționalități (videocl
 | 4.1 beta | Funcția Sequence (atașament de secvență de imagini) | ❌ |
 
 ## Toon Boom Harmony 25 / 25.2
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | Instrument Pencil Retouch | ❌ |
 | Import de pensule Photoshop | ❌ |
@@ -714,7 +714,7 @@ Paginile de titlu/descriere nu au oferit o listă de funcționalități (videocl
 | Master Controller Grid Wizard | ❌ |
 
 ## Seria Cartoon Animator 5
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | 5.1 Editare round-trip PSD și vector | ❌ |
 | 5.1 Import de secvențe de imagini și GIF | ❌ |
@@ -746,7 +746,7 @@ Paginile de titlu/descriere nu au oferit o listă de funcționalități (videocl
 Surse: note de lansare oficiale Synfig/Rive, titluri/descrieri YouTube. Sunt listate doar funcționalitățile numite.
 
 ## Anime Studio 8 (seria YouTube „Pro Feature", titluri + descrieri)
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | Trasare automată de imagine (bitmap → vector editabil) | ❌ (roadmap #20) |
 | Character Wizard (creare ghidată de personaje) | 🟡 rig-uri demo/generator de mers; fără wizard |
@@ -757,7 +757,7 @@ Surse: note de lansare oficiale Synfig/Rive, titluri/descrieri YouTube. Sunt lis
 Anime Studio 10.1 / 11.1: nu s-a găsit nicio sursă accesibilă.
 
 ## Synfig 1.4.1 – 1.4.4
-| Versiune | Funcționalitate | ARMATURA |
+| Versiune | Funcționalitate | OSATURA |
 |---|---|---|
 | 1.4.1 | Straturi de sunet mixate în videoclipul exportat | ❌ (fără track audio) |
 | 1.4.1 | Duplicate-layer copiază toate straturile selectate | ✅ (operații în lot) |
@@ -768,7 +768,7 @@ Anime Studio 10.1 / 11.1: nu s-a găsit nicio sursă accesibilă.
 | 1.4.4 | Remedierea exportului ultimului cadru | ✅ acoperit de teste |
 
 ## Rive (note de lansare oficiale, sept.–oct. 2026) — cel mai activ concurent
-| Funcționalitate | ARMATURA |
+| Funcționalitate | OSATURA |
 |---|---|
 | Convertor String Template (text din valori view-model, formatare de numere) | ❌ |
 | Contururi întrerupte (Dash Effect), importate din SVG | ❌ |
@@ -793,7 +793,7 @@ Anime Studio 10.1 / 11.1: nu s-a găsit nicio sursă accesibilă.
 | Istoric de revizii și restaurare, sincronizare offline, anulare care păstrează zoom-ul | 🟡 anulare/refacere ✅ |
 
 ## TVPaint Animation 11 (descrieri YouTube)
-Creare de scurtături, sub-desene removibile, netezirea liniilor, înregistrarea desenului, click-and-drag pe punctul pivot KeyFramer (11.7.1), Sprite Generator, Inlay Texture FX, linii de ghidaj, videoclipul „end of update releases" — toate ❌ (instrumente de pictură raster; ARMATURA este vectorială/rig).
+Creare de scurtături, sub-desene removibile, netezirea liniilor, înregistrarea desenului, click-and-drag pe punctul pivot KeyFramer (11.7.1), Sprite Generator, Inlay Texture FX, linii de ghidaj, videoclipul „end of update releases" — toate ❌ (instrumente de pictură raster; OSATURA este vectorială/rig).
 
 ## Toon Boom Harmony 17 (YouTube)
 Free Form Deformer 🟡 (lattice FFD ✅), Master Controllers îmbunătățite 🟡, RGB Difference Keyer ❌, Motion Blur ❌ (roadmap #5).
@@ -831,14 +831,14 @@ Anime Studio 10.1 / 11.1, note detaliate Moho 12.5, pagini de detaliu Spine 3.0�
 **Realitatea accesului:** paginile X/Twitter sunt blocate la preluare de robots.txt (se văd doar fragmentele/titlurile din rezultatele căutării); Facebook la fel; căutările Reddit cu filtru de domeniu au fost respinse de proxy-ul de căutare, iar căutările nefiltrate nu au returnat thread-uri Reddit; forumul Lost Marble servește un înveliș de redirecționare JavaScript fără conținut lizibil. Nimic nu a fost ocolit. Ce a putut fi citit:
 
 ## Canalele oficiale Moho (știri moho.lostmarble.com, fragmente X)
-| Element | Note | ARMATURA |
+| Element | Note | OSATURA |
 |---|---|---|
 | Moho 13.5.3 (apr. 2022) | lip-sync automat îmbunătățit, interfață mai bună, oase mai puțin intruzive | ✅ lip-sync (euristică WAV) |
 | Moho 13.5.5 (X, mai 2022) | **Relative Paths** pentru activele legate | ✅ directorul de active este relativ |
 | Moho 14.3 „Mantis Shrimp" (dec. 2024) | actualizare axată pe pensule | ❌ |
 | Moho 14.4 „Side Quest" (nov. 2025) | export către motoare de joc și software 3D | 🟡 Lottie/JSON propriu; glTF/FBX ❌ |
 | Moho 14.5 „Showtime" (oct. 2026) | onion skin-uri magnetice, Shift & Trace, opțiuni Liquid Shapes, EXR/PNG cu profiluri de culoare, mod live-playback pentru streaming/controlul personajelor în timp real | vezi matricea principală; mod live ❌ |
-| Ambassador Program (iun. 2026); poziție oficială: nu sunt planificate instrumente AI (mar. 2025) | politică | n/a — nici ARMATURA nu are funcționalități AI |
+| Ambassador Program (iun. 2026); poziție oficială: nu sunt planificate instrumente AI (mar. 2025) | politică | n/a — nici OSATURA nu are funcționalități AI |
 | Webinarii (Víctor Paredes etc.) | tutoriale | n/a |
 
 ## Comparații din comunitate (forumul Spine, „Spine vs Moho 12")
@@ -846,7 +846,7 @@ Anime Studio 10.1 / 11.1, note detaliate Moho 12.5, pagini de detaliu Spine 3.0�
 - Utilizatorii critică: FFD considerat slab; **fără un runtime real**, exportul pentru jocuri limitat la FBX.
 - Creature este lăudat pentru motion capture integrat (FFD criticat).
 - Constrângerile de fizică din Spine 4.2 primesc reacții entuziaste pe X (postări ale utilizatorilor).
-ARMATURA: fizică ✅ (arcuri precalculate), mascare 🟡 (clip prin operații booleene), smart bones 🟡, editare vectorială ✅, runtime ❌, mocap ❌.
+OSATURA: fizică ✅ (arcuri precalculate), mascare 🟡 (clip prin operații booleene), smart bones 🟡, editare vectorială ✅, runtime ❌, mocap ❌.
 
 ## Titluri de liste de dorințe de pe forumuri (conținut necitibil)
 „Concentrate on Timeline/Workflow improvements" (2024), „Road map for Moho", „Help Shape the Future of Anime Studio", „13.5.2 performance issue" — sugerează că timeline-ul/fluxul de lucru și performanța sunt cele mai solicitate zone; nu este o listă de funcționalități verificată.
@@ -867,11 +867,11 @@ ARMATURA: fizică ✅ (arcuri precalculate), mascare 🟡 (clip prin operații b
 
 # Addendum — Liste de dorințe și panouri de cereri de funcționalități (runda 6, 2026-10-19)
 
-Sunt listate doar cererile efectiv lizibile. Coloana „ARMATURA" = dacă motorul acoperă deja cererea.
+Sunt listate doar cererile efectiv lizibile. Coloana „OSATURA" = dacă motorul acoperă deja cererea.
 
 ## Moho (forumul Lost Marble)
 Lizibil: doar indexul forumului. Există secțiunile „Feature Request Discussions" și „Unofficial Bug Reports and Feature Requests"; ultimul titlu de cerere vizibil: **„Dock Windows – Custom Interface"** (18 oct. 2026). Thread-ul de lungă durată „Help Shape the Future of Anime Studio" (828 de răspunsuri, 2011–2021) și alte thread-uri cu liste de dorințe („Road map for Moho", „My wish for Moho in 2024 – Concentrate on Timeline/Workflow improvements", „Request for top 10 Anime Studio Pro 6 features") sunt învelișuri de redirecționare JavaScript → conținut necitibil. Comparații specifice de la forum la forum (forumul Spine): fizică, mascare, smart bones dorite în Spine; Moho criticat pentru FFD slab și lipsa unui runtime.
-| Cerere | ARMATURA |
+| Cerere | OSATURA |
 |---|---|
 | Ferestre ancorabile / interfață personalizată | ❌ (studioul web are layout fix) |
 | Îmbunătățiri de timeline / flux de lucru | 🟡 |
@@ -879,7 +879,7 @@ Lizibil: doar indexul forumului. Există secțiunile „Feature Request Discussi
 | FFD mai puternic | ✅ lattice Bernstein + mesh |
 
 ## Cartoon Animator (Reallusion Feedback Tracker + thread cu lista de dorințe)
-| Cerere (voturi unde sunt afișate) | ARMATURA |
+| Cerere (voturi unde sunt afișate) | OSATURA |
 |---|---|
 | Curbă implicită de chei în preferințe | ✅ easing per cheie |
 | Editare de chei multi-canal | 🟡 operații de patch în lot |
@@ -904,7 +904,7 @@ Lizibil: doar indexul forumului. Există secțiunile „Feature Request Discussi
 | Panoramă 360° (5); idei de integrare AI (6) | ❌ |
 
 ## Panoul de cereri de funcționalități Live2D Cubism Editor (30 de thread-uri, 2023–2026)
-| Cerere | ARMATURA |
+| Cerere | OSATURA |
 |---|---|
 | Suport Linux | ✅ |
 | Scurtături de tastatură în editarea manuală a mesh-ului | n/a |
@@ -927,7 +927,7 @@ Lizibil: doar indexul forumului. Există secțiunile „Feature Request Discussi
 Forumul utilizatorilor este închis și redirecționează către Discord (nu poate fi căutat); thread-urile vechi de pe „Feature Requests board" („One can only dream: A Feature List", „Software Upgrade Suggestions Part 2", „Bitmap Layer Overhaul LONG OVERDUE", „Various Quality of Life suggestions") arată doar anunțul de închidere. Nicio cerere nu poate fi recuperată.
 
 ## Synfig (lista de idei GSoC 2019–2022, numere de issue GitHub legate)
-| Cerere | ARMATURA |
+| Cerere | OSATURA |
 |---|---|
 | Copiere/lipire de waypoint-uri (#2139) | ✅ chei prin operații |
 | Comutarea filelor cu Ctrl+Tab, scurtături de ferestre, selecția zonei de redare, căutare în proprietăți, comutarea riglelor, modificarea parametrilor cu mouse-ul | ❌ (GUI) |
@@ -935,7 +935,7 @@ Forumul utilizatorilor este închis și redirecționează către Discord (nu poa
 | Portare GTK 4, build-uri Conan/vcpkg | n/a |
 
 ## Spine
-Cererile merg pe forum și sunt mutate pe un panou Trello public (nu poate fi preluat: robots.txt). De pe forum: prioritatea cea mai mare istoric este stabilitatea editorului și actualizările de runtime. Planul din era Kickstarter (mesh-uri → FFD → skinning → IK pinning) este acum livrat integral, deci mesh/FFD/skinning din ARMATURA sunt la paritate cu acea listă veche; IK pinning ✅ (constrângere Pin). Titluri recente de cereri pe forum: suport pentru ultimele three.js / React Three Fiber; suport Spine 4.3 în Defold.
+Cererile merg pe forum și sunt mutate pe un panou Trello public (nu poate fi preluat: robots.txt). De pe forum: prioritatea cea mai mare istoric este stabilitatea editorului și actualizările de runtime. Planul din era Kickstarter (mesh-uri → FFD → skinning → IK pinning) este acum livrat integral, deci mesh/FFD/skinning din OSATURA sunt la paritate cu acea listă veche; IK pinning ✅ (constrângere Pin). Titluri recente de cereri pe forum: suport pentru ultimele three.js / React Three Fiber; suport Spine 4.3 în Defold.
 
 ## Rive
 Roadmap-ul public = „canalul Feature Requests" cu etichete de stare (în lucru / planificat / lansat); necesită autentificare pentru citire. Nimic recuperabil dincolo de notele de lansare (runda 4).
@@ -971,9 +971,9 @@ Paginile GitHub (OpenToonz/Synfig) sunt blocate de robots.txt; nu s-a găsit nic
 **Acces:** API-ul de căutare GitHub nu este disponibil în acest mediu („sessions are bound to their configured repositories"), deci proiectele au fost găsite prin căutare web și citite din README-urile lor publice. API-urile GitLab și Codeberg sunt blocate de proxy; paginile Codeberg/GitLab au apărut doar în rezultatele căutării (Friction a fost lizibil). Numărul de stele nu a putut fi preluat. Mai multe proiecte sunt foarte noi/în stadiu timpuriu — funcționalitățile listate sunt așa cum sunt revendicate în README-uri, nu verificate prin rulare.
 
 ## Instrumente open-source similare de rigging / animație
-| Proiect | Platformă | Funcționalități notabile | Comparație cu ARMATURA |
+| Proiect | Platformă | Funcționalități notabile | Comparație cu OSATURA |
 |---|---|---|---|
-| **Rigby2D** (jaisurya-dev-art/rigby2d) | GitHub, MIT/Apache | Editor în stil Spine (import PSD, mesh + weight paint, mesh-uri legate, constrângeri IK/transform/path/physics/**slider**, skin-uri cu oase specifice skin-ului, evenimente, atașamente bounding-box/clipping/point/path, dopesheet + editor de grafice), export Spine JSON 3.8/4.2/4.3 + .skel, atlas, runtime-uri JS/Rust/Godot, **server MCP încorporat** pentru asistenți AI, desktop Tauri | ARMATURA nu are GUI de editor, atlas, runtime-uri, skin-uri, evenimente, constrângeri slider/path; are evaluator ca funcție pură, FX de lichid/booleene/emițător, lip-sync, generator de mers |
+| **Rigby2D** (jaisurya-dev-art/rigby2d) | GitHub, MIT/Apache | Editor în stil Spine (import PSD, mesh + weight paint, mesh-uri legate, constrângeri IK/transform/path/physics/**slider**, skin-uri cu oase specifice skin-ului, evenimente, atașamente bounding-box/clipping/point/path, dopesheet + editor de grafice), export Spine JSON 3.8/4.2/4.3 + .skel, atlas, runtime-uri JS/Rust/Godot, **server MCP încorporat** pentru asistenți AI, desktop Tauri | OSATURA nu are GUI de editor, atlas, runtime-uri, skin-uri, evenimente, constrângeri slider/path; are evaluator ca funcție pură, FX de lichid/booleene/emițător, lip-sync, generator de mers |
 | **SkelForm** (Retropaint/SkelForm, Rust) | GitHub | IK FABRIK, nativ + web + wrapper mobil | nucleu de rig similar ✅; fără GUI ❌ |
 | **Ankhimate editor** | GitHub, pre-alpha | Moduri Setup/Animate, sloturi + skin-uri, FABRIK de orice lungime, constrângeri path/physics, trasarea siluetei mesh-ului din alfa, pensulă de ponderi cu moduri de amestec + blocarea oaselor, **timeline-uri FFD**, evenimente cu audio, marcaje, decalaje de track per os, **editor de format de export bazat pe șabloane**, runtime de referință Rust | ❌ în mare parte GUI; idei: șabloane de export, decalaje de track per os |
 | **rig2d-rs** (tanhieuno41) | GitHub, Rust | Port al fizicii Spine-4.2, IK cu **mix/softness/bend/compress/stretch/uniform**, auto-bind al ponderilor prin atenuare cu distanța, weight smooth/normalise/limit-to-4, packer de atlas tip shelf, ghosting onion-skin, import/export Spine JSON | ❌ IK soft/stretch, instrumente de ponderi, atlas, interschimb Spine |
@@ -1000,7 +1000,7 @@ Paginile GitHub (OpenToonz/Synfig) sunt blocate de robots.txt; nu s-a găsit nic
 Au apărut depozite de software piratat (de ex. Adobe Animate „activate-free"): nu au fost deschise și nici folosite.
 
 ## Idei care merită adoptate (noi candidați pentru roadmap)
-59. **Server MCP / API de agent** peste editorul cu operații de patch, astfel încât asistenții AI să poată face rigging și animație (Rigby2D, Iki) — se potrivește arhitecturii JSON-patch a ARMATURA
+59. **Server MCP / API de agent** peste editorul cu operații de patch, astfel încât asistenții AI să poată face rigging și animație (Rigby2D, Iki) — se potrivește arhitecturii JSON-patch a OSATURA
 60. **ID-uri standard de parametri** (ParamAngleX, EyeOpen, MouthOpen…) pentru ca orice gazdă să poată conduce un model (Iki)
 61. **Auto-rigger din straturi cu nume de rol**: clipit, privire, întoarcerea/aprobarea/înclinarea capului, sprâncene, respirație, fizica părului (Iki)
 62. **Auto eye clipping** (irisul mascat de forma ochiului) (Stretchy Studio) — prin strat Boolean
@@ -1012,7 +1012,7 @@ Au apărut depozite de software piratat (de ex. Adobe Animate „activate-free")
 68. **Export video cu fundal transparent (WebM/MOV cu alfa) și spritesheet PNG+JSON** (Skeletal-Animator)
 69. **Motor de șabloane de export** (formate de ieșire definite de utilizator) (Ankhimate)
 70. **Container dotLottie `.lottie` + slots/theming la runtime + mașini de stări** (dotlottie-rs)
-71. **CLI de diff / dump / convert pentru modele** (`armatura diff a.json b.json`) (Umamo)
+71. **CLI de diff / dump / convert pentru modele** (`osatura diff a.json b.json`) (Umamo)
 72. **Paletă de comenzi + scurtături redefinibile** în studio (Umamo)
 73. **Loader cu fuzzing, cale de runtime fără panic, benchmark-uri de latență** (Ayatsuri2D) — întărirea robusteții pentru `Engine::new`
 74. **Import/export Spine JSON** pentru interschimb (Rigby2D, rig2d, Stretchy Studio)
@@ -1035,7 +1035,7 @@ Au apărut depozite de software piratat (de ex. Adobe Animate „activate-free")
 Surse: itch.io, Steam, AlternativeTo, Wikipedia, rezultate de căutare academice/de brevete, recenzii ale instrumentelor After Effects. Afirmațiile provin din paginile de magazin/proiect, nu din teste practice.
 
 ## Instrumente indie / de nișă pentru rigging (itch.io, Steam)
-| Instrument | Funcționalități notabile | ARMATURA |
+| Instrument | Funcționalități notabile | OSATURA |
 |---|---|---|
 | **Inochi Creator / Inochi2D** (Kitsunebi Games, open source, beta) | rigging 2D de puppet deschis, orientat spre VTuberi + runtime în timp real; format propriu (nu este compatibil Live2D/Spine); export GIF/secvență de imagini; UI multilingv | 🟡 aceeași nișă (format de rig deschis) |
 | **Keyframe.it** (browser, gratuit) | oase + IK + mesh-uri cu ponderi + mișcare cu arcuri; **clipuri pentru simboluri de joc** (idle, land, anticipation, win); editor de imagini încorporat + import PSD; export GIF, sprite sheet, video, player HTML autonom, **pachete Spine 3.8/4.2**; salvare automată în browser; conector de agent AI **keyframe-mcp**; asistent AI încorporat opțional | ✅ player HTML/GIF; ❌ sprite sheet, pachet Spine, MCP, editor în browser |
@@ -1047,7 +1047,7 @@ Surse: itch.io, Steam, AlternativeTo, Wikipedia, rezultate de căutare academice
 | VBridger, Vitamins | Instrumente Steam pentru VTubing; neevaluate | — |
 
 ## Ecosistemul de rigging pentru After Effects (recenzia School of Motion)
-| Funcționalitate | Sursă | ARMATURA |
+| Funcționalitate | Sursă | OSATURA |
 |---|---|---|
 | **Controler joystick** (5 poze-cheie: origine/dreapta/stânga/sus/jos) interpolat în 2D | Joysticks 'n Sliders | ❌ — candidat puternic |
 | **Slidere** care mixează un număr nelimitat de poze | JnS, Duik | 🟡 canale morph |
@@ -1062,7 +1062,7 @@ Tahoma2D (fork OpenToonz, stop-motion), TupiTube, enve (întrerupt; a devenit Fr
 
 ## Literatură academică și de brevete (doar titluri/rezumate)
 - Jacobson et al. 2011, **Bounded Biharmonic Weights** pentru deformare în timp real — ponderi de skinning netede automate dintr-un cage/schelet ✅ idee: îmbunătățirea `auto_skin` (în prezent bazat pe distanță).
-- Brevetele Adobe US9865073 / US10078910, **„Computer animation of artwork using fast 2-dimensional deformation solving"** (warp-ul de mesh din Character Animator). *Notă clean-room:* ARMATURA folosește FFD Bernstein și skinning cu ponderi, nu acel solver brevetat; orice viitor solver de tip ARAP ar trebui revizuit cu un avocat. Aceasta nu este consultanță juridică.
+- Brevetele Adobe US9865073 / US10078910, **„Computer animation of artwork using fast 2-dimensional deformation solving"** (warp-ul de mesh din Character Animator). *Notă clean-room:* OSATURA folosește FFD Bernstein și skinning cu ponderi, nu acel solver brevetat; orice viitor solver de tip ARAP ar trebui revizuit cu un avocat. Aceasta nu este consultanță juridică.
 - Auto-rigging arXiv 2025–26: **ASMR** (schelet de mesh 3D + skin prin priori generativi 2D), UniRig, „How to Train Your Dragon" (rigging prin difuzie), HumanRig, SPRig, UniMate — toate 3D/ML; relevante doar ca viitoare funcționalitate de „sugestie de auto-rig".
 - Stony Brook TVC 2017 **retargeting automat al ponderilor de skinning** — copierea ponderilor între mesh-uri (✅ roadmap: copierea ponderilor).
 
@@ -1096,7 +1096,7 @@ Surse: tabelul de versiuni Wikipedia (incl. 26.0 din ian. 2026), pagina de produ
 Grafica pe straturi din Photoshop/Illustrator (și EPS/SVG din oct. 2018) devine un **puppet** cu rig automat pe baza **numelor/etichetelor straturilor**; performanța este captată live (față/corp prin webcam, microfon, tastatură, mouse, MIDI) ca **take-uri** pe un timeline; ieșirile merg către secvențe PNG, WAV, Media Encoder (incl. **video cu alfa**), Dynamic Link către After Effects / Premiere și Syphon / Mercury Transmit live. Modul Starter este gratuit; Pro necesită Creative Cloud.
 
 ## Comportamente (lista completă din Adobe Help)
-| Comportament | Ce face | ARMATURA |
+| Comportament | Ce face | OSATURA |
 |---|---|---|
 | **Face** | cap, ochi, sprâncene, nas, gură din webcam; parallax și forța poziției capului | ❌ (fără urmărire live) — roadmap #88 |
 | **Body** (Body Tracker, Sensei AI, 22.0) | brațe, trunchi, picioare din webcam | ❌ |
@@ -1124,7 +1124,7 @@ Grafica pe straturi din Photoshop/Illustrator (și EPS/SVG din oct. 2018) devine
 | **Collide, Dynamic, Cycle Pause, Auto-swap (22.5)** | etichete/comportamente pentru fizică și schimburi de tip cadru | ❌ |
 
 ## Funcționalități de timeline, înregistrare și flux de lucru
-| Funcționalitate | Versiune | ARMATURA |
+| Funcționalitate | Versiune | OSATURA |
 |---|---|---|
 | Take-uri, replay-uri (înregistrări reutilizabile declanșabile), replay-uri inteligente, replay-uri editabile | 2.0 / 22.0 / 23.6 | 🟡 clipuri ✅; replay-uri ❌ |
 | Chei, întinderea în timp a cheilor, camere de scenă, audio declanșabil | 3.0 / 3.2 | ✅ chei/cameră; ❌ audio declanșabil |
@@ -1143,9 +1143,9 @@ Grafica pe straturi din Photoshop/Illustrator (și EPS/SVG din oct. 2018) devine
 | MIDI, scripturi prin V8 (JavaScript) | 1.1 / 2.0 | ❌ — roadmap #31 |
 | Partajare/publicare de puppet-uri, fișiere de puppet partajabile | Beta 5 | 🟡 JSON portabil |
 | Dynamic Link către AE / Premiere | Beta 5 | ❌ |
-| Slăbiciuni raportate (recenzie): curbă de învățare abruptă, dependență de hardware (webcam/microfon), timp lung de pregătire a personajului, Pro cu plată, complexitatea configurării triggerelor | | oportunitate: pipeline-ul offline determinist al ARMATURA, CLI/JSON |
+| Slăbiciuni raportate (recenzie): curbă de învățare abruptă, dependență de hardware (webcam/microfon), timp lung de pregătire a personajului, Pro cu plată, complexitatea configurării triggerelor | | oportunitate: pipeline-ul offline determinist al OSATURA, CLI/JSON |
 
-## Ce iese în evidență pentru ARMATURA (noi candidați pentru roadmap)
+## Ce iese în evidență pentru OSATURA (noi candidați pentru roadmap)
 89. **Auto-rig bazat pe etichete din numele straturilor** (cap, ochi, sprâncene, vizeme ale gurii, etichete de braț/picior) — ideea centrală din Character Animator; extinde roadmap #61
 90. **Take-uri și replay-uri**: înregistrarea performanței parametrilor ca clipuri reutilizabile, declanșabile, cu easing de blend
 91. **Pin Feet When Standing** și blocare la contactul cu solul pentru generatorul de mers

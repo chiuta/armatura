@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 
-# Az ARMATURA architektúrája
+# Az OSATURA architektúrája
 
 Ez a dokumentum bemutatja, hogyan szerveződik a workspace, hogyan jutnak el az adatok a projektfájltól
 a pixelekig, milyen garanciákat ad a motor és melyeket nem, valamint hogyan bővíthető. A fájlformátum
@@ -13,7 +13,7 @@ Tartalom
 
 1. [Crate-ek és függőségi gráf](#1-crate-ek-és-függőségi-gráf)
 2. [Adatfolyam](#2-adatfolyam)
-3. [Az armatura-core modultérképe](#3-az-armatura-core-modultérképe)
+3. [Az osatura-core modultérképe](#3-az-osatura-core-modultérképe)
 4. [A nem destruktív bake minta](#4-a-nem-destruktív-bake-minta)
 5. [Szerkesztő, op-ok és visszavonás](#5-szerkesztő-op-ok-és-visszavonás)
 6. [Determinizmus: garanciák és korlátok](#6-determinizmus-garanciák-és-korlátok)
@@ -30,19 +30,19 @@ Tartalom
 
 | Crate | Licenc | Fajta | Szerep |
 | --- | --- | --- | --- |
-| `armatura-core` | MPL-2.0 | könyvtár | Minden, ami nem kezelőfelület: adatmodell, motor, rendererek, eszközök, az együttműködési mag. Alapértelmezett feature: `scripting`. |
-| `armatura-cli` | AGPL-3.0-or-later | `armatura` bináris | Parancssor, a Studio webszervere és az együttműködési HTTP-útvonalak. A core-tól `default-features = false` beállítással függ, és újra kiteszi a `scripting` featuret; opcionális feature: `gpu`. |
-| `armatura-capi` | MPL-2.0 | `cdylib`, `staticlib`, `rlib` | C ABI (`armatura.h`, `ABI_VERSION` 1). A core-tól `default-features = false` beállítással függ. |
-| `armatura-wasm` | MPL-2.0 | `cdylib`, `rlib` | Egyszerű `extern "C"` WebAssembly-modul, wasm-bindgen nélkül. A core-tól `default-features = false` beállítással függ. |
-| `armatura-gpu` | MPL-2.0 | könyvtár | Opcionális wgpu renderer. A core-tól `default-features = false` beállítással függ. |
+| `osatura-core` | MPL-2.0 | könyvtár | Minden, ami nem kezelőfelület: adatmodell, motor, rendererek, eszközök, az együttműködési mag. Alapértelmezett feature: `scripting`. |
+| `osatura-cli` | AGPL-3.0-or-later | `osatura` bináris | Parancssor, a Studio webszervere és az együttműködési HTTP-útvonalak. A core-tól `default-features = false` beállítással függ, és újra kiteszi a `scripting` featuret; opcionális feature: `gpu`. |
+| `osatura-capi` | MPL-2.0 | `cdylib`, `staticlib`, `rlib` | C ABI (`osatura.h`, `ABI_VERSION` 1). A core-tól `default-features = false` beállítással függ. |
+| `osatura-wasm` | MPL-2.0 | `cdylib`, `rlib` | Egyszerű `extern "C"` WebAssembly-modul, wasm-bindgen nélkül. A core-tól `default-features = false` beállítással függ. |
+| `osatura-gpu` | MPL-2.0 | könyvtár | Opcionális wgpu renderer. A core-tól `default-features = false` beállítással függ. |
 
 ```mermaid
 graph TD
-    core["armatura-core (MPL-2.0)"]
-    cli["armatura-cli (AGPL-3.0-or-later)<br/>binary: armatura"]
-    capi["armatura-capi<br/>C ABI"]
-    wasm["armatura-wasm<br/>wasm32 extern C"]
-    gpu["armatura-gpu<br/>wgpu 30 (optional)"]
+    core["osatura-core (MPL-2.0)"]
+    cli["osatura-cli (AGPL-3.0-or-later)<br/>binary: osatura"]
+    capi["osatura-capi<br/>C ABI"]
+    wasm["osatura-wasm<br/>wasm32 extern C"]
+    gpu["osatura-gpu<br/>wgpu 30 (optional)"]
     rhai["rhai (feature: scripting)"]
     core -.->|scripting| rhai
     cli --> core
@@ -53,10 +53,10 @@ graph TD
 ```
 
 ```text
-            armatura-cli  (AGPL, bin "armatura")
-              |        \.........(feature "gpu").........  armatura-gpu
+            osatura-cli  (AGPL, bin "osatura")
+              |        \.........(feature "gpu").........  osatura-gpu
               v                                              |
-  armatura-capi --->  armatura-core  <---  armatura-wasm  <--+  (gpu also depends on core)
+  osatura-capi --->  osatura-core  <---  osatura-wasm  <--+  (gpu also depends on core)
                           :
                           :.....(feature "scripting")..... rhai
 ```
@@ -64,9 +64,9 @@ graph TD
 Miért különböznek a licencek: a core MPL-2.0, hogy zárt forráskódú alkalmazások beágyazhassák a
 könyvtáron, a C ABI-n vagy a WASM-modulon keresztül anélkül, hogy az AGPL-t kellene átvenniük; a parancssor és a Studio-
 szerver AGPL. Minden forrásfájl az SPDX-sort hordozza, amely megegyezik a crate-je licencével; ezt egy teszt
-(`armatura-cli/tests/spdx_audit.rs`) és a `scripts/licence-audit.sh` ellenőrzi. Lásd: `LICENSING.md`.
+(`osatura-cli/tests/spdx_audit.rs`) és a `scripts/licence-audit.sh` ellenőrzi. Lásd: `LICENSING.md`.
 
-Stabilitás: csak az `armatura_core::api` és az `armatura_core::prelude` a stabil felület
+Stabilitás: csak az `osatura_core::api` és az `osatura_core::prelude` a stabil felület
 (`API_VERSION` 1.4.0). Egy snapshot-teszt a nyilvános elemeket az `api_surface.txt` fájllal veti össze; a felület
 megváltoztatása a fájl tudatos szerkesztését és verziódöntést kényszerít ki.
 
@@ -89,7 +89,7 @@ megváltoztatása a fájl tudatos szerkesztését és verziódöntést kényszer
      +--> svg::      vector text (SVG)
      +--> raster::   tiny-skia, 8-bit RGBA
      +--> fraster::  own f32 scanline rasteriser (HDR / EXR path)
-     +--> armatura-gpu  wgpu, stencil-then-cover
+     +--> osatura-gpu  wgpu, stencil-then-cover
      +--> export / gltf / lottie_export / open_formats / ...
 ```
 
@@ -108,9 +108,9 @@ A láncot körülvevő belépési pontok:
 A rendererek csak egy `Frame`-et látnak. Soha nem futtatják újra a rig-logikát, így az IK, a skinelés és a deformerek
 egyszer, az `engine` modulban vannak megvalósítva.
 
-## 3. Az armatura-core modultérképe
+## 3. Az osatura-core modultérképe
 
-Az `armatura-core/src` nagyjából 100 modult tartalmaz. Terület szerint vannak csoportosítva. Az egyes modulok „alapja” az a
+Az `osatura-core/src` nagyjából 100 modult tartalmaz. Terület szerint vannak csoportosítva. Az egyes modulok „alapja” az a
 nyilvános szabvány, tanulmány vagy tankönyvi technika, amelyet a `CLEANROOM.md` rögzít; a „saját tervezés” azt jelenti, hogy a clean-room napló
 nem rögzít külső forrást. A `_tests` végződésű nevek tesztmodulok, ezeket kihagytuk.
 
@@ -318,14 +318,14 @@ kiértékelés eredményeit.
 
 ## 8. Biztonsági áttekintés
 
-A rövid változat: az ARMATURA megbízhatatlan JSON- és asset-fájlokat olvas, a Studio pedig hálózati
+A rövid változat: az OSATURA megbízhatatlan JSON- és asset-fájlokat olvas, a Studio pedig hálózati
 socketen hallgatózik. A védelem rétegzett: szigorú betöltési korlátok (nagyságrend, méret, darabszám-plafonok), útvonal-
 bezárás az assetekhez, határidőkkel és host/origin ellenőrzésekkel rendelkező, csak std-t használó HTTP-szerver, token-hitelesítés az együttműködéshez, valamint sandboxolt szkriptmotor
 kifejezett korlátokkal. A fenyegetési modell és a megerősítő intézkedések a [SECURITY.md](SECURITY.md) fájlban vannak.
 
 ## 9. A Studio-szerver architektúrája
 
-Az `armatura studio` egyetlen HTML-oldalt (`studio.html`) és egy JSON API-t szolgál ki egyetlen folyamatból.
+Az `osatura studio` egyetlen HTML-oldalt (`studio.html`) és egy JSON API-t szolgál ki egyetlen folyamatból.
 
 ```text
  browser  <--HTTP/1.1-->  http.rs  (accept loop; bounded connection threads, I/O only)
@@ -336,7 +336,7 @@ Az `armatura studio` egyetlen HTML-oldalt (`studio.html`) és egy JSON API-t szo
                              |   uiconfig.rs  command registry, key map
                              |   collab_srv.rs  /api/collab/* routes
                              v
-                      armatura-core: Editor, Engine, raster, svg, scrub, collab
+                      osatura-core: Editor, Engine, raster, svg, scrub, collab
 ```
 
 - Az **http.rs** csak std-t használó HTTP/1.1-szerver (a korábbi `tiny_http` függőséget biztonsági
@@ -386,7 +386,7 @@ amelyet az `X-Collab-Token` fejlécben vagy az `arm_token` sütiben küldenek (a
 (`X-Collab-Secret`), hogy egy felhasználó ne járhasson el egy másik nevében. Az átvitel egyszerű HTTP TLS nélkül:
 megbízható hálózaton túli használathoz tegyél elé TLS-t lezáró proxyt.
 
-Az `armatura collab-sim` sok szimulált klienst futtat egy hub ellen folyamaton belül, így tesztelik a konvergenciát.
+Az `osatura collab-sim` sok szimulált klienst futtat egy hub ellen folyamaton belül, így tesztelik a konvergenciát.
 
 ## 11. Teljesítményjegyzetek
 
@@ -432,7 +432,7 @@ a végső kimenethez pedig a teljes renderert.
 
 Példa: egy új, rétegenkénti szám.
 
-1. Add hozzá a mezőt a `Layer` típushoz az `armatura-core/src/project.rs` fájlban
+1. Add hozzá a mezőt a `Layer` típushoz az `osatura-core/src/project.rs` fájlban
    `#[serde(default = "...", skip_serializing_if = "...")]` attribútummal, hogy a régi fájlok változatlanul betöltődjenek, és az alapértékek ne íródjanak vissza. Egy opcionális mező hozzáadása nem változtatja a `FORMAT_VERSION` értékét.
 2. Adj hozzá validációt az `Engine::new` függvényben (véges érték, tartomány), olyan üzenettel, amely megnevezi a réteget.
 3. Ha animálható, adj hozzá egy `Prop` variánst, a `target_kind` leképezését, az írási korlátozást (clamp), a kezdőértéket az `initial_state` függvényben és az `apply_channels` esetét. Ha al-célt (sub-target) használ, bővítsd a `layer::sub` feloldót.
@@ -449,18 +449,18 @@ Példa: egy új, rétegenkénti szám.
 
 ### 12.2 CLI-parancs hozzáadása
 
-1. Írd meg a logikát az `armatura-core` crate-ben függvényként, típusos bemenettel és `Result<_, String>` vagy hibalista visszatéréssel; a CLI-nek csak a kapcsolókat kell feldolgoznia és kiírnia. Így a logika használható marad a C ABI-ból, a WASM-ból és a Studióból.
-2. Az `armatura-cli/src/main.rs` fájlban adj hozzá egy `USAGE` bejegyzést. A `usage_for`, a `documented_options` és a `check_flags` ezt olvassa, és egy teszt összeveti a USAGE-ot az értelmezővel, így az a kapcsoló, amelyet az értelmező elfogad, de a USAGE nem említ, megbuktatja a tesztet.
+1. Írd meg a logikát az `osatura-core` crate-ben függvényként, típusos bemenettel és `Result<_, String>` vagy hibalista visszatéréssel; a CLI-nek csak a kapcsolókat kell feldolgoznia és kiírnia. Így a logika használható marad a C ABI-ból, a WASM-ból és a Studióból.
+2. Az `osatura-cli/src/main.rs` fájlban adj hozzá egy `USAGE` bejegyzést. A `usage_for`, a `documented_options` és a `check_flags` ezt olvassa, és egy teszt összeveti a USAGE-ot az értelmezővel, így az a kapcsoló, amelyet az értelmező elfogad, de a USAGE nem említ, megbuktatja a tesztet.
 3. Az értéket váró opciókat regisztráld a `VALUE_OPTS` táblában (vagy a parancsonkénti `takes_value` táblában).
 4. Adj hozzá egy match ágat a `run` függvényben (a `match pos.as_slice()` alapján oszt szét).
 5. A projekteket a `load` vagy a `load_sized` függvényen keresztül olvasd, hogy a méretkorlátok és az asset-bezárás érvényesüljön.
 6. A projekteket a `write_json` függvényen keresztül írd (újravalidál és átírja az asset-útvonalakat). Ha a parancs a bemenettől eltérő fajta fájlt ír, hívd meg a `guard_out` függvényt, hogy egy elgépelt kimeneti útvonal ne írhassa felül a bemeneti projektet.
-7. Tesztek az `armatura-cli/tests/` könyvtárban: `e2e.rs` a sikeres esethez, `robust.rs` a rosszindulatú bemenethez, `fixes.rs` vagy `wave4.rs` a regressziókhoz; a `scripts/e2e.sh` a teljes folyamatot lefuttatja.
+7. Tesztek az `osatura-cli/tests/` könyvtárban: `e2e.rs` a sikeres esethez, `robust.rs` a rosszindulatú bemenethez, `fixes.rs` vagy `wave4.rs` a regressziókhoz; a `scripts/e2e.sh` a teljes folyamatot lefuttatja.
 8. Dokumentáld a parancs-referenciában.
 
 ### 12.3 Exportáló hozzáadása
 
-1. Az írót az `armatura-core` crate-be tedd (például az `export.rs`, a `gltf.rs` vagy a `lottie_export.rs` mellé). `Engine`-t vagy `Project`-et kap, a képkockákat az `evaluate_checked` függvényen keresztül értékeli ki, és nem olvashat privát állapotot.
+1. Az írót az `osatura-core` crate-be tedd (például az `export.rs`, a `gltf.rs` vagy a `lottie_export.rs` mellé). `Engine`-t vagy `Project`-et kap, a képkockákat az `evaluate_checked` függvényen keresztül értékeli ki, és nem olvashat privát állapotot.
 2. Döntsd el és dokumentáld, mit nem tud ábrázolni. Az elhagyott funkciókról figyelmeztetést adj, ne találgass.
 3. Alkalmazz korlátokat: képkockák szorozva a horgonyokkal (40 milliós keret), képoldalak (16384) és pixelek, kimeneti méret.
 4. Soha ne írd felül a bemenetet: a CLI-ben használd a `guard_out` függvényt.
@@ -471,22 +471,22 @@ Példa: egy új, rétegenkénti szám.
 
 | Crate | Feature | Alapértelmezett | Hatás |
 | --- | --- | --- | --- |
-| `armatura-core` | `scripting` | be | Felépíti a Rhai szkript-API-t (`script`, `scriptops`). Behúzza a `rhai` crate-et és annak `smartstring` függőségét (MPL-2.0). |
-| `armatura-cli` | `scripting` | be | Engedélyezi az `armatura-core/scripting` feature-t és a `script` parancsot. A `--no-default-features` elhagyja. |
-| `armatura-cli` | `gpu` | ki | Behúzza az `armatura-gpu` crate-et és hozzáadja a `render-gpu` parancsot. Kikapcsolva marad, hogy a hétköznapi buildek kicsik maradjanak. |
+| `osatura-core` | `scripting` | be | Felépíti a Rhai szkript-API-t (`script`, `scriptops`). Behúzza a `rhai` crate-et és annak `smartstring` függőségét (MPL-2.0). |
+| `osatura-cli` | `scripting` | be | Engedélyezi az `osatura-core/scripting` feature-t és a `script` parancsot. A `--no-default-features` elhagyja. |
+| `osatura-cli` | `gpu` | ki | Behúzza az `osatura-gpu` crate-et és hozzáadja a `render-gpu` parancsot. Kikapcsolva marad, hogy a hétköznapi buildek kicsik maradjanak. |
 
-Az `armatura-capi`, az `armatura-wasm` és az `armatura-gpu` a core-t `default-features = false` beállítással használja, így nem hordozzák a szkriptmotort.
+Az `osatura-capi`, az `osatura-wasm` és az `osatura-gpu` a core-t `default-features = false` beállítással használja, így nem hordozzák a szkriptmotort.
 
 ## 14. Build célok
 
 | Cél | Parancs | Megjegyzések |
 | --- | --- | --- |
-| CLI és Studio | `cargo build -p armatura-cli` (a gyorsaságért add hozzá a `--release` kapcsolót) | Az `armatura` binárist adja. |
-| CLI GPU-val | `cargo build -p armatura-cli --features gpu` | wgpu 30, csak Vulkannal és GL-lel. Csak Mesa llvmpipe-on ellenőrizve. |
-| Könyvtár | `cargo build -p armatura-core` | Rust API. |
-| C könyvtár | `cargo build -p armatura-capi` | `cdylib`, `staticlib` és az `armatura-capi/armatura.h` header; `ABI_VERSION` 1. |
-| WebAssembly | `armatura-wasm/build-wasm.sh` (szükséges hozzá: `rustup target add wasm32-unknown-unknown`) | Egyszerű extern "C" felület, `index.html` és `js/` segédfájlokkal. A fejlesztői környezetben nem lehetett telepíteni a célt; a modult (release profillal) a `.github/workflows/release.yml` építi, a debug buildet pedig a `ci.yml` teszteli Node alatt. Magát a szkriptet nem a CI futtatja. |
-| Ablakos alkalmazás (Windows, macOS) | `cargo build --release -p armatura-gui` | Az `armatura-studio` bináris: `tao` ablak + `wry` webnézet a stúdió körül; Linuxon csonk. |
+| CLI és Studio | `cargo build -p osatura-cli` (a gyorsaságért add hozzá a `--release` kapcsolót) | Az `osatura` binárist adja. |
+| CLI GPU-val | `cargo build -p osatura-cli --features gpu` | wgpu 30, csak Vulkannal és GL-lel. Csak Mesa llvmpipe-on ellenőrizve. |
+| Könyvtár | `cargo build -p osatura-core` | Rust API. |
+| C könyvtár | `cargo build -p osatura-capi` | `cdylib`, `staticlib` és az `osatura-capi/osatura.h` header; `ABI_VERSION` 1. |
+| WebAssembly | `osatura-wasm/build-wasm.sh` (szükséges hozzá: `rustup target add wasm32-unknown-unknown`) | Egyszerű extern "C" felület, `index.html` és `js/` segédfájlokkal. A fejlesztői környezetben nem lehetett telepíteni a célt; a modult (release profillal) a `.github/workflows/release.yml` építi, a debug buildet pedig a `ci.yml` teszteli Node alatt. Magát a szkriptet nem a CI futtatja. |
+| Ablakos alkalmazás (Windows, macOS) | `cargo build --release -p osatura-gui` | Az `osatura-studio` bináris: `tao` ablak + `wry` webnézet a stúdió körül; Linuxon csonk. |
 | Tesztek | `cargo test --workspace` | Végpontok közötti shell-folyamat a `scripts/e2e.sh` fájlban; licenc-audit a `scripts/licence-audit.sh` fájlban. |
 
-A workspace alapértelmezett tagjai nem tartalmazzák az `armatura-gpu` crate-et.
+A workspace alapértelmezett tagjai nem tartalmazzák az `osatura-gpu` crate-et.

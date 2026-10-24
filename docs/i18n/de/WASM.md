@@ -1,53 +1,53 @@
-# ARMATURA für WebAssembly
+# OSATURA für WebAssembly
 
-*ABI-Version 1 (`arm_abi_version()`). Crate `armatura-wasm`, JavaScript-Wrapper `armatura-wasm/js/armatura.js`, Demoseite `armatura-wasm/index.html`, Build-Skript `armatura-wasm/build-wasm.sh`. Zielgruppe: Webentwickler, die ARMATURA-Projekte in einem Browser oder in Node abspielen wollen, und die erste Person, die das Modul in einem Browser ausführt. Dokumentation CC-BY-4.0; Codebeispiele MPL-2.0.*
+*ABI-Version 1 (`arm_abi_version()`). Crate `osatura-wasm`, JavaScript-Wrapper `osatura-wasm/js/osatura.js`, Demoseite `osatura-wasm/index.html`, Build-Skript `osatura-wasm/build-wasm.sh`. Zielgruppe: Webentwickler, die OSATURA-Projekte in einem Browser oder in Node abspielen wollen, und die erste Person, die das Modul in einem Browser ausführt. Dokumentation CC-BY-4.0; Codebeispiele MPL-2.0.*
 
 > ## STATUS: IN CI GEBAUT UND GETESTET, NIE IN EINEM BROWSER AUSGEFÜHRT
 >
-> **Seit dem 24. Okt. 2026 wird das Modul auf GitHub Actions gebaut** (`wasm32-unknown-unknown`, Debug-Build in `ci.yml`, Release-Build in `release.yml`), und **der Test des Wrappers besteht gegen das echte Modul unter Node 20** (`node armatura-wasm/js/test.mjs demo.json`, einschließlich seines Teils mit dem echten Modul). Der Release-Build hängt als `armatura-web.tar.gz` (etwa 0,9 MB komprimiert, mit `armatura.js` und der Demoseite) an der Entwurfs-Vorabversion `v0.1.0-alpha.3`. **Es wurde nie in einem Browser geladen**: Nichts auf dieser Seite zu Browsern, Geschwindigkeit oder Speicher ist beobachtetes Verhalten, und die Entwicklungsumgebung selbst kann das Target weiterhin nicht installieren (der Download seiner Standardbibliothek ist dort blockiert).
+> **Seit dem 24. Okt. 2026 wird das Modul auf GitHub Actions gebaut** (`wasm32-unknown-unknown`, Debug-Build in `ci.yml`, Release-Build in `release.yml`), und **der Test des Wrappers besteht gegen das echte Modul unter Node 20** (`node osatura-wasm/js/test.mjs demo.json`, einschließlich seines Teils mit dem echten Modul). Der Release-Build hängt als `osatura-web.tar.gz` (etwa 0,9 MB komprimiert, mit `osatura.js` und der Demoseite) an der Entwurfs-Vorabversion `v0.1.0-alpha.3`. **Es wurde nie in einem Browser geladen**: Nichts auf dieser Seite zu Browsern, Geschwindigkeit oder Speicher ist beobachtetes Verhalten, und die Entwicklungsumgebung selbst kann das Target weiterhin nicht installieren (der Download seiner Standardbibliothek ist dort blockiert).
 >
 > Was getestet wurde, und wie weit das reicht:
 >
 > | Schicht | Test | Belegt | Belegt nicht |
 > |---|---|---|---|
-> | Die Rust-ABI-Funktionen (`arm_*`) | `cargo test -p armatura-wasm`: 8 Unit-Tests auf dem **Host**, die die exportierten Funktionen direkt aufrufen | Argumentprüfung, Fehlercodes, das Ausgabepuffer-Protokoll, Zustandsautomaten, Aufrufe für Layout / Scrollen / Detailstufen, Ablehnung zu großer Ausgaben vor der Allokation | das Verhalten des kompilierten Moduls |
-> | Das kompilierte Modul | CI: `cargo build --target wasm32-unknown-unknown`, dann `node armatura-wasm/js/test.mjs demo.json` mit der echten `.wasm` | dass die Abhängigkeiten für wasm32 kompilieren, dass das Modul exportiert, was der Wrapper erwartet, und dass Laden, Rendern und die Aufrufe des Zustandsautomaten in der WebAssembly-Engine von Node funktionieren | Browser, Geschwindigkeit und Speicher des Release-Builds, Panics (ein Trap), die Demoseite |
+> | Die Rust-ABI-Funktionen (`arm_*`) | `cargo test -p osatura-wasm`: 8 Unit-Tests auf dem **Host**, die die exportierten Funktionen direkt aufrufen | Argumentprüfung, Fehlercodes, das Ausgabepuffer-Protokoll, Zustandsautomaten, Aufrufe für Layout / Scrollen / Detailstufen, Ablehnung zu großer Ausgaben vor der Allokation | das Verhalten des kompilierten Moduls |
+> | Das kompilierte Modul | CI: `cargo build --target wasm32-unknown-unknown`, dann `node osatura-wasm/js/test.mjs demo.json` mit der echten `.wasm` | dass die Abhängigkeiten für wasm32 kompilieren, dass das Modul exportiert, was der Wrapper erwartet, und dass Laden, Rendern und die Aufrufe des Zustandsautomaten in der WebAssembly-Engine von Node funktionieren | Browser, Geschwindigkeit und Speicher des Release-Builds, Panics (ein Trap), die Demoseite |
 > | Der JavaScript-Wrapper | dasselbe Skript gegen einen **JavaScript-Mock** der Exporte (drei Mock-Abschnitte: Rendern, Zustandsautomat, Layout) | die Aufrufabfolgen des Wrappers, Stringübergabe, Fehlerübersetzung, Kopieren der Ergebnisse | - |
 > | Die Demoseite | in Headless-Chromium **ohne** die `.wasm`-Datei geladen | die Modulimportpfade lösen sich auf und die Seite meldet „wasm not found“, statt abzustürzen | irgendein Rendering in einem Browser |
-> | Abhängigkeiten | `cargo tree -p armatura-wasm`: kein `rhai` / `smartstring` im Baum | die Scripting-Engine ist nicht Teil des Moduls | - |
+> | Abhängigkeiten | `cargo tree -p osatura-wasm`: kein `rhai` / `smartstring` im Baum | die Scripting-Engine ist nicht Teil des Moduls | - |
 >
-> **Verbleibende Risiken:** (1) *In CI gelöst:* die Kompilierung von `zip`, `tiny-skia`, `png`, `gif`, `jpeg-decoder`, `i_overlay` und deren Abhängigkeiten für `wasm32-unknown-unknown`. (2) `std::time::Instant` / `SystemTime`, `process::id` und `thread::spawn` **geraten** auf `wasm32-unknown-unknown` **in Panik**: Seit Welle 7 ruft der Core sie nicht mehr direkt auf. Jede Verwendung läuft über `armatura_core::clock` (ein Stamp-Typ, `unix_seconds`, `process_id`; der Builder für LOD-Proxys fällt auf den aufrufenden Thread zurück, wenn kein Thread gestartet werden kann), der auf diesem Target eine vom Host gelieferte Uhr liest (der Export `arm_set_clock(mono_ms, unix_ms)`, vom JavaScript-Wrapper vor `load`, `svg` und `rgba` mit `performance.now()` und `Date.now()` gespeist; ein Host, der ihn nie aufruft, erhält Dauern von 0, sodass Zeitbudgets nie ablaufen) und nie in Panik gerät. Ein Test (`armatura-core/tests/wasm_safety.rs`) schlägt fehl, wenn außerhalb von `clock.rs` eine neue direkte Verwendung auftaucht; der Node-Test in CI übt die Pfade aus, die er erreicht, nicht alle. Rhai (das zusätzlich sein Feature `no_time` bräuchte) ist nicht im Build. (3) Module, die an Dateisystem und Prozesse gebunden sind, kompilieren, schlagen aber zur Laufzeit fehl: `audio.rs` (Datei öffnen), `soundtrack.rs` (ffprobe), `snapshots.rs`, `open_formats.rs` (Exportverzeichnisse), `agent.rs` (Speichern) sowie das Laden von Bildern und Normal Maps mit relativen Pfaden in `engine.rs`, `meshtrace.rs` und `postfx.rs`; sie liefern Fehler, statt in einem Browser zu funktionieren, und kein Cargo-Feature schaltet sie ab. (4) Gleitkommafunktionen (`sin`, `cos`, `powf`, ...) stammen auf wasm32 aus einer anderen Mathematikbibliothek, sodass gerenderte Pixel leicht von nativen abweichen können (Schritt 6 der Checkliste misst das). (5) Auf `wasm32-unknown-unknown` ist `panic = "abort"` der Standard, `catch_unwind` kann nichts abfangen, und eine Rust-Panik lässt die ganze Instanz abstürzen (`WebAssembly.RuntimeError: unreachable`). Siehe die [Verifikations-Checkliste](#verifikations-checkliste-für-die-erste-person-die-es-in-einem-browser-ausführt) am Ende.
+> **Verbleibende Risiken:** (1) *In CI gelöst:* die Kompilierung von `zip`, `tiny-skia`, `png`, `gif`, `jpeg-decoder`, `i_overlay` und deren Abhängigkeiten für `wasm32-unknown-unknown`. (2) `std::time::Instant` / `SystemTime`, `process::id` und `thread::spawn` **geraten** auf `wasm32-unknown-unknown` **in Panik**: Seit Welle 7 ruft der Core sie nicht mehr direkt auf. Jede Verwendung läuft über `osatura_core::clock` (ein Stamp-Typ, `unix_seconds`, `process_id`; der Builder für LOD-Proxys fällt auf den aufrufenden Thread zurück, wenn kein Thread gestartet werden kann), der auf diesem Target eine vom Host gelieferte Uhr liest (der Export `arm_set_clock(mono_ms, unix_ms)`, vom JavaScript-Wrapper vor `load`, `svg` und `rgba` mit `performance.now()` und `Date.now()` gespeist; ein Host, der ihn nie aufruft, erhält Dauern von 0, sodass Zeitbudgets nie ablaufen) und nie in Panik gerät. Ein Test (`osatura-core/tests/wasm_safety.rs`) schlägt fehl, wenn außerhalb von `clock.rs` eine neue direkte Verwendung auftaucht; der Node-Test in CI übt die Pfade aus, die er erreicht, nicht alle. Rhai (das zusätzlich sein Feature `no_time` bräuchte) ist nicht im Build. (3) Module, die an Dateisystem und Prozesse gebunden sind, kompilieren, schlagen aber zur Laufzeit fehl: `audio.rs` (Datei öffnen), `soundtrack.rs` (ffprobe), `snapshots.rs`, `open_formats.rs` (Exportverzeichnisse), `agent.rs` (Speichern) sowie das Laden von Bildern und Normal Maps mit relativen Pfaden in `engine.rs`, `meshtrace.rs` und `postfx.rs`; sie liefern Fehler, statt in einem Browser zu funktionieren, und kein Cargo-Feature schaltet sie ab. (4) Gleitkommafunktionen (`sin`, `cos`, `powf`, ...) stammen auf wasm32 aus einer anderen Mathematikbibliothek, sodass gerenderte Pixel leicht von nativen abweichen können (Schritt 6 der Checkliste misst das). (5) Auf `wasm32-unknown-unknown` ist `panic = "abort"` der Standard, `catch_unwind` kann nichts abfangen, und eine Rust-Panik lässt die ganze Instanz abstürzen (`WebAssembly.RuntimeError: unreachable`). Siehe die [Verifikations-Checkliste](#verifikations-checkliste-für-die-erste-person-die-es-in-einem-browser-ausführt) am Ende.
 
 Inhalt: [Was es ist](#was-es-ist) - [Bauen](#bauen) - [Speichermodell und die ABI](#speichermodell-und-die-abi) - [Export-Referenz](#export-referenz) - [Der JavaScript-Wrapper](#der-javascript-wrapper) - [Die Demoseite](#die-demoseite) - [Unterschiede zur C-ABI](#unterschiede-zur-c-abi) - [Bekannte Ecken und Kanten](#bekannte-ecken-und-kanten) - [Verifikations-Checkliste](#verifikations-checkliste-für-die-erste-person-die-es-in-einem-browser-ausführt)
 
 ## Was es ist
 
-`armatura-wasm` ist eine `cdylib` aus **einfachen `extern "C"`-Funktionen** (kein `wasm-bindgen`, kein generierter Glue-Code) über der stabilen Rust-Fassade ([API.md](API.md)). Für `wasm32-unknown-unknown` kompiliert, ergibt sie ein Modul, das ein Projekt öffnen, Frames als SVG-Text oder RGBA-Pixel rendern und Zustandsautomaten mit Layout, Scrollen und Detailstufen ausführen kann. Es kann nicht bearbeiten, exportieren, Versionskontrolle betreiben oder Werkzeuge ausführen; es hat kein Dateisystem, kein Netzwerk, kein Audio und keine Threads. `armatura.js` ist ein abhängigkeitsfreies ES-Modul (Browser und Node >= 18), das die Zeigerverwaltung verbirgt.
+`osatura-wasm` ist eine `cdylib` aus **einfachen `extern "C"`-Funktionen** (kein `wasm-bindgen`, kein generierter Glue-Code) über der stabilen Rust-Fassade ([API.md](API.md)). Für `wasm32-unknown-unknown` kompiliert, ergibt sie ein Modul, das ein Projekt öffnen, Frames als SVG-Text oder RGBA-Pixel rendern und Zustandsautomaten mit Layout, Scrollen und Detailstufen ausführen kann. Es kann nicht bearbeiten, exportieren, Versionskontrolle betreiben oder Werkzeuge ausführen; es hat kein Dateisystem, kein Netzwerk, kein Audio und keine Threads. `osatura.js` ist ein abhängigkeitsfreies ES-Modul (Browser und Node >= 18), das die Zeigerverwaltung verbirgt.
 
-Lizenz: MPL-2.0 (Crate und Wrapper). Das Modul hängt mit `default-features = false` von `armatura-core` ab: keine Scripting-Engine und kein MPL-lizenziertes Third-Party-Crate.
+Lizenz: MPL-2.0 (Crate und Wrapper). Das Modul hängt mit `default-features = false` von `osatura-core` ab: keine Scripting-Engine und kein MPL-lizenziertes Third-Party-Crate.
 
 ## Bauen
 
-Du musst es nicht selbst bauen: Die Entwurfsversion enthält `armatura-web.tar.gz` (Modul, Wrapper, Demoseite). Zum eigenen Bauen brauchst du eine Maschine, auf der das Target installiert werden kann (und optional `wasm-opt` aus Binaryen für die Größe). CI baut es mit `cargo build --release --target wasm32-unknown-unknown -p armatura-wasm --locked`.
+Du musst es nicht selbst bauen: Die Entwurfsversion enthält `osatura-web.tar.gz` (Modul, Wrapper, Demoseite). Zum eigenen Bauen brauchst du eine Maschine, auf der das Target installiert werden kann (und optional `wasm-opt` aus Binaryen für die Größe). CI baut es mit `cargo build --release --target wasm32-unknown-unknown -p osatura-wasm --locked`.
 
 ```sh
 rustup target add wasm32-unknown-unknown
-./armatura-wasm/build-wasm.sh
+./osatura-wasm/build-wasm.sh
 ```
 
-Das Skript (`armatura-wasm/build-wasm.sh`, ein POSIX-Shell-Skript) tut genau dies, vom Wurzelverzeichnis des Repositorys aus:
+Das Skript (`osatura-wasm/build-wasm.sh`, ein POSIX-Shell-Skript) tut genau dies, vom Wurzelverzeichnis des Repositorys aus:
 
-1. `cargo build --target wasm32-unknown-unknown --release -p armatura-wasm`
-2. kopiert `target/wasm32-unknown-unknown/release/armatura_wasm.wasm` nach `armatura-wasm/armatura_wasm.wasm`;
+1. `cargo build --target wasm32-unknown-unknown --release -p osatura-wasm`
+2. kopiert `target/wasm32-unknown-unknown/release/osatura_wasm.wasm` nach `osatura-wasm/osatura_wasm.wasm`;
 3. wenn `wasm-opt` im `PATH` liegt, schreibt es diese Datei mit `wasm-opt -Oz` neu;
 4. gibt die Größe des Ergebnisses und einen Hinweis aus, den Node-Test auszuführen oder die Demo auszuliefern.
 
-**Das Skript selbst führt CI nicht aus** (CI ruft `cargo build` direkt auf und kopiert das Modul). Sein abschließender Hinweis lautet `node armatura-wasm/js/test.mjs`; mit einer echten `.wasm` braucht der Test zusätzlich einen Projektpfad als erstes Argument (`node armatura-wasm/js/test.mjs project.json`), andernfalls bricht er mit „pass a project JSON path as argv[2]“ ab. Das Release-Modul im Entwurf ist als komprimiertes Archiv etwa 0,9 MB groß; die rohe Größe und die Größe nach `wasm-opt -Oz` sind hier nicht festgehalten.
+**Das Skript selbst führt CI nicht aus** (CI ruft `cargo build` direkt auf und kopiert das Modul). Sein abschließender Hinweis lautet `node osatura-wasm/js/test.mjs`; mit einer echten `.wasm` braucht der Test zusätzlich einen Projektpfad als erstes Argument (`node osatura-wasm/js/test.mjs project.json`), andernfalls bricht er mit „pass a project JSON path as argv[2]“ ab. Das Release-Modul im Entwurf ist als komprimiertes Archiv etwa 0,9 MB groß; die rohe Größe und die Größe nach `wasm-opt -Oz` sind hier nicht festgehalten.
 
 Liefere dann den Ordner über HTTP aus (Browser laden Module oder `.wasm` nicht von `file://`) und öffne die Demoseite:
 
 ```sh
-cd armatura-wasm && python3 -m http.server 8000      # then open http://localhost:8000/index.html
+cd osatura-wasm && python3 -m http.server 8000      # then open http://localhost:8000/index.html
 ```
 
 Wenn du `WebAssembly.instantiateStreaming` verwendest (der Wrapper tut das, wenn du eine `Response` übergibst), muss der Server `Content-Type: application/wasm` senden; der URL-Pfad des Wrappers verwendet `fetch(...).arrayBuffer()` und hat diese Anforderung nicht. Wenn deine Seite eine Content-Security-Policy setzt, muss sie die WebAssembly-Kompilierung erlauben (`'wasm-unsafe-eval'` in `script-src`).
@@ -108,12 +108,12 @@ Alle `arm_player_*`-Aufrufe außer `arm_player_start` brauchen einen gestarteten
 
 ## Der JavaScript-Wrapper
 
-`armatura-wasm/js/armatura.js` exportiert `class Armatura` (auch als Default-Export). Jede Methode, die etwas ändert, gibt `this` zurück, sodass sich Aufrufe verketten lassen. Fehler werden als `Error` mit der Meldung der Engine geworfen.
+`osatura-wasm/js/osatura.js` exportiert `class Osatura` (auch als Default-Export). Jede Methode, die etwas ändert, gibt `this` zurück, sodass sich Aufrufe verketten lassen. Fehler werden als `Error` mit der Meldung der Engine geworfen.
 
 | Member | Beschreibung |
 |---|---|
 | `static async instantiate(source, imports = {})` | gibt das rohe Exports-Objekt zurück. `source`: ein `ArrayBuffer` oder Typed Array (Bytes), eine `Response` (verwendet `instantiateStreaming`; braucht den MIME-Typ `application/wasm`) oder ein URL-String / `URL` (verwendet `fetch` + `arrayBuffer`). Das Modul hat keine Imports, daher bleibt `imports` `{}`. |
-| `static async create(source, project)` | `source` ist entweder bereits instanziierte Exporte (ein Objekt mit `arm_open`) oder alles, was `instantiate` akzeptiert; `project` ist JSON-Text oder ein einfaches Objekt (`JSON.stringify` wird angewendet). Gibt eine `Armatura` zurück. |
+| `static async create(source, project)` | `source` ist entweder bereits instanziierte Exporte (ein Objekt mit `arm_open`) oder alles, was `instantiate` akzeptiert; `project` ist JSON-Text oder ein einfaches Objekt (`JSON.stringify` wird angewendet). Gibt eine `Osatura` zurück. |
 | `load(project)` | lädt das Projekt oder ersetzt es; wirft bei einem Fehler und **lässt dann das zuvor geladene Projekt weiter benutzbar**. Füllt `frames`, `fps`, `width`, `height`. |
 | `frames`, `fps`, `width`, `height` | Fakten aus dem letzten `load` (`width` / `height` in Bühneneinheiten, Floats) |
 | `svg(n, showBones = false)` | `string`: SVG-Dokument für Frame `n` (gebrochene Frames erlaubt, begrenzt) |
@@ -136,20 +136,20 @@ Alle `arm_player_*`-Aufrufe außer `arm_player_start` brauchen einen gestarteten
 | `stop()` | stoppt `play` / `playMachine` |
 | `close()` | stoppt und gibt das Handle frei; rufe es auf, wenn du fertig bist |
 
-Der Wrapper führt die Abfragen von `x.memory.buffer` innerhalb jedes Aufrufs aus und kopiert Ergebnisse mit `.slice()` heraus, sodass Speicherwachstum ihm keine veraltete View hinterlassen kann. Jedes `Armatura`-Objekt besitzt ein Handle; erstelle mehrere Objekte (sie dürfen sich ein `exports` teilen), um mehrere Projekte zu halten. Teile ein Objekt nicht zwischen nebenläufigen asynchronen Aufgaben, die Aufrufe und Ergebnislesungen verschränken: Das Ergebnis jedes Aufrufs liegt bis zum nächsten Aufruf im Ausgabepuffer des Handles.
+Der Wrapper führt die Abfragen von `x.memory.buffer` innerhalb jedes Aufrufs aus und kopiert Ergebnisse mit `.slice()` heraus, sodass Speicherwachstum ihm keine veraltete View hinterlassen kann. Jedes `Osatura`-Objekt besitzt ein Handle; erstelle mehrere Objekte (sie dürfen sich ein `exports` teilen), um mehrere Projekte zu halten. Teile ein Objekt nicht zwischen nebenläufigen asynchronen Aufgaben, die Aufrufe und Ergebnislesungen verschränken: Das Ergebnis jedes Aufrufs liegt bis zum nächsten Aufruf im Ausgabepuffer des Handles.
 
 ### Beispiel (Aufrufabfolge)
 
 Dies ist genau die Aufrufabfolge, die der Node-Test ausführt. **Sie wurde gegen den JavaScript-Mock ausgeführt** (den Stellvertreter in `test.mjs` mit vorgefertigten Antworten: Automat `hero`, Ebene `body`, Bool-Eingabe `go`, Scroll-Region `list`), nicht gegen ein echtes Modul.
 
 ```js
-import { Armatura } from './js/armatura.js';
+import { Osatura } from './js/osatura.js';
 
-// 1. Instantiate the module once (a URL in the browser; in node pass the bytes: readFileSync('armatura_wasm.wasm')).
-const exports = await Armatura.instantiate('./armatura_wasm.wasm');
+// 1. Instantiate the module once (a URL in the browser; in node pass the bytes: readFileSync('osatura_wasm.wasm')).
+const exports = await Osatura.instantiate('./osatura_wasm.wasm');
 
 // 2. Load a project (JSON text or a plain object). Throws Error(<engine message>) when it is invalid.
-const anim = await Armatura.create(exports, projectJsonText);
+const anim = await Osatura.create(exports, projectJsonText);
 console.log(`${anim.width}x${anim.height} stage units, ${anim.frames} frames @ ${anim.fps} fps`);
 
 // 3. Render. Frames may be fractional and are clamped to the timeline.
@@ -179,10 +179,10 @@ Auf einer Browserseite:
 ```html
 <canvas id="c"></canvas>
 <script type="module">
-  import { Armatura } from './js/armatura.js';
-  const x = await Armatura.instantiate('./armatura_wasm.wasm');
+  import { Osatura } from './js/osatura.js';
+  const x = await Osatura.instantiate('./osatura_wasm.wasm');
   const text = await (await fetch('./project.json')).text();
-  const anim = await Armatura.create(x, text);
+  const anim = await Osatura.create(x, text);
 
   // Timeline playback: requestAnimationFrame loop, loops at the end, returns a stop function.
   const stop = anim.play(document.getElementById('c'), { scale: 1, loop: true });
@@ -195,7 +195,7 @@ Auf einer Browserseite:
 
 ## Die Demoseite
 
-`armatura-wasm/index.html` ist eine minimale Seite: Sie importiert den Wrapper, instanziiert `./armatura_wasm.wasm` und bietet ein Dateieingabefeld (`.json`-Projekt) und einen Stopp-Button. Die Auswahl einer Datei erstellt eine `Armatura`, zeigt `WIDTHxHEIGHT, N frames @ FPS fps` an und startet `play(canvas)`; Fehler der Engine werden in dem Text neben den Buttons angezeigt. Wenn das Modul nicht abgerufen oder kompiliert werden kann, zeigt sie `wasm not found (not built yet): <reason>`. Nur in diesem Zustand „nicht gebaut“ getestet, in Headless-Chromium: Die Seite lädt, der Modulimport löst sich auf, die Meldung erscheint (mit der 404-Seite des Servers als „Modul“ lautet der Grund `expected magic word 00 61 73 6d, found 3c 21 44 4f`, siehe unten). Alles darüber hinaus ist unverifiziert.
+`osatura-wasm/index.html` ist eine minimale Seite: Sie importiert den Wrapper, instanziiert `./osatura_wasm.wasm` und bietet ein Dateieingabefeld (`.json`-Projekt) und einen Stopp-Button. Die Auswahl einer Datei erstellt eine `Osatura`, zeigt `WIDTHxHEIGHT, N frames @ FPS fps` an und startet `play(canvas)`; Fehler der Engine werden in dem Text neben den Buttons angezeigt. Wenn das Modul nicht abgerufen oder kompiliert werden kann, zeigt sie `wasm not found (not built yet): <reason>`. Nur in diesem Zustand „nicht gebaut“ getestet, in Headless-Chromium: Die Seite lädt, der Modulimport löst sich auf, die Meldung erscheint (mit der 404-Seite des Servers als „Modul“ lautet der Grund `expected magic word 00 61 73 6d, found 3c 21 44 4f`, siehe unten). Alles darüber hinaus ist unverifiziert.
 
 ## Unterschiede zur C-ABI
 
@@ -204,8 +204,8 @@ Auf einer Browserseite:
 | Strings hinein | NUL-terminiert | `(ptr, len)`, mit `arm_alloc` hineinkopiert |
 | Ergebnisse hinaus | vom Aufrufer bereitgestellte Puffer | der Ausgabepuffer des Handles (`arm_out_ptr/len`), gültig bis zum nächsten Aufruf mit Ausgabe |
 | Größenabfrage | ein `NULL`-Puffer gibt die Größe zurück | nicht nötig: Der Aufruf gibt die Länge zurück und die Daten liegen schon im Ausgabepuffer |
-| Fehlertext | `armatura_last_error()` NUL-String, pro Thread | `arm_error_ptr/len` Bytes, global |
-| Knochenmatrizen | `armatura_bone_world` | nicht exportiert |
+| Fehlertext | `osatura_last_error()` NUL-String, pro Thread | `arm_error_ptr/len` Bytes, global |
+| Knochenmatrizen | `osatura_bone_world` | nicht exportiert |
 | SVG | nicht exportiert | `arm_render_svg`, `arm_player_render_svg` |
 | Ereignisse | Größenabfrage-Muster, bleiben erhalten, wenn der Puffer zu klein ist | immer verbraucht |
 | Bühnengröße | gerundete Ganzzahlen | Floats |
@@ -214,7 +214,7 @@ Auf einer Browserseite:
 
 Beim Lesen des Codes gefunden; keine davon wurde je als fehlschlagend beobachtet:
 
-* `Armatura.instantiate(url)` prüft `response.ok` und Fetch-Fehler und meldet die URL und den HTTP-Status (Mock-Fetch-Tests in `armatura-wasm/js/test.mjs`; unter Node ausgeführt, und in CI gegen das echte Modul).
+* `Osatura.instantiate(url)` prüft `response.ok` und Fetch-Fehler und meldet die URL und den HTTP-Status (Mock-Fetch-Tests in `osatura-wasm/js/test.mjs`; unter Node ausgeführt, und in CI gegen das echte Modul).
 * `frame()` mit `kind: 'svg'` gibt `{ svg }` zurück, nicht wie `svg()` einen String.
 * Der von `build-wasm.sh` ausgegebene Hinweis enthält jetzt das Argument `<project.json>`, das `test.mjs` braucht.
 * `play()` zeichnet, indem es jeden Frame auf der CPU in RGBA umwandelt und `putImageData` aufruft; es gibt kein Audio, kein Pausieren, kein Springen.
@@ -224,16 +224,16 @@ Beim Lesen des Codes gefunden; keine davon wurde je als fehlschlagend beobachtet
 
 Die Schritte 1 und 5 hat CI am 24. Okt. 2026 erledigt (Build und der Lauf unter Node; Schritt 3 ergibt sich aus diesem Lauf, aber die Exportliste wurde nicht ausgegeben; Schritt 4, die Größe, wurde nicht festgehalten); der Rest, vor allem die Browser-Schritte 11 bis 13, ist noch offen. Arbeite sie der Reihe nach ab; halte beim ersten Fehlschlag an und notiere die genaue Meldung. Mit (risk) markierte Punkte entsprechen den oben genannten Risiken. Wenn du Ergebnisse hast, aktualisiere [LIMITATIONS.md](LIMITATIONS.md) (Abschnitt 1), die Zeile R-090 in ROADMAP.md Abschnitt 9 und die Statusbox dieser Seite.
 
-1. **Target installieren und bauen.** `rustup target add wasm32-unknown-unknown && ./armatura-wasm/build-wasm.sh`. (risk) Du wirst sehen, ob `zip`, `tiny-skia`, `png`, `gif`, `jpeg-decoder` und `i_overlay` kompilieren. Notiere den Compiler und `rustc --version`.
-2. **Keine Scripting-Engine.** `cargo tree --target wasm32-unknown-unknown -p armatura-wasm | grep -ci 'rhai\|smartstring'` muss 0 ausgeben.
-3. **Die Exporte ansehen.** In Node: `WebAssembly.Module.exports(new WebAssembly.Module(fs.readFileSync('armatura-wasm/armatura_wasm.wasm')))`. Erwartet werden `memory` und die 36 Funktionen der [Export-Tabelle](#export-referenz) und **keine Imports** (`WebAssembly.Module.imports(...)` leer). Fehlt `memory` oder tauchen Imports auf (zum Beispiel `env.*` aus einem Std-Feature), muss der Wrapper angepasst werden.
+1. **Target installieren und bauen.** `rustup target add wasm32-unknown-unknown && ./osatura-wasm/build-wasm.sh`. (risk) Du wirst sehen, ob `zip`, `tiny-skia`, `png`, `gif`, `jpeg-decoder` und `i_overlay` kompilieren. Notiere den Compiler und `rustc --version`.
+2. **Keine Scripting-Engine.** `cargo tree --target wasm32-unknown-unknown -p osatura-wasm | grep -ci 'rhai\|smartstring'` muss 0 ausgeben.
+3. **Die Exporte ansehen.** In Node: `WebAssembly.Module.exports(new WebAssembly.Module(fs.readFileSync('osatura-wasm/osatura_wasm.wasm')))`. Erwartet werden `memory` und die 36 Funktionen der [Export-Tabelle](#export-referenz) und **keine Imports** (`WebAssembly.Module.imports(...)` leer). Fehlt `memory` oder tauchen Imports auf (zum Beispiel `env.*` aus einem Std-Feature), muss der Wrapper angepasst werden.
 4. **Größe.** Notiere die Größe vor und nach `wasm-opt -Oz` sowie die Größen mit gzip / brotli. Bisher wurde nie etwas gemessen.
-5. **Den Node-Test mit einem echten Projekt ausführen.** `armatura demo demo.json && node armatura-wasm/js/test.mjs demo.json` muss nach den drei Mock-Abschnitten `real wasm tests: ok` ausgeben.
-6. **Mit dem nativen Renderer vergleichen.** Vergleiche für die Frames 0, 12 und 47 der Demo bei den Skalierungen 0.5 und 1 `Armatura.rgba` mit `armatura render demo.json N out.png --scale S`, nach RGBA dekodiert. (risk) Erwarte kleine Unterschiede an anti-aliasten Kanten (andere Mathematikbibliothek); berichte die maximale und die mittlere absolute Abweichung und den Anteil der Pixel über 24/255. Eine große Abweichung deutet auf einen echten Fehler hin.
+5. **Den Node-Test mit einem echten Projekt ausführen.** `osatura demo demo.json && node osatura-wasm/js/test.mjs demo.json` muss nach den drei Mock-Abschnitten `real wasm tests: ok` ausgeben.
+6. **Mit dem nativen Renderer vergleichen.** Vergleiche für die Frames 0, 12 und 47 der Demo bei den Skalierungen 0.5 und 1 `Osatura.rgba` mit `osatura render demo.json N out.png --scale S`, nach RGBA dekodiert. (risk) Erwarte kleine Unterschiede an anti-aliasten Kanten (andere Mathematikbibliothek); berichte die maximale und die mittlere absolute Abweichung und den Anteil der Pixel über 24/255. Eine große Abweichung deutet auf einen echten Fehler hin.
 7. **Den Player ausprobieren.** Baue das Projekt des C-ABI-Beispiels (Demo + `take-record` + `clip add` + `machine add`, siehe [C_ABI.md](C_ABI.md)), steuere `startPlayer`, `setBool`, `advance`, `state`, `events`, `playerRgba`; und das Projekt mit einem Container und einer Scroll-Region für `setCanvas`, `scrollDrag`, `scrollRelease`, `scrollInfo`, `setScreen` (Letzteres baut Detailstufen: miss die Zeit, es ist unoptimiert langsam und wurde auf wasm nicht gemessen).
 8. **Pfade für sicheres Scheitern.** Gib ein ungültiges Projekt, einen leeren String, eine 5 MB große Zufallsdatei, ein Projekt mit einem Bildpfad in `source.file` und ein Projekt mit einer Tonspur ein. Jeder Fall muss einen geworfenen `Error` mit einer Meldung erzeugen, keinen Trap. (risk) Ein Trap (`RuntimeError: unreachable`) bei einem davon ist ein zu meldender Bug; die wahrscheinlichsten Kandidaten sind `Instant` / `SystemTime` oder Dateisystemaufrufe, die über einen unerwarteten Pfad erreicht werden.
 9. **Großes Rendering.** `rgba(0, 4)` auf der Demo (2560 x 1920) und eine Bühne von 12000 x 12000 bei Skalierung 1 (muss mit der Meldung „more than the limit“ abgelehnt werden, nicht den Speicher erschöpfen). Beobachte das Speicherwachstum und bestätige, dass der Wrapper nach dem Wachstum des Speichers noch funktioniert (Views werden pro Aufruf neu gelesen).
-10. **Stacktiefe.** `wasm32-unknown-unknown` gibt dem Haupt-Thread einen kleinen Standard-Stack (1 MiB in aktuellen Toolchains). Öffne ein Projekt mit tief verschachtelten Gruppen und einer langen Ausdruckskette (feindselige Eingaben siehe `armatura-cli/tests/robust.rs`) und bestätige, dass kein Stack-Overflow-Trap auftritt.
+10. **Stacktiefe.** `wasm32-unknown-unknown` gibt dem Haupt-Thread einen kleinen Standard-Stack (1 MiB in aktuellen Toolchains). Öffne ein Projekt mit tief verschachtelten Gruppen und einer langen Ausdruckskette (feindselige Eingaben siehe `osatura-cli/tests/robust.rs`) und bestätige, dass kein Stack-Overflow-Trap auftritt.
 11. **Lauf im Browser.** Liefere den Ordner aus, öffne `index.html` in Chromium und Firefox, wähle ein Projekt, bestätige die Wiedergabe, ändere die Größe, schließe und öffne mehrere Projekte erneut (Leak-Prüfung: Der Speicher sollte nicht unbegrenzt wachsen; `close()` gibt das Handle frei).
 12. **`instantiateStreaming` und CSP.** Liefere mit und ohne `Content-Type: application/wasm` aus und mit einer CSP, die `'wasm-unsafe-eval'` auslässt; dokumentiere, was passiert.
 13. **Performance.** Miss `rgba(n, 1)` für die Demo mit 640 x 480 (nativ im Release: etwa 14 ms pro Frame) und ein aufwendiges Projekt; notiere die Frames pro Sekunde von `play()` im Browser.

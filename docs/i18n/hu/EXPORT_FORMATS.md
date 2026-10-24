@@ -3,12 +3,12 @@ SPDX-License-Identifier: CC-BY-4.0
 Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio)
 -->
 
-# ARMATURA export- és importformátumok
+# OSATURA export- és importformátumok
 
-Mit őriz meg, mit közelít és mit hagy el az ARMATURA által írt vagy olvasott összes fájlformátum, melyik parancs állítja elő, és hogyan
-ellenőrizhető az eredmény. Ez a szöveg CC-BY-4.0 licencű. Dokumentált verzió: **armatura 0.1.0**.
+Mit őriz meg, mit közelít és mit hagy el az OSATURA által írt vagy olvasott összes fájlformátum, melyik parancs állítja elő, és hogyan
+ellenőrizhető az eredmény. Ez a szöveg CC-BY-4.0 licencű. Dokumentált verzió: **osatura 0.1.0**.
 
-Az alábbi parancssorok mindegyikét a beépített demóprojekten (`armatura demo demo.json`) vagy annak 8 képkockás másolatán
+Az alábbi parancssorok mindegyikét a beépített demóprojekten (`osatura demo demo.json`) vagy annak 8 képkockás másolatán
 (`small.json`, ugyanaz a projekt `"frames": 8` beállítással) futtattuk. Az idézett méretek ebből a 8 képkockás, 640x480-as projektből származnak, és csak
 tájékoztatásul szolgálnak: a képkockák, horgonyok és rétegek számával skálázódnak, nem valamilyen rögzített értékkel. A parancsok részletei (minden opció,
 minden hiba) a [CLI_REFERENCE.md](CLI_REFERENCE.md) fájlban vannak; magának a projektnek a fájlformátuma a
@@ -40,7 +40,7 @@ minden hiba) a [CLI_REFERENCE.md](CLI_REFERENCE.md) fájlban vannak; magának a 
 
 | Ezt szeretnéd... | Használd ezt | Miért |
 |---|---|---|
-| A pontos megjelenést, egyetlen fájlként megosztva, bármely böngészőben lejátszható, léptethető | `.html` | Az ARMATURA saját renderere által rajzolt beágyazott SVG-képkockák; semmi sem közelített. |
+| A pontos megjelenést, egyetlen fájlként megosztva, bármely böngészőben lejátszható, léptethető | `.html` | Az OSATURA saját renderere által rajzolt beágyazott SVG-képkockák; semmi sem közelített. |
 | Kis vektoros animációt weboldalhoz vagy Lottie-lejátszós alkalmazáshoz | `.json` vagy `.lottie` | Vektoros, felbontásfüggetlen, kicsi; de lásd az elhagyott elemek listáját (képek, változó szélességű vonalak, hang...). |
 | Ismétlődő előnézetet csevegéshez vagy README-hez | `.gif` | Mindenhol működik; képkockánként 256 szín, 1 bites átlátszóság, hang nélkül. |
 | GIF-helyettesítőt teljes színnel és alfával | `.apng` | Veszteségmentes 8 bites RGBA; nagyobb, mint a GIF. |
@@ -86,11 +86,11 @@ szimbolikus linkeket, hacsak nem adod meg a `--follow-symlinks` kapcsolót (CLI_
 ### SVG (`render ... out.svg`, `frames`)
 
 ```
-$ armatura render demo.json 12 f12.svg --bones
+$ osatura render demo.json 12 f12.svg --bones
 wrote f12.svg
-$ armatura frames demo.json fr            # fr/frame_0000.svg ... frame_0047.svg
+$ osatura frames demo.json fr            # fr/frame_0000.svg ... frame_0047.svg
 ```
-Az ARMATURA saját rendererének vektoros kimenete: az útvonalak, színátmenetek, szélességprofilos vonalak, szaggatott vonalak, keverési módok, maszkok és réteg-
+Az OSATURA saját rendererének vektoros kimenete: az útvonalak, színátmenetek, szélességprofilos vonalak, szaggatott vonalak, keverési módok, maszkok és réteg-
 effektek SVG-ként íródnak. A `--bones` a csontváz-réteget rajzolja meg. `.svg` esetén a `--scale` nem változtatja meg a dokumentum viewBox értékét. **Ismert elhagyások/korlátok:** a renderer egyet sem jelent; az, hogy egy adott SVG-megjelenítő hogyan kezeli a keverési módokat és a szűrőket, az
 a megjelenítőtől függ. A `--proxy N` egyszerűsített léptető proxyt ír, amely elhagyja a finom vonalakat, a színátmeneteket és a keverési módokat (nem
 leszállítandó anyagnak való). **Ellenőrzés:** nyisd meg böngészőben, vagy `python3 -c "import xml.dom.minidom,sys; xml.dom.minidom.parse(sys.argv[1])" f12.svg`.
@@ -99,16 +99,16 @@ leszállítandó anyagnak való). **Ellenőrzés:** nyisd meg böngészőben, va
 
 8 bites RGBA, sRGB, a motor saját rasztereződője rendereli. A `--scale N` a (0, 16] tartományban megszorozza a pixelméretet. Az
 `"background": null` projekt átlátszóan renderelődik ott, ahol semmi sincs rajzolva. Alapértelmezés szerint nem színkezelt: az értékek sRGB-kódolt térben keverednek.
-A 7. hullám óta a projekt lineáris fényű kompozitálást is választhat (`armatura color-space p.json out.json linear`, `color_space` mező):
+A 7. hullám óta a projekt lineáris fényű kompozitálást is választhat (`osatura color-space p.json out.json linear`, `color_space` mező):
 a raszteres, GIF, APNG, videó és `render-hdr` kimenetek ekkor f32 lineáris fényben kompozitálódnak, és csak egyszer alakulnak sRGB-be; az SVG és
 a Lottie nem változik (LIMITATIONS L-22).
 
 ### 16 bites PNG és OpenEXR (`render-hdr`)
 
 ```
-$ armatura render-hdr small.json 3 f.exr                           # HALF, 640x480, 465,611 bytes
-$ armatura render-hdr small.json 3 f2.exr linear --precision float # FLOAT, 923,211 bytes
-$ armatura render-hdr small.json 3 f4.png                          # 16-bit/colour RGBA, sRGB-encoded
+$ osatura render-hdr small.json 3 f.exr                           # HALF, 640x480, 465,611 bytes
+$ osatura render-hdr small.json 3 f2.exr linear --precision float # FLOAT, 923,211 bytes
+$ osatura render-hdr small.json 3 f4.png                          # 16-bit/colour RGBA, sRGB-encoded
 ```
 * **OpenEXR:** egyrészes, scanline, **tömörítetlen**, `A B G R` csatornák, lineáris fény, premultiplikált alfa. Alapértelmezés szerint `HALF`,
   `FLOAT` a `--precision float` (vagy `--float32`) megadásakor. A `linear` szónak nincs hatása EXR esetén (mindig lineáris).
@@ -128,7 +128,7 @@ a `.gif .apng .webm .mp4 .png` formátumokra vonatkozik; más formátumokon elut
 ### PNG sprite sheet (`export ... out.png`)
 
 ```
-$ armatura export small.json out3.png --columns 4 --scale 0.25
+$ osatura export small.json out3.png --columns 4 --scale 0.25
 wrote out3.atlas.json
 wrote out3.png                    # 4 columns x 2 rows of 160x120 tiles
 ```
@@ -139,7 +139,7 @@ Az atlasz korábban `out3.json` volt, és csendben felülírhatott egy azonos ne
 ### GIF (`export ... out.gif`)
 
 ```
-$ armatura export small.json out.gif --scale 0.5
+$ osatura export small.json out.gif --scale 0.5
 wrote out.gif                      # 8 frames, 83 KB
 ```
 * Forrásképkockánként egy kép, **végtelen ismétléssel**, képkockánként legfeljebb 256 színű helyi paletta (kvantált, dithering nélkül).
@@ -165,9 +165,9 @@ ilyenkor használj WebM-et vagy GIF-et. **Ellenőrzés:** `ffprobe` a `-count_fr
 ### WebM (`export ... out.webm`) és MP4 (`export ... out.mp4`)
 
 ```
-$ armatura export small.json out.mp4  --scale 0.5     # h264, yuv420p, 320x240, 8 frames
-$ armatura export small.json out.webm --scale 0.5     # vp9, yuv420p + alpha_mode=1
-$ armatura export small.json out.webm --codec av1     # needs an ffmpeg with libaom-av1
+$ osatura export small.json out.mp4  --scale 0.5     # h264, yuv420p, 320x240, 8 frames
+$ osatura export small.json out.webm --scale 0.5     # vp9, yuv420p + alpha_mode=1
+$ osatura export small.json out.webm --codec av1     # needs an ffmpeg with libaom-av1
 ```
 * **MP4:** H.264 (`libx264`), `yuv420p`, **alfa nélkül**. AAC hang, ha a projektnek vannak hangsávjai.
 * **WebM:** VP9 (`libvpx-vp9`, alapértelmezett) vagy AV1 (`libaom-av1`, `--codec av1`); az alfacsatorna megmarad (`yuva420p`, a konténer címkéje:
@@ -185,7 +185,7 @@ $ armatura export small.json out.webm --codec av1     # needs an ffmpeg with lib
 ## 5. HTML-lejátszó
 
 ```
-$ armatura export small.json out.html
+$ osatura export small.json out.html
 wrote out.html                     # 66 KB for 8 frames
 ```
 Egyetlen önálló HTML-fájl: **minden képkocka beágyazott SVG-ként**, lejátszás/szünet gomb, időcsúszka (range input) és képkockafelirat,
@@ -205,11 +205,11 @@ formátumok közül (a maszkok, keverési módok, effektek, csontok, IK, deforme
 ## 6. Lottie (.json) és dotLottie (.lottie)
 
 ```
-$ armatura export small.json out.json --report rep.json
+$ osatura export small.json out.json --report rep.json
 wrote out.json
 warning: [variable-width-stroke] ink: variable-width stroke profiles are not supported by Lottie; the constant base width is used
 warning: [gradient-anisotropic] shadow: a gradient on a layer with non-uniform scale or skew is approximated (Lottie gradients are not sheared)
-$ armatura export small.json out.lottie       # a zip: manifest.json + animations/animation.json
+$ osatura export small.json out.lottie       # a zip: manifest.json + animations/animation.json
 ```
 
 ### Felépítése
@@ -256,7 +256,7 @@ méretek színpadegységben vannak (LIMITATIONS L-23).
 
 ### dotLottie (`.lottie`)
 
-Egy zip `manifest.json` fájllal (`{"animations":[{"autoplay":true,"id":"animation","loop":true}],"generator":"ARMATURA","version":"1"}`) és
+Egy zip `manifest.json` fájllal (`{"animations":[{"autoplay":true,"id":"animation","loop":true}],"generator":"OSATURA","version":"1"}`) és
 `animations/animation.json` fájllal (ugyanaz a Lottie, mint fent, deflate-tel tömörítve: 46 843 bájtból 11 515 bájtos fájl lett). A `--report` ugyanúgy
 működik. A `.lottie` **importálása** nem támogatott (az `import-lottie` JSON-t igényel; előbb csomagold ki az `animations/animation.json` fájlt).
 
@@ -264,10 +264,10 @@ működik. A `.lottie` **importálása** nem támogatott (az `import-lottie` JSO
 
 * `python3 -m json.tool out.json > /dev/null` a jólformáltság ellenőrzéséhez; `python3 -c "import json;d=json.load(open('out.json'));print(d['v'],d['fr'],d['op'],len(d['layers']))"`.
 * Az `unzip -l out.lottie` pontosan a két bejegyzést kell mutassa.
-* Körbejárás: az `armatura import-lottie out.json back.json`, majd az `armatura check back.json` igazolja, hogy az ARMATURA el tudja olvasni a saját
+* Körbejárás: az `osatura import-lottie out.json back.json`, majd az `osatura check back.json` igazolja, hogy az OSATURA el tudja olvasni a saját
   kimenetét (a körbejárás veszteséges: a rig elvész).
 * **Független Lottie-lejátszó nem állt rendelkezésre** az írás idején (LIMITATIONS L-28): a kimenetet a Lottie mezőszerkezetével és
-  az ARMATURA saját importerével vetettük össze. Tesztelj a célodnak megfelelő lejátszóban (lottie-web, dotLottie player, Skottie, ...), és olvasd el a
+  az OSATURA saját importerével vetettük össze. Tesztelj a célodnak megfelelő lejátszóban (lottie-web, dotLottie player, Skottie, ...), és olvasd el a
   figyelmeztetéseket; ha a pontosság fontos, használj `.html` fájlt vagy videót.
 * **Mérettippek:** az `export-fit --format lottie` négy paramétert (`decimals`, `path_eps`, `key_tol`, `frame_step`) keres egy bájtkeretnek megfelelően;
   a `lod` az export előtt csökkenti a horgonyok számát; a `size-report` rétegenként mutatja a bake-elt Lottie méretét (13. szakasz).
@@ -276,12 +276,12 @@ működik. A `.lottie` **importálása** nem támogatott (az `import-lottie` JSO
 ## 7. glTF bináris (.glb)
 
 ```
-$ armatura export small.json out.glb
+$ osatura export small.json out.glb
 wrote out.glb
 warning: [glb-limit] blend mode Screen of 'sun' is not exported (glTF materials only alpha-blend); it is drawn as normal
 warning: [glb-limit] animated opacity of 'target' is not exported (frozen at frame 0)
 ```
-glTF 2.0 bináris (`glTF` magic, 2-es verzió, `"generator": "armatura"`), csak az alapfunkciók. A projektnek rendelkeznie kell csontokkal
+glTF 2.0 bináris (`glTF` magic, 2-es verzió, `"generator": "osatura"`), csak az alapfunkciók. A projektnek rendelkeznie kell csontokkal
 (`the project has no bones to export` egyébként).
 
 * **Pontos:** a csonthierarchia és animációja (minden képkockán mintavételezve, lineáris interpoláció, a nyírás elhagyva).
@@ -307,8 +307,8 @@ glTF 2.0 bináris (`glTF` magic, 2-es verzió, `"generator": "armatura"`), csak 
 ## 8. Open Cel Animation (OCA) mappa
 
 ```
-$ armatura export-oca small.json oca1                 # one layer "render" with all composited frames
-$ armatura export-oca small.json oca2 --layers        # one OCA layer per top-level layer
+$ osatura export-oca small.json oca1                 # one layer "render" with all composited frames
+$ osatura export-oca small.json oca2 --layers        # one OCA layer per top-level layer
 wrote oca2/small.oca
 ```
 Kiírja az `<out_dir>/<project name>.oca` fájlt (JSON, `ocaVersion` 1.1) és a `layerN/fNNNN.png` PNG cel-eket. A `--layers` nélkül egyetlen `render`
@@ -325,7 +325,7 @@ Az importok **új** projektet hoznak létre (nem olvadnak bele egy meglévőbe),
 ### SVG (`import-svg`)
 
 ```
-$ armatura import-svg art.svg svg.json
+$ osatura import-svg art.svg svg.json
 warning: unsupported paint 'url(#g)'; using grey
 warning: <text> is not supported and was skipped
 wrote svg.json (3 paths)
@@ -339,7 +339,7 @@ réteg, `svg`**. `warning:` sorral átugorva (a **stdout**-ra írva): `<text>`, 
 ### OpenRaster (`import-ora`)
 
 ```
-$ armatura import-ora art.ora ora.json --fps 12 --frames 24
+$ osatura import-ora art.ora ora.json --fps 12 --frames 24
 ```
 **Rasztereréteg-enként egy képréteg** (beágyazott PNG), alulról felfelé sorrendben, a rejtett rétegek megmaradnak, de láthatatlanok, a csoportok laposítva, rétegenkénti
 átlátszatlanság, láthatóság és pozíció, valamint a gyakori `svg:` kompozitműveletek (multiply, screen, overlay, darken, lighten, color-dodge,
@@ -351,7 +351,7 @@ nincs. A PSD-import nincs megvalósítva (LIMITATIONS L-32).
 ### Lottie (`import-lottie`)
 
 ```
-$ armatura import-lottie in.json out.json [fx.json]
+$ osatura import-lottie in.json out.json [fx.json]
 warning: layer 'text' of type 5 skipped
 imported 1 layers; wrote out.json
 ```
@@ -378,8 +378,8 @@ Szándékos **részhalmaz**; minden kihagyott funkció egy `warning:` sor.
 ### Képek, GIF és APNG képkockánkénti rétegként
 
 ```
-$ armatura import-seq demo.json is.json frames seq hold=2 loop=on start=4 x=10 y=20      # folder of PNGs
-$ armatura import-anim demo.json ia.json gifl dof.gif loop=off start=0                    # animated GIF/APNG
+$ osatura import-seq demo.json is.json frames seq hold=2 loop=on start=4 x=10 y=20      # folder of PNGs
+$ osatura import-anim demo.json ia.json gifl dof.gif loop=off start=0                    # animated GIF/APNG
 ```
 Az `import-seq` egy mappa összes PNG-jét fájlnév szerinti sorrendben veszi (mind azonos méretű); az `import-anim` animált GIF-et vagy APNG-t olvas a fájl
 saját késleltetéseivel (a sima PNG egy képkockát ad). Mindkettő switch réteget ad hozzá képkockánként egy beágyazott képpel, plusz egy lépéscsatornával; **meglévő**
@@ -391,8 +391,8 @@ projekten dolgoznak. A hosszú GIF nagyra duzzasztja a projektet (minden képkoc
 ### BVH (`import-bvh`, `mocap-info`, `mocap-match`, `mocap-retarget`)
 
 ```
-$ armatura mocap-info walk.bvh
-$ armatura import-bvh demo.json walk.bvh ib.json --joint-map LeftUpLeg=thigh,LeftLeg=shin --axis Zrotation --tol 0.5
+$ osatura mocap-info walk.bvh
+$ osatura import-bvh demo.json walk.bvh ib.json --joint-map LeftUpLeg=thigh,LeftLeg=shin --axis Zrotation --tol 0.5
 wrote ib.json (+2 channels from 4 BVH frames)
 ```
 Az `import-bvh` a kiválasztott ízületi forgatási csatornákat csontokra képezi kulcsolt `bone_angle` csatornákként, a projekt fps és képkockaszám szerint mintavételezve
@@ -405,7 +405,7 @@ csökken.
 ### MIDI és más élő bemenet (`live-map`)
 
 ```
-$ armatura live-map small.json song.mid mapping.json out.json
+$ osatura live-map small.json song.mid mapping.json out.json
 3 events -> +1 channels (K keys in them), 0 trigger keys set, 0 takes, 0 events (0 after the last frame skipped); wrote out.json
 ```
 Egy **Standard MIDI File** (`.mid`; MIDI 1.0 üzenetek, running status, tempó meta-események, tick vagy SMPTE osztás) vagy egy eseményeket tartalmazó JSON
@@ -461,13 +461,13 @@ A „Baked” azt jelenti, hogy a funkció hatása a pixelekben vagy a képkock�
 
 ## 13. Kisebb fájlok készítése
 
-1. **Nézd meg, hol vannak a bájtok:** az `armatura size-report project.json` rétegek, képek és csatornák szerint listázza a projektfájlt, a bake-elt Lottie-t és a HTML-oldalt
+1. **Nézd meg, hol vannak a bájtok:** az `osatura size-report project.json` rétegek, képek és csatornák szerint listázza a projektfájlt, a bake-elt Lottie-t és a HTML-oldalt
    (`--json` szkriptekhez).
-2. **Illeszd automatikusan egy kerethez:** az `armatura export-fit project.json out.json --max-size 50KB --format lottie` végigkeresi az exportáló paramétereit, és
+2. **Illeszd automatikusan egy kerethez:** az `osatura export-fit project.json out.json --max-size 50KB --format lottie` végigkeresi az exportáló paramétereit, és
    megtartja a legjobb SSIM-et, amely belefér. Formátumok: `lottie`, `html`, `gif`, `apng`, `webm`, `project` (lecsupaszított projekt-JSON). A `--measure gzip` a
    gzip-méretre ad keretet, a `--min-ssim X` minőségi alsó határt állít be, a `--max-seconds N` valódi falióra-korlát (az addigi legjobb eredmény megmarad). Ha a keret nem
    tartható, 1-es kilépési kóddal a legkisebb eredményt adja.
-3. **Előbb csökkentsd a grafikát:** az `armatura lod project.json --tolerance-px 1 --levels 3 --out-dir lv --verify` részletességi szintű projekteket ír deklarált
+3. **Előbb csökkentsd a grafikát:** az `osatura lod project.json --tolerance-px 1 --levels 3 --out-dir lv --verify` részletességi szintű projekteket ír deklarált
    (és a `--verify` mellett mért) hibával kimeneti pixelekben; a `lod-pick --screen-px WxH` kiválasztja az adott képernyőhöz a legdurvább szintet.
 4. **Formátumonként:**
    * A Lottie/HTML/GLB a `frames x anchors` szorzattal nő: kevesebb képkocka, kevesebb horgony, alacsonyabb fps, megvágott kulcstartományok (`keys` eszközök).
@@ -479,7 +479,7 @@ A „Baked” azt jelenti, hogy a funkció hatása a pixelekben vagy a képkock�
 
 ## 14. Az ffmpeg követelményei
 
-Az ARMATURA soha nem csomagolja vagy linkeli az ffmpeg-et; a `PATH`-on található `ffmpeg`-et (és `ffprobe`-ot) futtatja a saját telepítésed **külső alfolyamataként**.
+Az OSATURA soha nem csomagolja vagy linkeli az ffmpeg-et; a `PATH`-on található `ffmpeg`-et (és `ffprobe`-ot) futtatja a saját telepítésed **külső alfolyamataként**.
 
 | Mihez kell | Enkóder/dekóder | Ellenőrizve ezen |
 |---|---|---|
@@ -501,8 +501,8 @@ Ha az ffmpeg hiányzik, a parancs `cannot run ffmpeg (...)` üzenettel hibázik,
 * A [PATENT_NOTES.md](PATENT_NOTES.md) azt rögzíti, ami **nem** lett átvizsgálva. Az exportnál a releváns sor a *Video and audio codecs through ffmpeg
   (`export` .mp4 / .webm, `soundtrack`)*: a H.264-re és az AAC-re licencelési közösségek vonatkoznak; a VP9 és az AV1 jogdíjmentesként van forgalmazva, de közösségi és egyéni
   követeléseket jelentettek be mindkettőre; **státusz: nem értékelt, a VP9/AV1-et ne kezeld tisztázottként.** Mivel az ffmpeg a felhasználó saját telepítése, minden
-  kodekválasztás a felhasználó felelőssége, és az ARMATURA nem csomagolhatja az ffmpeg-et.
-* A determinisztikus raszter-, GIF-, APNG-, PNG-, SVG-, OpenEXR-, OCA-, ORA-, glTF- és Lottie-írók az ARMATURA saját megvalósításai nyilvános
+  kodekválasztás a felhasználó felelőssége, és az OSATURA nem csomagolhatja az ffmpeg-et.
+* A determinisztikus raszter-, GIF-, APNG-, PNG-, SVG-, OpenEXR-, OCA-, ORA-, glTF- és Lottie-írók az OSATURA saját megvalósításai nyilvános
   formátumleírásokból (clean-room, lásd CLEANROOM.md). Szabadalmi helyzetüket ezen túl nem értékeltük: a PATENT_NOTES.md csak a fenti területeket sorolja fel
   (arcvezérelt bábozás, állapotgépek és adatkötés, FABRIK/MVC/súlyok, stencil-then-cover kitöltés, kodekek).
 * GIF: az LZW-szabadalmak minden joghatóságban rég lejártak; ez általános ismeret, nem a tárolóban rögzített tisztázás.
@@ -514,25 +514,25 @@ Ha az ffmpeg hiányzik, a parancs `cannot run ffmpeg (...)` üzenettel hibázik,
 
 | Formátum | Ellenőrzés | Várható eredmény |
 |---|---|---|
-| bármely projekt | `armatura check out.json` | `ok: ...` (az `import-*` után is) |
+| bármely projekt | `osatura check out.json` | `ok: ...` (az `import-*` után is) |
 | GIF | `ffprobe -v error -count_frames -select_streams v -show_entries stream=nb_read_frames -of csv=p=0 out.gif` | képkockaszám (8) |
 | APNG | ugyanez a parancs az `out.apng` fájlon | képkockaszám (8) |
 | MP4 | `ffprobe -v error -show_entries stream=codec_name,width,height,pix_fmt,nb_frames,r_frame_rate -of csv=p=0 out.mp4` | `h264,320,240,yuv420p,24/1,8` |
 | WebM | ugyanez az `out.webm` fájlon `:stream_tags=alpha_mode` kiegészítéssel | `vp9,...,yuv420p,...,1` (alpha_mode 1) |
 | EXR | `ffprobe f.exr` | `exr 640x480 gbrapf32le` |
 | Lottie | `python3 -c "import json;d=json.load(open('out.json'));print(d['v'],d['fr'],d['op'],d['w'],d['h'],len(d['layers']))"` | `5.7.0 24.0 8 640.0 480.0 12` |
-| Lottie-figyelmeztetések | `armatura export p.json out.json --report rep.json` | a `rep.json` minden közelítést felsorol |
+| Lottie-figyelmeztetések | `osatura export p.json out.json --report rep.json` | a `rep.json` minden közelítést felsorol |
 | dotLottie | `unzip -l out.lottie` | csak a `manifest.json` és az `animations/animation.json` |
-| Lottie-körbejárás | `armatura import-lottie out.json back.json && armatura check back.json` | `ok:` |
+| Lottie-körbejárás | `osatura import-lottie out.json back.json && osatura check back.json` | `ok:` |
 | GLB | `python3 -c "import struct;b=open('out.glb','rb').read();print(b[:4],struct.unpack('<II',b[4:12]),len(b))"` | `b'glTF' (2, N)`, ahol N egyenlő a hosszal |
 | HTML | `grep -c '<svg' out.html`; `grep -o 'http[^"<]*' out.html` | képkockánként egy `<svg`; csak az SVG-névtér URL-je |
 | SVG | nyisd meg böngészőben vagy értelmezd XML-ként | jólformált |
 | Sprite sheet | `python3 -m json.tool out.atlas.json` | képkockánként `{index,x,y,w,h}` |
 | OCA | `python3 -m json.tool <name>.oca` | minden hivatkozott cel létezik |
-| Vizuális regresszió | `armatura ci diff a.png b.png --metric ssim` | 0-s kilépési kód, ha egyenlők; lásd [CI.md](CI.md) |
+| Vizuális regresszió | `osatura ci diff a.png b.png --metric ssim` | 0-s kilépési kód, ha egyenlők; lásd [CI.md](CI.md) |
 
-A veszteséges export eredetihez viszonyított vizuális ellenőrzéséhez az `armatura export-fit` már jelenti az SSIM és a CIEDE2000 értéket az eredeti rendereléshez képest, az
-`armatura compare` pedig előtte/utána/különbség képet ír két projektről.
+A veszteséges export eredetihez viszonyított vizuális ellenőrzéséhez az `osatura export-fit` már jelenti az SSIM és a CIEDE2000 értéket az eredeti rendereléshez képest, az
+`osatura compare` pedig előtte/utána/különbség képet ír két projektről.
 
 ## 17. Eltérések más dokumentumoktól
 

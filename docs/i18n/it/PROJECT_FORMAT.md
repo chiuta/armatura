@@ -1,13 +1,13 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 
-# Formato di progetto di ARMATURA
+# Formato di progetto di OSATURA
 
-Questo è il riferimento per il file di progetto di ARMATURA: un unico documento JSON che
+Questo è il riferimento per il file di progetto di OSATURA: un unico documento JSON che
 contiene la scena, il rig, la grafica e l'animazione. È scritto a partire dalle
-struct serde in `armatura-core/src/project.rs` e dai moduli a cui rimandano,
-e ogni esempio delle sezioni da 13 a 15 è stato verificato con il binario `armatura`
-(`armatura check`, `armatura render`, `armatura explain`).
+struct serde in `osatura-core/src/project.rs` e dai moduli a cui rimandano,
+e ogni esempio delle sezioni da 13 a 15 è stato verificato con il binario `osatura`
+(`osatura check`, `osatura render`, `osatura explain`).
 
 Indice
 
@@ -63,7 +63,7 @@ e dallo Studio. Esegue, in ordine:
    con `invalid JSON in <file>: value ... is outside the supported range of +-1e7 ...`. I letterali interi vengono intercettati più tardi, dal
    nuovo controllo in `Engine::new` (vedi sezione 12).
 3. Applica il controllo del formato: un `format` maggiore del `FORMAT_VERSION` della build (attualmente `1`) viene
-   rifiutato con `project format 2 is newer than this build supports (1); update ARMATURA`.
+   rifiutato con `project format 2 is newer than this build supports (1); update OSATURA`.
 
 `Engine::new` (o `Engine::with_asset_dir`) convalida poi l'intero progetto e restituisce tutti i
 problemi che trova sotto forma di elenco. La CLI li stampa così:
@@ -86,7 +86,7 @@ non sono sopravvissute:
 warning: unknown field layers[0].paths[0].fil (ignored)
 ```
 
-`armatura check` stampa questi avvisi. I valori uguali a quelli predefiniti non vengono segnalati (il writer
+`osatura check` stampa questi avvisi. I valori uguali a quelli predefiniti non vengono segnalati (il writer
 omette i valori predefiniti, quindi un `"visible": true` esplicito va bene). Alcune strutture sono invece rigorose anziché
 tolleranti e rifiutano le chiavi sconosciute con un errore bloccante: `Transition` e `Condition` delle macchine, la configurazione CI, la configurazione
 dell'input dal vivo, gli overlay e la configurazione dei parametri del volto; i file di configurazione vengono letti con `parse_strict`.
@@ -94,7 +94,7 @@ dell'input dal vivo, gli overlay e la configurazione dei parametri del volto; i 
 ### Round trip dei metadati dell'editor
 
 Il progetto viene serializzato con `skip_serializing_if` per le liste facoltative. Un file scritto a mano può
-essere più corto di quello che `armatura` riscrive; i due sono equivalenti.
+essere più corto di quello che `osatura` riscrive; i due sono equivalenti.
 
 ## 3. Campi di primo livello
 
@@ -107,7 +107,7 @@ essere più corto di quello che `armatura` riscrive; i due sono equivalenti.
 | `fps` | numero | **Obbl.** | `(0, 1000]` | Fotogrammi al secondo. |
 | `frames` | intero (`u32`) | **Obbl.** | `1..=200000` | Lunghezza della timeline. Gli indici dei fotogrammi sono `0..frames-1`. Un letterale in virgola mobile come `48.0` viene rifiutato: `invalid type: floating point `48.0`, expected u32`. |
 | `background` | `Rgba` o null | null (trasparente) | | Colore della scena dietro a tutto. |
-| `color_space` | stringa | `"srgb"` (non scritto) | `srgb`, `linear` | Spazio in cui i compositor raster e float fanno la miscelazione. `linear`: i colori vengono convertiti in luce lineare, composti in f32 e riconvertiti una sola volta (un nero al 50 % su bianco dà 188/255, non 128/255). Si imposta con `armatura color-space`. SVG, Lottie, il renderer GPU, `dof` e `fx` lo ignorano. |
+| `color_space` | stringa | `"srgb"` (non scritto) | `srgb`, `linear` | Spazio in cui i compositor raster e float fanno la miscelazione. `linear`: i colori vengono convertiti in luce lineare, composti in f32 e riconvertiti una sola volta (un nero al 50 % su bianco dà 188/255, non 128/255). Si imposta con `osatura color-space`. SVG, Lottie, il renderer GPU, `dof` e `fx` lo ignorano. |
 | `camera` | oggetto | valori predefiniti | sezione 10 | Camera globale. |
 | `bones` | array | `[]` | al massimo 4096 | Scheletro, sezione 4. |
 | `ik` | array | `[]` | | Catene IK. |
@@ -380,8 +380,8 @@ Esempio di fill con gradiente radiale e stroke (dall'esempio della palla):
 "stroke": {"paint": "#3d2c2e", "width": 2}
 ```
 
-Il linter (`armatura lint`) segnala problemi sui gradienti (L011), sulle chiavi degli switch (L012) e sui dati dell'editor (L013); vedi
-`armatura-core/src/lint.rs`.
+Il linter (`osatura lint`) segnala problemi sui gradienti (L011), sulle chiavi degli switch (L012) e sui dati dell'editor (L013); vedi
+`osatura-core/src/lint.rs`.
 
 ## 7. Deformatori, effetti, normal map
 
@@ -703,7 +703,7 @@ Gli offset dei container vengono sommati alla posizione del livello e moltiplica
 
 ### 11.6 `lods[]`
 
-Un registro di un passaggio di level-of-detail scritto da `armatura lod`: `level`, `tolerance_px`, `scale`,
+Un registro di un passaggio di level-of-detail scritto da `osatura lod`: `level`, `tolerance_px`, `scale`,
 `declared_px`, `bound_stage`, `path_px`, `mesh_px`, `keys_px`, `cull_px`, `stats`
 (`path_anchors`, `mesh_vertices`, `keys`, `layers`, `bytes`) e `notes`. È la documentazione di ciò che ha
 fatto un passaggio; il renderer non lo legge mai.
@@ -712,7 +712,7 @@ fatto un passaggio; il renderer non lo legge mai.
 ## 12. Regole di validazione, limiti e messaggi di errore
 
 `Engine::new` valida in un solo passaggio e restituisce tutti i problemi. La tabella elenca ciò che viene imposto;
-i messaggi tra virgolette sono stati prodotti da `armatura check` su file deliberatamente danneggiati.
+i messaggi tra virgolette sono stati prodotti da `osatura check` su file deliberatamente danneggiati.
 
 ### 12.1 Limiti globali
 
@@ -724,7 +724,7 @@ i messaggi tra virgolette sono stati prodotti da `armatura check` su file delibe
 | width, height | `<= 32768` | `width and height must be at most 32768` |
 | qualsiasi float | `abs <= 1e7` | `value 100000000.0 at /bones/0/length is outside the supported range of +-1e7 (coordinates, scales, offsets and key values must stay below it)` |
 | bones | al massimo 4096 | `at most 4096 bones` |
-| format | `<= 1` | `project format 2 is newer than this build supports (1); update ARMATURA` |
+| format | `<= 1` | `project format 2 is newer than this build supports (1); update OSATURA` |
 | dimensione JSON | CLI `--max-input-bytes`, predefinito 256 MiB; API `MAX_JSON_BYTES` 256 MiB | |
 
 Il limite di 1e7 viene applicato due volte. Al caricamento, un letterale float oltre il limite fa fallire il parsing e il messaggio
@@ -806,12 +806,12 @@ del livello fuori dall'intervallo 0..1 (limitata), `ik_mix` e `constraint_weight
 dall'animazione, skin non valide (`skins::validate`), clip (`clipstack::validate`, e target delle tracce dei take che non vengono risolti,
 tenendo conto di `rename`), `channel_meta` e `lods`. Le fixture in `out/` si caricano senza avvisi.
 
-`armatura check` stampa gli avvisi di lint di questo tipo; il linter completo (`armatura lint`) ha più regole (da L001 in poi).
+`osatura check` stampa gli avvisi di lint di questo tipo; il linter completo (`osatura lint`) ha più regole (da L001 in poi).
 
 ## 13. Esempio 1: palla che rimbalza
 
-Verificato con `armatura check` (`ok: 'bouncing ball' 320×240 @ 24 fps, 48 frames, 0 bones, 0 ik,
-3 layers, 5 channels`) e `armatura render ball.json 7 out.png`. Cosa mostra:
+Verificato con `osatura check` (`ok: 'bouncing ball' 320×240 @ 24 fps, 48 frames, 0 bones, 0 ik,
+3 layers, 5 channels`) e `osatura render ball.json 7 out.png`. Cosa mostra:
 
 - `layer_y` con chiavi e easing `bounce` sul primo segmento: la palla cade da y=40 al
   pavimento a y=170 e rimbalza tre volte. Il primo impatto avviene intorno al fotogramma 7.2 (24 / 3.352).
@@ -940,8 +940,8 @@ Verificato con `armatura check` (`ok: 'bouncing ball' 320×240 @ 24 fps, 48 fram
 
 ## 14. Esempio 2: braccio con rig e IK
 
-Verificato con `armatura check` (3 bones, 1 ik, 3 layers, 2 channels). `armatura explain arm.json
-24` riporta la punta in (170, 190), uguale all'osso `target`, e `armatura render arm.json 24
+Verificato con `osatura check` (3 bones, 1 ik, 3 layers, 2 channels). `osatura explain arm.json
+24` riporta la punta in (170, 190), uguale all'osso `target`, e `osatura render arm.json 24
 out.png --bones` disegna lo scheletro. Cosa mostra:
 
 - `upper` è una radice con un limite d'angolo; `lower` è il suo figlio (`rest_offset` `[90, 0]` è uguale alla
@@ -1090,7 +1090,7 @@ out.png --bones` disegna lo scheletro. Cosa mostra:
 
 ## 15. Esempio 3: bocca con livello switch
 
-Verificato con `armatura check` e renderizzando i fotogrammi 0, 5 e 9, che mostrano tre bocche
+Verificato con `osatura check` e renderizzando i fotogrammi 0, 5 e 9, che mostrano tre bocche
 diverse. Le chiavi fuori intervallo vengono limitate: un valore di chiave 7 mostra il figlio 2 e -3 mostra il figlio 0.
 
 ```json

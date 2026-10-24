@@ -1,14 +1,14 @@
-# ARMATURA studio
+# OSATURA studio
 
-Studio este un editor în browser servit chiar de binarul `armatura`: `armatura studio project.json`.
+Studio este un editor în browser servit chiar de binarul `osatura`: `osatura studio project.json`.
 Are un canvas cu gizmo-uri de selecție și transformare, o listă de straturi, o listă de oase, un dope sheet și un grafic de curbe,
 onion skin și traiectorii de mișcare, o paletă de comenzi cu scurtături reasignabile, sugestii de poziții, panouri de intrare live și
 de față, butoane de export GIF/HTML/Lottie și o sesiune de editare partajată între mai mulți utilizatori. Nu are conturi, nu are TLS și
 nu are bază de date: este un mic server HTTP din biblioteca standard, plasat în fața aceluiași editor pe care îl folosește linia de comandă.
 
-Tot ce se află aici a fost verificat pe binarul real (`armatura 0.1.0`, build debug, Linux) și, pentru interfața cu utilizatorul,
+Tot ce se află aici a fost verificat pe binarul real (`osatura 0.1.0`, build debug, Linux) și, pentru interfața cu utilizatorul,
 în Chromium headless condus de Playwright. Capturile de ecran au fost făcute astfel (1400x900, proiectul demo încorporat).
-Doar **Chromium** a fost testat; vezi secțiunea 11. Pe Windows și macOS, arhivele de lansare conțin și `armatura-studio`, același studio într-o fereastră nativă (compilat și autotestat în CI, încă nefolosit de o persoană; vezi [GETTING_STARTED.md](GETTING_STARTED.md) și [LIMITATIONS.md](LIMITATIONS.md) L-75), iar pe Windows un dublu clic pe `armatura.exe` pornește studioul și deschide browserul (L-76).
+Doar **Chromium** a fost testat; vezi secțiunea 11. Pe Windows și macOS, arhivele de lansare conțin și `osatura-studio`, același studio într-o fereastră nativă (compilat și autotestat în CI, încă nefolosit de o persoană; vezi [GETTING_STARTED.md](GETTING_STARTED.md) și [LIMITATIONS.md](LIMITATIONS.md) L-75), iar pe Windows un dublu clic pe `osatura.exe` pornește studioul și deschide browserul (L-76).
 
 Licența acestui document: CC-BY-4.0. Pentru linia de comandă vezi [GETTING_STARTED.md](GETTING_STARTED.md) și
 [CLI_REFERENCE.md](CLI_REFERENCE.md); pentru securitatea serverului vezi și [SECURITY.md](SECURITY.md).
@@ -18,16 +18,16 @@ Licența acestui document: CC-BY-4.0. Pentru linia de comandă vezi [GETTING_STA
 ## 1. Pornirea studio
 
 ```
-armatura studio <project.json> [--port N] [--ui-config F] [--bind ADDR] [--allow-host NAMES]
+osatura studio <project.json> [--port N] [--ui-config F] [--bind ADDR] [--allow-host NAMES]
                 [--public-origin URL] [--source-url URL] [--collab-token T] [--collab-log LOG [--collab-nosync]]
 ```
 
 ```
-$ armatura demo demo.json
-$ armatura studio demo.json --port 8080
+$ osatura demo demo.json
+$ osatura studio demo.json --port 8080
 AGPL-3.0 source offer: http://127.0.0.1:8080/source
-ARMATURA studio on http://127.0.0.1:8080  (Ctrl-C to stop; saves go to demo.json)
-UI settings (layout, shortcuts) in /home/you/.config/armatura/ui.json      (your own home directory)
+OSATURA studio on http://127.0.0.1:8080  (Ctrl-C to stop; saves go to demo.json)
+UI settings (layout, shortcuts) in /home/you/.config/osatura/ui.json      (your own home directory)
 ```
 
 Deschide adresa într-un browser. Proiectul este validat la pornire; un fișier care nu trece de `check` este refuzat cu același
@@ -37,7 +37,7 @@ mesaj. Câmpurile necunoscute sunt semnalate cu avertisment (`warning: unknown f
 |---|---|---|
 | `--port N` | 8080 | Port TCP. Un port ocupat dă `cannot listen on 127.0.0.1:8861: Address already in use (os error 98)`; unul greșit dă `cannot listen on 127.0.0.1:99999: invalid port value`. |
 | `--bind ADDR` | `127.0.0.1` | Interfața pe care se ascultă. Orice adresă care nu este loopback **necesită `--collab-token`**. |
-| `--ui-config F` | `$ARMATURA_UI_CONFIG`, altfel `$XDG_CONFIG_HOME/armatura/ui.json`, altfel pe Windows `%APPDATA%\ARMATURA\ui.json` (înainte de alpha.3 nu exista niciuna: setările erau păstrate doar pe durata sesiunii), altfel `~/.config/armatura/ui.json` | Unde sunt păstrate layoutul, scurtăturile, comenzile recente și setările overlay-urilor. Este un fișier per utilizator, niciodată parte a proiectului. |
+| `--ui-config F` | `$OSATURA_UI_CONFIG`, altfel `$XDG_CONFIG_HOME/osatura/ui.json`, altfel pe Windows `%APPDATA%\OSATURA\ui.json` (înainte de alpha.3 nu exista niciuna: setările erau păstrate doar pe durata sesiunii), altfel `~/.config/osatura/ui.json` | Unde sunt păstrate layoutul, scurtăturile, comenzile recente și setările overlay-urilor. Este un fișier per utilizator, niciodată parte a proiectului. |
 | `--allow-host NAMES` | niciuna | Nume `Host` suplimentare de acceptat (separate prin virgulă), pentru accesul sub un nume DNS. |
 | `--public-origin URL` | niciuna | Originea simplă (`https://studio.example.org`, fără cale) pe care o prezintă un reverse proxy TLS; `Host` și `Origin` ale ei sunt atunci acceptate. |
 | `--source-url URL` | niciuna; în binarele oficiale de lansare, commit-ul din care au fost construite (`https://github.com/chiuta/armatura/tree/<commit>`) | Locul de unde poate fi descărcat codul sursă corespunzător build-ului *tău* (AGPL secțiunea 13); afișat pe `/source` și de `--version`. O valoare explicită câștigă întotdeauna. |
@@ -99,7 +99,7 @@ iar în spatele unui proxy fiecare client pare să aibă adresa proxy-ului, deci
 ### Oferta de cod sursă AGPL
 
 Studio este software AGPL-3.0-or-later: dacă îl modifici și lași alte persoane să îl folosească printr-o rețea, trebuie să le oferi sursa
-versiunii tale. `/source` este acea ofertă; setează `--source-url` la locul unde se află sursa build-ului tău. Fără el (un build făcut de tine cu un simplu `cargo build` nu are niciuna), pagina spune acest lucru și numește maintainerul. Binarele de lansare construite de `.github/workflows/release.yml` poartă adresa propriului commit (`ARMATURA_SOURCE_URL` la compilare; un fork care construiește cu propriul workflow trimite la el însuși).
+versiunii tale. `/source` este acea ofertă; setează `--source-url` la locul unde se află sursa build-ului tău. Fără el (un build făcut de tine cu un simplu `cargo build` nu are niciuna), pagina spune acest lucru și numește maintainerul. Binarele de lansare construite de `.github/workflows/release.yml` poartă adresa propriului commit (`OSATURA_SOURCE_URL` la compilare; un fork care construiește cu propriul workflow trimite la el însuși).
 
 ## 3. Un tur al interfeței
 
@@ -109,7 +109,7 @@ Undo, Redo, **Save**; casete de bifat `bones` (desenează scheletul), `auto-key`
 `whole groups` (un clic pe o parte dintr-un grup selectează grupul de nivel superior), `points` (arată ancorele, mânerele, punctele de cage/lattice/pin și vârfurile de mesh ale
 straturilor selectate); un selector `box` pentru ceea ce selectează o casetă trasă (`touches`, `contains`, `bounds touch`; pornește cu `touches`); **Lock**; și butoanele **Overlays**, **Suggest**, **Layout**,
 **Commands** (paleta) și **Keys** (editorul de scurtături). Un al doilea rând conține numele tău și **Collab**, precum și butoanele de export **GIF**, **HTML player** și **Lottie**,
-care descarcă ceea ce ar scrie `armatura export` (playerul HTML include sunetul mixat când există sunet și `ffmpeg` poate produce mp3-ul).
+care descarcă ceea ce ar scrie `osatura export` (playerul HTML include sunetul mixat când există sunet și `ffmpeg` poate produce mp3-ul).
 
 ### Panouri și layouturi
 
@@ -124,7 +124,7 @@ live     stage and timeline on the left; live, face, bones and selection on the 
 ```
 
 Schimbă presetările din meniul **Layout** sau din paletă; trage filele pentru a reancora sau a face plutitor un panou; „reset layout” revine la cel implicit.
-Layoutul este salvat în configurația UI, per utilizator. `armatura ui layout presets|show NAME|validate FILE.json` afișează și validează aceleași date
+Layoutul este salvat în configurația UI, per utilizator. `osatura ui layout presets|show NAME|validate FILE.json` afișează și validează aceleași date
 (un layout trebuie să lase fiecare panou accesibil; unul incomplet este respins de server cu 400).
 
 ### Panoul Layers
@@ -154,7 +154,7 @@ cheile selectate), `ripple` N cu `Insert` / `Remove` (și `grow project` pentru 
 
 Mouse: clic pe o cheie pentru a selecta, Shift-clic pentru a adăuga, trage o casetă pentru a selecta, trage cheile pentru a le muta; **Alt-tragere sau butonul din mijloc deplasează vederea**, **Ctrl+rotiță face zoom**,
 **Shift+rotiță derulează** vertical; în grafic **Shift constrânge tragerea cheii la o singură axă**. Toleranța de snap pentru snapping-ul pe canvas este implicit de 6 unități de canvas.
-Fiecare editare de cheie trece prin aceleași operații validate ca `armatura keyedit` (vezi [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md)), deci este un singur pas de anulare, iar canalele blocate o refuză.
+Fiecare editare de cheie trece prin aceleași operații validate ca `osatura keyedit` (vezi [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md)), deci este un singur pas de anulare, iar canalele blocate o refuză.
 
 ### Overlay-uri: onion skin, traiectorii, proxy-uri
 
@@ -170,7 +170,7 @@ Setările sunt stocate în configurația UI și supraviețuiesc unei reporniri. 
 ![Paleta de comenzi deschisă cu Ctrl+K și filtrată după cuvântul „toggle”, cu lista comenzilor potrivite și sugestiile lor de scurtături.](../../img/studio-palette.png)
 
 `Ctrl+K` (sau `Ctrl+Shift+P`) deschide paleta: scrie pentru a filtra (fuzzy, literele potrivite sunt evidențiate), tastele săgeată se mută, Enter rulează, Esc închide. Când nu ai scris nimic,
-listează mai întâi comenzile recente. Există **84 de comenzi**; `armatura ui commands` le listează, iar `armatura ui search onion` le ordonează exact cum o face paleta.
+listează mai întâi comenzile recente. Există **84 de comenzi**; `osatura ui commands` le listează, iar `osatura ui search onion` le ordonează exact cum o face paleta.
 
 ![Editorul de scurtături de tastatură deschis cu Ctrl+virgulă, cu comenzile listate pe categorii și combinațiile lor de taste.](../../img/studio-shortcuts.png)
 
@@ -183,7 +183,7 @@ confirmi „Take it over”. Combinațiile rezervate de browser sunt refuzate: `
 ![Panoul Suggest cu trei poziții intermediare candidate, ordonate (linear, pca, manifold), între cadrele 12 și 24, fiecare cu un scor și un buton Apply.](../../img/studio-suggest.png)
 
 `Suggest` (`Alt+8`) propune poziții învățate din pozițiile-cheie ale proiectului însuși: o poziție intermediară între două cadre, o completare a unei poziții fixate parțial sau „ce urmează de obicei”. Pe proiectul demo, între cadrele 12 și 24 a ordonat `linear` 1,00, `pca` 1,00 și `manifold` 0,99, construite din 5 poziții pe 2 axe (99 % din varianță).
-`Apply` scrie poziția ca chei, un singur pas de anulare. Același motor este `armatura pose-suggest` și `/api/suggest`. Acestea sunt metode clasice (amestec liniar, PCA, un manifold cu kernel, o rețea mică opțională pe care o antrenezi singur); cu un număr mic de poziții, cele trei concordă.
+`Apply` scrie poziția ca chei, un singur pas de anulare. Același motor este `osatura pose-suggest` și `/api/suggest`. Acestea sunt metode clasice (amestec liniar, PCA, un manifold cu kernel, o rețea mică opțională pe care o antrenezi singur); cu un număr mic de poziții, cele trei concordă.
 
 ### Panourile Live input și Webcam face
 
@@ -191,13 +191,13 @@ confirmi „Take it over”. Combinațiile rezervate de browser sunt refuzate: `
   anulare. Web MIDI are nevoie de un browser care îl suportă (Chromium îl suportă).
 * **Webcam face** (`Alt+5`): reperele conduc același tabel de mapare (sursa `face`, id-uri precum `mouth_open`, `eye_r_open`, `head_yaw`). Butoanele sunt
   *Start camera*, *Synthetic face*, *Synthetic face (detector)*, *Calibrate (hold neutral)* și *Face example mapping*. Calea camerei are nevoie de o funcție furnizoare de repere
-  pe care o oferi tu (`window.armaturaLandmarkProvider`, vezi comentariul din sursa paginii); videoul nu părăsește niciodată pagina și doar reperele ajung la serverul local.
+  pe care o oferi tu (`window.osaturaLandmarkProvider`, vezi comentariul din sursa paginii); videoul nu părăsește niciodată pagina și doar reperele ajung la serverul local.
   Cele două moduri sintetice funcționează din start. *Synthetic face (detector)* randează capul sintetic pe server și îl regăsește cu detectorul încorporat,
   care a fost **antrenat doar pe fețe sintetice** (capete stilizate, nu fotografii); vezi secțiunea despre față din [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md).
 
 ## 4. Scurtături de tastatură (implicite)
 
-Aceasta este ieșirea comenzii `armatura ui shortcuts` pentru o configurație nouă: **72 de asocieri, 84 de comenzi, 0 conflicte**. Scurtăturile aparțin unui **context**:
+Aceasta este ieșirea comenzii `osatura ui shortcuts` pentru o configurație nouă: **72 de asocieri, 84 de comenzi, 0 conflicte**. Scurtăturile aparțin unui **context**:
 `global` (peste tot), `canvas` (focus pe imagine) și `timeline` (focus pe timeline). Câmpurile de text își păstrează propriile taste.
 
 ### Global
@@ -288,7 +288,7 @@ proiectul și se pierde când serverul se oprește.
 ![Doi utilizatori de browser într-o sesiune: bara de instrumente arată două chip-uri de participanți, Ana (tu) la cadrul 14 și Bo la cadrul 0, iar caseta de selecție și cursorul lui Bo sunt desenate pe canvas în jurul stratului piciorului.](../../img/studio-collab.png)
 
 1. Pornește studio. Pentru persoanele de pe alte mașini trebuie să adaugi un token și să te legi la o adresă de rețea:
-   `armatura studio demo.json --bind 0.0.0.0 --port 8080 --collab-token $(openssl rand -hex 16) --collab-log session.log`,
+   `osatura studio demo.json --bind 0.0.0.0 --port 8080 --collab-token $(openssl rand -hex 16) --collab-log session.log`,
    de preferință în spatele unui proxy TLS (secțiunea 2). Pe o singură mașină nu este nevoie de token.
 2. În primul browser, scrie-ți numele lângă **Collab** („Ana”) și apasă **Collab**. Butonul devine **Leave** și apare un chip pentru tine. În al doilea browser
    scrie „Bo” și intră. Fiecare chip arată cadrul curent al participantului (`Ana (you) @14`, `Bo @0`).
@@ -297,7 +297,7 @@ proiectul și se pierde când serverul se oprește.
 4. Editați în același timp. În test: Ana a deplasat stratul brațului cu 10 unități (`Shift+ArrowRight`); Bo a văzut `[10,0]` apărând în `/api/project`. Apoi Bo a ascuns stratul `sun`, lucru pe care Ana l-a văzut
    imediat.
 5. Ana a apăsat `Ctrl+Z`. **Doar deplasarea făcută de Ana a fost anulată** (brațul a revenit la `[0,0]`); soarele ascuns de Bo a rămas ascuns.
-6. Editările făcute cât timp cineva lucra dintr-o vedere mai veche sunt îmbinate, nu respinse: am rulat simularea proiectului însuși (`armatura collab-sim`, 6 replici, 600 de editări concurente
+6. Editările făcute cât timp cineva lucra dintr-o vedere mai veche sunt îmbinate, nu respinse: am rulat simularea proiectului însuși (`osatura collab-sim`, 6 replici, 600 de editări concurente
    aleatorii, 12 alte ordini de livrare) și toate replicile s-au încheiat identice, iar proiectul îmbinat s-a compilat.
 7. Apasă **Save** (sau `Ctrl+S`) în oricare browser pentru a scrie starea partajată în fișierul de proiect; nu se scrie nimic în fișier înainte de aceasta.
 
@@ -306,7 +306,7 @@ Doar Chromium a fost testat, cu două pagini pe o singură mașină. Nu am testa
 ### Persistență: `--collab-log`
 
 ```
-$ armatura studio demo.json --collab-log session.log
+$ osatura studio demo.json --collab-log session.log
 ...
 $ # (an edit is made in a session, the server is stopped and started again)
 collaboration log session.log: resumed at index 1 (1 envelopes after the checkpoint)
@@ -314,7 +314,7 @@ collaboration log session.log: resumed at index 1 (1 envelopes after the checkpo
 
 Jurnalul este un fișier pe linii (mod `0600`, doar pentru proprietar) care conține un checkpoint cu lanț de hash-uri al **întregului proiect** (aproximativ 178 KB pentru demo), plus o linie pentru fiecare editare acceptată. Adăugările sunt
 `fsync`-ate la fiecare cerere, cu excepția cazului în care se folosește `--collab-nosync`. După o repornire, starea sesiunii este reluată (am schimbat numele proiectului într-o sesiune; după repornire `/api/project` avea în continuare
-noul nume), în timp ce fișierul de pe disc a rămas neschimbat (`ARMATURA demo`) până la Save. **Participanții și istoricul de anulare nu sunt persistați**: paginile intră din nou cu id-uri noi. Un jurnal deteriorat sau un jurnal
+noul nume), în timp ce fișierul de pe disc a rămas neschimbat (`OSATURA demo`) până la Save. **Participanții și istoricul de anulare nu sunt persistați**: paginile intră din nou cu id-uri noi. Un jurnal deteriorat sau un jurnal
 al altui proiect oprește serverul cu o eroare în loc să fie suprascris. O cădere în timpul unei adăugări pierde cel mult o ultimă linie întreruptă.
 
 **Jurnalul conține întregul tău proiect în clar; protejează-l la fel ca proiectul însuși.**
@@ -339,7 +339,7 @@ Pagina studioului folosește aceste rute și le poți folosi și tu (scripturi, 
 | `GET /api/cache` | | `{ok, revision, entries, bytes, hits, misses, invalidations, lod:{builds, engines, invalidations, last_build_ms, levels, unavailable}}` |
 | `GET /api/overlays` | `frame`, `sel` (nume de straturi separate prin virgulă) | `{ok, frames, settings, ...}` plus fantomele și SVG-ul cadrului, când se indică un cadru |
 | `GET /api/sounds` | | `{ok, total, sounds:[{name, start, gain, duration, peaks, error?}]}` vârfurile formei de undă după tăiere, fade-uri și gain |
-| `GET /api/vcs/log` | `limit` (max 1000), `rev` | `{ok, branch, commits:[{hash, author, time, message, parents}]}`; `{"ok":false,"errors":["no .armatura-vcs repository found ..."]}` fără un depozit (vezi `armatura vcs`) |
+| `GET /api/vcs/log` | `limit` (max 1000), `rev` | `{ok, branch, commits:[{hash, author, time, message, parents}]}`; `{"ok":false,"errors":["no .osatura-vcs repository found ..."]}` fără un depozit (vezi `osatura vcs`) |
 | `GET /api/vcs/diff` | `a` (implicit `HEAD`), `b` | `{ok, changes}` |
 | `GET /api/timeline` | | `{ok, fps, frames, groups, rows, tracks}` modelul dope sheet |
 | `GET /api/graph` | `ch` (indecși de canale separați prin virgulă), `f0`, `f1`, `n` (eșantioane, 2-2000, implicit 200) | `{ok, channels, f0, f1, range, skipped}` eșantioanele curbelor și mânerele tangentelor |
@@ -393,7 +393,7 @@ De exemplu, `{"preview":true,"op":{"op":"delete","keys":[{"ch":0,"frame":12}]}}`
 | `POST /api/face/config` | `{"config"?,"calibration"?}` | `{ok}` |
 | `POST /api/face/calibrate` | `{"on":true}` / `{"on":false}` | `{ok, frames, calibration}` |
 | `POST /api/face/push` | `{"frames":[...landmarks...],"layout"?,"size"?}` (cel mult 10000 de cadre per push) | starea live |
-| `POST /api/face/detect` | `{"image":"<base64 PNG/JPEG or data: URI>","track":bool,"push":bool,"t"}` | `{ok, found, layout:"armatura23", size, points, box, note:"detector trained on synthetic faces only"}` |
+| `POST /api/face/detect` | `{"image":"<base64 PNG/JPEG or data: URI>","track":bool,"push":bool,"t"}` | `{ok, found, layout:"osatura23", size, points, box, note:"detector trained on synthetic faces only"}` |
 | `POST /api/face/synth` | `{"t","size":32-512,"seed"}` | `{ok, image:"data:image/png;base64,...", layout, size, points}` un cadru al capului sintetic cu reperele lui exacte |
 | `POST /api/ui` | oricare dintre `{"layout":{...}\|null,"shortcuts":{...}\|null,"recents":[...],"overlays":{...},"reset":"layout"\|"shortcuts"\|"overlays"\|"all"}` | documentul `GET /api/ui`; câmpurile necunoscute (`unknown field 'bogus'`), conflictele și aranjamentele incomplete sunt refuzate și nu se schimbă nimic |
 | `POST /api/login` | `{"token":"..."}` | `{ok:true}` și `Set-Cookie: arm_token=...; Path=/; HttpOnly; SameSite=Strict`; token greșit: 401 (429 de la a 5-a eșuare); fără un token configurat `{"ok":true,"token_required":false}` |
@@ -442,7 +442,7 @@ Web MIDI necesită un browser care îl implementează (Chromium îl are); camera
 sesiunea partajată. Pentru tragere se folosesc evenimente de pointer; ecranele tactile nu au fost testate.
 
 **Accesibilitatea, pe față.** Nu am auditat studioul cu un cititor de ecran și nici cu o sesiune doar de la tastatură. Ce există: un atribut `lang` și eticheta meta viewport, casete de bifare etichetate, un
-toast cu `role="status"`, câteva atribute ARIA, **un set complet de scurtături de tastatură și o paletă de comenzi** care ajung la orice comandă, scurtături reasociabile, precum și linia de comandă `armatura`, care face
+toast cu `role="status"`, câteva atribute ARIA, **un set complet de scurtături de tastatură și o paletă de comenzi** care ajung la orice comandă, scurtături reasociabile, precum și linia de comandă `osatura`, care face
 tot ce face editorul, fără pointer. Ce lipsește: canvasul este o imagine și cea mai mare parte a editării pe canvas se face cu pointerul (există deplasare cu tastele săgeți), nu există temă luminoasă și nu există
 tratare pentru `prefers-reduced-motion` sau `prefers-color-scheme`, conturele de focus sunt cele implicite ale browserului și nu le-am verificat, iar contrastul culorilor nu l-am măsurat. Dacă depinzi de tehnologii asistive,
 preferă CLI-ul și panoul JSON și spune proiectului ce nu funcționează.
@@ -450,5 +450,5 @@ preferă CLI-ul și panoul JSON și spune proiectului ce nu funcționează.
 ## 12. Neajunsuri cunoscute
 
 * Remediate de la prima redactare: textul panoului Webcam face, eroarea 404 la `/favicon.ico`, `--collab-nosync` fără `--collab-log` și lipsa indicatorului de cookie `Secure` în spatele unui `--public-origin` https.
-* `armatura render p.json 99 o.png` pe un proiect de 24 de cadre este acum de asemenea o eroare (adaugă `--clamp` pentru a randa ultimul cadru); `/api/frame` din studio refuză un cadru în afara intervalului (`frame 999 out of range`) și acceptă acum doar cadrele `0..frames-1`.
+* `osatura render p.json 99 o.png` pe un proiect de 24 de cadre este acum de asemenea o eroare (adaugă `--clamp` pentru a randa ultimul cadru); `/api/frame` din studio refuză un cadru în afara intervalului (`frame 999 out of range`) și acceptă acum doar cadrele `0..frames-1`.
 * Modificările de aranjament și de scurtături se păstrează per utilizator în configurația UI, nu în proiect, deci nu însoțesc fișierul.

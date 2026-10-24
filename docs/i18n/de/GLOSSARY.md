@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 
-# ARMATURA-Glossar
+# OSATURA-Glossar
 
 Fachbegriffe, die im Code und in der Dokumentation verwendet werden, in alphabetischer Reihenfolge (der englischen Begriffe). „Siehe“ verweist auf das
-Modul (in `armatura-core/src`, sofern nicht anders angegeben) oder das Dokument, in dem der Begriff implementiert oder
+Modul (in `osatura-core/src`, sofern nicht anders angegeben) oder das Dokument, in dem der Begriff implementiert oder
 spezifiziert ist. Dokumente: [PROJECT_FORMAT.md](PROJECT_FORMAT.md), [ARCHITECTURE.md](ARCHITECTURE.md).
 Quellen für Techniken sind in `CLEANROOM.md` aufgeführt.
 
@@ -91,7 +91,7 @@ Ausrichtung der Elemente und Umbruch, die Ebenen und andere Container positionie
 `rig`.
 
 **CRDT.** Conflict-free replicated data type: eine Struktur, die Replikate unabhängig voneinander bearbeiten und
-ohne Koordination zum selben Ergebnis zusammenführen können. ARMATURA verwendet ein operationsbasiertes CRDT. Siehe `collab`;
+ohne Koordination zum selben Ergebnis zusammenführen können. OSATURA verwendet ein operationsbasiertes CRDT. Siehe `collab`;
 ARCHITECTURE Abschnitt 10. Verwandt: LWW-Register, RGA, Lamport-Uhr, Vektoruhr, Tombstone.
 
 **Cubic Bézier easing (kubisches Bézier-Easing).** Eine Easing-Kurve im CSS-Stil, definiert durch zwei Kontrollpunkte zwischen (0,0) und
@@ -187,9 +187,9 @@ PROJECT_FORMAT Abschnitt 5.
 Siehe `layerfx`.
 
 **Level of detail (LOD) (Detailstufe).** Eine vereinfachte Version eines Projekts, erzeugt unter einer deklarierten Fehlergrenze
-in Pixeln, für schnelle Vorschau oder kleine Ausgaben. Siehe `lod`, `armatura lod`.
+in Pixeln, für schnelle Vorschau oder kleine Ausgaben. Siehe `lod`, `osatura lod`.
 
-**Linter.** Die beratende Prüfung (`armatura lint`), die Probleme der Animationsqualität mit Codes
+**Linter.** Die beratende Prüfung (`osatura lint`), die Probleme der Animationsqualität mit Codes
 wie L011 und L012 meldet. Getrennt von der Validierung. Siehe `lint`.
 
 **Liquid layer (Liquid-Ebene).** Eine Ebene aus Metaballs, deren Umriss die Iso-Kontur eines Summen-Einfluss-Feldes ist. Siehe
@@ -233,7 +233,7 @@ der Beleuchtung pro Ebene. Siehe `postfx`; PROJECT_FORMAT Abschnitt 7.3.
 Umkehrung für Rückgängig. Siehe `edit`.
 
 **OT.** Operational Transformation: eine Alternative zu CRDTs, die gleichzeitige Operationen gegeneinander umschreibt,
-meist mit einem zentralen Server. ARMATURA verwendet sie nicht; es nutzt ein CRDT mit einem zentralen
+meist mit einem zentralen Server. OSATURA verwendet sie nicht; es nutzt ein CRDT mit einem zentralen
 Sequenzer. Siehe ARCHITECTURE Abschnitt 10.
 
 **Parallax.** Ein Faktor pro Ebene, der die Kamerabewegung skaliert, sodass entfernte Ebenen sich weniger bewegen. Auch der
@@ -293,7 +293,7 @@ Abschnitt 4.
 Gruppe eingeschaltet werden kann, etwa Kostüme. Siehe `skins`.
 
 **Skinning.** Das Verformen von Geometrie durch Mischen der Transformationen von Knochen, gewichtet pro Anker oder Eckpunkt.
-ARMATURA normalisiert die Gewichte und behandelt leere Gewichte als statisch. Siehe `engine`, `weights`.
+OSATURA normalisiert die Gewichte und behandelt leere Gewichte als statisch. Siehe `engine`, `weights`.
 
 **Soft IK.** Eine IK-Option, die die Streckung nahe der vollen Reichweite abfedert, um ein Einrasten in die gerade Lage zu vermeiden. Bereich 0 bis
 0,9. Siehe `rig`.
@@ -310,7 +310,7 @@ kurve projiziert und sie an der deformierten Kurve neu befestigt. Siehe PROJECT_
 Laden gebakt, sodass jedes Frame ausgewertet werden kann. Siehe PROJECT_FORMAT Abschnitt 4.4.
 
 **SSIM.** Structural similarity index (Wang et al. 2004): ein Maß für die Bildqualität aus lokalen Mittelwerten,
-Varianzen und der Kovarianz. ARMATURA verwendet eine Blockversion. Siehe `percep`.
+Varianzen und der Kovarianz. OSATURA verwendet eine Blockversion. Siehe `percep`.
 
 **Stage (Bühne).** Der Koordinatenraum des Ausgabebilds: Pixel, +x nach rechts, +y nach unten.
 

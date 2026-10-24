@@ -1,14 +1,14 @@
-# ARMATURA Rust API és stabilitási szabályzat
+# OSATURA Rust API és stabilitási szabályzat
 
-*Facade 1.4.0 verzió (`armatura_core::api::API_VERSION`). Célközönség: a motort beágyazó Rust-fejlesztők és a facade-et módosító karbantartók. A dokumentáció licence CC-BY-4.0; a kódminták licence MPL-2.0.*
+*Facade 1.4.0 verzió (`osatura_core::api::API_VERSION`). Célközönség: a motort beágyazó Rust-fejlesztők és a facade-et módosító karbantartók. A dokumentáció licence CC-BY-4.0; a kódminták licence MPL-2.0.*
 
-Ez az `armatura-core` **támogatott Rust API-jának** referenciája: az `armatura_core::api` homlokzat-modul (facade) és annak egysoros importja, az `armatura_core::prelude`. Felsorol minden nyilvános elemet, az API-t stabilan tartó szabályokat és tesztelt példákat. A fájl minden példáját lefordítjuk és lefuttatjuk az aktuális forrásokon, mielőtt a fájl megjelenik (lásd [Hogyan ellenőrizzük a példákat](#hogyan-ellenőrizzük-a-példákat)).
+Ez az `osatura-core` **támogatott Rust API-jának** referenciája: az `osatura_core::api` homlokzat-modul (facade) és annak egysoros importja, az `osatura_core::prelude`. Felsorol minden nyilvános elemet, az API-t stabilan tartó szabályokat és tesztelt példákat. A fájl minden példáját lefordítjuk és lefuttatjuk az aktuális forrásokon, mielőtt a fájl megjelenik (lásd [Hogyan ellenőrizzük a példákat](#hogyan-ellenőrizzük-a-példákat)).
 
 Tartalom: [Mit fed le](#mit-fed-le) - [A crate beszerzése](#a-crate-beszerzése) - [Stabilitási szabályzat](#stabilitási-szabályzat) - [Semver-szabályok](#semver-szabályok) - [Feature flag-ek](#feature-flag-ek) - [Szálbiztonság](#szálbiztonság) - [Determinizmus](#determinizmus) - [Korlátok](#korlátok-és-argumentumtartományok) - [Hibák](#hibák) - [Referencia: `Animation`](#referencia-animation) - [Referencia: `Player`](#referencia-player) - [Referencia: önálló függvények](#referencia-önálló-függvények-eszközök-verziókezelés-ci) - [Referencia: típusok](#referencia-típusok) - [Példák](#példák) - [Más nyelvek](#más-nyelvek) - [Függelék: gépi és binding JSON](#függelék-gép-json-és-kötés-json)
 
 ## Mit fed le
 
-Csak az `armatura_core::api` és az `armatura_core::prelude` a támogatott nyilvános Rust API. A facade a következőkből áll:
+Csak az `osatura_core::api` és az `osatura_core::prelude` a támogatott nyilvános Rust API. A facade a következőkből áll:
 
 * `Animation`: egy validált projekt és annak visszavonási előzménye (betöltés, lekérdezés, renderelés, exportálás, szerkesztés, eszközök);
 * `Player`: egy futó állapotgép elrendezéssel, görgetéssel és részletességi szinttel (1.1, 1.2);
@@ -16,37 +16,37 @@ Csak az `armatura_core::api` és az `armatura_core::prelude` a támogatott nyilv
 * egyszerű értéktípusok (`AnimationInfo`, `RenderSettings`, `Image`, `LodLevel`, `SizeFit`, `MocapReport`, `FuzzSummary`, `VcsCommit`, `VcsConflict`, `CiOutcome`, `CiInit`, ...) és az `Interpolation`, `ExportFormat`, `FitFormat`, `CiMode`, `VcsMergeOutcome`, `VcsChoice` enumok;
 * az `ApiError` hibatípus (megvalósítja a `std::error::Error` és a `Display` trait-et).
 
-A C ABI (`armatura-capi`, `armatura.h` header) és a WebAssembly modul (`armatura-wasm`) kizárólag erre a facade-re épül, és saját verzióval rendelkezik: [C_ABI.md](C_ABI.md), [WASM.md](WASM.md).
+A C ABI (`osatura-capi`, `osatura.h` header) és a WebAssembly modul (`osatura-wasm`) kizárólag erre a facade-re épül, és saját verzióval rendelkezik: [C_ABI.md](C_ABI.md), [WASM.md](WASM.md).
 
 ### Mit NEM fed le
 
-Az `armatura-core` minden más modulját (`engine`, `project`, `edit`, `svg`, `raster`, `physics`, `vcs`, `ci`, ...) és a gyökér újraexportjait (`Engine`, `Project`, ...). Ezek csak azért `pub` és `#[doc(hidden)]`, mert a parancssori eszköz, a Studio, a C ABI tesztjei és az egységtesztek használják őket; bármelyik kiadásban megváltozhatnak vagy eltűnhetnek, és az `Err(String)` szövegeik sem szerződés. Ha olyasmire van szükséged, ami csak ott érhető el, kérj a facade-be egy kiegészítést (minor kiadás), ahelyett hogy a belső részekre támaszkodnál.
+Az `osatura-core` minden más modulját (`engine`, `project`, `edit`, `svg`, `raster`, `physics`, `vcs`, `ci`, ...) és a gyökér újraexportjait (`Engine`, `Project`, ...). Ezek csak azért `pub` és `#[doc(hidden)]`, mert a parancssori eszköz, a Studio, a C ABI tesztjei és az egységtesztek használják őket; bármelyik kiadásban megváltozhatnak vagy eltűnhetnek, és az `Err(String)` szövegeik sem szerződés. Ha olyasmire van szükséged, ami csak ott érhető el, kérj a facade-be egy kiegészítést (minor kiadás), ahelyett hogy a belső részekre támaszkodnál.
 
 A projekt JSON-formátumának saját `format` verziómezője van (jelenleg 1); egy újabb build által írt projektet az `InvalidJson` hibával elutasítunk. Lásd [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
 
 ## A crate beszerzése
 
-Az ARMATURA nincs közzétéve semmilyen registryben; útvonallal (vagy git-tel) függj tőle a workspace-edből:
+Az OSATURA nincs közzétéve semmilyen registryben; útvonallal (vagy git-tel) függj tőle a workspace-edből:
 
 ```toml
 [dependencies]
-armatura-core = { path = "../armatura/armatura-core", default-features = false }
+osatura-core = { path = "../osatura/osatura-core", default-features = false }
 ```
 
-A `default-features = false` elhagyja a Rhai szkriptmotort (lásd [Feature flag-ek](#feature-flag-ek)); a facade-nek nincs rá szüksége. Ezután `use armatura_core::prelude::*;`. A crate verziója (`0.1.0`) és a facade verziója (`API_VERSION`) független egymástól: a facade a semvert követi, a crate verziója egyelőre semmit sem ígér. Minimálisan támogatott Rust-verzió nincs megadva; a workspace-et Rust 1.97-tel (edition 2021) fejlesztjük és teszteljük.
+A `default-features = false` elhagyja a Rhai szkriptmotort (lásd [Feature flag-ek](#feature-flag-ek)); a facade-nek nincs rá szüksége. Ezután `use osatura_core::prelude::*;`. A crate verziója (`0.1.0`) és a facade verziója (`API_VERSION`) független egymástól: a facade a semvert követi, a crate verziója egyelőre semmit sem ígér. Minimálisan támogatott Rust-verzió nincs megadva; a workspace-et Rust 1.97-tel (edition 2021) fejlesztjük és teszteljük.
 
 ## Stabilitási szabályzat
 
-1. **A surface-fájl.** Az `armatura-core/src/api_surface.txt` felsorolja az `src/api.rs` minden nyilvános elemét (típusok, mezők, variánsok, konstansok és metódus-szignatúrák, soronként egyet). Az `api::tests::api_surface_snapshot` egységteszt újraépíti ezt a listát az `api.rs`-ből, és elbukik, ha eltér a beléptetett fájltól. A surface minden változtatása ezért mindkét fájl tudatos, átnézett módosítása.
-2. **A prelude-teszt.** Az `armatura-core/tests/prelude_surface.rs` *külső* crate-ként fordul. A facade neveit kizárólag az `armatura_core::prelude`-on keresztül importálja, és egy reprezentatív részhalmazt hív meg (betöltés, renderelés, szerkesztés, exportálás, `Player`, az eszközök, a verziókezelő és CI burkolók, hibás bemenet kezelése). Ha egy általa használt név már nem exportálódik újra a prelude-ből, vagy egy szignatúra olyan módon változik, amelyet ezek a hívások észrevesznek, a teszt nem fordul le. Az `API_VERSION == "1.4.0"` értéket is ellenőrzi, így a verziólépés itt is tudatos módosítás. Nem sorol fel minden prelude-nevet, ezért egy név hozzáadása az újraexport-listához továbbra is kézi lépés.
+1. **A surface-fájl.** Az `osatura-core/src/api_surface.txt` felsorolja az `src/api.rs` minden nyilvános elemét (típusok, mezők, variánsok, konstansok és metódus-szignatúrák, soronként egyet). Az `api::tests::api_surface_snapshot` egységteszt újraépíti ezt a listát az `api.rs`-ből, és elbukik, ha eltér a beléptetett fájltól. A surface minden változtatása ezért mindkét fájl tudatos, átnézett módosítása.
+2. **A prelude-teszt.** Az `osatura-core/tests/prelude_surface.rs` *külső* crate-ként fordul. A facade neveit kizárólag az `osatura_core::prelude`-on keresztül importálja, és egy reprezentatív részhalmazt hív meg (betöltés, renderelés, szerkesztés, exportálás, `Player`, az eszközök, a verziókezelő és CI burkolók, hibás bemenet kezelése). Ha egy általa használt név már nem exportálódik újra a prelude-ből, vagy egy szignatúra olyan módon változik, amelyet ezek a hívások észrevesznek, a teszt nem fordul le. Az `API_VERSION == "1.4.0"` értéket is ellenőrzi, így a verziólépés itt is tudatos módosítás. Nem sorol fel minden prelude-nevet, ezért egy név hozzáadása az újraexport-listához továbbra is kézi lépés.
 3. **Az ellenőrzés korlátai.** A pillanatkép az `api.rs` egysoros szignatúráinak szövegbeli átvizsgálása, nem fordítószintű diff, mint a `cargo-public-api`: azt a szemantikai változást, amely megtartja a szignatúra szövegét (például ugyanarra a bemenetre más hiba), nem veszi észre, a többsoros szignatúrát pedig elmulasztaná (a fájl ezért tartja egy sorban a szignatúrákat). A prelude újraexport-listáját (`lib.rs`) a külső teszt ellenőrzi, nem a pillanatkép.
 4. **A rejtett nem jelent támogatottat.** A `#[doc(hidden)] pub` modulok a workspace-en belüli fogyasztóknak léteznek. Az ígéreten kívül esnek, még ha le is fordulnak nálad.
 5. **Hogyan változtasd a facade-et** (karbantartóknak; szintén a [DEVELOPMENT.md](DEVELOPMENT.md) fájlban):
    * szerkeszd az `api.rs` fájlt (egysoros szignatúrák, doc comment, doc-teszt az új önálló függvényekhez, egységtesztek);
    * add hozzá az új nyilvános neveket a `lib.rs`-beli `prelude` újraexport-listához és a `tests/prelude_surface.rs` fájlhoz;
    * emeld az `API_VERSION` értékét (és az `API_VERSION_MAJOR` értékét, ha törő a változás) az alábbi szabályok szerint, valamint a `prelude_surface.rs`-ben ellenőrzött verziót;
-   * a surface-fájlt tudatosan generáld újra: `ARMATURA_BLESS=1 cargo test -p armatura-core api::`, majd nézd át az `api_surface.txt` diffjét;
-   * frissítsd ezt a fájlt, az `armatura-capi` / `armatura-wasm` crate-et pedig csak akkor, ha az új elemnek át kell lépnie ezeket a határokat (az ABI-verziójuk külön mozog, a kiegészítések megtartják).
+   * a surface-fájlt tudatosan generáld újra: `OSATURA_BLESS=1 cargo test -p osatura-core api::`, majd nézd át az `api_surface.txt` diffjét;
+   * frissítsd ezt a fájlt, az `osatura-capi` / `osatura-wasm` crate-et pedig csak akkor, ha az új elemnek át kell lépnie ezeket a határokat (az ABI-verziójuk külön mozog, a kiegészítések megtartják).
 
 ## Semver-szabályok
 
@@ -61,20 +61,20 @@ Az `API_VERSION` kizárólag a facade szemantikus verziója.
 Következmények a hívók számára:
 
 * **A facade nyilvános enumjai és structjai `#[non_exhaustive]` jelölésűek.** Adj hozzá joker ágat, amikor az `ApiError`, `Interpolation`, `ExportFormat`, `FitFormat`, `CiMode`, `VcsMergeOutcome` vagy `VcsChoice` típusra `match`-elsz; egy új variáns minor kiadás. A structokat a crate-en kívül nem hozhatod létre literállal (az `Image`, a `SizeFit` és a riport-structok eredmények, amelyeket csak olvasol). A beállításokat konstruktorokkal építsd: `RenderSettings::new(scale).with_bones(true)`, `MocapSettings::new().with_smooth(2)`.
-* **Az eredményeken belüli sztringek adatok, nem szerződés.** A `VcsConflict::kind` ma a `"BothChanged"`, `"DeleteEdit"`, `"KeyRetimed"`, `"OrderConflict"`, `"ArrayConflict"` valamelyike, és *minor kiadásokban új értékeket kaphat*. A JSON-riportok (`FuzzSummary::json`, `CiOutcome::json`) saját séma-nevet hordoznak (`armatura-fuzz-report` v1, `armatura-ci/1`). A hibaüzenetek szövege embereknek szól.
-* **Viselkedési stabilitás.** A renderelés és a kiértékelés determinisztikus (lásd alább), de a pixelkimenet egy minor kiadásban megváltozhat, ha a rasterizálóban vagy egy effektben hibát javítunk; az animáció-CI által rögzített golden-ek erre emlékeztetnek. Ne hashelj renderelt pixeleket ARMATURA-verziók vagy gépek között tűrés nélkül.
+* **Az eredményeken belüli sztringek adatok, nem szerződés.** A `VcsConflict::kind` ma a `"BothChanged"`, `"DeleteEdit"`, `"KeyRetimed"`, `"OrderConflict"`, `"ArrayConflict"` valamelyike, és *minor kiadásokban új értékeket kaphat*. A JSON-riportok (`FuzzSummary::json`, `CiOutcome::json`) saját séma-nevet hordoznak (`osatura-fuzz-report` v1, `osatura-ci/1`). A hibaüzenetek szövege embereknek szól.
+* **Viselkedési stabilitás.** A renderelés és a kiértékelés determinisztikus (lásd alább), de a pixelkimenet egy minor kiadásban megváltozhat, ha a rasterizálóban vagy egy effektben hibát javítunk; az animáció-CI által rögzített golden-ek erre emlékeztetnek. Ne hashelj renderelt pixeleket OSATURA-verziók vagy gépek között tűrés nélkül.
 
 A facade verziótörténete: 1.0 (betöltés, lekérdezés, renderelés, exportálás, szerkesztés, visszavonás) - 1.1 (`Player`, állapotgépek, adatkötések) - 1.2 (elrendezés, görgetés és részletességi szint a `Player`-en; `lod_levels`, `fit_to_size`, `retarget_bvh`, `fuzz`, `from_image`, `trace_image_svg`, `vcs_log`, `ci_run`) - 1.3 (verziókezelő és CI írási műveletek, `DirtyTree` / `MergeInProgress` / `Conflicts`, `CiOutcome::updated` / `blessed`) - 1.4 (réteg- és csontlétrehozás, `bake_physics`, APNG- és EXR-exportálás, `vcs_branches` / `vcs_branch_delete` / `vcs_status` / `vcs_diff` / `vcs_show` / `vcs_gc` / `vcs_fsck`).
 
 ## Feature flag-ek
 
-Az `armatura-core` egyetlen Cargo feature-rel rendelkezik:
+Az `osatura-core` egyetlen Cargo feature-rel rendelkezik:
 
 | Feature | Alapértelmezett | Hatás |
 |---|---|---|
 | `scripting` | be | Lefordítja a Rhai-alapú, sandboxolt szkriptmodult (`script.rs`), amelyet csak a parancssori `script` parancs használ. Behúzza a `rhai` crate-et és rajta keresztül a `smartstring` crate-et (MPL-2.0+, az egyetlen gyenge copyleftes harmadik féltől származó crate a fában). |
 
-A facade-ben **nincs** egyetlen funkció sem feature mögött: minden itt dokumentált elem létezik `default-features = false` mellett is. Az `armatura-capi`, az `armatura-wasm` és az `armatura-gpu` a core-tól e feature nélkül függ, így nem tartalmaznak MPL-licencű harmadik féltől származó crate-et; az `armatura-cli --no-default-features` ugyanezt teszi, és ilyenkor a `script` parancsot elérhetetlennek jelzi. A renderelő háttérrendszerek nem feature-ök: a facade mindig a CPU-s rasterizálót használja; az opcionális GPU-renderelő külön crate (`armatura-gpu`) és CLI feature (`gpu`), és ezen az API-n keresztül nem érhető el.
+A facade-ben **nincs** egyetlen funkció sem feature mögött: minden itt dokumentált elem létezik `default-features = false` mellett is. Az `osatura-capi`, az `osatura-wasm` és az `osatura-gpu` a core-tól e feature nélkül függ, így nem tartalmaznak MPL-licencű harmadik féltől származó crate-et; az `osatura-cli --no-default-features` ugyanezt teszi, és ilyenkor a `script` parancsot elérhetetlennek jelzi. A renderelő háttérrendszerek nem feature-ök: a facade mindig a CPU-s rasterizálót használja; az opcionális GPU-renderelő külön crate (`osatura-gpu`) és CLI feature (`gpu`), és ezen az API-n keresztül nem érhető el.
 
 ## Szálbiztonság
 
@@ -86,7 +86,7 @@ A facade-ben **nincs** egyetlen funkció sem feature mögött: minden itt dokume
 
 ## Determinizmus
 
-Ugyanaz a projekt, ugyanazok az argumentumok, ugyanaz az ARMATURA-build és gép: ugyanazok a bájtok. Ez érvényes a `render_rgba` / `render_png` / `render_svg`, a `bone_world`, minden exportálás, a `lod_levels` és a `fuzz` (adott seed mellett), a `fit_to_size`, valamint a `Player` esetén (ugyanazok a bemenetek és ugyanazok az `advance` hívások ugyanazt a pózt adják; az `advance` az időt legfeljebb 1/60 s-os darabokra bontja, így az időfelosztás csak e felbontás alatt számít). A motoron belüli véletlen döntések (zaj, részecskék, fuzzing, tracing-klaszterek) seedelt generátorokat használnak, sosem az órát. Ami *nem* garantált: azonos anti-aliasing élpixelek különböző operációs rendszerek, CPU-k, fordítók vagy `libm`-verziók között, 32 és 64 bites célok között, illetve ARMATURA-verziók között. A bájtpontos golden-eket csak egyetlen Linux x86-64 gépen, folyamatok között ellenőriztük (lásd [LIMITATIONS.md](LIMITATIONS.md)); minden gépek közötti célra használj tűrést (az animáció-CI is így tesz).
+Ugyanaz a projekt, ugyanazok az argumentumok, ugyanaz az OSATURA-build és gép: ugyanazok a bájtok. Ez érvényes a `render_rgba` / `render_png` / `render_svg`, a `bone_world`, minden exportálás, a `lod_levels` és a `fuzz` (adott seed mellett), a `fit_to_size`, valamint a `Player` esetén (ugyanazok a bemenetek és ugyanazok az `advance` hívások ugyanazt a pózt adják; az `advance` az időt legfeljebb 1/60 s-os darabokra bontja, így az időfelosztás csak e felbontás alatt számít). A motoron belüli véletlen döntések (zaj, részecskék, fuzzing, tracing-klaszterek) seedelt generátorokat használnak, sosem az órát. Ami *nem* garantált: azonos anti-aliasing élpixelek különböző operációs rendszerek, CPU-k, fordítók vagy `libm`-verziók között, 32 és 64 bites célok között, illetve OSATURA-verziók között. A bájtpontos golden-eket csak egyetlen Linux x86-64 gépen, folyamatok között ellenőriztük (lásd [LIMITATIONS.md](LIMITATIONS.md)); minden gépek közötti célra használj tűrést (az animáció-CI is így tesz).
 
 ## Korlátok és argumentumtartományok
 
@@ -208,11 +208,11 @@ Megjegyzések: a részletességi szint korlátja a geometriára és az idővonal
 | `vcs_show(path, rev)` | `Result<VcsShow, ApiError>` | (1.4) egy commit és változásai az első szülőjéhez képest |
 | `vcs_gc(path)` | `Result<VcsGc, ApiError>` | (1.4) az elérhetetlen objektumok törlése; törlés nélkül megszakad, ha az előzmény nem olvasható |
 | `vcs_fsck(path)` | `Result<Vec<String>, ApiError>` | (1.4) integritási problémák, egészséges állapotban üres |
-| `ci_init(project, manifest, write_goldens)` | `Result<CiInit, ApiError>` | alapértelmezett kalibrált manifest írása (meglévő fájlt sosem ír felül; alapértelmezett neve `armatura-ci.json` a projekt mellett); opcionálisan a golden-eket is rögzíti most |
+| `ci_init(project, manifest, write_goldens)` | `Result<CiInit, ApiError>` | alapértelmezett kalibrált manifest írása (meglévő fájlt sosem ír felül; alapértelmezett neve `osatura-ci.json` a projekt mellett); opcionálisan a golden-eket is rögzíti most |
 | `ci_run_mode(manifest, CiMode)` | `Result<CiOutcome, ApiError>` | `Verify`, `Update` (a renderelő ellenőrzések összes golden-jének újrarögzítése), `Bless` (csak a bukó vagy hiányzók elfogadása) |
 | `ci_bless(manifest)` | `Result<CiOutcome, ApiError>` | a `Bless` rövidítése |
 
-Az előzmény a projektfájl mellett tárolódik (`.armatura-vcs/`); a commit-üzenetek és a szerzők egyszerű szövegek. Egy konfliktus tartalmazza az azonosító-mutatót (`path`), egy `kind` értéket, egy `description` értéket, valamint a `base` / `ours` / `theirs` értékeket JSON-szövegként (`None` = ott hiányzik). Egy konfliktusos merge után a projektfájl az összefésült állapotot tartalmazza, a konfliktusos elemek az aktuális ág értékén, és függő állapot van rögzítve, amíg minden konfliktust fel nem oldasz és `vcs_commit`-ot nem hívsz, vagy `vcs_abort`-ot. A projekt által hivatkozott bináris assetek nincsenek verziózva, csak az útvonal-sztringjeik. A szemantikai merge-et, annak konfliktusfajtáit és korlátait a [ROADMAP.md](ROADMAP.md) 9. szakasza (I-01 elem) és a [LIMITATIONS.md](LIMITATIONS.md) írja le.
+Az előzmény a projektfájl mellett tárolódik (`.osatura-vcs/`); a commit-üzenetek és a szerzők egyszerű szövegek. Egy konfliktus tartalmazza az azonosító-mutatót (`path`), egy `kind` értéket, egy `description` értéket, valamint a `base` / `ours` / `theirs` értékeket JSON-szövegként (`None` = ott hiányzik). Egy konfliktusos merge után a projektfájl az összefésült állapotot tartalmazza, a konfliktusos elemek az aktuális ág értékén, és függő állapot van rögzítve, amíg minden konfliktust fel nem oldasz és `vcs_commit`-ot nem hívsz, vagy `vcs_abort`-ot. A projekt által hivatkozott bináris assetek nincsenek verziózva, csak az útvonal-sztringjeik. A szemantikai merge-et, annak konfliktusfajtáit és korlátait a [ROADMAP.md](ROADMAP.md) 9. szakasza (I-01 elem) és a [LIMITATIONS.md](LIMITATIONS.md) írja le.
 
 Nincs a facade-ben: a mocap csontleképezés-felülbírálásai, a vektorizálás finomhangolása a színszámon túl, a fit opciói a formátumon és a kereten túl, a GPU-s renderelés, a Studio, az együttműködés, az ügynökszerver, a sok szerkesztő és baking parancs (fizika, foot lock, mágnesek, autorig, ...), az ágak törlése / listázása, diff, show, status, gc, fsck, valamint a CI-opciók, mint a prune, az `--only` és az artifactok. Ezekhez használd a CLI-t ([CLI_REFERENCE.md](CLI_REFERENCE.md)).
 
@@ -248,12 +248,12 @@ Nincs a facade-ben: a mocap csontleképezés-felülbírálásai, a vektorizálá
 
 ## Példák
 
-Mindegyik teljes, és le lett futtatva. Feltételezik a `use armatura_core::prelude::*;` sort.
+Mindegyik teljes, és le lett futtatva. Feltételezik a `use osatura_core::prelude::*;` sort.
 
 ### Betöltés, kiértékelés, renderelés, exportálás
 
 ```rust
-use armatura_core::prelude::*;
+use osatura_core::prelude::*;
 use std::error::Error;
 
 /// Load a project, query it, render one frame and export the whole animation.
@@ -297,7 +297,7 @@ pub fn quick(project_path: &str) -> Result<(), Box<dyn Error>> {
 ### Szerkesztés, visszavonás és hibakezelés
 
 ```rust
-use armatura_core::prelude::*;
+use osatura_core::prelude::*;
 
 /// Edits are validated, undoable and all-or-nothing.
 pub fn edit_and_errors() {
@@ -334,7 +334,7 @@ pub fn edit_and_errors() {
 ### Interaktív lejátszás állapotgéppel
 
 ```rust
-use armatura_core::prelude::*;
+use osatura_core::prelude::*;
 use std::error::Error;
 
 /// Run a state machine of a project (machine.json has machine "hero", layer "body", bool input "excited").
@@ -373,7 +373,7 @@ pub fn play(project_path: &str) -> Result<(), Box<dyn Error>> {
 ### Elrendezés, görgetés és részletességi szint
 
 ```rust
-use armatura_core::prelude::*;
+use osatura_core::prelude::*;
 use std::error::Error;
 
 /// Layout, scrolling and level of detail on a Player (scroll.json has one scroll region "list").
@@ -408,7 +408,7 @@ pub fn layout_and_lod(project_path: &str) -> Result<(), Box<dyn Error>> {
 ### Renderelés több szálon
 
 ```rust
-use armatura_core::prelude::*;
+use osatura_core::prelude::*;
 
 /// `Animation` and `Player` are `Send + Sync`: read-only calls (`&self`) may run on several threads.
 pub fn render_in_parallel() -> Result<(), ApiError> {
@@ -431,7 +431,7 @@ pub fn render_in_parallel() -> Result<(), ApiError> {
 ### Verziókezelés és animáció-CI
 
 ```rust
-use armatura_core::prelude::*;
+use osatura_core::prelude::*;
 
 /// Version control of a project file and animation CI, from Rust.
 pub fn history(dir: &std::path::Path) -> Result<(), ApiError> {
@@ -487,7 +487,7 @@ pub fn history(dir: &std::path::Path) -> Result<(), ApiError> {
 ### Mocap, fuzzing, vektorizálás, részletességi szint és méretcélzott exportálás
 
 ```rust
-use armatura_core::prelude::*;
+use osatura_core::prelude::*;
 
 const RIG: &str = r#"{"format":1,"name":"rig","width":400.0,"height":400.0,"fps":30.0,"frames":10,"background":null,
  "camera":{"position":null,"zoom":1.0,"rotation":0.0},
@@ -517,7 +517,7 @@ pub fn tools() -> Result<(), ApiError> {
     let demo = Animation::demo();
     let fuzz = demo.fuzz(50, 1)?;
     println!("{} of {} samples failed (max severity {:.2})", fuzz.failures, fuzz.samples, fuzz.max_severity);
-    let _full_report: &str = &fuzz.json;                    // schema "armatura-fuzz-report" v1
+    let _full_report: &str = &fuzz.json;                    // schema "osatura-fuzz-report" v1
 
     // Bitmap tracing: PNG/JPEG bytes -> SVG, or straight into an animation.
     let png = demo.render_png(0.0, &RenderSettings::new(0.25))?;
@@ -540,20 +540,20 @@ pub fn tools() -> Result<(), ApiError> {
 
 ### Hogyan ellenőrizzük a példákat
 
-A fenti kód az a kód, amely lefutott: ez a fájl a mintaforrásokból készül, amelyeket `cargo`-val lefordítottunk az `armatura-core` ellen, és végrehajtottunk (a használt projektfájlok az `armatura demo`, a `take-record`, a `clip add` és a `machine add` kimenetei, valamint egy konténert és egy scroll-régiót tartalmazó projekt). Az `api.rs` doc-tesztjei (`cargo test --doc -p armatura-core`: 19 doc-teszt, ebből 18 az `api.rs` facade-függvényein és a crate szintű példa a `lib.rs`-ben; debug buildben kb. 170 s, mert mindegyik egy programot fordít) magát a repository-ban lévő verziókezelő és CI burkolókat fedik le.
+A fenti kód az a kód, amely lefutott: ez a fájl a mintaforrásokból készül, amelyeket `cargo`-val lefordítottunk az `osatura-core` ellen, és végrehajtottunk (a használt projektfájlok az `osatura demo`, a `take-record`, a `clip add` és a `machine add` kimenetei, valamint egy konténert és egy scroll-régiót tartalmazó projekt). Az `api.rs` doc-tesztjei (`cargo test --doc -p osatura-core`: 19 doc-teszt, ebből 18 az `api.rs` facade-függvényein és a crate szintű példa a `lib.rs`-ben; debug buildben kb. 170 s, mert mindegyik egy programot fordít) magát a repository-ban lévő verziókezelő és CI burkolókat fedik le.
 
 ## Más nyelvek
 
 A facade az igazság egyetlen forrása a többi bindinghoz. Lefedettség:
 
-| Képesség | Rust facade | C ABI (`armatura.h`) | WebAssembly / JS |
+| Képesség | Rust facade | C ABI (`osatura.h`) | WebAssembly / JS |
 |---|---|---|---|
-| Betöltés, validálás, info, csontnevek / világmátrixok | igen | `armatura_open`, `_bone_*`, `_frame_count`, ... | `arm_open`, `load()` (csontmátrixok nélkül) |
-| RGBA renderelés | igen | `armatura_render_rgba` | `arm_render_rgba`, `rgba()` |
+| Betöltés, validálás, info, csontnevek / világmátrixok | igen | `osatura_open`, `_bone_*`, `_frame_count`, ... | `arm_open`, `load()` (csontmátrixok nélkül) |
+| RGBA renderelés | igen | `osatura_render_rgba` | `arm_render_rgba`, `rgba()` |
 | SVG / PNG renderelés / exportformátumok | igen | nem | SVG igen (`svg()`), PNG / exportálás nem |
 | Kulcsok szerkesztése, visszavonás / újra | igen | nem | nem |
-| `Player`: bemenetek, advance, állapot, események, renderelés | igen | `armatura_player_*` | `arm_player_*`, `startPlayer()`, ... |
-| Elrendezés, görgetés, részletességi szint | igen | `armatura_player_set_canvas`, `_scroll_*`, `_set_screen`, `_lod_level` | `arm_player_set_canvas / layout / scroll_* / set_screen` |
+| `Player`: bemenetek, advance, állapot, események, renderelés | igen | `osatura_player_*` | `arm_player_*`, `startPlayer()`, ... |
+| Elrendezés, görgetés, részletességi szint | igen | `osatura_player_set_canvas`, `_scroll_*`, `_set_screen`, `_lod_level` | `arm_player_set_canvas / layout / scroll_* / set_screen` |
 | Eszközök, verziókezelés, CI | igen | nem | nem |
 
 A C ABI verziója 1 marad, mert eddig minden kiegészítés additív volt. A wasm bináris a CI-ben épül és Node alatt tesztelt, de böngészőben még nem futtatták; lásd [WASM.md](WASM.md).

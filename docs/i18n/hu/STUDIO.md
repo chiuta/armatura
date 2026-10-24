@@ -1,14 +1,14 @@
-# ARMATURA stúdió
+# OSATURA stúdió
 
-A stúdió egy böngészős szerkesztő, amelyet maga az `armatura` bináris szolgál ki: `armatura studio project.json`.
+A stúdió egy böngészős szerkesztő, amelyet maga az `osatura` bináris szolgál ki: `osatura studio project.json`.
 Van benne vászon kijelölő és transzformáló gizmókkal, rétegek listája, csontok listája, dope sheet és görbegráf,
 onion skin és mozgásnyomok, újrakötható gyorsbillentyűkkel ellátott parancspaletta, pózjavaslatok, élő bemeneti és
 arcpanelek, GIF/HTML/Lottie exportgombok, valamint közös, többfelhasználós szerkesztési munkamenet. Nincsenek fiókjai, nincs TLS-e és
 nincs adatbázisa: egy kis, csak a szabványos könyvtárat használó HTTP-szerver a parancssor által használt szerkesztő előtt.
 
-Itt minden a valódi binárison (`armatura 0.1.0`, debug build, Linux) lett ellenőrizve, a felhasználói
+Itt minden a valódi binárison (`osatura 0.1.0`, debug build, Linux) lett ellenőrizve, a felhasználói
 felület pedig Playwright által vezérelt headless Chromiumban. A képernyőképek is így készültek (1400x900, a beépített demó
-projekt). Csak **Chromiumot** teszteltünk; lásd a 11. szakaszt. Windowson és macOS-en a kiadási archívumok az `armatura-studio` programot is tartalmazzák, ugyanezt a stúdiót natív ablakban (a CI-ben lefordítva és önteszttel ellenőrizve, ember még nem használta; lásd [GETTING_STARTED.md](GETTING_STARTED.md) és [LIMITATIONS.md](LIMITATIONS.md) L-75), Windowson pedig az `armatura.exe` dupla kattintása elindítja a stúdiót, és megnyitja a böngészőt (L-76).
+projekt). Csak **Chromiumot** teszteltünk; lásd a 11. szakaszt. Windowson és macOS-en a kiadási archívumok az `osatura-studio` programot is tartalmazzák, ugyanezt a stúdiót natív ablakban (a CI-ben lefordítva és önteszttel ellenőrizve, ember még nem használta; lásd [GETTING_STARTED.md](GETTING_STARTED.md) és [LIMITATIONS.md](LIMITATIONS.md) L-75), Windowson pedig az `osatura.exe` dupla kattintása elindítja a stúdiót, és megnyitja a böngészőt (L-76).
 
 A dokumentum licence: CC-BY-4.0. A parancssorhoz lásd a [GETTING_STARTED.md](GETTING_STARTED.md) és a
 [CLI_REFERENCE.md](CLI_REFERENCE.md) fájlt; a szerver biztonságához lásd még a [SECURITY.md](SECURITY.md) fájlt.
@@ -18,16 +18,16 @@ A dokumentum licence: CC-BY-4.0. A parancssorhoz lásd a [GETTING_STARTED.md](GE
 ## 1. A stúdió indítása
 
 ```
-armatura studio <project.json> [--port N] [--ui-config F] [--bind ADDR] [--allow-host NAMES]
+osatura studio <project.json> [--port N] [--ui-config F] [--bind ADDR] [--allow-host NAMES]
                 [--public-origin URL] [--source-url URL] [--collab-token T] [--collab-log LOG [--collab-nosync]]
 ```
 
 ```
-$ armatura demo demo.json
-$ armatura studio demo.json --port 8080
+$ osatura demo demo.json
+$ osatura studio demo.json --port 8080
 AGPL-3.0 source offer: http://127.0.0.1:8080/source
-ARMATURA studio on http://127.0.0.1:8080  (Ctrl-C to stop; saves go to demo.json)
-UI settings (layout, shortcuts) in /home/you/.config/armatura/ui.json      (your own home directory)
+OSATURA studio on http://127.0.0.1:8080  (Ctrl-C to stop; saves go to demo.json)
+UI settings (layout, shortcuts) in /home/you/.config/osatura/ui.json      (your own home directory)
 ```
 
 Nyisd meg a címet egy böngészőben. A projektet induláskor ellenőrzi; a `check`-en át nem menő fájlt ugyanazzal az
@@ -37,7 +37,7 @@ Nyisd meg a címet egy böngészőben. A projektet induláskor ellenőrzi; a `ch
 |---|---|---|
 | `--port N` | 8080 | TCP-port. Foglalt port esetén `cannot listen on 127.0.0.1:8861: Address already in use (os error 98)`, hibás portnál `cannot listen on 127.0.0.1:99999: invalid port value` az üzenet. |
 | `--bind ADDR` | `127.0.0.1` | A figyelt interfész. Minden, ami nem loopback cím, **megköveteli a `--collab-token` megadását**. |
-| `--ui-config F` | `$ARMATURA_UI_CONFIG`, különben `$XDG_CONFIG_HOME/armatura/ui.json`, különben Windowson `%APPDATA%\ARMATURA\ui.json` (az alpha.3 előtt nem volt ilyen: a beállítások csak a munkamenet idejére maradtak meg), különben `~/.config/armatura/ui.json` | Itt tárolódik az elrendezés, a gyorsbillentyűk, a legutóbbi parancsok és az overlay-beállítások. Felhasználónkénti fájl, soha nem része a projektnek. |
+| `--ui-config F` | `$OSATURA_UI_CONFIG`, különben `$XDG_CONFIG_HOME/osatura/ui.json`, különben Windowson `%APPDATA%\OSATURA\ui.json` (az alpha.3 előtt nem volt ilyen: a beállítások csak a munkamenet idejére maradtak meg), különben `~/.config/osatura/ui.json` | Itt tárolódik az elrendezés, a gyorsbillentyűk, a legutóbbi parancsok és az overlay-beállítások. Felhasználónkénti fájl, soha nem része a projektnek. |
 | `--allow-host NAMES` | nincs | További elfogadott `Host` nevek (vesszővel elválasztva), DNS-néven való eléréshez. |
 | `--public-origin URL` | nincs | A TLS fordított proxy által bemutatott puszta origin (`https://studio.example.org`, útvonal nélkül); ennek `Host` és `Origin` értékét ezután elfogadja. |
 | `--source-url URL` | nincs; a hivatalos kiadási binárisokban az a commit, amelyből épültek (`https://github.com/chiuta/armatura/tree/<commit>`) | Innen tölthető le a *te* buildedhez tartozó forráskód (AGPL 13. szakasz); a `/source` oldalon és a `--version` kimenetében jelenik meg. Egy kifejezetten megadott érték mindig felülír. |
@@ -99,7 +99,7 @@ refusing to listen on 0.0.0.0:8851: the studio has no accounts and no TLS, so a 
 ### Az AGPL forráskód-ajánlat
 
 A stúdió AGPL-3.0-or-later szoftver: ha módosítod, és mások hálózaton keresztül használják, fel kell kínálnod nekik a saját
-változatod forráskódját. A `/source` ez az ajánlat; állítsd a `--source-url` kapcsolót arra a helyre, ahol a builded forráskódja van. Enélkül (a sima `cargo build`-del magad készített buildnek nincs ilyen) az oldal ezt közli, és megnevezi a karbantartót. A `.github/workflows/release.yml` által épített kiadási binárisok a saját commitjuk címét hordozzák (`ARMATURA_SOURCE_URL` fordítási időben; a saját munkafolyamatával építő fork önmagára mutat).
+változatod forráskódját. A `/source` ez az ajánlat; állítsd a `--source-url` kapcsolót arra a helyre, ahol a builded forráskódja van. Enélkül (a sima `cargo build`-del magad készített buildnek nincs ilyen) az oldal ezt közli, és megnevezi a karbantartót. A `.github/workflows/release.yml` által épített kiadási binárisok a saját commitjuk címét hordozzák (`OSATURA_SOURCE_URL` fordítási időben; a saját munkafolyamatával építő fork önmagára mutat).
 
 ## 3. Az felület bejárása
 
@@ -109,7 +109,7 @@ Visszavonás, Újra, **Save**; jelölőnégyzetek: `bones` (a csontváz rajzolá
 `whole groups` (egy csoport egy részére kattintva a legfelső szintű csoportot jelöli ki), `points` (a kijelölt rétegek horgonyainak, fogantyúinak, cage/lattice/pin pontjainak és mesh-csúcsainak mutatása);
 egy `box` választó arra, mit jelöl ki a húzott doboz (`touches`, `contains`, `bounds touch`; alapértéke `touches`); **Lock**; valamint a **Overlays**, **Suggest**, **Layout**,
 **Commands** (paletta) és **Keys** (gyorsbillentyű-szerkesztő) gombok. A második sorban a neved és a **Collab** található, valamint az exportgombok: **GIF**, **HTML player** és **Lottie**,
-amelyek letöltik azt, amit az `armatura export` írna ki (a HTML-lejátszó tartalmazza a kevert hangot, ha van hang, és az `ffmpeg` elő tudja állítani az mp3-at).
+amelyek letöltik azt, amit az `osatura export` írna ki (a HTML-lejátszó tartalmazza a kevert hangot, ha van hang, és az `ffmpeg` elő tudja állítani az mp3-at).
 
 ### Panelek és elrendezések
 
@@ -124,7 +124,7 @@ live     stage and timeline on the left; live, face, bones and selection on the 
 ```
 
 Az előbeállításokat a **Layout** menüből vagy a palettáról válthatod; a fülek húzásával újradokkolhatsz vagy lebegtethetsz egy panelt; a „reset layout” visszaállítja az alapértelmezést.
-Az elrendezés a UI-konfigurációban tárolódik, felhasználónként. Az `armatura ui layout presets|show NAME|validate FILE.json` ugyanezeket az adatokat írja ki és ellenőrzi
+Az elrendezés a UI-konfigurációban tárolódik, felhasználónként. Az `osatura ui layout presets|show NAME|validate FILE.json` ugyanezeket az adatokat írja ki és ellenőrzi
 (az elrendezésnek minden panelt elérhetővé kell tennie; a hiányosat a szerver 400-zal utasítja el).
 
 ### Rétegek panel
@@ -154,7 +154,7 @@ kijelölt kulcsokba), `ripple` N az `Insert` / `Remove` gombokkal (és `grow pro
 
 Egér: kattintással kulcsot jelölsz ki, Shift-kattintással hozzáadsz, dobozhúzással kijelölsz, a kulcsok húzásával mozgatod őket; az **Alt-húzás vagy a középső gomb pásztáz**, a **Ctrl+görgő nagyít**,
 a **Shift+görgő függőlegesen görget**; a gráfban a **Shift egy tengelyre korlátozza a kulcshúzást**. A vászonillesztés tűréshatára alapértelmezés szerint 6 vászonegység.
-Minden kulcsszerkesztés ugyanazokon az ellenőrzött műveleteken megy át, mint az `armatura keyedit` (lásd [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md)), így egyetlen visszavonási lépés, és a zárolt csatornák elutasítják.
+Minden kulcsszerkesztés ugyanazokon az ellenőrzött műveleteken megy át, mint az `osatura keyedit` (lásd [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md)), így egyetlen visszavonási lépés, és a zárolt csatornák elutasítják.
 
 ### Overlayek: onion skin, nyomok, proxyk
 
@@ -170,7 +170,7 @@ A beállítások a UI-konfigurációban tárolódnak, és túlélik az újraind�
 ![A Ctrl+K-val megnyitott és a „toggle” szóra szűrt parancspaletta, a találó parancsokkal és gyorsbillentyű-jelzéseikkel.](../../img/studio-palette.png)
 
 A `Ctrl+K` (vagy `Ctrl+Shift+P`) megnyitja a palettát: gépeléssel szűrsz (fuzzy, az egyező betűk kiemelve), a nyílbillentyűk mozognak, az Enter futtat, az Esc bezár. Ha semmit sem írsz,
-a legutóbbi parancsokat listázza elöl. **84 parancs** van; az `armatura ui commands` felsorolja őket, az `armatura ui search onion` pedig pontosan úgy rangsorolja őket, mint a paletta.
+a legutóbbi parancsokat listázza elöl. **84 parancs** van; az `osatura ui commands` felsorolja őket, az `osatura ui search onion` pedig pontosan úgy rangsorolja őket, mint a paletta.
 
 ![A Ctrl+vessző-vel megnyitott gyorsbillentyű-szerkesztő, kategóriák szerint listázva a parancsokat a billentyűkombinációikkal.](../../img/studio-shortcuts.png)
 
@@ -184,7 +184,7 @@ erősíted a „Take it over” gombbal. A böngésző által lefoglalt kombiná
 
 A `Suggest` (`Alt+8`) a projekt saját kulcspózaiból tanult pózokat javasol: két képkocka köztes pózát, egy részben rögzített póz kiegészítését vagy azt, hogy „mi szokott
 következni”. A demóprojekten a 12. és 24. képkocka között a `linear` 1,00-t, a `pca` 1,00-t és a `manifold` 0,99-et kapta, 5 pózból, 2 tengelyen építve (a variancia 99 %-a).
-Az `Apply` kulcsokként írja ki a pózt, egy visszavonási lépéssel. Ugyanez a motor az `armatura pose-suggest` és az `/api/suggest`. Ezek klasszikus módszerek (lineáris keverés, PCA, kernel-
+Az `Apply` kulcsokként írja ki a pózt, egy visszavonási lépéssel. Ugyanez a motor az `osatura pose-suggest` és az `/api/suggest`. Ezek klasszikus módszerek (lineáris keverés, PCA, kernel-
 sokaság, egy opcionális, általad tanított kis hálózat); néhány pózzal a három egyezik.
 
 ### Élő bemeneti és webkamerás arc panelek
@@ -193,13 +193,13 @@ sokaság, egy opcionális, általad tanított kis hálózat); néhány pózzal a
   lépésben. A Web MIDI-hez támogató böngésző kell (a Chromium az).
 * **Webcam face** (`Alt+5`): a tereptárgypontok ugyanazt a leképezési táblázatot hajtják (forrás: `face`, azonosítók mint `mouth_open`, `eye_r_open`, `head_yaw`). A gombok:
   *Start camera*, *Synthetic face*, *Synthetic face (detector)*, *Calibrate (hold neutral)* és *Face example mapping*. A kamerás útvonalhoz általad megadott tereptárgy-szolgáltató függvény kell
-  (`window.armaturaLandmarkProvider`, lásd az oldal forrásában a megjegyzést); a videó soha nem hagyja el az oldalt, és csak a tereptárgypontok mennek a helyi szerverre.
+  (`window.osaturaLandmarkProvider`, lásd az oldal forrásában a megjegyzést); a videó soha nem hagyja el az oldalt, és csak a tereptárgypontok mennek a helyi szerverre.
   A két szintetikus mód kapásból működik. A *Synthetic face (detector)* a szerveren rendereli a szintetikus fejet, és a beépített detektorral találja meg újra,
   amelyet **csak szintetikus arcokon tanítottak** (stilizált fejek, nem fényképek); lásd az [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md) arcokról szóló szakaszát.
 
 ## 4. Gyorsbillentyűk (alapértelmezések)
 
-Ez az `armatura ui shortcuts` kimenete friss konfigurációnál: **72 kötés, 84 parancs, 0 ütközés**. A gyorsbillentyűk egy **kontextushoz** tartoznak:
+Ez az `osatura ui shortcuts` kimenete friss konfigurációnál: **72 kötés, 84 parancs, 0 ütközés**. A gyorsbillentyűk egy **kontextushoz** tartoznak:
 `global` (mindenhol), `canvas` (a képen van a fókusz) és `timeline` (az idővonalon van a fókusz). A szövegmezők megtartják a saját billentyűiket.
 
 ### Global
@@ -290,7 +290,7 @@ projekttel, és a szerver leállásakor elvesznek.
 ![Két böngészőfelhasználó egy munkamenetben: az eszköztáron két résztvevő-jelvény látható, Ana (te) a 14. képkockánál és Bo a 0.-nál, Bo kijelölődoboza és kurzora a láb réteg körül van megrajzolva a vásznon.](../../img/studio-collab.png)
 
 1. Indítsd el a stúdiót. A más gépeken lévő embereknek tokent kell megadnod, és hálózati címre kell kötnöd:
-   `armatura studio demo.json --bind 0.0.0.0 --port 8080 --collab-token $(openssl rand -hex 16) --collab-log session.log`,
+   `osatura studio demo.json --bind 0.0.0.0 --port 8080 --collab-token $(openssl rand -hex 16) --collab-log session.log`,
    lehetőleg TLS-proxy mögött (2. szakasz). Egy gépen nincs szükség tokenre.
 2. Az első böngészőben írd be a neved a **Collab** mellé („Ana”), és nyomd meg a **Collab** gombot. A gomb **Leave** lesz, és megjelenik egy jelvény neked. A második böngészőben
    írd be, hogy „Bo”, és csatlakozz. Minden jelvény a résztvevő aktuális képkockáját mutatja (`Ana (you) @14`, `Bo @0`).
@@ -299,7 +299,7 @@ projekttel, és a szerver leállásakor elvesznek.
 4. Szerkesszetek egyszerre. A tesztben: Ana 10 egységgel megléptette a kar réteget (`Shift+ArrowRight`); Bo látta, hogy a `[10,0]` megjelenik az `/api/project`-ben. Bo ezután elrejtette a `sun` réteget, amit Ana
    azonnal látott.
 5. Ana megnyomta a `Ctrl+Z`-t. **Csak Ana léptetése lett visszavonva** (a kar visszatért a `[0,0]`-ra); Bo elrejtett napja rejtve maradt.
-6. A régebbi nézetből dolgozók szerkesztései összefésülődnek, nem utasítódnak el: lefuttattam a projekt saját szimulációját (`armatura collab-sim`, 6 replika, 600 véletlen párhuzamos
+6. A régebbi nézetből dolgozók szerkesztései összefésülődnek, nem utasítódnak el: lefuttattam a projekt saját szimulációját (`osatura collab-sim`, 6 replika, 600 véletlen párhuzamos
    szerkesztés, 12 másik kézbesítési sorrend), és minden replika azonos lett, az összefésült projekt pedig lefordult.
 7. Nyomd meg a **Save** gombot (vagy `Ctrl+S`) bármelyik böngészőben, hogy a közös állapotot kiírd a projektfájlba; addig semmi sem íródik a fájlba.
 
@@ -308,7 +308,7 @@ Csak Chromiumot teszteltünk, két oldallal egy gépen. Nem teszteltem különb�
 ### Tartósság: `--collab-log`
 
 ```
-$ armatura studio demo.json --collab-log session.log
+$ osatura studio demo.json --collab-log session.log
 ...
 $ # (an edit is made in a session, the server is stopped and started again)
 collaboration log session.log: resumed at index 1 (1 envelopes after the checkpoint)
@@ -316,7 +316,7 @@ collaboration log session.log: resumed at index 1 (1 envelopes after the checkpo
 
 A napló soronkénti fájl (mód: `0600`, csak a tulajdonosé), amely **a teljes projekt** hash-láncolt ellenőrzőpontját (a demónál nagyjából 178 KB) tartalmazza, plusz egy sort minden elfogadott szerkesztéshez. A hozzáfűzések
 kérésenként `fsync`-elnek, hacsak nincs `--collab-nosync`. Újraindítás után a munkamenet állapota folytatódik (megváltoztattam a projekt nevét egy munkamenetben; az újraindítás után az `/api/project` még mindig az
-új nevet adta), miközben a lemezen lévő fájl változatlan maradt (`ARMATURA demo`) a Save-ig. **A résztvevők és a visszavonási előzmények nem tartósak**: az oldalak új azonosítókkal csatlakoznak újra. A sérült naplót vagy egy másik projekt
+új nevet adta), miközben a lemezen lévő fájl változatlan maradt (`OSATURA demo`) a Save-ig. **A résztvevők és a visszavonási előzmények nem tartósak**: az oldalak új azonosítókkal csatlakoznak újra. A sérült naplót vagy egy másik projekt
 naplóját a szerver hibával leállva utasítja el, nem írja felül. A hozzáfűzés közbeni összeomlás legfeljebb egy megszakadt utolsó sort veszít.
 
 **A napló a teljes projektedet titkosítatlanul tartalmazza; védd úgy, mint magát a projektet.**
@@ -341,7 +341,7 @@ A stúdió oldala ezeket az útvonalakat használja, és te is használhatod ők
 | `GET /api/cache` | | `{ok, revision, entries, bytes, hits, misses, invalidations, lod:{builds, engines, invalidations, last_build_ms, levels, unavailable}}` |
 | `GET /api/overlays` | `frame`, `sel` (vesszővel elválasztott réteg-nevek) | `{ok, frames, settings, ...}`, valamint szellemképek és a képkocka SVG-je, ha meg van adva egy |
 | `GET /api/sounds` | | `{ok, total, sounds:[{name, start, gain, duration, peaks, error?}]}` hullámforma-csúcsok a vágás, a ki- és beúsztatás és az erősítés után |
-| `GET /api/vcs/log` | `limit` (legfeljebb 1000), `rev` | `{ok, branch, commits:[{hash, author, time, message, parents}]}`; tárhely nélkül `{"ok":false,"errors":["no .armatura-vcs repository found ..."]}` (lásd `armatura vcs`) |
+| `GET /api/vcs/log` | `limit` (legfeljebb 1000), `rev` | `{ok, branch, commits:[{hash, author, time, message, parents}]}`; tárhely nélkül `{"ok":false,"errors":["no .osatura-vcs repository found ..."]}` (lásd `osatura vcs`) |
 | `GET /api/vcs/diff` | `a` (alapértelmezés `HEAD`), `b` | `{ok, changes}` |
 | `GET /api/timeline` | | `{ok, fps, frames, groups, rows, tracks}` a dope sheet modellje |
 | `GET /api/graph` | `ch` (vesszővel elválasztott csatornaindexek), `f0`, `f1`, `n` (minták, 2-2000, alapértelmezés 200) | `{ok, channels, f0, f1, range, skipped}` görbeminták és érintőfogantyúk |
@@ -395,7 +395,7 @@ Például a `{"preview":true,"op":{"op":"delete","keys":[{"ch":0,"frame":12}]}}`
 | `POST /api/face/config` | `{"config"?,"calibration"?}` | `{ok}` |
 | `POST /api/face/calibrate` | `{"on":true}` / `{"on":false}` | `{ok, frames, calibration}` |
 | `POST /api/face/push` | `{"frames":[...landmarks...],"layout"?,"size"?}` (egyszerre legfeljebb 10000 képkocka) | élő állapot |
-| `POST /api/face/detect` | `{"image":"<base64 PNG/JPEG or data: URI>","track":bool,"push":bool,"t"}` | `{ok, found, layout:"armatura23", size, points, box, note:"detector trained on synthetic faces only"}` |
+| `POST /api/face/detect` | `{"image":"<base64 PNG/JPEG or data: URI>","track":bool,"push":bool,"t"}` | `{ok, found, layout:"osatura23", size, points, box, note:"detector trained on synthetic faces only"}` |
 | `POST /api/face/synth` | `{"t","size":32-512,"seed"}` | `{ok, image:"data:image/png;base64,...", layout, size, points}` a szintetikus fej egy képkockája a pontos tájékozódási pontjaival |
 | `POST /api/ui` | bármelyik a következők közül: `{"layout":{...}\|null,"shortcuts":{...}\|null,"recents":[...],"overlays":{...},"reset":"layout"\|"shortcuts"\|"overlays"\|"all"}` | a `GET /api/ui` dokumentuma; az ismeretlen mezőket (`unknown field 'bogus'`), az ütközéseket és a hiányos elrendezéseket elutasítja, és semmi sem változik |
 | `POST /api/login` | `{"token":"..."}` | `{ok:true}` és `Set-Cookie: arm_token=...; Path=/; HttpOnly; SameSite=Strict`; hibás token: 401 (az 5. sikertelen kísérlettől 429); beállított token nélkül `{"ok":true,"token_required":false}` |
@@ -444,7 +444,7 @@ A Web MIDI-hez olyan böngésző kell, amely megvalósítja (a Chromium igen); a
 megosztott munkamenethez. A húzáshoz pointer eseményeket használ; az érintőképernyőket nem teszteltem.
 
 **Hozzáférhetőség, őszintén.** A stúdiót nem auditáltam képernyőolvasóval vagy csak billentyűzettel végzett munkamenettel. Ami van: `lang` attribútum és viewport meta tag, címkézett jelölőnégyzetek, egy
-`role="status"` toast, néhány ARIA-attribútum, **a gyorsbillentyűk teljes készlete és egy parancspaletta**, amelyek minden parancsot elérnek, átköthető gyorsbillentyűk, valamint az `armatura` parancssor, amely
+`role="status"` toast, néhány ARIA-attribútum, **a gyorsbillentyűk teljes készlete és egy parancspaletta**, amelyek minden parancsot elérnek, átköthető gyorsbillentyűk, valamint az `osatura` parancssor, amely
 mindent megtesz, amit a szerkesztő, mutató nélkül. Ami hiányzik: a vászon egy kép, és a vásznon végzett szerkesztés nagy része mutatóval történik (a nyílbillentyűs léptetés létezik), nincs világos téma, és nincs
 `prefers-reduced-motion` vagy `prefers-color-scheme` kezelés, a fókuszkeretek a böngésző alapértelmezettjei, és nem ellenőriztem őket, a színkontrasztot pedig nem mértem meg. Ha segítő technológiára vagy utalva,
 inkább a CLI-t és a JSON panelt használd, és jelezd a projektnek, ha valami nem működik.
@@ -452,5 +452,5 @@ inkább a CLI-t és a JSON panelt használd, és jelezd a projektnek, ha valami 
 ## 12. Ismert esetlenségek
 
 * Az első összefoglaló óta javítva: a Webcam Arc panel szövege, a `/favicon.ico` 404, a `--collab-nosync` a `--collab-log` nélkül, valamint a hiányzó `Secure` süti-jelző https `--public-origin` mögött.
-* Az `armatura render p.json 99 o.png` egy 24 képkockás projekten mostantól szintén hiba (a legutolsó képkocka rendereléséhez add hozzá a `--clamp` kapcsolót); a stúdió `/api/frame` útvonala elutasítja a tartományon kívüli képkockát (`frame 999 out of range`), és mostantól csak a `0..frames-1` képkockákat fogadja el.
+* Az `osatura render p.json 99 o.png` egy 24 képkockás projekten mostantól szintén hiba (a legutolsó képkocka rendereléséhez add hozzá a `--clamp` kapcsolót); a stúdió `/api/frame` útvonala elutasítja a tartományon kívüli képkockát (`frame 999 out of range`), és mostantól csak a `0..frames-1` képkockákat fogadja el.
 * Az elrendezés és a gyorsbillentyűk módosításai felhasználónként, a felületi konfigurációban tárolódnak, nem a projektben, ezért nem utaznak a fájllal.

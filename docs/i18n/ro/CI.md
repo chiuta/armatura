@@ -1,15 +1,15 @@
-# CI pentru animație (`armatura ci`)
+# CI pentru animație (`osatura ci`)
 
 Tratează o animație ca pe un cod testabil: un manifest listează verificările, un job CI le rulează, iar o
 schimbare vizuală care eșuează vine cu un raport care arată ce s-a mișcat. Totul este local, offline și
 determinist; metricile sunt cele din manuale (CIEDE2000, SSIM, MSE/PSNR, un hash DCT).
 
 ```
-armatura ci init  <project.json> [--out armatura-ci.json] [--no-goldens]
-armatura ci run   [manifest] [--update] [--bless] [--prune] [--only a,b]
+osatura ci init  <project.json> [--out osatura-ci.json] [--no-goldens]
+osatura ci run   [manifest] [--update] [--bless] [--prune] [--only a,b]
                   [--junit out.xml] [--html out.html] [--json out.json] [--artifacts dir] [--quiet]
-armatura ci bless [manifest] [--only a,b] [--prune]
-armatura ci diff  a.png b.png [--metric ssim|de2000|de76|mse] [--tol T] [--pixel-de D] [--aa N]
+osatura ci bless [manifest] [--only a,b] [--prune]
+osatura ci diff  a.png b.png [--metric ssim|de2000|de76|mse] [--tol T] [--pixel-de D] [--aa N]
                   [--ignore x,y,w,h;x,y,w,h] [--out heat.png] [--side s.png] [--overlay o.png] [--flicker f.gif]
 ```
 
@@ -20,10 +20,10 @@ manifest greșit, golden ilizibil sau alterat, opțiune necunoscută).
 ## Pornire rapidă
 
 ```
-armatura ci init animation.json        # writes armatura-ci.json and goldens/ next to the project
-armatura ci run --html report.html     # verify; exit 1 and a report on regressions
-armatura ci bless                      # after reviewing the report: accept the new look
-git add armatura-ci.json goldens       # commit the goldens with the change that caused them
+osatura ci init animation.json        # writes osatura-ci.json and goldens/ next to the project
+osatura ci run --html report.html     # verify; exit 1 and a report on regressions
+osatura ci bless                      # after reviewing the report: accept the new look
+git add osatura-ci.json goldens       # commit the goldens with the change that caused them
 ```
 
 `init` calibrează manifestul pe proiectul așa cum este acum: aproximativ șase cadre echidistante la o
@@ -34,11 +34,11 @@ limite cu 50 % marjă, un buget de dimensiune GIF (+50 %), o verificare a cusăt
 se buclează curat în prezent) și un buget informativ de viteză de randare (de 4 ori mediana măsurată, care
 depinde de mașină și de build-urile debug față de release).
 
-## Manifest (`armatura-ci.json`)
+## Manifest (`osatura-ci.json`)
 
 ```json
 {
-  "schema": "armatura-ci/1",
+  "schema": "osatura-ci/1",
   "project": "animation.json",
   "goldens": "goldens",
   "defaults": { "max_de": 6.0 },
@@ -66,7 +66,7 @@ unice; fiecare verificare are nevoie de un proiect; intervalele sunt verificate)
 | --- | --- | --- |
 | `render` | cadre (lista `frames`, sau `step`, implicit primul/mijlocul/ultimul), `scale`, `size` (containerele de layout se rezolvă din nou), `renderer`: `raster` (tiny-skia), `float` (rasterizator f32, cuantizat la 8 biți) sau `svg` (comparare exactă de text) | imaginea diferă de golden peste praguri, nu există golden sau dimensiunea s-a schimbat |
 | `validate` | proiectul se compilează; constatările linter-ului la severitatea `lint` (`error` implicit, `warn`, `info`, `off`) | orice astfel de constatare sau o eroare de compilare |
-| `fuzz` | fuzzer-ul de poze (`samples`, `seed`, `frame`) | rata de eșec peste `max_fail_rate` (implicit 0). Verificarea **blochează implicit** (`gate` nesetat înseamnă `true`); este doar raportată, cu starea `info` și fără a eșua vreodată, când `"gate": false` sau `max_fail_rate` este 1 sau mai mare (o limită care nu poate eșua nu este afișată niciodată ca reușită). Comanda `armatura fuzz` este o unealtă separată, doar de raportare, dacă nu i se dă `--gate` sau `--max-fail-rate` |
+| `fuzz` | fuzzer-ul de poze (`samples`, `seed`, `frame`) | rata de eșec peste `max_fail_rate` (implicit 0). Verificarea **blochează implicit** (`gate` nesetat înseamnă `true`); este doar raportată, cu starea `info` și fără a eșua vreodată, când `"gate": false` sau `max_fail_rate` este 1 sau mai mare (o limită care nu poate eșua nu este afișată niciodată ca reușită). Comanda `osatura fuzz` este o unealtă separată, doar de raportare, dacă nu i se dă `--gate` sau `--max-fail-rate` |
 | `limits` | `max_layers`, `max_bones`, `max_channels`, `max_frames`, `max_canvas_pixels`, `max_file_bytes` | un număr depășește limita lui |
 | `export-size` | octeții pentru `gif`, `apng`, `lottie`, `html` sau `svg-frames` (exportatori existenți) | mai mare decât `max_bytes` |
 | `determinism` | fiecare cadru randat de același motor de două ori și de un motor proaspăt încărcat; SHA-256 al pixelilor (sau al textului SVG) trebuie să coincidă; `renderers` implicit raster, float, svg | orice digest diferă |
@@ -118,7 +118,7 @@ este citit, deci un fișier editat manual sau corupt este o eroare (cod de ieși
 
 ### Rapoarte
 
-`--json` este rezultatul complet (schema `armatura-ci-report/1`; metrici, regiuni, pragurile folosite).
+`--json` este rezultatul complet (schema `osatura-ci-report/1`; metrici, regiuni, pragurile folosite).
 `--junit` este XML JUnit cu un caz de test pe verificare. `--html` este o singură pagină autonomă (fără resurse
 externe): rezumat, tabel de verificări și, pentru fiecare cadru care eșuează, golden-ul, randarea curentă și o
 hartă a diferențelor ca PNG data URI inline, un buton de comutare pentru a alterna între golden și curent, și
@@ -146,11 +146,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install Rust
         run: rustup toolchain install stable --profile minimal
-      - name: Build armatura
-        run: cargo build --release -p armatura-cli
+      - name: Build osatura
+        run: cargo build --release -p osatura-cli
       - name: Animation checks
         run: |
-          ./target/release/armatura ci run animation/armatura-ci.json \
+          ./target/release/osatura ci run animation/osatura-ci.json \
             --junit ci-out/junit.xml --html ci-out/report.html --json ci-out/report.json \
             --artifacts ci-out/frames
       - name: Upload report
@@ -167,7 +167,7 @@ jobs:
 ```
 
 Codurile de ieșire 1 (regresie vizuală sau un buget) și 2 (nu s-a putut evalua) fac ambele jobul să eșueze; raportul
-este încărcat în ambele cazuri. Pentru a accepta o schimbare intenționată, rulează `armatura ci bless` local, revizuiește
+este încărcat în ambele cazuri. Pentru a accepta o schimbare intenționată, rulează `osatura ci bless` local, revizuiește
 diff-ul din `goldens/` și comite-l.
 
 ## Script shell generic (exemplu, nerulat)
@@ -176,11 +176,11 @@ diff-ul din `goldens/` și comite-l.
 #!/bin/sh
 # ci.sh - run animation checks; works in any CI that can run a shell and keep files.
 set -u
-MANIFEST="${1:-animation/armatura-ci.json}"
+MANIFEST="${1:-animation/osatura-ci.json}"
 OUT="${OUT:-ci-out}"
 mkdir -p "$OUT"
 
-armatura ci run "$MANIFEST" \
+osatura ci run "$MANIFEST" \
   --junit "$OUT/junit.xml" --html "$OUT/report.html" --json "$OUT/report.json" \
   --artifacts "$OUT/frames"
 code=$?

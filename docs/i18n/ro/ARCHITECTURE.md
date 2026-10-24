@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 
-# Arhitectura ARMATURA
+# Arhitectura OSATURA
 
 Acest document explică cum este organizat workspace-ul, cum circulă datele de la un fișier de proiect până la
 pixeli, ce garanții oferă motorul și ce garanții nu oferă, și cum poate fi extins. Detaliile la nivel de câmp ale
@@ -13,7 +13,7 @@ Cuprins
 
 1. [Crate-uri și graful de dependențe](#1-crate-uri-și-graful-de-dependențe)
 2. [Fluxul de date](#2-fluxul-de-date)
-3. [Harta modulelor din armatura-core](#3-harta-modulelor-din-armatura-core)
+3. [Harta modulelor din osatura-core](#3-harta-modulelor-din-osatura-core)
 4. [Tiparul bake nedistructiv](#4-tiparul-bake-nedistructiv)
 5. [Editor, ops și undo](#5-editor-ops-și-undo)
 6. [Determinism: garanții și limite](#6-determinism-garanții-și-limite)
@@ -30,19 +30,19 @@ Cuprins
 
 | Crate | Licență | Tip | Rol |
 | --- | --- | --- | --- |
-| `armatura-core` | MPL-2.0 | bibliotecă | Tot ce nu este front end: modelul de date, motorul, randerele, uneltele, nucleul de colaborare. Feature implicit `scripting`. |
-| `armatura-cli` | AGPL-3.0-or-later | binar `armatura` | Linia de comandă, serverul web Studio și rutele HTTP de colaborare. Depinde de core cu `default-features = false` și re-expune `scripting`; feature opțional `gpu`. |
-| `armatura-capi` | MPL-2.0 | `cdylib`, `staticlib`, `rlib` | ABI C (`armatura.h`, `ABI_VERSION` 1). Depinde de core cu `default-features = false`. |
-| `armatura-wasm` | MPL-2.0 | `cdylib`, `rlib` | Modul WebAssembly `extern "C"` simplu, fără wasm-bindgen. Depinde de core cu `default-features = false`. |
-| `armatura-gpu` | MPL-2.0 | bibliotecă | Rander wgpu opțional. Depinde de core cu `default-features = false`. |
+| `osatura-core` | MPL-2.0 | bibliotecă | Tot ce nu este front end: modelul de date, motorul, randerele, uneltele, nucleul de colaborare. Feature implicit `scripting`. |
+| `osatura-cli` | AGPL-3.0-or-later | binar `osatura` | Linia de comandă, serverul web Studio și rutele HTTP de colaborare. Depinde de core cu `default-features = false` și re-expune `scripting`; feature opțional `gpu`. |
+| `osatura-capi` | MPL-2.0 | `cdylib`, `staticlib`, `rlib` | ABI C (`osatura.h`, `ABI_VERSION` 1). Depinde de core cu `default-features = false`. |
+| `osatura-wasm` | MPL-2.0 | `cdylib`, `rlib` | Modul WebAssembly `extern "C"` simplu, fără wasm-bindgen. Depinde de core cu `default-features = false`. |
+| `osatura-gpu` | MPL-2.0 | bibliotecă | Rander wgpu opțional. Depinde de core cu `default-features = false`. |
 
 ```mermaid
 graph TD
-    core["armatura-core (MPL-2.0)"]
-    cli["armatura-cli (AGPL-3.0-or-later)<br/>binary: armatura"]
-    capi["armatura-capi<br/>C ABI"]
-    wasm["armatura-wasm<br/>wasm32 extern C"]
-    gpu["armatura-gpu<br/>wgpu 30 (optional)"]
+    core["osatura-core (MPL-2.0)"]
+    cli["osatura-cli (AGPL-3.0-or-later)<br/>binary: osatura"]
+    capi["osatura-capi<br/>C ABI"]
+    wasm["osatura-wasm<br/>wasm32 extern C"]
+    gpu["osatura-gpu<br/>wgpu 30 (optional)"]
     rhai["rhai (feature: scripting)"]
     core -.->|scripting| rhai
     cli --> core
@@ -53,10 +53,10 @@ graph TD
 ```
 
 ```text
-            armatura-cli  (AGPL, bin "armatura")
-              |        \.........(feature "gpu").........  armatura-gpu
+            osatura-cli  (AGPL, bin "osatura")
+              |        \.........(feature "gpu").........  osatura-gpu
               v                                              |
-  armatura-capi --->  armatura-core  <---  armatura-wasm  <--+  (gpu also depends on core)
+  osatura-capi --->  osatura-core  <---  osatura-wasm  <--+  (gpu also depends on core)
                           :
                           :.....(feature "scripting")..... rhai
 ```
@@ -64,9 +64,9 @@ graph TD
 De ce diferă licențele: core este MPL-2.0 pentru ca aplicațiile closed-source să îl poată încorpora prin
 bibliotecă, prin ABI-ul C sau prin modulul WASM fără a adopta AGPL; linia de comandă și serverul Studio
 sunt AGPL. Fiecare fișier sursă poartă o linie SPDX egală cu licența crate-ului său; un test
-(`armatura-cli/tests/spdx_audit.rs`) și `scripts/licence-audit.sh` verifică acest lucru. Vezi `LICENSING.md`.
+(`osatura-cli/tests/spdx_audit.rs`) și `scripts/licence-audit.sh` verifică acest lucru. Vezi `LICENSING.md`.
 
-Stabilitate: doar `armatura_core::api` și `armatura_core::prelude` reprezintă suprafața stabilă
+Stabilitate: doar `osatura_core::api` și `osatura_core::prelude` reprezintă suprafața stabilă
 (`API_VERSION` 1.4.0). Un test de snapshot compară elementele publice cu `api_surface.txt`; schimbarea
 suprafeței impune o editare conștientă a acelui fișier și o decizie de versiune.
 
@@ -89,7 +89,7 @@ suprafeței impune o editare conștientă a acelui fișier și o decizie de vers
      +--> svg::      vector text (SVG)
      +--> raster::   tiny-skia, 8-bit RGBA
      +--> fraster::  own f32 scanline rasteriser (HDR / EXR path)
-     +--> armatura-gpu  wgpu, stencil-then-cover
+     +--> osatura-gpu  wgpu, stencil-then-cover
      +--> export / gltf / lottie_export / open_formats / ...
 ```
 
@@ -108,9 +108,9 @@ Punctele de intrare care învelesc acest lanț:
 Randerele văd doar un `Frame`. Ele nu mai rulează niciodată logica rig-ului, deci IK, skinning-ul și deformatoarele sunt
 implementate o singură dată, în `engine`.
 
-## 3. Harta modulelor din armatura-core
+## 3. Harta modulelor din osatura-core
 
-`armatura-core/src` are aproximativ 100 de module. Ele sunt grupate pe domenii. Pentru fiecare modul „baza” este
+`osatura-core/src` are aproximativ 100 de module. Ele sunt grupate pe domenii. Pentru fiecare modul „baza” este
 standardul public, lucrarea sau tehnica din manuale consemnată în `CLEANROOM.md`; „design propriu” înseamnă că
 jurnalul clean-room nu consemnează nicio sursă externă. Numele care se termină în `_tests` sunt module de test și sunt omise.
 
@@ -315,7 +315,7 @@ evaluării.
 
 ## 8. Prezentare generală a securității
 
-Pe scurt: ARMATURA citește JSON și fișiere de asset nesigure, iar Studio ascultă pe un
+Pe scurt: OSATURA citește JSON și fișiere de asset nesigure, iar Studio ascultă pe un
 socket de rețea. Apărarea este stratificată: limite stricte la încărcare (magnitudine, dimensiune, plafoane de număr), confinarea căilor
 pentru asset-uri, un server HTTP doar cu std, cu
 termene limită și verificări de host/origine, autentificare cu token pentru colaborare și un motor de scripting
@@ -323,7 +323,7 @@ termene limită și verificări de host/origine, autentificare cu token pentru c
 
 ## 9. Arhitectura serverului Studio
 
-`armatura studio` servește o singură pagină HTML (`studio.html`) și un API JSON dintr-un singur proces.
+`osatura studio` servește o singură pagină HTML (`studio.html`) și un API JSON dintr-un singur proces.
 
 ```text
  browser  <--HTTP/1.1-->  http.rs  (accept loop; bounded connection threads, I/O only)
@@ -334,7 +334,7 @@ termene limită și verificări de host/origine, autentificare cu token pentru c
                              |   uiconfig.rs  command registry, key map
                              |   collab_srv.rs  /api/collab/* routes
                              v
-                      armatura-core: Editor, Engine, raster, svg, scrub, collab
+                      osatura-core: Editor, Engine, raster, svg, scrub, collab
 ```
 
 - **http.rs** este un server HTTP/1.1 doar cu std (dependența anterioară `tiny_http` a fost eliminată în urma unei
@@ -384,7 +384,7 @@ comparat în timp constant, cu o limită de rată care răspunde 429. Fiecare pa
 (`X-Collab-Secret`), astfel încât un utilizator să nu poată acționa în numele altuia. Transportul este HTTP simplu, fără TLS:
 pune un proxy care termină TLS în fața lui pentru orice dincolo de o rețea de încredere.
 
-`armatura collab-sim` rulează mulți clienți simulați împotriva unui hub în același proces, așa se testează
+`osatura collab-sim` rulează mulți clienți simulați împotriva unui hub în același proces, așa se testează
 convergența.
 
 ## 11. Note de performanță
@@ -433,7 +433,7 @@ Reguli generale pentru orice modificare:
 
 Exemplu: un număr nou, specific fiecărui strat.
 
-1. Adaugă câmpul în `Layer`, în `armatura-core/src/project.rs`, cu
+1. Adaugă câmpul în `Layer`, în `osatura-core/src/project.rs`, cu
    `#[serde(default = "...", skip_serializing_if = "...")]`, astfel încât fișierele vechi să se încarce
    neschimbate, iar valorile implicite să nu fie scrise înapoi. Adăugarea unui câmp opțional nu schimbă
    `FORMAT_VERSION`.
@@ -456,10 +456,10 @@ Exemplu: un număr nou, specific fiecărui strat.
 
 ### 12.2 Adăugarea unei comenzi CLI
 
-1. Scrie logica în `armatura-core` ca funcție cu intrare tipizată și `Result<_, String>` sau o listă
+1. Scrie logica în `osatura-core` ca funcție cu intrare tipizată și `Result<_, String>` sau o listă
    de erori; CLI-ul trebuie doar să parseze flag-urile și să afișeze. Astfel logica rămâne utilizabilă
    din ABI-ul C, din WASM și din Studio.
-2. În `armatura-cli/src/main.rs`, adaugă o intrare `USAGE`. `usage_for`, `documented_options` și
+2. În `osatura-cli/src/main.rs`, adaugă o intrare `USAGE`. `usage_for`, `documented_options` și
    `check_flags` o citesc, iar un test compară USAGE cu parserul, deci un flag pe care parserul îl
    acceptă, dar USAGE nu îl menționează, face testul să eșueze.
 3. Înregistrează opțiunile care primesc o valoare în `VALUE_OPTS` (sau în tabelul `takes_value` al
@@ -470,13 +470,13 @@ Exemplu: un număr nou, specific fiecărui strat.
 6. Scrie proiectele prin `write_json` (revalidează și rescrie căile resurselor). Dacă comanda scrie
    un alt fel de fișier decât intrarea, apelează `guard_out`, astfel încât o cale de ieșire greșit
    scrisă să nu poată suprascrie proiectul de intrare.
-7. Teste în `armatura-cli/tests/`: `e2e.rs` pentru cazul fericit, `robust.rs` pentru intrări ostile,
+7. Teste în `osatura-cli/tests/`: `e2e.rs` pentru cazul fericit, `robust.rs` pentru intrări ostile,
    `fixes.rs` sau `wave4.rs` pentru regresii; `scripts/e2e.sh` rulează întregul flux.
 8. Documentează-o în referința de comenzi.
 
 ### 12.3 Adăugarea unui exportator
 
-1. Pune scriitorul în `armatura-core` (de exemplu lângă `export.rs`, `gltf.rs` sau
+1. Pune scriitorul în `osatura-core` (de exemplu lângă `export.rs`, `gltf.rs` sau
    `lottie_export.rs`). Acesta primește un `Engine` sau un `Project`, evaluează cadrele prin
    `evaluate_checked` și nu are voie să citească starea privată.
 2. Decide și documentează ce nu poate reprezenta. Emite avertismente, nu presupuneri, pentru
@@ -496,23 +496,23 @@ Exemplu: un număr nou, specific fiecărui strat.
 
 | Crate | Feature | Implicit | Efect |
 | --- | --- | --- | --- |
-| `armatura-core` | `scripting` | activ | Compilează API-ul de scripting Rhai (`script`, `scriptops`). Aduce `rhai` și dependența sa `smartstring` (MPL-2.0). |
-| `armatura-cli` | `scripting` | activ | Activează `armatura-core/scripting` și comanda `script`. `--no-default-features` o elimină. |
-| `armatura-cli` | `gpu` | inactiv | Aduce `armatura-gpu` și adaugă comanda `render-gpu`. Ținut inactiv pentru ca build-urile obișnuite să rămână mici. |
+| `osatura-core` | `scripting` | activ | Compilează API-ul de scripting Rhai (`script`, `scriptops`). Aduce `rhai` și dependența sa `smartstring` (MPL-2.0). |
+| `osatura-cli` | `scripting` | activ | Activează `osatura-core/scripting` și comanda `script`. `--no-default-features` o elimină. |
+| `osatura-cli` | `gpu` | inactiv | Aduce `osatura-gpu` și adaugă comanda `render-gpu`. Ținut inactiv pentru ca build-urile obișnuite să rămână mici. |
 
-`armatura-capi`, `armatura-wasm` și `armatura-gpu` folosesc core cu `default-features = false`, deci
+`osatura-capi`, `osatura-wasm` și `osatura-gpu` folosesc core cu `default-features = false`, deci
 nu includ motorul de scripting.
 
 ## 14. Ținte de build
 
 | Țintă | Comandă | Note |
 | --- | --- | --- |
-| CLI și Studio | `cargo build -p armatura-cli` (adaugă `--release` pentru viteză) | Binarul `armatura`. |
-| CLI cu GPU | `cargo build -p armatura-cli --features gpu` | wgpu 30 doar cu Vulkan și GL. Verificat doar pe Mesa llvmpipe. |
-| Bibliotecă | `cargo build -p armatura-core` | API Rust. |
-| Bibliotecă C | `cargo build -p armatura-capi` | `cdylib`, `staticlib` și header-ul `armatura-capi/armatura.h`; `ABI_VERSION` 1. |
-| WebAssembly | `armatura-wasm/build-wasm.sh` (necesită `rustup target add wasm32-unknown-unknown`) | Interfață extern "C" simplă, cu `index.html` și utilitarele din `js/`. Mediul de creație nu a putut instala ținta; modulul este construit (profil release) de `.github/workflows/release.yml`, iar o compilare debug este testată sub Node de `ci.yml`. Scriptul în sine nu este ceea ce rulează CI. |
-| Aplicație cu fereastră (Windows, macOS) | `cargo build --release -p armatura-gui` | Binarul `armatura-studio`: fereastră `tao` + web view `wry` în jurul studioului; stub pe Linux. |
+| CLI și Studio | `cargo build -p osatura-cli` (adaugă `--release` pentru viteză) | Binarul `osatura`. |
+| CLI cu GPU | `cargo build -p osatura-cli --features gpu` | wgpu 30 doar cu Vulkan și GL. Verificat doar pe Mesa llvmpipe. |
+| Bibliotecă | `cargo build -p osatura-core` | API Rust. |
+| Bibliotecă C | `cargo build -p osatura-capi` | `cdylib`, `staticlib` și header-ul `osatura-capi/osatura.h`; `ABI_VERSION` 1. |
+| WebAssembly | `osatura-wasm/build-wasm.sh` (necesită `rustup target add wasm32-unknown-unknown`) | Interfață extern "C" simplă, cu `index.html` și utilitarele din `js/`. Mediul de creație nu a putut instala ținta; modulul este construit (profil release) de `.github/workflows/release.yml`, iar o compilare debug este testată sub Node de `ci.yml`. Scriptul în sine nu este ceea ce rulează CI. |
+| Aplicație cu fereastră (Windows, macOS) | `cargo build --release -p osatura-gui` | Binarul `osatura-studio`: fereastră `tao` + web view `wry` în jurul studioului; stub pe Linux. |
 | Teste | `cargo test --workspace` | Flux shell end-to-end în `scripts/e2e.sh`; audit de licențe în `scripts/licence-audit.sh`. |
 
-Membrii impliciți ai workspace-ului nu includ `armatura-gpu`.
+Membrii impliciți ai workspace-ului nu includ `osatura-gpu`.

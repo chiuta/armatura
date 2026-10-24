@@ -10,26 +10,26 @@ Conteúdo: [Instalação e configuração](#instalação-e-configuração) - [ff
 
 ## Instalação e configuração
 
-**1. Como instalo o ARMATURA?**
-Arquivos pré-compilados (Windows x86-64, macOS arm64, Linux x86-64 e o módulo WebAssembly) estão preparados como o pré-lançamento em rascunho `v0.1.0-alpha.3` em <https://github.com/chiuta/armatura/releases>; eles ficam disponíveis para download quando o dono publicar o rascunho, e não são assinados digitalmente (o SmartScreen mostra "Editor desconhecido"; o macOS pede aprovação). Não há instalador: descompacte o arquivo e execute `armatura`. Ou compile a partir do código-fonte com uma toolchain Rust stable recente: `cargo build -p armatura-cli` gera `target/debug/armatura`; acrescente `--release` para `target/release/armatura`. Veja [DEVELOPMENT.md](DEVELOPMENT.md).
+**1. Como instalo o OSATURA?**
+Arquivos pré-compilados (Windows x86-64, macOS arm64, Linux x86-64 e o módulo WebAssembly) estão preparados como o pré-lançamento em rascunho `v0.1.0-alpha.3` em <https://github.com/chiuta/armatura/releases>; eles ficam disponíveis para download quando o dono publicar o rascunho, e não são assinados digitalmente (o SmartScreen mostra "Editor desconhecido"; o macOS pede aprovação). Não há instalador: descompacte o arquivo e execute `osatura`. Ou compile a partir do código-fonte com uma toolchain Rust stable recente: `cargo build -p osatura-cli` gera `target/debug/osatura`; acrescente `--release` para `target/release/osatura`. Veja [DEVELOPMENT.md](DEVELOPMENT.md).
 
 **2. Quais plataformas funcionam?**
 O Linux x86-64 é onde o projeto foi desenvolvido e exercitado. No GitHub Actions, a suíte de testes e o clippy também passam em macOS (arm64) e Windows (x86-64), e os binários de release para esses três são compilados lá; mas nenhuma pessoa usou ainda os executáveis de Windows ou macOS em um desktop real, então eles são "testados pelo CI", e não "suportados" ([LIMITATIONS.md](LIMITATIONS.md), seção 1).
 
 **3. Existe um instalador gráfico ou um aplicativo?**
-Não há instalador. A linha de comando é o produto. O estúdio é uma página web local servida por `armatura studio`; no Windows, um duplo clique em `armatura.exe` o inicia e abre o seu navegador. Os arquivos para Windows e macOS também contêm `armatura-studio`, uma pequena janela nativa em torno do mesmo estúdio (ela só foi compilada e autotestada no CI); veja [STUDIO.md](STUDIO.md) e [GETTING_STARTED.md](GETTING_STARTED.md).
+Não há instalador. A linha de comando é o produto. O estúdio é uma página web local servida por `osatura studio`; no Windows, um duplo clique em `osatura.exe` o inicia e abre o seu navegador. Os arquivos para Windows e macOS também contêm `osatura-studio`, uma pequena janela nativa em torno do mesmo estúdio (ela só foi compilada e autotestada no CI); veja [STUDIO.md](STUDIO.md) e [GETTING_STARTED.md](GETTING_STARTED.md).
 
 **4. Como começo rapidamente?**
 Siga [GETTING_STARTED.md](GETTING_STARTED.md): ele constrói um personagem animado a partir de um projeto vazio, com todos os passos executados, e termina com um GIF.
 
 **5. Posso compilar sem o motor de scripts?**
-Sim: `cargo build -p armatura-cli --no-default-features` deixa o Rhai de fora, de modo que o comando `script` fica ausente (veja [DEVELOPMENT.md](DEVELOPMENT.md)). O recurso `scripting` é o único lugar onde entra um crate com licença de copyleft fraco (smartstring); veja [THIRD_PARTY.md](THIRD_PARTY.md).
+Sim: `cargo build -p osatura-cli --no-default-features` deixa o Rhai de fora, de modo que o comando `script` fica ausente (veja [DEVELOPMENT.md](DEVELOPMENT.md)). O recurso `scripting` é o único lugar onde entra um crate com licença de copyleft fraco (smartstring); veja [THIRD_PARTY.md](THIRD_PARTY.md).
 
 **6. Ele precisa de conexão de rede ou de uma conta?**
 Não. O programa não precisa de conta nem de rede para funcionar (o estúdio não tem contas). Por padrão, o estúdio escuta apenas na sua própria máquina (veja a pergunta 51).
 
 **7. Onde o estúdio guarda suas configurações?**
-Em `$ARMATURA_UI_CONFIG`, se definida; caso contrário em `$XDG_CONFIG_HOME/armatura/ui.json`; caso contrário, no Windows, em `%APPDATA%\ARMATURA\ui.json`; caso contrário em `~/.config/armatura/ui.json`. Seus projetos nunca são tocados por ele.
+Em `$OSATURA_UI_CONFIG`, se definida; caso contrário em `$XDG_CONFIG_HOME/osatura/ui.json`; caso contrário, no Windows, em `%APPDATA%\OSATURA\ui.json`; caso contrário em `~/.config/osatura/ui.json`. Seus projetos nunca são tocados por ele.
 
 ---
 
@@ -39,7 +39,7 @@ Em `$ARMATURA_UI_CONFIG`, se definida; caso contrário em `$XDG_CONFIG_HOME/arma
 Apenas para a exportação em MP4 e WebM, para `sound mix`, para áudio mp3/ogg e para `face-track` em um arquivo de vídeo. A exportação em GIF, APNG, HTML, sequências de PNG, SVG, glTF e JSON não precisa de mais nada. A lista completa está em [CLI_REFERENCE.md](CLI_REFERENCE.md), seção 1.6.
 
 **9. O ffmpeg é incluído?**
-Nunca. O ARMATURA inicia o `ffmpeg` do seu `PATH` como um programa separado e nada mais é executado. Qualquer que seja a situação de licença e de patentes do seu build do ffmpeg, cabe a você verificá-la; veja [PATENT_NOTES.md](PATENT_NOTES.md).
+Nunca. O OSATURA inicia o `ffmpeg` do seu `PATH` como um programa separado e nada mais é executado. Qualquer que seja a situação de licença e de patentes do seu build do ffmpeg, cabe a você verificá-la; veja [PATENT_NOTES.md](PATENT_NOTES.md).
 
 **10. O que ele diz quando o ffmpeg está ausente?**
 `cannot run ffmpeg (No such file or directory (os error 2)); install it or export a GIF/HTML instead` (para WebM, a dica termina com `or export an APNG instead`). Nada é gravado.
@@ -52,19 +52,19 @@ Nunca. O ARMATURA inicia o `ffmpeg` do seu `PATH` como um programa separado e na
 ## Desempenho
 
 **12. Por que ele é tão lento?**
-Provavelmente você está executando um build de depuração. Os números dos documentos vêm de um build de depuração e são de 10 a 30 vezes mais lentos que um build de release ([CLI_REFERENCE.md](CLI_REFERENCE.md), seção 1.7). Na máquina de teste de 2 núcleos, um build de depuração levou 46 s para gravar os 48 quadros do projeto de demonstração como PNG e 57 s para exportá-lo como GIF. Um build de release recém-feito executou as mesmas duas tarefas em 1,5 s e 2,2 s. Compile com `cargo build --release` e use `target/release/armatura`.
+Provavelmente você está executando um build de depuração. Os números dos documentos vêm de um build de depuração e são de 10 a 30 vezes mais lentos que um build de release ([CLI_REFERENCE.md](CLI_REFERENCE.md), seção 1.7). Na máquina de teste de 2 núcleos, um build de depuração levou 46 s para gravar os 48 quadros do projeto de demonstração como PNG e 57 s para exportá-lo como GIF. Um build de release recém-feito executou as mesmas duas tarefas em 1,5 s e 2,2 s. Compile com `cargo build --release` e use `target/release/osatura`.
 
 **13. Ele usa a GPU?**
 O renderizador padrão é a CPU. Um crate `gpu` e um comando `render-gpu` existem por trás de uma feature flag, mas nenhuma GPU real estava disponível durante o desenvolvimento: em uma GPU por software (llvmpipe), um quadro de 640x480 levou de 253 a 295 ms contra 13,8 ms no caminho da CPU. Trate a renderização em GPU como não testada em hardware ([LIMITATIONS.md](LIMITATIONS.md)).
 
 **14. Quanto custa um rig por quadro?**
-Em um build de depuração, o exemplo `biped` teve uma mediana de 64,5 ms por quadro na verificação de desempenho do `ci`. O bake de tecido de uma bandeira pequena levou 0,43 s. Meça o seu próprio projeto com `armatura stats` e `armatura ci`; os rigs variam muito.
+Em um build de depuração, o exemplo `biped` teve uma mediana de 64,5 ms por quadro na verificação de desempenho do `ci`. O bake de tecido de uma bandeira pequena levou 0,43 s. Meça o seu próprio projeto com `osatura stats` e `osatura ci`; os rigs variam muito.
 
 **15. Como posso deixar um projeto pesado mais leve?**
 Use `lod` para criar variantes mais baratas, `export-fit` para encontrar as configurações de exportação que atendem a um orçamento de bytes e `proxy-bench` para comparar proxies. Veja [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md) e [EXPORT_FORMATS.md](EXPORT_FORMATS.md). O `export-fit` pode parar mais cedo com `--max-seconds` e então informa que ficou sem tempo.
 
 **16. Um script com milhares de chamadas falha. Por quê?**
-`armatura script` aceita no máximo 5000 requisições por execução e é tudo ou nada: se qualquer requisição for rejeitada, nada é gravado. Divida um trabalho grande em vários scripts que leem a saída anterior.
+`osatura script` aceita no máximo 5000 requisições por execução e é tudo ou nada: se qualquer requisição for rejeitada, nada é gravado. Divida um trabalho grande em vários scripts que leem a saída anterior.
 
 ---
 
@@ -89,22 +89,22 @@ Execute `lint`. `make-loop` remove o deslocamento por completo: em um teste, uma
 *Este é um resumo em linguagem simples de [LICENSING.md](LICENSING.md), não é aconselhamento jurídico. A revisão da estrutura de licenciamento por um advogado ainda está pendente.*
 
 **21. Quais licenças se aplicam?**
-MPL-2.0 para a biblioteca core, a C ABI e os crates WASM e GPU; AGPL-3.0-or-later para o programa de linha de comando e o estúdio (`armatura-cli`); CC-BY-4.0 para a documentação e para os recursos e modelos de exemplo sintéticos.
+MPL-2.0 para a biblioteca core, a C ABI e os crates WASM e GPU; AGPL-3.0-or-later para o programa de linha de comando e o estúdio (`osatura-cli`); CC-BY-4.0 para a documentação e para os recursos e modelos de exemplo sintéticos.
 
 **22. Quem é o dono das animações e renderizações que eu faço?**
-Você. A declaração do projeto é que os projetos, as animações e as renderizações que você cria com o ARMATURA pertencem inteiramente a você; as licenças se aplicam ao software, não à sua saída. Exportar um GIF ou executar um comando não gera nenhuma obrigação.
+Você. A declaração do projeto é que os projetos, as animações e as renderizações que você cria com o OSATURA pertencem inteiramente a você; as licenças se aplicam ao software, não à sua saída. Exportar um GIF ou executar um comando não gera nenhuma obrigação.
 
 **23. Posso usar a saída comercialmente?**
 Sim, de acordo com a declaração acima. A exceção é tudo o que você copiar dos recursos de exemplo: esses são CC-BY-4.0 e exigem atribuição.
 
 **24. Preciso publicar meus projetos se usar as partes AGPL?**
-Não. A AGPL cobre o programa. Se você executar um `armatura-cli` ou um estúdio modificado de modo que outras pessoas o usem por uma rede, você deve oferecer a elas o seu código-fonte. O estúdio faz isso com uma página `/source` e uma flag `--source-url` que aponta para a sua cópia.
+Não. A AGPL cobre o programa. Se você executar um `osatura-cli` ou um estúdio modificado de modo que outras pessoas o usem por uma rede, você deve oferecer a elas o seu código-fonte. O estúdio faz isso com uma página `/source` e uma flag `--source-url` que aponta para a sua cópia.
 
 **25. Posso vincular a biblioteca core a um aplicativo de código fechado?**
 O core é MPL-2.0, que é um copyleft em nível de arquivo: você pode usá-lo a partir de código fechado e deve compartilhar as alterações nos próprios arquivos cobertos pela MPL. A CLI e o estúdio são AGPL e são outro assunto.
 
-**26. Posso dizer que minha ferramenta "funciona com o ARMATURA"?**
-Sim: "compatível com o ARMATURA" e "feito com o ARMATURA" são permitidos. Um build modificado não deve ser distribuído com o mesmo nome ([TRADEMARK.md](TRADEMARK.md)).
+**26. Posso dizer que minha ferramenta "funciona com o OSATURA"?**
+Sim: "compatível com o OSATURA" e "feito com o OSATURA" são permitidos. Um build modificado não deve ser distribuído com o mesmo nome ([TRADEMARK.md](TRADEMARK.md)).
 
 **27. Posso licenciar minha contribuição sob licença dupla?**
 Não existe contrato de licença de contribuidor. As contribuições são aceitas sob a licença do projeto com uma assinatura DCO (`git commit -s`), portanto não há um dono que possa relicenciá-las. Detalhes em [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -123,7 +123,7 @@ Veja [PATENT_NOTES.md](PATENT_NOTES.md). São notas de engenharia, não um parec
 As gravações são atômicas: o resultado vai para um arquivo temporário no mesmo diretório, é sincronizado e é renomeado sobre o destino, de modo que uma falha deixa o arquivo antigo. Os comandos de edição revalidam o projeto que estão prestes a gravar e se recusam a gravar um inválido (`output would be invalid: ...`). O comando `script` não aplica nada se qualquer requisição falhar.
 
 **31. É seguro abrir um projeto de outra pessoa?**
-Razoavelmente, mas não incondicionalmente. Um projeto é dado, não código; o único programa externo que o ARMATURA inicia é o ffmpeg, para os formatos listados na pergunta 8. O carregador recusa dispositivos, pipes e diretórios, limita o tamanho da entrada e recusa caminhos de recursos absolutos ou com `..`. Os scripts Rhai são executados em um sandbox. Ainda assim, leia [SECURITY.md](SECURITY.md) antes de processar arquivos não confiáveis em um serviço.
+Razoavelmente, mas não incondicionalmente. Um projeto é dado, não código; o único programa externo que o OSATURA inicia é o ffmpeg, para os formatos listados na pergunta 8. O carregador recusa dispositivos, pipes e diretórios, limita o tamanho da entrada e recusa caminhos de recursos absolutos ou com `..`. Os scripts Rhai são executados em um sandbox. Ainda assim, leia [SECURITY.md](SECURITY.md) antes de processar arquivos não confiáveis em um serviço.
 
 **32. Onde um projeto procura sons e imagens?**
 Relativamente à pasta do arquivo do projeto. Caminhos absolutos e qualquer caminho com `..` são recusados, a menos que você passe `--allow-external-assets`, e você precisa passá-lo novamente em todo comando posterior que carregar esse projeto. Exemplo da referência:
@@ -149,7 +149,7 @@ Não: `warning: unknown field bogus (ignored)` é impresso e o status de saída 
 Para os comandos que leem um projeto e gravam uma imagem, um vídeo ou outro arquivo que não seja de projeto, o nome da saída não pode ser o nome da entrada. A mensagem é `refusing to overwrite the input project X with output of the same name`. Isso evita o deslize clássico de exportar sobre a sua única cópia do projeto.
 
 **38. Então por que `script` e `autorig` podem gravar sobre a própria entrada?**
-A proteção cobre as saídas que não são de projeto. Os comandos que leem um projeto e gravam um projeto (`script`, `autorig`, `loop-solve` e outros) podem indicar o mesmo arquivo para a entrada e a saída; a gravação é atômica e, se o comando falhar, nada muda. Se você quiser manter o original, dê um novo nome ou use `armatura vcs` para manter o histórico ([CI.md](CI.md) e [CLI_REFERENCE.md](CLI_REFERENCE.md)).
+A proteção cobre as saídas que não são de projeto. Os comandos que leem um projeto e gravam um projeto (`script`, `autorig`, `loop-solve` e outros) podem indicar o mesmo arquivo para a entrada e a saída; a gravação é atômica e, se o comando falhar, nada muda. Se você quiser manter o original, dê um novo nome ou use `osatura vcs` para manter o histórico ([CI.md](CI.md) e [CLI_REFERENCE.md](CLI_REFERENCE.md)).
 
 **39. Por que `render` recusa `out.jpg`?**
 `render` grava apenas `.png` ou `.svg`: `render writes .png or .svg; 'out.jpg' has another extension (nothing was written)`. Para outros formatos, use `export`; a lista está em [EXPORT_FORMATS.md](EXPORT_FORMATS.md).
@@ -190,7 +190,7 @@ Edite os canais `layer_x` e `layer_y` da camada. No estúdio, ative a chave auto
 ## Estúdio
 
 **49. Como abro o estúdio?**
-`armatura studio project.json` e abra o endereço que ele imprime, normalmente `http://127.0.0.1:<port>`. É um aplicativo de página única servido pelo pequeno servidor HTTP próprio do ARMATURA (apenas biblioteca padrão); não precisa de internet.
+`osatura studio project.json` e abra o endereço que ele imprime, normalmente `http://127.0.0.1:<port>`. É um aplicativo de página única servido pelo pequeno servidor HTTP próprio do OSATURA (apenas biblioteca padrão); não precisa de internet.
 
 **50. O estúdio altera o meu arquivo enquanto trabalho?**
 Não. O arquivo em disco só muda quando você pressiona Save. Fechar a página sem salvar perde as edições (o log de colaboração, se ativado, guarda o projeto inteiro, mas não o histórico de desfazer).
@@ -211,7 +211,7 @@ Foi testado apenas no Chromium headless. Os outros não foram testados. Não há
 
 ## Rosto, fala e captura de movimento
 
-**55. O ARMATURA rastreia rostos?**
+**55. O OSATURA rastreia rostos?**
 Há um pequeno detector integrado, treinado apenas com rostos sintéticos. Em 50 cenas de teste sintéticas (seed 9), ele encontrou todos os rostos, com um erro médio de pontos de referência de 0,028 do tamanho do rosto, e gerou 2 falsos alarmes em 50 cenas sem rosto. Em desenhos de estilo cartoon, ele se saiu mal: 0 de 6 rostos de robô quadrado foram encontrados, e os casos do emoji redondo e do oval de mangá tiveram erros de 0,164 e 0,166. Ele nunca foi executado em fotografias reais nem em uma webcam real. Observe que [LIMITATIONS.md](LIMITATIONS.md) L-13 e o texto do painel de webcam do estúdio dizem que nenhum detector de rostos é incluído; isso está desatualizado em relação a este detector sintético.
 
 **56. Como funciona o lip-sync?**
@@ -225,7 +225,7 @@ As indicações de boca escolhem entre cinco formas (repouso, pequena, aberta, r
 ## Bugs, segurança e contribuição
 
 **58. Como relato um bug?**
-Abra uma issue com a linha de comando, a saída exata (inclusive o stderr), o status de saída, o build (`armatura --version`) e, se puder, um projeto mínimo. Execute antes `armatura check project.json` e `armatura lint project.json`: muitos problemas são relatados ali. Veja [CONTRIBUTING.md](CONTRIBUTING.md).
+Abra uma issue com a linha de comando, a saída exata (inclusive o stderr), o status de saída, o build (`osatura --version`) e, se puder, um projeto mínimo. Execute antes `osatura check project.json` e `osatura lint project.json`: muitos problemas são relatados ali. Veja [CONTRIBUTING.md](CONTRIBUTING.md).
 
 **59. Como relato um problema de segurança?**
 De forma privada, não em uma issue pública; veja [SECURITY.md](SECURITY.md). O endereço no repositório é `alexio@trom.tf`; é o mesmo endereço do contato do mantenedor e não foi substituído por uma caixa de correio de equipe de segurança.
@@ -234,7 +234,7 @@ De forma privada, não em uma issue pública; veja [SECURITY.md](SECURITY.md). O
 Não. Os documentos indicam um contato do mantenedor; o primeiro lançamento ainda é um pré-lançamento em rascunho.
 
 **61. Como contribuo?**
-Assine cada commit (`git commit -s`), mantenha os testes passando (`cargo test` e, para trabalho de animação, `armatura ci`) e leia [DEVELOPMENT.md](DEVELOPMENT.md). A documentação é CC-BY-4.0 e aceita correções com prazer, especialmente onde uma página e o programa discordam.
+Assine cada commit (`git commit -s`), mantenha os testes passando (`cargo test` e, para trabalho de animação, `osatura ci`) e leia [DEVELOPMENT.md](DEVELOPMENT.md). A documentação é CC-BY-4.0 e aceita correções com prazer, especialmente onde uma página e o programa discordam.
 
 ---
 
@@ -244,31 +244,31 @@ Assine cada commit (`git commit -s`), mantenha os testes passando (`cargo test` 
 Ele foi construído e testado por um único projeto em um único ambiente. Tudo o que não está listado como executado é "não testado". Leia [LIMITATIONS.md](LIMITATIONS.md); ele tem ids que você pode citar em issues.
 
 **63. Quais formatos de exportação exigem cuidado?**
-O vídeo precisa do ffmpeg. O Lottie e o glTF cobrem um subconjunto do que o ARMATURA consegue desenhar e animar, portanto verifique o que se perde em [EXPORT_FORMATS.md](EXPORT_FORMATS.md). O erro de `export` para uma extensão desconhecida lista `.gif .html .json .mp4 .apng .webm .png .glb`, o que omite `.lottie`; `.lottie` (dotLottie) é um destino válido, veja [EXPORT_FORMATS.md](EXPORT_FORMATS.md), seção 6.
+O vídeo precisa do ffmpeg. O Lottie e o glTF cobrem um subconjunto do que o OSATURA consegue desenhar e animar, portanto verifique o que se perde em [EXPORT_FORMATS.md](EXPORT_FORMATS.md). O erro de `export` para uma extensão desconhecida lista `.gif .html .json .mp4 .apng .webm .png .glb`, o que omite `.lottie`; `.lottie` (dotLottie) é um destino válido, veja [EXPORT_FORMATS.md](EXPORT_FORMATS.md), seção 6.
 
 **64. O build WASM é utilizável?**
-Ele compila para `wasm32-unknown-unknown` no GitHub Actions e o teste do wrapper passa contra o módulo real sob o Node 20, e está anexado ao lançamento em rascunho como `armatura-web.tar.gz`. Ele não foi executado em um navegador, e sua velocidade e memória não foram medidas ([WASM.md](WASM.md), [LIMITATIONS.md](LIMITATIONS.md)). Trate-o como parcialmente verificado.
+Ele compila para `wasm32-unknown-unknown` no GitHub Actions e o teste do wrapper passa contra o módulo real sob o Node 20, e está anexado ao lançamento em rascunho como `osatura-web.tar.gz`. Ele não foi executado em um navegador, e sua velocidade e memória não foram medidas ([WASM.md](WASM.md), [LIMITATIONS.md](LIMITATIONS.md)). Trate-o como parcialmente verificado.
 
 **65. Ele importa arquivos de projeto de outras ferramentas?**
 Ele importa SVG, OpenRaster, JSON Lottie, imagens, GIF/APNG, captura de movimento BVH e MIDI ([EXPORT_FORMATS.md](EXPORT_FORMATS.md), seções 9 e 10). Não importa PSD, arquivos zip `.lottie` nem pastas OCA. As importações criam um novo projeto. Observe que `import-lottie in.json in.json` não tem proteção contra sobrescrita e substitui a sua entrada. Não espere que um arquivo importado corresponda ao original pixel a pixel.
 
 **66. O JSON do projeto é estável?**
-É o "format 1". Um arquivo mais novo é recusado: `project format 2 is newer than this build supports (1); update ARMATURA`. Como existe apenas um pré-lançamento alpha, o próprio format 1 ainda pode mudar antes de uma versão estável; veja [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
+É o "format 1". Um arquivo mais novo é recusado: `project format 2 is newer than this build supports (1); update OSATURA`. Como existe apenas um pré-lançamento alpha, o próprio format 1 ainda pode mudar antes de uma versão estável; veja [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
 
 ---
 
 ## Comparações com outras ferramentas
 
 **67. Em que ele difere de um editor de animação de desktop baseado em timeline?**
-Esses são programas interativos, centrados no desenho. O ARMATURA é centrado em comandos: toda operação é um comando ou um script, o projeto é um JSON que pode ser comparado com diff, e as renderizações são determinísticas, de modo que podem ser testadas em CI. O estúdio é uma visão web fina sobre o mesmo motor e é muito menos refinado que um editor maduro.
+Esses são programas interativos, centrados no desenho. O OSATURA é centrado em comandos: toda operação é um comando ou um script, o projeto é um JSON que pode ser comparado com diff, e as renderizações são determinísticas, de modo que podem ser testadas em CI. O estúdio é uma visão web fina sobre o mesmo motor e é muito menos refinado que um editor maduro.
 
 **68. Em que ele difere de uma ferramenta de animação esquelética 2D para jogos?**
-Essas ferramentas se concentram em malhas, skins e bibliotecas de runtime para motores de jogo específicos. O ARMATURA também tem ossos, IK, restrições e malhas, mas uma história de runtime menor: seu próprio player em HTML, uma C ABI e um crate WASM que não foi compilado. Escolha de acordo com o runtime que você precisa atingir.
+Essas ferramentas se concentram em malhas, skins e bibliotecas de runtime para motores de jogo específicos. O OSATURA também tem ossos, IK, restrições e malhas, mas uma história de runtime menor: seu próprio player em HTML, uma C ABI e um crate WASM que não foi compilado. Escolha de acordo com o runtime que você precisa atingir.
 
 **69. Em que ele difere de um compositor de motion graphics?**
-Um compositor é construído em torno de camadas com efeitos e expressões sobre filmagens de vídeo. O ARMATURA tem efeitos de camada e expressões, mas seu centro é o rigging de personagens e a arte vetorial, e ele não faz composição de vídeo, 3D nem correção de cor de filmagens.
+Um compositor é construído em torno de camadas com efeitos e expressões sobre filmagens de vídeo. O OSATURA tem efeitos de camada e expressões, mas seu centro é o rigging de personagens e a arte vetorial, e ele não faz composição de vídeo, 3D nem correção de cor de filmagens.
 
-**70. Quando o ARMATURA é a escolha errada?**
+**70. Quando o OSATURA é a escolha errada?**
 Quando você precisa hoje de desempenho em tempo real em uma GPU, de um fluxo de trabalho polido com mesa digitalizadora, de animação desenhada à mão quadro a quadro, de um produto com suporte de fornecedor, com versão estável lançada e suporte, ou de comportamento confirmado fora do Linux x86-64.
 
 ---
@@ -280,13 +280,13 @@ Cada mensagem abaixo foi produzida por um build real e termina com status de sa�
 | Mensagem | Causa | Correção |
 |---|---|---|
 | `cannot read nope.json: No such file or directory (os error 2)` | Caminho ou nome errado | Verifique o caminho e o diretório atual |
-| `invalid JSON in broken.json: EOF while parsing a value at line 2 column 0` | O arquivo não é um JSON completo | Corrija a sintaxe na linha indicada; restaure de um backup ou com `armatura vcs` |
+| `invalid JSON in broken.json: EOF while parsing a value at line 2 column 0` | O arquivo não é um JSON completo | Corrija a sintaxe na linha indicada; restaure de um backup ou com `osatura vcs` |
 | `badparent.json is not a valid project:` then `bone 'a' has parent 'ghost' which is missing or listed after it` | Um osso pai está ausente ou listado depois do seu filho | Defina os pais antes dos filhos; corrija o nome |
-| `invalid JSON in fmt2.json: project format 2 is newer than this build supports (1); update ARMATURA` | Arquivo de um build mais novo | Use um build mais novo |
+| `invalid JSON in fmt2.json: project format 2 is newer than this build supports (1); update OSATURA` | Arquivo de um build mais novo | Use um build mais novo |
 | `warning: unknown field bogus (ignored)` (saída 0) | Uma chave que este build não conhece | Remova ou corrija a chave; verifique se há erro de digitação |
 | `refusing to overwrite the input project X with output of the same name` | O nome do arquivo de saída é igual ao da entrada | Escolha outro nome de saída |
 | `render writes .png or .svg; 'out.jpg' has another extension (nothing was written)` | Extensão errada para `render` | Use `.png`/`.svg`, ou `export` para outros formatos |
-| `unknown option --bone for 'render' (did you mean --bones?); see: armatura (no arguments) for the usage` | Opção digitada errado | Use a opção sugerida |
+| `unknown option --bone for 'render' (did you mean --bones?); see: osatura (no arguments) for the usage` | Opção digitada errado | Use a opção sugerida |
 | `unknown export format '.bmp' (use .gif .html .json .mp4 .apng .webm .png .glb)` | Extensão não exportável | Escolha um formato listado (`.lottie` também é válido) |
 | `--scale needs a number in (0, 16]` | Escala fora do intervalo | Use um valor acima de 0 e até 16 |
 | `bad frame number 'x'` | Um argumento de quadro não é um número inteiro | Passe um inteiro |
@@ -318,12 +318,12 @@ Cada mensagem abaixo foi produzida por um build real e termina com status de sa�
 | `budget not met: the smallest export found is 14952 bytes (raw), above the budget of 8000 bytes ...` | `export-fit` não consegue atingir o orçamento | Aumente o orçamento ou simplifique o projeto (o menor arquivo ainda é gravado) |
 | `time budget exhausted (60 s ...)` | `export-fit` ficou sem tempo | Aumente `--max-seconds` |
 | `fuzz: failure rate 98.00% exceeds --max-fail-rate 50.00%` | Poses quebraram o rig e você pediu um gate (`--gate` ou `--max-fail-rate`) | Veja os casos que falham; aumente a taxa somente se for intencional; `fuzz` simples apenas relata (saída 0) |
-| `no .armatura-vcs repository found from ... (run: armatura vcs init <project.json>)` | Ainda não há histórico | Execute `vcs init` |
+| `no .osatura-vcs repository found from ... (run: osatura vcs init <project.json>)` | Ainda não há histórico | Execute `vcs init` |
 | `frame 999 out of range` (API do estúdio) | Quadro além do projeto | Use um quadro de 0 até o último quadro |
 | `bad kind 'x' (vector, raster, png)` (API do estúdio) | Tipo errado | Use um tipo listado |
 | `nothing selected` (API do estúdio) | Um comando de seleção sem seleção | Selecione camadas ou ossos primeiro |
 
-Os códigos de saída de `armatura ci` são 0 aprovado, 1 reprovado, 2 erro.
+Os códigos de saída de `osatura ci` são 0 aprovado, 1 reprovado, 2 erro.
 
 ---
 

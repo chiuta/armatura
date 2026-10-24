@@ -1,13 +1,13 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 
-# ARMATURA projektformátum
+# OSATURA projektformátum
 
-Ez az ARMATURA projektfájl referenciája: egyetlen JSON-dokumentum, amely
-a színpadot, a rigt, a rajzokat és az animációt tartalmazza. Az `armatura-core/src/project.rs`
+Ez az OSATURA projektfájl referenciája: egyetlen JSON-dokumentum, amely
+a színpadot, a rigt, a rajzokat és az animációt tartalmazza. Az `osatura-core/src/project.rs`
 fájlban lévő serde struktúrákból és az általuk hivatkozott modulokból készült,
-a 13–15. szakasz minden példáját pedig ellenőriztük az `armatura` binárissal
-(`armatura check`, `armatura render`, `armatura explain`).
+a 13–15. szakasz minden példáját pedig ellenőriztük az `osatura` binárissal
+(`osatura check`, `osatura render`, `osatura explain`).
 
 Tartalom
 
@@ -63,7 +63,7 @@ A `Project::from_json(text)` az egyetlen belépési pont, amelyet a CLI, a C API
    ezzel: `invalid JSON in <file>: value ... is outside the supported range of +-1e7 ...`. Az egész
    literálokat később kapja el az `Engine::new` belső újraellenőrzése (lásd 12. szakasz).
 3. Alkalmazza a formátumkaput: a build `FORMAT_VERSION` értékénél (jelenleg `1`) nagyobb `format` értéket
-   elutasítja ezzel: `project format 2 is newer than this build supports (1); update ARMATURA`.
+   elutasítja ezzel: `project format 2 is newer than this build supports (1); update OSATURA`.
 
 Az `Engine::new` (vagy az `Engine::with_asset_dir`) ezután az egész projektet validálja, és minden talált
 problémát listaként ad vissza. A CLI így írja ki őket:
@@ -86,7 +86,7 @@ nem élték túl:
 warning: unknown field layers[0].paths[0].fil (ignored)
 ```
 
-Az `armatura check` kiírja ezeket a figyelmeztetéseket. Az alapértékkel egyező értékeket nem jelenti (az író
+Az `osatura check` kiírja ezeket a figyelmeztetéseket. Az alapértékkel egyező értékeket nem jelenti (az író
 kihagyja az alapértékeket, így egy explicit `"visible": true` rendben van). Néhány struktúra engedékeny helyett szigorú, és
 az ismeretlen kulcsokat kemény hibával utasítja el: az állapotgép `Transition` és `Condition` elemei, a CI-konfiguráció,
 az élő bemenet konfigurációja, az átfedések és az arcparaméter-konfiguráció; a konfigurációs fájlokat `parse_strict` olvassa.
@@ -94,7 +94,7 @@ az élő bemenet konfigurációja, az átfedések és az arcparaméter-konfigur�
 ### Szerkesztői metaadatok körforgása
 
 A projekt az opcionális listákat `skip_serializing_if` szabállyal szerializálja. A kézzel írt fájl
-rövidebb lehet annál, amit az `armatura` visszaír; a kettő egyenértékű.
+rövidebb lehet annál, amit az `osatura` visszaír; a kettő egyenértékű.
 
 ## 3. Legfelső szintű mezők
 
@@ -107,7 +107,7 @@ rövidebb lehet annál, amit az `armatura` visszaír; a kettő egyenértékű.
 | `fps` | number | **Kötelező** | `(0, 1000]` | Képkocka másodpercenként. |
 | `frames` | integer (`u32`) | **Kötelező** | `1..=200000` | Az idővonal hossza. A képkockaindexek `0..frames-1`. Az olyan lebegőpontos literált, mint a `48.0`, elutasítja: `invalid type: floating point `48.0`, expected u32`. |
 | `background` | `Rgba` vagy null | null (átlátszó) | | A színpad színe mindennek a mögött. |
-| `color_space` | string | `"srgb"` (nem íródik ki) | `srgb`, `linear` | Az a tér, amelyben a raszteres és a float kompozitor kever. `linear`: a színek lineáris fénybe konvertálódnak, f32-ben kompozitálódnak, majd egyszer visszakonvertálódnak (egy 50%-os fekete fehér fölött 188/255, nem 128/255). Beállítása: `armatura color-space`. Az SVG, a Lottie, a GPU renderelő, a `dof` és az `fx` figyelmen kívül hagyja. |
+| `color_space` | string | `"srgb"` (nem íródik ki) | `srgb`, `linear` | Az a tér, amelyben a raszteres és a float kompozitor kever. `linear`: a színek lineáris fénybe konvertálódnak, f32-ben kompozitálódnak, majd egyszer visszakonvertálódnak (egy 50%-os fekete fehér fölött 188/255, nem 128/255). Beállítása: `osatura color-space`. Az SVG, a Lottie, a GPU renderelő, a `dof` és az `fx` figyelmen kívül hagyja. |
 | `camera` | object | alapértékek | 10. szakasz | Globális kamera. |
 | `bones` | array | `[]` | legfeljebb 4096 | Csontváz, 4. szakasz. |
 | `ik` | array | `[]` | | IK-láncok. |
@@ -380,8 +380,8 @@ Példa sugaras színátmenetes kitöltésre körvonallal (a labdapéldából):
 "stroke": {"paint": "#3d2c2e", "width": 2}
 ```
 
-A linter (`armatura lint`) figyelmeztet a színátmenet-problémákra (L011), a switch-kulcsokra (L012) és a szerkesztői adatok problémáira (L013); lásd
-`armatura-core/src/lint.rs`.
+A linter (`osatura lint`) figyelmeztet a színátmenet-problémákra (L011), a switch-kulcsokra (L012) és a szerkesztői adatok problémáira (L013); lásd
+`osatura-core/src/lint.rs`.
 
 ## 7. Deformerek, effektek, normáltérkép
 
@@ -699,7 +699,7 @@ Az `apply_clip_masks` maszkhivatkozásokat ad a kapott projekthez, ezért módos
 
 ### 11.6 `lods[]`
 
-Az `armatura lod` által írt részletességi szint (level-of-detail) menet feljegyzése: `level`, `tolerance_px`, `scale`,
+Az `osatura lod` által írt részletességi szint (level-of-detail) menet feljegyzése: `level`, `tolerance_px`, `scale`,
 `declared_px`, `bound_stage`, `path_px`, `mesh_px`, `keys_px`, `cull_px`, `stats`
 (`path_anchors`, `mesh_vertices`, `keys`, `layers`, `bytes`) és `notes`. Dokumentációja annak, mit
 végzett el egy menet; a renderer soha nem olvassa.
@@ -708,7 +708,7 @@ végzett el egy menet; a renderer soha nem olvassa.
 ## 12. Validációs szabályok, korlátok és hibaüzenetek
 
 Az `Engine::new` egy menetben validál, és az összes problémát visszaadja. A táblázat azt sorolja fel, ami kikényszerített;
-az idézőjelek közti üzeneteket az `armatura check` szándékosan elrontott fájlokon állította elő.
+az idézőjelek közti üzeneteket az `osatura check` szándékosan elrontott fájlokon állította elő.
 
 ### 12.1 Globális korlátok
 
@@ -720,7 +720,7 @@ az idézőjelek közti üzeneteket az `armatura check` szándékosan elrontott f
 | width, height | `<= 32768` | `width and height must be at most 32768` |
 | bármely lebegőpontos szám | `abs <= 1e7` | `value 100000000.0 at /bones/0/length is outside the supported range of +-1e7 (coordinates, scales, offsets and key values must stay below it)` |
 | bones | legfeljebb 4096 | `at most 4096 bones` |
-| format | `<= 1` | `project format 2 is newer than this build supports (1); update ARMATURA` |
+| format | `<= 1` | `project format 2 is newer than this build supports (1); update OSATURA` |
 | JSON-méret | CLI `--max-input-bytes`, alapértelmezés 256 MiB; API `MAX_JSON_BYTES` 256 MiB | |
 
 Az 1e7-es korlátot kétszer alkalmazza a rendszer. Betöltéskor a korlátot meghaladó lebegőpontos literál elbuktatja a
@@ -802,12 +802,12 @@ hibák, amelyek mentett fájlban nem létezhetnek**: NaN vagy végtelen a marker
 érvénytelen skinek (`skins::validate`), klipek (`clipstack::validate`, valamint a nem feloldható take-sávcélok,
 a `rename` figyelembevételével), `channel_meta` és `lods`. Az `out/` fixture-ök figyelmeztetés nélkül töltődnek be.
 
-Az `armatura check` kiírja az ilyen jellegű lint-figyelmeztetéseket; a teljes linter (`armatura lint`) több szabályt tartalmaz (L001-től).
+Az `osatura check` kiírja az ilyen jellegű lint-figyelmeztetéseket; a teljes linter (`osatura lint`) több szabályt tartalmaz (L001-től).
 
 ## 13. 1. példa: pattogó labda
 
-Az `armatura check` (`ok: 'bouncing ball' 320×240 @ 24 fps, 48 frames, 0 bones, 0 ik,
-3 layers, 5 channels`) és az `armatura render ball.json 7 out.png` parancs igazolta. Amit bemutat:
+Az `osatura check` (`ok: 'bouncing ball' 320×240 @ 24 fps, 48 frames, 0 bones, 0 ik,
+3 layers, 5 channels`) és az `osatura render ball.json 7 out.png` parancs igazolta. Amit bemutat:
 
 - Kulcsolt `layer_y` `bounce` easinggel az első szakaszon: a labda y=40-ről esik a
   padlóra y=170-nél, és háromszor visszapattan. Az első ütközés nagyjából a 7,2. képkockánál történik (24 / 3,352).
@@ -936,8 +936,8 @@ Az `armatura check` (`ok: 'bouncing ball' 320×240 @ 24 fps, 48 frames, 0 bones,
 
 ## 14. 2. példa: IK-s riggelt kar
 
-Az `armatura check` igazolta (3 bones, 1 ik, 3 layers, 2 channels). Az `armatura explain arm.json
-24` a hegyet a (170, 190) pontban jelenti, ami megegyezik a `target` csonttal, az `armatura render arm.json 24
+Az `osatura check` igazolta (3 bones, 1 ik, 3 layers, 2 channels). Az `osatura explain arm.json
+24` a hegyet a (170, 190) pontban jelenti, ami megegyezik a `target` csonttal, az `osatura render arm.json 24
 out.png --bones` pedig megrajzolja a vázat. Amit bemutat:
 
 - Az `upper` szögkorláttal rendelkező gyökér; a `lower` a gyermeke (a `rest_offset` `[90, 0]` megegyezik a
@@ -1086,7 +1086,7 @@ out.png --bones` pedig megrajzolja a vázat. Amit bemutat:
 
 ## 15. 3. példa: switch-réteges száj
 
-Az `armatura check` igazolta, és a 0., 5. és 9. képkocka renderelése, amely három különböző
+Az `osatura check` igazolta, és a 0., 5. és 9. képkocka renderelése, amely három különböző
 szájat mutat. A tartományon kívüli kulcsok korlátozódnak: a 7-es kulcsérték a 2. gyermeket, a -3 a 0. gyermeket mutatja.
 
 ```json

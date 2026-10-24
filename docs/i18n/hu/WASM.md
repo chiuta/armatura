@@ -1,53 +1,53 @@
-# ARMATURA WebAssemblyhez
+# OSATURA WebAssemblyhez
 
-*ABI 1-es verzió (`arm_abi_version()`). Crate: `armatura-wasm`, JavaScript-burkoló: `armatura-wasm/js/armatura.js`, demóoldal: `armatura-wasm/index.html`, build-szkript: `armatura-wasm/build-wasm.sh`. Célközönség: webfejlesztők, akik ARMATURA-projekteket szeretnének lejátszani böngészőben vagy node-ban, és az első ember, aki böngészőben is lefuttatja a modult. Dokumentáció: CC-BY-4.0; kódminták: MPL-2.0.*
+*ABI 1-es verzió (`arm_abi_version()`). Crate: `osatura-wasm`, JavaScript-burkoló: `osatura-wasm/js/osatura.js`, demóoldal: `osatura-wasm/index.html`, build-szkript: `osatura-wasm/build-wasm.sh`. Célközönség: webfejlesztők, akik OSATURA-projekteket szeretnének lejátszani böngészőben vagy node-ban, és az első ember, aki böngészőben is lefuttatja a modult. Dokumentáció: CC-BY-4.0; kódminták: MPL-2.0.*
 
 > ## ÁLLAPOT: A CI-BEN LEFORDÍTVA ÉS TESZTELVE, BÖNGÉSZŐBEN SOSEM FUTTATTÁK
 >
-> **2026. okt. 24-től a modul a GitHub Actionsön épül** (`wasm32-unknown-unknown`, debug build a `ci.yml`-ben, release build a `release.yml`-ben), és **a burkoló tesztje sikeres a valódi modul ellen Node 20 alatt** (`node armatura-wasm/js/test.mjs demo.json`, a valódi-modul részét is beleértve). A release build `armatura-web.tar.gz` néven csatolva van a `v0.1.0-alpha.3` előzetes kiadás-vázlathoz (tömörítve kb. 0,9 MB, az `armatura.js` fájllal és a demóoldallal). **Böngészőben még soha nem töltötték be**: ezen az oldalon semmi, ami böngészőkről, sebességről vagy memóriáról szól, nem megfigyelt viselkedés, és maga a fejlesztői környezet továbbra sem tudja telepíteni a célt (a szabványkönyvtárának letöltése ott blokkolt).
+> **2026. okt. 24-től a modul a GitHub Actionsön épül** (`wasm32-unknown-unknown`, debug build a `ci.yml`-ben, release build a `release.yml`-ben), és **a burkoló tesztje sikeres a valódi modul ellen Node 20 alatt** (`node osatura-wasm/js/test.mjs demo.json`, a valódi-modul részét is beleértve). A release build `osatura-web.tar.gz` néven csatolva van a `v0.1.0-alpha.3` előzetes kiadás-vázlathoz (tömörítve kb. 0,9 MB, az `osatura.js` fájllal és a demóoldallal). **Böngészőben még soha nem töltötték be**: ezen az oldalon semmi, ami böngészőkről, sebességről vagy memóriáról szól, nem megfigyelt viselkedés, és maga a fejlesztői környezet továbbra sem tudja telepíteni a célt (a szabványkönyvtárának letöltése ott blokkolt).
 >
 > Ami tesztelve volt, és ez meddig terjed:
 >
 > | Réteg | Teszt | Mit bizonyít | Mit nem bizonyít |
 > |---|---|---|---|
-> | A Rust ABI-függvények (`arm_*`) | `cargo test -p armatura-wasm`: 8 egységteszt a **gazdagépen**, az exportált függvényeket közvetlenül hívva | az argumentumok ellenőrzése, a hibakódok, a kimeneti puffer protokollja, az állapotgépek, az elrendezés / görgetés / részletességi szint hívásai, a túlméretes kimenet elutasítása a foglalás előtt | a lefordított modul viselkedését |
-> | A lefordított modul | CI: `cargo build --target wasm32-unknown-unknown`, majd `node armatura-wasm/js/test.mjs demo.json` a valódi `.wasm` fájllal | hogy a függőségek lefordulnak wasm32-re, hogy a modul azt exportálja, amit a burkoló vár, és hogy a betöltés, a renderelés és az állapotgép-hívások működnek a Node WebAssembly-motorja alatt | a böngészőket, a release sebességét és memóriahasználatát, a pánikokat (csapda), a demóoldalt |
+> | A Rust ABI-függvények (`arm_*`) | `cargo test -p osatura-wasm`: 8 egységteszt a **gazdagépen**, az exportált függvényeket közvetlenül hívva | az argumentumok ellenőrzése, a hibakódok, a kimeneti puffer protokollja, az állapotgépek, az elrendezés / görgetés / részletességi szint hívásai, a túlméretes kimenet elutasítása a foglalás előtt | a lefordított modul viselkedését |
+> | A lefordított modul | CI: `cargo build --target wasm32-unknown-unknown`, majd `node osatura-wasm/js/test.mjs demo.json` a valódi `.wasm` fájllal | hogy a függőségek lefordulnak wasm32-re, hogy a modul azt exportálja, amit a burkoló vár, és hogy a betöltés, a renderelés és az állapotgép-hívások működnek a Node WebAssembly-motorja alatt | a böngészőket, a release sebességét és memóriahasználatát, a pánikokat (csapda), a demóoldalt |
 > | A JavaScript-burkoló | ugyanez a szkript az exportok egy **JavaScript-mockjával** szemben (három mock-szakasz: renderelés, állapotgép, elrendezés) | a burkoló hívássorozatai, a sztringátadás, a hibák fordítása, az eredmények másolása | - |
 > | A demóoldal | betöltve headless Chromiumban a `.wasm` fájl **nélkül** | a modulimport-útvonalak feloldódnak, és az oldal összeomlás helyett azt jelzi: „wasm not found” | bármilyen renderelést böngészőben |
-> | Függőségek | `cargo tree -p armatura-wasm`: nincs `rhai` / `smartstring` a fában | a szkriptmotor nem része a modulnak | - |
+> | Függőségek | `cargo tree -p osatura-wasm`: nincs `rhai` / `smartstring` a fában | a szkriptmotor nem része a modulnak | - |
 >
-> **Fennmaradó kockázatok:** (1) *A CI-ben megoldva:* a `zip`, `tiny-skia`, `png`, `gif`, `jpeg-decoder`, `i_overlay` és függőségeik fordítása `wasm32-unknown-unknown`-ra. (2) A `std::time::Instant` / `SystemTime`, a `process::id` és a `thread::spawn` a `wasm32-unknown-unknown` célon **pánikol**: a 7. hullám óta a core már nem hívja őket közvetlenül. Minden használat az `armatura_core::clock`-on megy keresztül (egy időbélyeg-típus, `unix_seconds`, `process_id`; a LOD-proxy építő a hívó szálra esik vissza, ha nem lehet szálat indítani), amely ezen a célon egy gazda által adott órát olvas (az `arm_set_clock(mono_ms, unix_ms)` export, amelyet a JavaScript-burkoló a `performance.now()` és a `Date.now()` értékével táplál a `load`, `svg` és `rgba` előtt; az a gazda, amely sosem hívja, 0 időtartamokat kap, így az időkeretek sosem járnak le), és sosem pánikol. Egy teszt (`armatura-core/tests/wasm_safety.rs`) elbukik, ha a `clock.rs`-en kívül új közvetlen használat jelenik meg; a CI-beli Node teszt azokat az utakat járja be, amelyeket elér, nem az összeset. A Rhai (amelynek szintén kellene a `no_time` feature-je) nincs a buildben. (3) A fájlrendszerhez és folyamatokhoz kötött modulok lefordulnak, de futásidőben elbuknak: `audio.rs` (fájlmegnyitás), `soundtrack.rs` (ffprobe), `snapshots.rs`, `open_formats.rs` (exportkönyvtárak), `agent.rs` (mentés), valamint a relatív útvonalú képek és normálletérképek betöltése az `engine.rs`, a `meshtrace.rs` és a `postfx.rs` fájlokban; működés helyett hibát adnak vissza böngészőben, és egyetlen cargo feature sem kapuzza őket. (4) A lebegőpontos függvények (`sin`, `cos`, `powf`, ...) wasm32-n más matematikai könyvtárból jönnek, így a renderelt pixelek kissé eltérhetnek a natívaktól (az ellenőrzési lista 6. lépése ezt méri). (5) A `wasm32-unknown-unknown` célon az alapértelmezés `panic = "abort"`, a `catch_unwind` semmit sem tud elfogni, és egy Rust-pánik az egész példányt csapdába ejti (`WebAssembly.RuntimeError: unreachable`). Lásd a végén az [ellenőrzési listát](#ellenőrzési-lista-az-első-embernek-aki-böngészőben-is-le-tudja-futtatni).
+> **Fennmaradó kockázatok:** (1) *A CI-ben megoldva:* a `zip`, `tiny-skia`, `png`, `gif`, `jpeg-decoder`, `i_overlay` és függőségeik fordítása `wasm32-unknown-unknown`-ra. (2) A `std::time::Instant` / `SystemTime`, a `process::id` és a `thread::spawn` a `wasm32-unknown-unknown` célon **pánikol**: a 7. hullám óta a core már nem hívja őket közvetlenül. Minden használat az `osatura_core::clock`-on megy keresztül (egy időbélyeg-típus, `unix_seconds`, `process_id`; a LOD-proxy építő a hívó szálra esik vissza, ha nem lehet szálat indítani), amely ezen a célon egy gazda által adott órát olvas (az `arm_set_clock(mono_ms, unix_ms)` export, amelyet a JavaScript-burkoló a `performance.now()` és a `Date.now()` értékével táplál a `load`, `svg` és `rgba` előtt; az a gazda, amely sosem hívja, 0 időtartamokat kap, így az időkeretek sosem járnak le), és sosem pánikol. Egy teszt (`osatura-core/tests/wasm_safety.rs`) elbukik, ha a `clock.rs`-en kívül új közvetlen használat jelenik meg; a CI-beli Node teszt azokat az utakat járja be, amelyeket elér, nem az összeset. A Rhai (amelynek szintén kellene a `no_time` feature-je) nincs a buildben. (3) A fájlrendszerhez és folyamatokhoz kötött modulok lefordulnak, de futásidőben elbuknak: `audio.rs` (fájlmegnyitás), `soundtrack.rs` (ffprobe), `snapshots.rs`, `open_formats.rs` (exportkönyvtárak), `agent.rs` (mentés), valamint a relatív útvonalú képek és normálletérképek betöltése az `engine.rs`, a `meshtrace.rs` és a `postfx.rs` fájlokban; működés helyett hibát adnak vissza böngészőben, és egyetlen cargo feature sem kapuzza őket. (4) A lebegőpontos függvények (`sin`, `cos`, `powf`, ...) wasm32-n más matematikai könyvtárból jönnek, így a renderelt pixelek kissé eltérhetnek a natívaktól (az ellenőrzési lista 6. lépése ezt méri). (5) A `wasm32-unknown-unknown` célon az alapértelmezés `panic = "abort"`, a `catch_unwind` semmit sem tud elfogni, és egy Rust-pánik az egész példányt csapdába ejti (`WebAssembly.RuntimeError: unreachable`). Lásd a végén az [ellenőrzési listát](#ellenőrzési-lista-az-első-embernek-aki-böngészőben-is-le-tudja-futtatni).
 
 Tartalom: [Mi ez](#mi-ez) - [Építés](#építés) - [Memóriamodell és az ABI](#memóriamodell-és-az-abi) - [Exportreferencia](#exportreferencia) - [A JavaScript-burkoló](#a-javascript-burkoló) - [A demóoldal](#a-demóoldal) - [Eltérések a C ABI-tól](#eltérések-a-c-abi-tól) - [Ismert érdes élek](#ismert-érdes-élek) - [Ellenőrzési lista](#ellenőrzési-lista-az-első-embernek-aki-böngészőben-is-le-tudja-futtatni)
 
 ## Mi ez
 
-Az `armatura-wasm` egy `cdylib`, amely **egyszerű `extern "C"` függvényekből** áll (nincs `wasm-bindgen`, nincs generált ragasztókód) a stabil Rust facade ([API.md](API.md)) fölött. `wasm32-unknown-unknown`-ra fordítva egy olyan modult ad, amely meg tud nyitni egy projektet, képkockákat tud renderelni SVG-szövegként vagy RGBA-pixelekként, és állapotgépeket tud futtatni elrendezéssel, görgetéssel és részletességi szinttel. Szerkeszteni, exportálni, verziókezelni vagy eszközöket futtatni nem tud; nincs fájlrendszere, hálózata, hangja és szálai. Az `armatura.js` egy függőségmentes ES-modul (böngészők és node >= 18), amely elrejti a mutatókezelést.
+Az `osatura-wasm` egy `cdylib`, amely **egyszerű `extern "C"` függvényekből** áll (nincs `wasm-bindgen`, nincs generált ragasztókód) a stabil Rust facade ([API.md](API.md)) fölött. `wasm32-unknown-unknown`-ra fordítva egy olyan modult ad, amely meg tud nyitni egy projektet, képkockákat tud renderelni SVG-szövegként vagy RGBA-pixelekként, és állapotgépeket tud futtatni elrendezéssel, görgetéssel és részletességi szinttel. Szerkeszteni, exportálni, verziókezelni vagy eszközöket futtatni nem tud; nincs fájlrendszere, hálózata, hangja és szálai. Az `osatura.js` egy függőségmentes ES-modul (böngészők és node >= 18), amely elrejti a mutatókezelést.
 
-Licenc: MPL-2.0 (crate és burkoló). A modul az `armatura-core`-tól `default-features = false` mellett függ: nincs szkriptmotor és nincs MPL-licencű harmadik féltől származó crate.
+Licenc: MPL-2.0 (crate és burkoló). A modul az `osatura-core`-tól `default-features = false` mellett függ: nincs szkriptmotor és nincs MPL-licencű harmadik féltől származó crate.
 
 ## Építés
 
-Nem kell magadnak megépítened: a vázlatkiadás tartalmazza az `armatura-web.tar.gz` fájlt (modul, burkoló, demóoldal). Saját építéshez olyan gép kell, amelyen a cél telepíthető (és opcionálisan a Binaryen `wasm-opt` eszköze a mérethez). A CI a `cargo build --release --target wasm32-unknown-unknown -p armatura-wasm --locked` paranccsal építi.
+Nem kell magadnak megépítened: a vázlatkiadás tartalmazza az `osatura-web.tar.gz` fájlt (modul, burkoló, demóoldal). Saját építéshez olyan gép kell, amelyen a cél telepíthető (és opcionálisan a Binaryen `wasm-opt` eszköze a mérethez). A CI a `cargo build --release --target wasm32-unknown-unknown -p osatura-wasm --locked` paranccsal építi.
 
 ```sh
 rustup target add wasm32-unknown-unknown
-./armatura-wasm/build-wasm.sh
+./osatura-wasm/build-wasm.sh
 ```
 
-A szkript (`armatura-wasm/build-wasm.sh`, POSIX shell-szkript) pontosan ezt teszi, a repository gyökeréből:
+A szkript (`osatura-wasm/build-wasm.sh`, POSIX shell-szkript) pontosan ezt teszi, a repository gyökeréből:
 
-1. `cargo build --target wasm32-unknown-unknown --release -p armatura-wasm`
-2. átmásolja a `target/wasm32-unknown-unknown/release/armatura_wasm.wasm` fájlt az `armatura-wasm/armatura_wasm.wasm` helyre;
+1. `cargo build --target wasm32-unknown-unknown --release -p osatura-wasm`
+2. átmásolja a `target/wasm32-unknown-unknown/release/osatura_wasm.wasm` fájlt az `osatura-wasm/osatura_wasm.wasm` helyre;
 3. ha a `wasm-opt` a `PATH`-on van, átírja azt a fájlt `wasm-opt -Oz`-vel;
 4. kiírja az eredmény méretét és egy tippet a node-teszt futtatásához vagy a demó kiszolgálásához.
 
-**Magát a szkriptet nem a CI futtatja** (a CI közvetlenül a `cargo build` parancsot hívja, és átmásolja a modult). A záró tippje a `node armatura-wasm/js/test.mjs` parancsot mondja; valódi `.wasm` jelenlétében a tesztnek ezen felül első argumentumként egy projektútvonal is kell (`node armatura-wasm/js/test.mjs project.json`), különben „pass a project JSON path as argv[2]” üzenettel leáll. A vázlatban a release modul tömörített archívumként kb. 0,9 MB; a nyers és a `wasm-opt -Oz` utáni méretet itt nem rögzítettük.
+**Magát a szkriptet nem a CI futtatja** (a CI közvetlenül a `cargo build` parancsot hívja, és átmásolja a modult). A záró tippje a `node osatura-wasm/js/test.mjs` parancsot mondja; valódi `.wasm` jelenlétében a tesztnek ezen felül első argumentumként egy projektútvonal is kell (`node osatura-wasm/js/test.mjs project.json`), különben „pass a project JSON path as argv[2]” üzenettel leáll. A vázlatban a release modul tömörített archívumként kb. 0,9 MB; a nyers és a `wasm-opt -Oz` utáni méretet itt nem rögzítettük.
 
 Ezután szolgáld ki a mappát HTTP-n (a böngészők nem töltenek be modulokat vagy `.wasm` fájlt `file://`-ról), és nyisd meg a demóoldalt:
 
 ```sh
-cd armatura-wasm && python3 -m http.server 8000      # then open http://localhost:8000/index.html
+cd osatura-wasm && python3 -m http.server 8000      # then open http://localhost:8000/index.html
 ```
 
 Ha a `WebAssembly.instantiateStreaming` függvényt használod (a burkoló ezt teszi, amikor `Response`-t adsz át), a kiszolgálónak `Content-Type: application/wasm` fejlécet kell küldenie; a burkoló URL-útvonala `fetch(...).arrayBuffer()`-t használ, és erre nincs szükség. Ha az oldalad Content-Security-Policy-t állít be, annak engednie kell a WebAssembly fordítását (`'wasm-unsafe-eval'` a `script-src`-ben).
@@ -108,12 +108,12 @@ Az `arm_player_start` kivételével minden `arm_player_*` hívásnak elindított
 
 ## A JavaScript-burkoló
 
-Az `armatura-wasm/js/armatura.js` exportálja a `class Armatura` deklarációt (alapértelmezett exportként is). Minden, valamit módosító metódus `this`-t ad vissza, így a hívások láncolhatók. A hibák `Error`-ként dobódnak a motor üzenetével.
+Az `osatura-wasm/js/osatura.js` exportálja a `class Osatura` deklarációt (alapértelmezett exportként is). Minden, valamit módosító metódus `this`-t ad vissza, így a hívások láncolhatók. A hibák `Error`-ként dobódnak a motor üzenetével.
 
 | Tag | Leírás |
 |---|---|
 | `static async instantiate(source, imports = {})` | a nyers exportobjektumot adja vissza. `source`: egy `ArrayBuffer` vagy típusos tömb (bájtok), egy `Response` (az `instantiateStreaming`-et használja; `application/wasm` MIME kell), vagy egy URL-sztring / `URL` (`fetch` + `arrayBuffer`). A modulnak nincsenek importjai, így az `imports` `{}` marad. |
-| `static async create(source, project)` | a `source` vagy már példányosított exportok (egy `arm_open`-nel rendelkező objektum), vagy bármi, amit az `instantiate` elfogad; a `project` JSON-szöveg vagy egyszerű objektum (`JSON.stringify` alkalmazódik rá). `Armatura`-t ad vissza. |
+| `static async create(source, project)` | a `source` vagy már példányosított exportok (egy `arm_open`-nel rendelkező objektum), vagy bármi, amit az `instantiate` elfogad; a `project` JSON-szöveg vagy egyszerű objektum (`JSON.stringify` alkalmazódik rá). `Osatura`-t ad vissza. |
 | `load(project)` | projekt betöltése vagy cseréje; hiba esetén dob, és ekkor **az előzőleg betöltött projekt használható marad**. Kitölti a `frames`, `fps`, `width`, `height` tagokat. |
 | `frames`, `fps`, `width`, `height` | az utolsó `load` adatai (a `width` / `height` színpad-egységekben, lebegőpontosan) |
 | `svg(n, showBones = false)` | `string`: az `n`. képkocka SVG-dokumentuma (törtkockák engedettek, szorítva) |
@@ -136,20 +136,20 @@ Az `armatura-wasm/js/armatura.js` exportálja a `class Armatura` deklarációt (
 | `stop()` | a `play` / `playMachine` leállítása |
 | `close()` | leállítás és a handle felszabadítása; ha végeztél, hívd |
 
-A burkoló minden hívásban az `x.memory.buffer` lekérdezést végzi, és az eredményeket `.slice()`-szal másolja ki, így a memórianövekedés nem hagyhat nála elavult nézetet. Minden `Armatura` objektum egy handle-t birtokol; több projekt tartásához hozz létre több objektumot (megoszthatnak egyetlen `exports`-ot). Ne ossz meg egy objektumot olyan párhuzamos aszinkron feladatok között, amelyek összefésülik a hívásokat és az eredményolvasásokat: minden hívás eredménye a handle kimeneti pufferében él a következő hívásig.
+A burkoló minden hívásban az `x.memory.buffer` lekérdezést végzi, és az eredményeket `.slice()`-szal másolja ki, így a memórianövekedés nem hagyhat nála elavult nézetet. Minden `Osatura` objektum egy handle-t birtokol; több projekt tartásához hozz létre több objektumot (megoszthatnak egyetlen `exports`-ot). Ne ossz meg egy objektumot olyan párhuzamos aszinkron feladatok között, amelyek összefésülik a hívásokat és az eredményolvasásokat: minden hívás eredménye a handle kimeneti pufferében él a következő hívásig.
 
 ### Példa (hívássorozat)
 
 Ez pontosan az a hívássorozat, amelyet a node-teszt gyakorol. **A JavaScript-mockkal szemben futott** (a `test.mjs`-ben lévő helyettesítő előre gyártott válaszokkal: `hero` gép, `body` réteg, `go` bool bemenet, `list` scroll-régió), nem valódi modullal.
 
 ```js
-import { Armatura } from './js/armatura.js';
+import { Osatura } from './js/osatura.js';
 
-// 1. Instantiate the module once (a URL in the browser; in node pass the bytes: readFileSync('armatura_wasm.wasm')).
-const exports = await Armatura.instantiate('./armatura_wasm.wasm');
+// 1. Instantiate the module once (a URL in the browser; in node pass the bytes: readFileSync('osatura_wasm.wasm')).
+const exports = await Osatura.instantiate('./osatura_wasm.wasm');
 
 // 2. Load a project (JSON text or a plain object). Throws Error(<engine message>) when it is invalid.
-const anim = await Armatura.create(exports, projectJsonText);
+const anim = await Osatura.create(exports, projectJsonText);
 console.log(`${anim.width}x${anim.height} stage units, ${anim.frames} frames @ ${anim.fps} fps`);
 
 // 3. Render. Frames may be fractional and are clamped to the timeline.
@@ -179,10 +179,10 @@ Egy böngészőoldalon:
 ```html
 <canvas id="c"></canvas>
 <script type="module">
-  import { Armatura } from './js/armatura.js';
-  const x = await Armatura.instantiate('./armatura_wasm.wasm');
+  import { Osatura } from './js/osatura.js';
+  const x = await Osatura.instantiate('./osatura_wasm.wasm');
   const text = await (await fetch('./project.json')).text();
-  const anim = await Armatura.create(x, text);
+  const anim = await Osatura.create(x, text);
 
   // Timeline playback: requestAnimationFrame loop, loops at the end, returns a stop function.
   const stop = anim.play(document.getElementById('c'), { scale: 1, loop: true });
@@ -195,7 +195,7 @@ Egy böngészőoldalon:
 
 ## A demóoldal
 
-Az `armatura-wasm/index.html` egy minimális oldal: importálja a burkolót, példányosítja a `./armatura_wasm.wasm` fájlt, és egy fájlbemenetet (`.json` projekt) meg egy Stop gombot kínál. Egy fájl kiválasztása létrehoz egy `Armatura` objektumot, kiírja: `WIDTHxHEIGHT, N frames @ FPS fps`, és elindítja a `play(canvas)` függvényt; a motor hibái a gombok melletti szövegben jelennek meg. Ha a modul nem tölthető le vagy nem fordítható, a `wasm not found (not built yet): <reason>` üzenetet mutatja. Csak ebben a „nincs megépítve” állapotban tesztelték, headless Chromiumban: az oldal betöltődik, a modulimport feloldódik, az üzenet megjelenik (a kiszolgáló 404-es oldalával mint „modullal” az ok így szól: `expected magic word 00 61 73 6d, found 3c 21 44 4f`, lásd lent). Minden ezen túli nem ellenőrzött.
+Az `osatura-wasm/index.html` egy minimális oldal: importálja a burkolót, példányosítja a `./osatura_wasm.wasm` fájlt, és egy fájlbemenetet (`.json` projekt) meg egy Stop gombot kínál. Egy fájl kiválasztása létrehoz egy `Osatura` objektumot, kiírja: `WIDTHxHEIGHT, N frames @ FPS fps`, és elindítja a `play(canvas)` függvényt; a motor hibái a gombok melletti szövegben jelennek meg. Ha a modul nem tölthető le vagy nem fordítható, a `wasm not found (not built yet): <reason>` üzenetet mutatja. Csak ebben a „nincs megépítve” állapotban tesztelték, headless Chromiumban: az oldal betöltődik, a modulimport feloldódik, az üzenet megjelenik (a kiszolgáló 404-es oldalával mint „modullal” az ok így szól: `expected magic word 00 61 73 6d, found 3c 21 44 4f`, lásd lent). Minden ezen túli nem ellenőrzött.
 
 ## Eltérések a C ABI-tól
 
@@ -204,8 +204,8 @@ Az `armatura-wasm/index.html` egy minimális oldal: importálja a burkolót, pé
 | Bemeneti sztringek | NUL-terminált | `(ptr, len)`, az `arm_alloc`-kal bemásolva |
 | Kimeneti eredmények | a hívó által adott pufferek | a handle kimeneti puffere (`arm_out_ptr/len`), a következő kimeneti hívásig érvényes |
 | Méretlekérdezés | a `NULL` puffer a méretet adja vissza | nem szükséges: a hívás a hosszt adja vissza, és az adat már a kimeneti pufferben van |
-| Hibaszöveg | `armatura_last_error()` NUL-sztring, szálonként | `arm_error_ptr/len` bájtok, globális |
-| Csontmátrixok | `armatura_bone_world` | nem exportált |
+| Hibaszöveg | `osatura_last_error()` NUL-sztring, szálonként | `arm_error_ptr/len` bájtok, globális |
+| Csontmátrixok | `osatura_bone_world` | nem exportált |
 | SVG | nem exportált | `arm_render_svg`, `arm_player_render_svg` |
 | Események | méretlekérdezéses minta, megmaradnak, ha a puffer túl kicsi | mindig elfogyasztódnak |
 | Színpadméret | kerekített egészek | lebegőpontos számok |
@@ -214,7 +214,7 @@ Az `armatura-wasm/index.html` egy minimális oldal: importálja a burkolót, pé
 
 A kód olvasása közben találtuk; egyiket sem láttuk elbukni:
 
-* Az `Armatura.instantiate(url)` ellenőrzi a `response.ok` értékét és a fetch-hibákat, és jelenti az URL-t és a HTTP-állapotot (mock-fetch tesztek az `armatura-wasm/js/test.mjs` fájlban; node alatt futnak, a CI-ben pedig a valódi modul ellen is).
+* Az `Osatura.instantiate(url)` ellenőrzi a `response.ok` értékét és a fetch-hibákat, és jelenti az URL-t és a HTTP-állapotot (mock-fetch tesztek az `osatura-wasm/js/test.mjs` fájlban; node alatt futnak, a CI-ben pedig a valódi modul ellen is).
 * A `frame()` `kind: 'svg'` esetén `{ svg }`-t ad vissza, nem sztringet, mint az `svg()`.
 * A `build-wasm.sh` által kiírt tipp most már tartalmazza a `<project.json>` argumentumot, amelyre a `test.mjs`-nek szüksége van.
 * A `play()` úgy rajzol, hogy minden képkockát a CPU-n RGBA-vá alakít és meghívja a `putImageData` függvényt; nincs hang, nincs szüneteltetés, nincs keresés (seek).
@@ -224,16 +224,16 @@ A kód olvasása közben találtuk; egyiket sem láttuk elbukni:
 
 Az 1. és az 5. lépést a CI elvégezte 2026. okt. 24-én (a build és a Node-futtatás; a 3. lépés ebből következik, de az exportlistát nem írattuk ki; a 4. lépést, a méretet, nem rögzítettük); a többi, mindenekelőtt a 11–13. böngészős lépés, még nyitott. Ezeket sorrendben végezd el; az első hibánál állj meg, és jegyezd fel a pontos üzenetet. A (kockázat) jelölésű elemek a fenti kockázatoknak felelnek meg. Ha megvannak az eredmények, frissítsd a [LIMITATIONS.md](LIMITATIONS.md) fájlt (1. szakasz), a ROADMAP.md 9. szakaszának R-090 sorát és ennek az oldalnak az állapotdobozát.
 
-1. **Telepítsd a célt és építs.** `rustup target add wasm32-unknown-unknown && ./armatura-wasm/build-wasm.sh`. (kockázat) Meglátod, lefordul-e a `zip`, a `tiny-skia`, a `png`, a `gif`, a `jpeg-decoder` és az `i_overlay`. Jegyezd fel a fordítót és a `rustc --version` kimenetét.
-2. **Nincs szkriptmotor.** A `cargo tree --target wasm32-unknown-unknown -p armatura-wasm | grep -ci 'rhai\|smartstring'` parancsnak 0-t kell kiírnia.
-3. **Nézd meg az exportokat.** Node-ban: `WebAssembly.Module.exports(new WebAssembly.Module(fs.readFileSync('armatura-wasm/armatura_wasm.wasm')))`. Várható a `memory` és az [exporttábla](#exportreferencia) 36 függvénye, és **nincs import** (a `WebAssembly.Module.imports(...)` üres). Ha a `memory` hiányzik, vagy importok jelennek meg (például `env.*` egy std feature-ből), a burkolót igazítani kell.
+1. **Telepítsd a célt és építs.** `rustup target add wasm32-unknown-unknown && ./osatura-wasm/build-wasm.sh`. (kockázat) Meglátod, lefordul-e a `zip`, a `tiny-skia`, a `png`, a `gif`, a `jpeg-decoder` és az `i_overlay`. Jegyezd fel a fordítót és a `rustc --version` kimenetét.
+2. **Nincs szkriptmotor.** A `cargo tree --target wasm32-unknown-unknown -p osatura-wasm | grep -ci 'rhai\|smartstring'` parancsnak 0-t kell kiírnia.
+3. **Nézd meg az exportokat.** Node-ban: `WebAssembly.Module.exports(new WebAssembly.Module(fs.readFileSync('osatura-wasm/osatura_wasm.wasm')))`. Várható a `memory` és az [exporttábla](#exportreferencia) 36 függvénye, és **nincs import** (a `WebAssembly.Module.imports(...)` üres). Ha a `memory` hiányzik, vagy importok jelennek meg (például `env.*` egy std feature-ből), a burkolót igazítani kell.
 4. **Méret.** Jegyezd fel a méretet a `wasm-opt -Oz` előtt és után, valamint a gzip / brotli méreteket. Eddig semmit sem mértek.
-5. **Futtasd a node-tesztet valódi projekttel.** Az `armatura demo demo.json && node armatura-wasm/js/test.mjs demo.json` parancsnak a három mock-szakasz után `real wasm tests: ok` üzenetet kell kiírnia.
-6. **Hasonlítsd össze a natív renderelővel.** A demó 0., 12. és 47. képkockájára, 0,5-ös és 1-es skálán hasonlítsd össze az `Armatura.rgba` eredményét az `armatura render demo.json N out.png --scale S` RGBA-ra dekódolt kimenetével. (kockázat) Az anti-aliasing éleknél kis eltérések várhatók (más matematikai könyvtár); jelentsd a maximális és az átlagos abszolút eltérést, valamint a 24/255 fölötti pixelek hányadát. Nagy eltérés valódi hibára utal.
+5. **Futtasd a node-tesztet valódi projekttel.** Az `osatura demo demo.json && node osatura-wasm/js/test.mjs demo.json` parancsnak a három mock-szakasz után `real wasm tests: ok` üzenetet kell kiírnia.
+6. **Hasonlítsd össze a natív renderelővel.** A demó 0., 12. és 47. képkockájára, 0,5-ös és 1-es skálán hasonlítsd össze az `Osatura.rgba` eredményét az `osatura render demo.json N out.png --scale S` RGBA-ra dekódolt kimenetével. (kockázat) Az anti-aliasing éleknél kis eltérések várhatók (más matematikai könyvtár); jelentsd a maximális és az átlagos abszolút eltérést, valamint a 24/255 fölötti pixelek hányadát. Nagy eltérés valódi hibára utal.
 7. **Gyakoroltasd a playert.** Építsd fel a C ABI példa projektjét (demo + `take-record` + `clip add` + `machine add`, lásd [C_ABI.md](C_ABI.md)), vezéreld a `startPlayer`, `setBool`, `advance`, `state`, `events`, `playerRgba` függvényekkel; valamint a konténert és scroll-régiót tartalmazó projektet a `setCanvas`, `scrollDrag`, `scrollRelease`, `scrollInfo`, `setScreen` függvényekkel (az utolsó részletességi szinteket épít: mérd az idejét, optimalizálatlanul lassú, és wasm-on nincs lemérve).
 8. **Hibabiztos útvonalak.** Adj be egy érvénytelen projektet, egy üres sztringet, egy 5 MB-os véletlen fájlt, egy `source.file` képútvonalat tartalmazó projektet és egy hangsávot tartalmazó projektet. Minden esetnek üzenettel ellátott dobott `Error`-t kell eredményeznie, nem csapdát. (kockázat) Bármelyiknél csapda (`RuntimeError: unreachable`) jelentendő hiba; a legvalószínűbb jelöltek az `Instant` / `SystemTime` vagy a váratlan úton elért fájlrendszer-hívások.
 9. **Nagy renderelés.** `rgba(0, 4)` a demón (2560 x 1920), és egy 12000 x 12000-es színpad 1-es skálán (el kell utasítani a „more than the limit” üzenettel, nem elfogyó memóriával). Figyeld a memórianövekedést, és erősítsd meg, hogy a burkoló a memória megnövekedése után is működik (a nézeteket hívásonként újraolvassa).
-10. **Veremmélység.** A `wasm32-unknown-unknown` a fő szálnak kicsi alapértelmezett vermet ad (1 MiB a mai toolchainekben). Nyiss meg egy mélyen egymásba ágyazott csoportokat és hosszú kifejezéslánc tartalmazó projektet (a rosszindulatú bemenetekhez lásd az `armatura-cli/tests/robust.rs` fájlt), és erősítsd meg, hogy nincs veremtúlcsordulási csapda.
+10. **Veremmélység.** A `wasm32-unknown-unknown` a fő szálnak kicsi alapértelmezett vermet ad (1 MiB a mai toolchainekben). Nyiss meg egy mélyen egymásba ágyazott csoportokat és hosszú kifejezéslánc tartalmazó projektet (a rosszindulatú bemenetekhez lásd az `osatura-cli/tests/robust.rs` fájlt), és erősítsd meg, hogy nincs veremtúlcsordulási csapda.
 11. **Böngészős futtatás.** Szolgáld ki a mappát, nyisd meg az `index.html` fájlt Chromiumban és Firefoxban, válassz projektet, erősítsd meg a lejátszást, az átméretezést, zárj le és nyiss meg újra több projektet (szivárgásteszt: a memória nem nőhet korlátlanul; a `close()` felszabadítja a handle-t).
 12. **`instantiateStreaming` és CSP.** Szolgálj ki `Content-Type: application/wasm` fejléccel és nélküle, valamint olyan CSP-vel, amely kihagyja a `'wasm-unsafe-eval'` értéket; dokumentáld, mi történik.
 13. **Teljesítmény.** Mérd az `rgba(n, 1)` idejét a 640 x 480-as demóra (natív release: kb. 14 ms képkockánként) és egy nehéz projektre; jegyezd fel a `play()` képkocka/másodperc értékét a böngészőben.

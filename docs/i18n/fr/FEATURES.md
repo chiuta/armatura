@@ -1,15 +1,15 @@
-# ARMATURA — matrice des fonctionnalités + listes de contrôle de référence et de la concurrence
+# OSATURA — matrice des fonctionnalités + listes de contrôle de référence et de la concurrence
 
 > Formulation des versions : toutes les crates sont en `0.1.0` (les premiers builds sont la préversion en brouillon `v0.1.0-alpha.3`) ; « v0.5 / v0.6 / v0.7 » dans ce dépôt désignent des *niveaux de fonctionnalités* (voir [CHANGELOG.md](CHANGELOG.md)), et la section 9 de `ROADMAP.md` fait foi sur ce qui est construit.
 
 État honnête de ce qui existe. **✅ terminé et testé · 🟡 partiel · ❌ non implémenté.**
 
-> Note de périmètre : ARMATURA est un moteur implémenté de manière indépendante (à partir de spécifications et d'articles publics ; les listes de fonctionnalités des concurrents ont été consultées pour définir le périmètre ; aucun code source tiers n'a été copié ; voir CLEANROOM.md pour la déclaration de recherche), et non une ré-implémentation d'un
+> Note de périmètre : OSATURA est un moteur implémenté de manière indépendante (à partir de spécifications et d'articles publics ; les listes de fonctionnalités des concurrents ont été consultées pour définir le périmètre ; aucun code source tiers n'a été copié ; voir CLEANROOM.md pour la déclaration de recherche), et non une ré-implémentation d'un
 > produit commercial ; il **n'atteint pas** la parité avec une suite commerciale vieille de 25 ans
 > (interface mature, outils de dessin, entrée en direct, 3D, écosystème). Les premiers tableaux sont organisés par
 > capacité ; la **seconde moitié de ce fichier** est une liste de contrôle, version par version, des fonctionnalités
 > documentées publiquement du produit de référence (sources indiquées à la fin) avec
-> l'état d'ARMATURA pour chacune. Les « innovations » ne sont revendiquées que par rapport à la technique générique,
+> l'état d'OSATURA pour chacune. Les « innovations » ne sont revendiquées que par rapport à la technique générique,
 > et non comme absentes de tout autre outil.
 
 ---
@@ -99,13 +99,13 @@ Elle remplace les listes de « candidats n° » dispersées plus bas ; les déta
 | Runtime WASM, API Rust stable + ABI C, scripts en bac à sable (R-090…R-093) | 🟡 (R-091, R-092, R-093 terminés ; R-090 : le module wasm se compile et passe le test du wrapper sous Node en CI, mais n'a jamais été exécuté dans un navigateur) | 🟢 | API propre |
 | **Serveur agent / MCP** au-dessus des opérations de patch : inspecter, éditer (atomique, annulable), linter, sécurité, rendu, enregistrement dans son propre fichier uniquement (R-094) | ✅ | 🟢 | protocole JSON-RPC ouvert |
 | Interface complète : gizmos, timeline, éditeur de courbes (R-100…R-103) | 🟡 (R-101, R-102 terminés ; les pages R-100 et R-103 existent mais n'ont jamais été exécutées dans un vrai navigateur par l'auteur) | 🟢 | widgets génériques ; apparence propre |
-| Contrôle de version d'animation avec fusion sémantique, diff perceptuel en CI, explain-this-pixel (I-01, I-06, I-07) | ✅ (I-01 `armatura vcs`, I-06 `armatura ci`, I-07 `explain`) | 🟢 | idées propres |
+| Contrôle de version d'animation avec fusion sémantique, diff perceptuel en CI, explain-this-pixel (I-01, I-06, I-07) | ✅ (I-01 `osatura vcs`, I-06 `osatura ci`, I-07 `explain`) | 🟢 | idées propres |
 | Fuzzing de poses avec cartes de chaleur de contrainte, export à taille cible, niveau de détail déterministe avec borne d'erreur déclarée (I-03, I-10, I-11) | 🟡 (les trois sont construits ; la borne de I-11 ne couvre pas les effets, les chemins skinnés, les valeurs pilotées par IK ni les poses de machine à états) | 🟢 | idées propres, mathématiques de manuel |
 
 ## Niveau 6 — Frontière (niveau recherche)
 | Fonctionnalité | Statut | PI | Base sûre / condition |
 |---|---|---|---|
-| Moteur de rendu GPU avec tests de parité CPU (R-110) | 🟡 (crate `armatura-gpu` construite et testée ; exécution matérielle limitée, voir ROADMAP) | 🟢 | wgpu (permissive) |
+| Moteur de rendu GPU avec tests de parité CPU (R-110) | 🟡 (crate `osatura-gpu` construite et testée ; exécution matérielle limitée, voir ROADMAP) | 🟢 | wgpu (permissive) |
 | Édition multi-utilisateur en temps réel au-dessus du journal d'opérations (R-111) | 🟡 (réalisée avec un journal de session persistant optionnel `--collab-log` ; les participants et l'historique d'annulation ne sont pas persistés ; HTTP simple, jeton partagé) | 🟢 | littérature CRDT |
 | Runtime de liaison de données / mise en page (R-091, R-095) | ✅ (conception propre ; examen des brevets non effectué, docs/PATENT_NOTES.md) | 🟠 | examen des brevets avant diffusion |
 | Outils assistés par ML (R-112) | 🟡 | 🟠 | méthodes classiques uniquement, aucun poids de modèle : `autotrace` (k-means, ajustement de Bézier de Schneider, mode ligne Zhang-Suen) et suggestions apprises à partir de vos poses (PCA, noyaux, petit MLP optionnel dans un format de poids propre) ; pas d'apprentissage profond |
@@ -118,7 +118,7 @@ Elle remplace les listes de « candidats n° » dispersées plus bas ; les déta
 - Embarquer des encodeurs **H.264/H.265/AAC**.
 
 ## Conditions applicables à chaque ligne 🟢
-Journal de provenance tenu (`CLEANROOM.md` ; implémentation indépendante, et non clean-room stricte) ; uniquement des dépendances permissives (à régénérer avec `scripts/licence-audit.sh` ; actuellement 363 crates tierces toutes plateformes confondues, toutes de classe MIT / Apache-2.0 / BSD / Zlib / Unlicense sauf six crates MPL-2.0 (smartstring via la fonctionnalité `scripting`, activée par défaut, et cinq via l'application à fenêtre `armatura-gui`) ; voir docs/THIRD_PARTY.md) ; aucune illustration ou audio tiers livré sans son propre fichier de licence ; le nom **ARMATURA** validé par une recherche de marque avant le lancement.
+Journal de provenance tenu (`CLEANROOM.md` ; implémentation indépendante, et non clean-room stricte) ; uniquement des dépendances permissives (à régénérer avec `scripts/licence-audit.sh` ; actuellement 363 crates tierces toutes plateformes confondues, toutes de classe MIT / Apache-2.0 / BSD / Zlib / Unlicense sauf six crates MPL-2.0 (smartstring via la fonctionnalité `scripting`, activée par défaut, et cinq via l'application à fenêtre `osatura-gui`) ; voir docs/THIRD_PARTY.md) ; aucune illustration ou audio tiers livré sans son propre fichier de licence ; le nom **OSATURA** validé par une recherche de marque avant le lancement.
 
 
 # Tableaux détaillés des capacités
@@ -222,10 +222,10 @@ pixels de rendu, exporteurs, annuler/rétablir de l'éditeur, audio, particules,
 Référence : Moho (anciennement Anime Studio), 1999 → 14.5 « SHOWTIME » (12 oct. 2026). Les listes de fonctionnalités
 proviennent des pages de publication de l'éditeur et de la presse spécialisée (voir Sources). Lacunes du dossier : Anime Studio 6–8,
 12.5 et 14.1 n'avaient pas de liste publique détaillée que j'ai pu trouver ; ils ne sont donc couverts que par
-l'historique général. Le statut est celui d'ARMATURA : ✅ un équivalent existe · 🟡 partiel / approche différente · ❌ manquant.
+l'historique général. Le statut est celui d'OSATURA : ✅ un équivalent existe · 🟡 partiel / approche différente · ❌ manquant.
 
 ## Premières versions (1999 – Anime Studio 8, historique général uniquement)
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | Particules | ✅ calque émetteur déterministe |
 | Masques de calque | ✅ masques alpha + inversion |
@@ -240,7 +240,7 @@ l'historique général. Le statut est celui d'ARMATURA : ✅ un équivalent exis
 | Smart bones, IK | 🟡 canaux pilotés / ✅ 2 os + FABRIK |
 
 ## Anime Studio 9 (2013)
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | 64 bits, accélération GPU | 🟡 Rust 64 bits natif ; rastériseur CPU uniquement (pas de GPU) |
 | Smart Bones (cadrans de contrôle de flexion d'articulation) | 🟡 les canaux pilotés font correspondre n'importe quelle valeur à n'importe quelle autre ; pas d'interface/actions à cadrans |
@@ -249,7 +249,7 @@ l'historique général. Le statut est celui d'ARMATURA : ✅ un équivalent exis
 | Multi-touch Wacom | ❌ |
 
 ## Anime Studio 10 (2014)
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | Contraintes d'angle indépendantes (globales) | 🟡 une copy-rotation vers un os de contrôle en approche l'effet |
 | Squash & stretch | 🟡 l'échelle d'un os est animable ; pas de squash/stretch automatique |
@@ -260,7 +260,7 @@ l'historique général. Le statut est celui d'ARMATURA : ✅ un équivalent exis
 | Import d'objets 3D | ❌ |
 
 ## Anime Studio 11 (2015)
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | Animation image par image | ✅ calques de commutation + canaux d'exposition |
 | Référencement de calques (doublons liés) | ❌ |
@@ -272,7 +272,7 @@ l'historique général. Le statut est celui d'ARMATURA : ✅ un équivalent exis
 | Fusion de contours, outil Color Points | ❌ |
 
 ## Moho 12 (2016) et 12.x
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | Poignées de Bézier | ✅ |
 | Outils à main levée améliorés | ❌ |
@@ -284,7 +284,7 @@ l'historique général. Le statut est celui d'ARMATURA : ✅ un équivalent exis
 | Interface repensée, ancrage d'os, auto-freeze de position | ❌ |
 
 ## Moho 13 (2019)
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | Image par image bitmap + onion skin | 🟡 calques d'image PNG dans des calques de commutation ; pas d'onion skin, pas de dessin bitmap |
 | Outils de dessin bitmap / pinceaux personnalisés | ❌ |
@@ -295,7 +295,7 @@ l'historique général. Le statut est celui d'ARMATURA : ✅ un équivalent exis
 | Personnages fournis | ❌ |
 
 ## Moho 13.5 (2021) et 13.5.x
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | Vitruvian Bones (échange des dessins *et* des ensembles d'os) | 🟡 les calques de commutation échangent les dessins ; pas d'échange d'ensembles d'os |
 | Quad meshes (perspective) | 🟡 maillage en grille + lattice donnent des déformations libres ; pas de quad projectif |
@@ -307,7 +307,7 @@ l'historique général. Le statut est celui d'ARMATURA : ✅ un équivalent exis
 | Licences flottantes | n/a |
 
 ## Moho 14 (2023)
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | Nouveau moteur graphique, effets en temps réel (flou, ombre, bruit) | ❌ pas de filtres flou/ombre/bruit ; modes de fusion ✅ |
 | Liquid Shapes (fusion/soustraction/intersection/mélange) | 🟡 liquide metaball ✅ + booléens de polygones ✅ ; pas le même modèle de forme |
@@ -324,7 +324,7 @@ l'historique général. Le statut est celui d'ARMATURA : ✅ un équivalent exis
 | Mise à jour de l'interface de script (Lua 5.4) | ❌ |
 
 ## Moho 14.1 – 14.2 (2023-11, 2024-06)
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | (14.1 : aucun détail public trouvé) | — |
 | Décalage animé du profil de courbe | ❌ (les profils de largeur sont statiques) |
@@ -343,14 +343,14 @@ l'historique général. Le statut est celui d'ARMATURA : ✅ un équivalent exis
 | Export ProRes alpha | ❌ (GIF/PNG/MP4 uniquement) |
 
 ## Moho 14.3 (2024-12)
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | Opacité de pinceau par point (pilotée par la pression) | ❌ |
 | Dérive de couleur selon la pression du stylet | ❌ |
 | Contrôles d'outil main levée / largeur de ligne | ❌ |
 
 ## Moho 14.4 « SIDE QUEST » (2025-11)
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | Export vers Unreal / Unity / Godot | ❌ |
 | Export glTF vers Blender / outils 3D | 🟡 (`.glb` : formes de l'image 0, os, poids de morph) |
@@ -361,7 +361,7 @@ l'historique général. Le statut est celui d'ARMATURA : ✅ un équivalent exis
 | Création de cycles plus facile | ✅ extrapolation en boucle + générateur de cycle de marche |
 
 ## Moho 14.5 « SHOWTIME » (2026-10-12)
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | Live Playback (webcam / manette / micro, webcam virtuelle, OBS) | ❌ |
 | Suivi du visage → os / Smart Bones / maillage | 🟡 (détecteur entraîné sur données synthétiques, `face-bake` ; non validé sur de vrais visages) |
@@ -383,7 +383,7 @@ l'historique général. Le statut est celui d'ARMATURA : ✅ un équivalent exis
 | Linux via Wine/Proton | ✅ Rust natif (Linux/macOS/Windows) ; archives précompilées Windows x86-64, macOS arm64 et Linux x86-64 dans la préversion en brouillon ; testé par la CI sur les trois, par une personne seulement sous Linux |
 
 ## Bilan (produit de référence uniquement ; les concurrents suivent plus bas)
-Parmi les fonctionnalités documentées du produit de référence, ARMATURA couvre le noyau **rigging, déformation,
+Parmi les fonctionnalités documentées du produit de référence, OSATURA couvre le noyau **rigging, déformation,
 animation procédurale, mathématiques de compositing et export** (en gros : squelette/IK/contraintes,
 déformation par maillage et lattice, clés et expressions, masques/mélanges/dégradés, particules,
 metaballs/booléens, GIF/MP4/HTML/Lottie), mais n'a **ni outils de dessin, ni entrée en direct, ni 3D,
@@ -410,7 +410,7 @@ Source : le PDF d'historique des versions hébergé par l'éditeur (lostmarble.c
 pages de presse d'Anime Studio 7 et 8. Il remplace les lignes « historique général uniquement » situées vers le début de la
 liste de contrôle de référence. Introuvables même ici : les détails de 8.x, 10.1.x, 11.1, 12.5, 14.1.
 
-| Version | Fonctionnalités documentées | ARMATURA |
+| Version | Fonctionnalités documentées | OSATURA |
 |---|---|---|
 | Moho 1 (1999) | BeOS, portage Windows, sortie Flash | ❌ Flash/SWF (obsolète) |
 | 2.x | E/S QuickTime, rendus jusqu'à 4096², ombrage de calque, calques de commutation, nuanciers de couleurs dans les styles, liaison souple des os, import Illustrator amélioré | ✅ calques de commutation, 🟡 liaison par poids, ❌ import Illustrator, ✅ grandes échelles de raster (≤16×) |
@@ -438,10 +438,10 @@ Synfig Studio, OpenToonz, TVPaint Animation 12, Adobe Animate, Cavalry, Procreat
 Effects), Blender Grease Pencil. Les éléments ci-dessous sont ceux qui **ne figurent pas déjà** dans la liste de
 contrôle de référence. La qualité des sources varie : la plupart des lignes proviennent de pages de fonctionnalités/de publication d'éditeurs que j'ai récupérées ;
 les lignes marquées † proviennent de connaissances générales ou d'un simple titre / sommaire et n'ont pas été confirmées sur une page.
-Le statut est celui d'ARMATURA : ✅ · 🟡 · ❌.
+Le statut est celui d'OSATURA : ✅ · 🟡 · ❌.
 
 ## Rigging, contraintes, déformation
-| Fonctionnalité | Vu dans | ARMATURA |
+| Fonctionnalité | Vu dans | OSATURA |
 |---|---|---|
 | Outils de poids : souder les poids entre maillages, copier/coller les poids entre sommets | Spine 4.2 | ❌ (auto-skin uniquement, pas de peinture) |
 | Contraintes de physique d'os (inertie, vent, gravité, mélange) | Spine 4.2 | 🟡 ressorts amortis (fréquence/amortissement) ; pas de vent/gravité/inertie |
@@ -470,7 +470,7 @@ Le statut est celui d'ARMATURA : ✅ · 🟡 · ❌.
 | Auto-rigging, contrôleurs, dynamique de ressorts | Duik † | 🟡 ressorts ✅ ; auto-rig ❌ |
 
 ## Animation, timeline, interactivité
-| Fonctionnalité | Vu dans | ARMATURA |
+| Fonctionnalité | Vu dans | OSATURA |
 |---|---|---|
 | Mixage d'animations : mélange/fondu enchaîné d'animations simultanées à l'exécution | Spine | 🟡 modes Add/Multiply + poids ; `crossfade` précalculé ; pas de transitions à l'exécution |
 | Dopesheet + éditeur de courbes + aperçu runtime | Spine, Rive, OpenToonz | ❌ (les données le permettent ; pas d'interface) |
@@ -498,7 +498,7 @@ Le statut est celui d'ARMATURA : ✅ · 🟡 · ❌.
 | Caméra 2D à clés avec minutage sur la timeline | TVPaint 12 | ✅ |
 
 ## Dessin, peinture, outils bitmap
-| Fonctionnalité | Vu dans | ARMATURA |
+| Fonctionnalité | Vu dans | OSATURA |
 |---|---|---|
 | Pinceau : randomisation (nombre de tampons, décalage), papiers doubles, pinceaux multitextures | Harmony 24, TVPaint 12 | ❌ |
 | Opacité du crayon selon pression/inclinaison/vitesse/effilement/fondu | Harmony 24 | ❌ |
@@ -517,7 +517,7 @@ Le statut est celui d'ARMATURA : ✅ · 🟡 · ❌.
 | Plus de 50 types de calques (fractales, filtres, distorsions) | Synfig | ❌ (≈7 types de calques) |
 
 ## Effets et compositing
-| Fonctionnalité | Vu dans | ARMATURA |
+| Fonctionnalité | Vu dans | OSATURA |
 |---|---|---|
 | Réseau de compositing en vue de nœuds avec ports nommés | Harmony 24 | ❌ (arbre de calques + masques/mélanges) |
 | Mattes, groupes sous composite | Harmony | ✅ masques, groupes isolés |
@@ -533,7 +533,7 @@ Le statut est celui d'ARMATURA : ✅ · 🟡 · ❌.
 | Moteur audio (voix off, musique, effets sonores) | Procreate Dreams | ❌ |
 
 ## 3D, pipeline, interopérabilité, runtimes
-| Fonctionnalité | Vu dans | ARMATURA |
+| Fonctionnalité | Vu dans | OSATURA |
 |---|---|---|
 | Scène 3D, pose d'os FBX, graphe de scène Vulkan, dessin sur plan en perspective | Harmony 24 | ❌ |
 | Rendu externe via Maya / Blender | Harmony 24 | ❌ |
@@ -588,7 +588,7 @@ Le statut est celui d'ARMATURA : ✅ · 🟡 · ❌.
 Légende comme ci-dessus : ✅ fait, 🟡 partiel, ❌ pas encore. Seules les fonctionnalités confirmées sur des pages d'éditeurs/de projets ou dans la presse sont listées. Aucun site pirate n'a été utilisé ; web.archive.org n'est pas accessible depuis cet environnement, de sorte que certaines versions plus anciennes restent non documentées (voir « Lacunes connues »).
 
 ## Toon Boom Harmony 20 (notes de version de l'éditeur)
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | Éditeur de ligne centrale : suppression de points, option de lissage | ❌ |
 | Lignes de crayon texturées → traits de pinceau texturés ; pipette de texture de crayon | ❌ |
@@ -609,7 +609,7 @@ Légende comme ci-dessus : ✅ fait, 🟡 partiel, ❌ pas encore. Seules les fo
 | Control Center : copie/import de scènes par lot/exécution de scripts, file d'attente de rendu | ❌ |
 
 ## OpenToonz 1.7
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | Mode ligne droite pour le pinceau | ❌ |
 | Prise en charge des pinceaux GIMP + MyPaint | ❌ |
@@ -626,7 +626,7 @@ Légende comme ci-dessus : ✅ fait, 🟡 partiel, ❌ pas encore. Seules les fo
 | Prise en charge de Haiku OS | n/a |
 
 ## Synfig 1.4.2 (et 1.4.0 du 1er tour)
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | Export Lottie incluant contour avancé et calques de flou, gamma | 🟡 export Lottie ✅ (formes/transformation) ; flou ❌ |
 | Éditeur de raccourcis clavier, raccourcis d'outils à touche unique | ❌ |
@@ -666,7 +666,7 @@ Anime Studio 8.x, 10.1.x, 11.1 ; détails de Moho 12.5 et 14.1 ; Spine 3.0–4.1
 Une recherche web restreinte à youtube.com renvoie des titres de vidéos ; WebFetch renvoie la **description / liste de chapitres** de chaque vidéo (pas de transcriptions). Seules les fonctionnalités qui y sont nommées sont listées ; « nouveau dans la version X » est tel qu'indiqué par la personne qui a mis en ligne (souvent l'éditeur).
 
 ## Moho 14.1 (description de vidéo)
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | Afficher/masquer les poignées dans l'outil Curvature | ❌ (pas d'interface de canevas) |
 | Effets de forme Shaded et Halo visibles en mode édition | 🟡 dégradés ✅ ; effets halo/shade ❌ |
@@ -681,7 +681,7 @@ Une recherche web restreinte à youtube.com renvoie des titres de vidéos ; WebF
 Les pages de titre/description n'ont donné aucune liste de fonctionnalités (vidéo obsolète ; téléchargement gratuit de la 12.5 retiré). Les titres associés mentionnent des tutoriels Smart Bones, des rigs 2.5D Smart Warp et l'installation de « Mynd Tools » — Smart Bones 🟡 (canaux/morphs), Smart Warp 🟡 (lattice FFD ✅).
 
 ## Spine
-| Version | Fonctionnalité | ARMATURA |
+| Version | Fonctionnalité | OSATURA |
 |---|---|---|
 | 3.7 | Prise en charge de l'audio | ❌ (WAV analysé uniquement pour le lip-sync) |
 | 3.7 | Exports remaniés | 🟡 |
@@ -703,7 +703,7 @@ Les pages de titre/description n'ont donné aucune liste de fonctionnalités (vi
 | 4.1 bêta | Fonction Sequence (attachement de séquence d'images) | ❌ |
 
 ## Toon Boom Harmony 25 / 25.2
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | Outil Pencil Retouch | ❌ |
 | Import de pinceaux Photoshop | ❌ |
@@ -714,7 +714,7 @@ Les pages de titre/description n'ont donné aucune liste de fonctionnalités (vi
 | Master Controller Grid Wizard | ❌ |
 
 ## Série Cartoon Animator 5
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | 5.1 Édition aller-retour PSD et vectorielle | ❌ |
 | 5.1 Import de séquences d'images et de GIF | ❌ |
@@ -746,7 +746,7 @@ Les pages de titre/description n'ont donné aucune liste de fonctionnalités (vi
 Sources : notes de version officielles de Synfig/Rive, titres/descriptions YouTube. Seules les fonctionnalités nommées sont listées.
 
 ## Anime Studio 8 (série YouTube « Pro Feature », titres + descriptions)
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | Vectorisation automatique d'image (bitmap → vecteur éditable) | ❌ (feuille de route n° 20) |
 | Character Wizard (création guidée de personnage) | 🟡 rigs de démonstration/générateur de marche ; pas d'assistant |
@@ -757,7 +757,7 @@ Sources : notes de version officielles de Synfig/Rive, titres/descriptions YouTu
 Anime Studio 10.1 / 11.1 : aucune source accessible trouvée.
 
 ## Synfig 1.4.1 – 1.4.4
-| Version | Fonctionnalité | ARMATURA |
+| Version | Fonctionnalité | OSATURA |
 |---|---|---|
 | 1.4.1 | Calques de son mixés dans la vidéo exportée | ❌ (pas de piste audio) |
 | 1.4.1 | Dupliquer un calque copie tous les calques sélectionnés | ✅ (opérations par lot) |
@@ -768,7 +768,7 @@ Anime Studio 10.1 / 11.1 : aucune source accessible trouvée.
 | 1.4.4 | Correction de l'export de la dernière image | ✅ couvert par les tests |
 
 ## Rive (notes de version officielles, sept.–oct. 2026) — le concurrent le plus actif
-| Fonctionnalité | ARMATURA |
+| Fonctionnalité | OSATURA |
 |---|---|
 | Convertisseur String Template (texte à partir de valeurs de view-model, formatage des nombres) | ❌ |
 | Contours en tirets (Dash Effect), importés depuis SVG | ❌ |
@@ -793,7 +793,7 @@ Anime Studio 10.1 / 11.1 : aucune source accessible trouvée.
 | Historique des révisions et restauration, synchronisation hors ligne, annulation qui conserve le zoom | 🟡 annuler/rétablir ✅ |
 
 ## TVPaint Animation 11 (descriptions YouTube)
-Création de raccourcis, sous-dessins amovibles, lissage de ligne, enregistrement du dessin, clic-glisser du point de pivot de KeyFramer (11.7.1), Sprite Generator, Inlay Texture FX, repères, vidéo « end of update releases » — tout ❌ (outils de peinture raster ; ARMATURA est vectoriel/rig).
+Création de raccourcis, sous-dessins amovibles, lissage de ligne, enregistrement du dessin, clic-glisser du point de pivot de KeyFramer (11.7.1), Sprite Generator, Inlay Texture FX, repères, vidéo « end of update releases » — tout ❌ (outils de peinture raster ; OSATURA est vectoriel/rig).
 
 ## Toon Boom Harmony 17 (YouTube)
 Free Form Deformer 🟡 (lattice FFD ✅), Master Controllers renforcés 🟡, RGB Difference Keyer ❌, Motion Blur ❌ (feuille de route n° 5).
@@ -831,14 +831,14 @@ Anime Studio 10.1 / 11.1, notes détaillées de Moho 12.5, pages de détail de S
 **Réalité de l'accès :** les pages X/Twitter ne peuvent pas être récupérées à cause de robots.txt (seuls les extraits/titres des résultats de recherche sont visibles) ; Facebook de même ; les recherches Reddit avec filtre de domaine ont été rejetées par le proxy de recherche et les recherches sans filtre n'ont renvoyé aucun fil Reddit ; le forum de Lost Marble sert une coquille de redirection JavaScript sans contenu lisible. Rien n'a été contourné. Ce qui était lisible :
 
 ## Canaux officiels de Moho (actualités moho.lostmarble.com, extraits X)
-| Élément | Notes | ARMATURA |
+| Élément | Notes | OSATURA |
 |---|---|---|
 | Moho 13.5.3 (avr. 2022) | lip-sync automatique amélioré, meilleure interface, os moins intrusifs | ✅ lip-sync (WAV heuristique) |
 | Moho 13.5.5 (X, mai 2022) | **Relative Paths** pour les ressources liées | ✅ le répertoire de ressources est relatif |
 | Moho 14.3 « Mantis Shrimp » (déc. 2024) | mise à jour centrée sur les pinceaux | ❌ |
 | Moho 14.4 « Side Quest » (nov. 2025) | export vers des moteurs de jeu et des logiciels 3D | 🟡 Lottie/JSON propre ; glTF/FBX ❌ |
 | Moho 14.5 « Showtime » (oct. 2026) | onion skins magnétiques, Shift & Trace, options de Liquid Shapes, EXR/PNG avec profils colorimétriques, mode live-playback pour diffuser/contrôler des personnages en temps réel | voir la matrice principale ; mode direct ❌ |
-| Programme Ambassadeurs (juin 2026) ; position officielle : aucun outil d'IA prévu (mars 2025) | politique | n/a — ARMATURA n'a pas non plus de fonctionnalités d'IA |
+| Programme Ambassadeurs (juin 2026) ; position officielle : aucun outil d'IA prévu (mars 2025) | politique | n/a — OSATURA n'a pas non plus de fonctionnalités d'IA |
 | Webinaires (Víctor Paredes, etc.) | tutoriels | n/a |
 
 ## Comparaisons de la communauté (forum Spine, « Spine vs Moho 12 »)
@@ -846,7 +846,7 @@ Anime Studio 10.1 / 11.1, notes détaillées de Moho 12.5, pages de détail de S
 - Les utilisateurs critiquent : une FFD jugée faible ; **pas de vrai runtime**, export de jeu limité à FBX.
 - Creature est loué pour sa motion capture intégrée (FFD critiquée).
 - Les contraintes de physique de Spine 4.2 suscitent des réactions enthousiastes sur X (messages d'utilisateurs).
-ARMATURA : physique ✅ (ressorts précalculés), masquage 🟡 (clip via booléens), smart bones 🟡, édition vectorielle ✅, runtime ❌, mocap ❌.
+OSATURA : physique ✅ (ressorts précalculés), masquage 🟡 (clip via booléens), smart bones 🟡, édition vectorielle ✅, runtime ❌, mocap ❌.
 
 ## Titres de listes de souhaits de forum vus (contenu illisible)
 « Concentrate on Timeline/Workflow improvements » (2024), « Road map for Moho », « Help Shape the Future of Anime Studio », « 13.5.2 performance issue » — suggère que la timeline/le flux de travail et les performances sont les domaines les plus demandés ; ce n'est pas une liste de fonctionnalités vérifiée.
@@ -867,11 +867,11 @@ ARMATURA : physique ✅ (ressorts précalculés), masquage 🟡 (clip via boolé
 
 # Addendum — Listes de souhaits et tableaux de demandes de fonctionnalités (6e tour, 2026-10-19)
 
-Seules les demandes réellement lisibles sont listées. La colonne « ARMATURA » indique si la demande est déjà couverte par le moteur.
+Seules les demandes réellement lisibles sont listées. La colonne « OSATURA » indique si la demande est déjà couverte par le moteur.
 
 ## Moho (forum Lost Marble)
 Lisible : uniquement l'index du forum. Les sections « Feature Request Discussions » et « Unofficial Bug Reports and Feature Requests » existent ; titre de demande le plus récent visible : **« Dock Windows – Custom Interface »** (18 oct. 2026). Le long fil « Help Shape the Future of Anime Studio » (828 réponses, 2011–2021) et d'autres fils de souhaits (« Road map for Moho », « My wish for Moho in 2024 – Concentrate on Timeline/Workflow improvements », « Request for top 10 Anime Studio Pro 6 features ») sont des coquilles de redirection JavaScript → contenu illisible. Comparaisons précises de forum à forum (forum Spine) : physique, masquage, smart bones souhaités dans Spine ; Moho critiqué pour sa FFD faible et l'absence de runtime.
-| Demande | ARMATURA |
+| Demande | OSATURA |
 |---|---|
 | Fenêtres ancrables / interface personnalisée | ❌ (disposition fixe du studio web) |
 | Améliorations de la timeline / du flux de travail | 🟡 |
@@ -879,7 +879,7 @@ Lisible : uniquement l'index du forum. Les sections « Feature Request Discussio
 | FFD plus puissante | ✅ lattice de Bernstein + maillage |
 
 ## Cartoon Animator (Reallusion Feedback Tracker + fil de liste de souhaits)
-| Demande (votes lorsqu'ils sont indiqués) | ARMATURA |
+| Demande (votes lorsqu'ils sont indiqués) | OSATURA |
 |---|---|
 | Courbe de clé par défaut dans les préférences | ✅ interpolation par clé |
 | Édition de clés multicanal | 🟡 opérations de patch par lot |
@@ -904,7 +904,7 @@ Lisible : uniquement l'index du forum. Les sections « Feature Request Discussio
 | Panorama à 360° (5) ; idées d'intégration d'IA (6) | ❌ |
 
 ## Tableau de demandes de fonctionnalités de Live2D Cubism Editor (30 fils, 2023–2026)
-| Demande | ARMATURA |
+| Demande | OSATURA |
 |---|---|
 | Prise en charge de Linux | ✅ |
 | Raccourcis clavier dans l'édition manuelle de maillage | n/a |
@@ -927,7 +927,7 @@ Lisible : uniquement l'index du forum. Les sections « Feature Request Discussio
 Le forum des utilisateurs est fermé et redirige vers Discord (non consultable par recherche) ; les anciens fils du « Feature Requests board » (« One can only dream: A Feature List », « Software Upgrade Suggestions Part 2 », « Bitmap Layer Overhaul LONG OVERDUE », « Various Quality of Life suggestions ») n'affichent que l'avis de fermeture. Aucune demande récupérable.
 
 ## Synfig (liste d'idées GSoC 2019–2022, numéros de tickets GitHub liés)
-| Demande | ARMATURA |
+| Demande | OSATURA |
 |---|---|
 | Copier/coller des waypoints (#2139) | ✅ clés via opérations |
 | Changement d'onglet par Ctrl+Tab, raccourcis de fenêtres, sélection de la zone de lecture, recherche dans les propriétés, bascule des règles, modification de paramètres à la souris | ❌ (interface) |
@@ -935,7 +935,7 @@ Le forum des utilisateurs est fermé et redirige vers Discord (non consultable p
 | Portage GTK 4, builds Conan/vcpkg | n/a |
 
 ## Spine
-Les demandes vont sur le forum et sont déplacées vers un tableau Trello public (non récupérable : robots.txt). D'après le forum : la plus haute priorité historique est la stabilité de l'éditeur et les mises à jour des runtimes. Le plan de l'époque Kickstarter (maillages → FFD → skinning → IK pinning) est désormais entièrement livré ; les maillages/FFD/skinning d'ARMATURA sont donc à parité avec cette ancienne liste ; IK pinning ✅ (contrainte Pin). Titres de demandes récentes du forum : prise en charge des dernières versions de three.js / React Three Fiber ; prise en charge de Spine 4.3 dans Defold.
+Les demandes vont sur le forum et sont déplacées vers un tableau Trello public (non récupérable : robots.txt). D'après le forum : la plus haute priorité historique est la stabilité de l'éditeur et les mises à jour des runtimes. Le plan de l'époque Kickstarter (maillages → FFD → skinning → IK pinning) est désormais entièrement livré ; les maillages/FFD/skinning d'OSATURA sont donc à parité avec cette ancienne liste ; IK pinning ✅ (contrainte Pin). Titres de demandes récentes du forum : prise en charge des dernières versions de three.js / React Three Fiber ; prise en charge de Spine 4.3 dans Defold.
 
 ## Rive
 Feuille de route publique = « canal Feature Requests » avec étiquettes de statut (en cours / prévu / lancé) ; une connexion est nécessaire pour la lire. Rien de récupérable au-delà des notes de version (4e tour).
@@ -971,9 +971,9 @@ Les pages GitHub (OpenToonz/Synfig) sont bloquées par robots.txt ; aucun tablea
 **Accès :** l'API de recherche de GitHub n'est pas disponible dans cet environnement (« sessions are bound to their configured repositories »), les projets ont donc été trouvés par recherche web et lus dans leurs README publics. Les API GitLab et Codeberg sont bloquées par le proxy ; les pages Codeberg/GitLab n'apparaissaient que dans les résultats de recherche (Friction était lisible). Le nombre d'étoiles n'a pas pu être récupéré. Plusieurs projets sont très récents / à un stade précoce — les fonctionnalités listées sont celles annoncées dans les README, non vérifiées par exécution.
 
 ## Outils open source similaires de rigging / d'animation
-| Projet | Plateforme | Fonctionnalités notables | Comparaison avec ARMATURA |
+| Projet | Plateforme | Fonctionnalités notables | Comparaison avec OSATURA |
 |---|---|---|---|
-| **Rigby2D** (jaisurya-dev-art/rigby2d) | GitHub, MIT/Apache | Éditeur de style Spine (import PSD, maillage + peinture de poids, maillages liés, contraintes IK/transform/path/physics/**slider**, skins avec os propres au skin, événements, attachements bounding-box/clipping/point/path, dopesheet + éditeur de courbes), export Spine JSON 3.8/4.2/4.3 + .skel, atlas, runtimes JS/Rust/Godot, **serveur MCP intégré** pour assistants IA, bureau Tauri | ARMATURA n'a ni interface d'éditeur, ni atlas, ni runtimes, ni skins, ni événements, ni contraintes slider/path ; il a un évaluateur en fonction pure, des FX liquide/booléens/émetteur, le lip-sync, un générateur de marche |
+| **Rigby2D** (jaisurya-dev-art/rigby2d) | GitHub, MIT/Apache | Éditeur de style Spine (import PSD, maillage + peinture de poids, maillages liés, contraintes IK/transform/path/physics/**slider**, skins avec os propres au skin, événements, attachements bounding-box/clipping/point/path, dopesheet + éditeur de courbes), export Spine JSON 3.8/4.2/4.3 + .skel, atlas, runtimes JS/Rust/Godot, **serveur MCP intégré** pour assistants IA, bureau Tauri | OSATURA n'a ni interface d'éditeur, ni atlas, ni runtimes, ni skins, ni événements, ni contraintes slider/path ; il a un évaluateur en fonction pure, des FX liquide/booléens/émetteur, le lip-sync, un générateur de marche |
 | **SkelForm** (Retropaint/SkelForm, Rust) | GitHub | IK FABRIK, natif + web + enveloppe mobile | cœur de rig similaire ✅ ; pas d'interface ❌ |
 | **Ankhimate editor** | GitHub, pré-alpha | Modes Setup/Animate, slots + skins, FABRIK de longueur quelconque, contraintes path/physics, traçage de silhouette de maillage à partir de l'alpha, pinceau de poids avec modes de fusion + verrouillage d'os, **timelines FFD**, événements avec audio, marqueurs, décalages de piste par os, **éditeur de format d'export à base de modèles**, runtime de référence en Rust | ❌ surtout interface ; idées : modèles d'export, décalages de piste par os |
 | **rig2d-rs** (tanhieuno41) | GitHub, Rust | Portage de la physique de Spine 4.2, IK avec **mix/softness/bend/compress/stretch/uniform**, liaison automatique des poids par décroissance de distance, lissage/normalisation/limitation à 4 des poids, packer d'atlas par étagères, ghosting d'onion skin, import/export Spine JSON | ❌ IK souple/étirable, outils de poids, atlas, interopérabilité Spine |
@@ -1000,7 +1000,7 @@ Les pages GitHub (OpenToonz/Synfig) sont bloquées par robots.txt ; aucun tablea
 Des dépôts de logiciels piratés sont apparus (par ex. Adobe Animate « activate-free ») : ni ouverts ni utilisés.
 
 ## Idées à adopter (nouveaux candidats pour la feuille de route)
-59. **Serveur MCP / API d'agent** au-dessus de l'éditeur d'opérations de patch afin que les assistants IA puissent rigger et animer (Rigby2D, Iki) — s'accorde avec l'architecture JSON-patch d'ARMATURA
+59. **Serveur MCP / API d'agent** au-dessus de l'éditeur d'opérations de patch afin que les assistants IA puissent rigger et animer (Rigby2D, Iki) — s'accorde avec l'architecture JSON-patch d'OSATURA
 60. **Identifiants de paramètres standard** (ParamAngleX, EyeOpen, MouthOpen…) pour que n'importe quel hôte puisse piloter un modèle (Iki)
 61. **Auto-rigger à partir de calques nommés par rôle** : clignement, regard, rotation/hochement/inclinaison de la tête, sourcils, respiration, physique des cheveux (Iki)
 62. **Écrêtage automatique des yeux** (iris masqué par la forme de l'œil) (Stretchy Studio) — via un calque Boolean
@@ -1012,7 +1012,7 @@ Des dépôts de logiciels piratés sont apparus (par ex. Adobe Animate « activa
 68. **Export vidéo à fond transparent (WebM/MOV avec alpha) et spritesheet PNG+JSON** (Skeletal-Animator)
 69. **Moteur de modèles d'export** (formats de sortie définis par l'utilisateur) (Ankhimate)
 70. **Conteneur dotLottie `.lottie` + slots/thèmes à l'exécution + machines à états** (dotlottie-rs)
-71. **CLI de diff / dump / conversion de modèles** (`armatura diff a.json b.json`) (Umamo)
+71. **CLI de diff / dump / conversion de modèles** (`osatura diff a.json b.json`) (Umamo)
 72. **Palette de commandes + raccourcis reconfigurables** dans le studio (Umamo)
 73. **Chargeur fuzzé, chemin runtime sans panic, benchmarks de latence** (Ayatsuri2D) — durcissement de `Engine::new`
 74. **Import/export Spine JSON** pour l'interopérabilité (Rigby2D, rig2d, Stretchy Studio)
@@ -1035,7 +1035,7 @@ Des dépôts de logiciels piratés sont apparus (par ex. Adobe Animate « activa
 Sources : itch.io, Steam, AlternativeTo, Wikipédia, résultats de recherche académique/de brevets, tests d'outils After Effects. Les affirmations proviennent de pages de boutiques/de projets, pas de tests pratiques.
 
 ## Outils de rigging indépendants / de niche (itch.io, Steam)
-| Outil | Fonctionnalités notables | ARMATURA |
+| Outil | Fonctionnalités notables | OSATURA |
 |---|---|---|
 | **Inochi Creator / Inochi2D** (Kitsunebi Games, open source, bêta) | rigging de marionnette 2D ouvert orienté VTuber + runtime temps réel ; format propre (non compatible Live2D/Spine) ; export GIF/séquence d'images ; interface multilingue | 🟡 même niche (format de rig ouvert) |
 | **Keyframe.it** (navigateur, gratuit) | os + IK + maillages pondérés + mouvement de ressort ; **clips de symboles de jeu** (idle, land, anticipation, win) ; éditeur d'images intégré + import PSD ; export GIF, sprite sheet, vidéo, lecteur HTML autonome, **bundles Spine 3.8/4.2** ; enregistrement automatique dans le navigateur ; connecteur d'agent IA **keyframe-mcp** ; assistant IA intégré optionnel | ✅ lecteur HTML/GIF ; ❌ sprite sheet, bundle Spine, MCP, éditeur dans le navigateur |
@@ -1047,7 +1047,7 @@ Sources : itch.io, Steam, AlternativeTo, Wikipédia, résultats de recherche aca
 | VBridger, Vitamins | Outils Steam autour du VTubing ; non évalués | — |
 
 ## Écosystème de rigging After Effects (test School of Motion)
-| Fonctionnalité | Source | ARMATURA |
+| Fonctionnalité | Source | OSATURA |
 |---|---|---|
 | **Contrôleur joystick** (5 poses clés : origine/droite/gauche/haut/bas) interpolé en 2D | Joysticks 'n Sliders | ❌ — candidat sérieux |
 | **Sliders** mélangeant un nombre illimité de poses | JnS, Duik | 🟡 canaux de morph |
@@ -1062,7 +1062,7 @@ Tahoma2D (fork d'OpenToonz, stop-motion), TupiTube, enve (abandonné ; devenu Fr
 
 ## Littérature académique et de brevets (titres/résumés uniquement)
 - Jacobson et al. 2011, **Bounded Biharmonic Weights** pour la déformation en temps réel — poids de skinning lisses automatiques à partir d'une cage/d'un squelette ✅ idée : améliorer `auto_skin` (actuellement basé sur la distance).
-- Brevets Adobe US9865073 / US10078910, **« Computer animation of artwork using fast 2-dimensional deformation solving »** (mesh warp de Character Animator). *Note clean-room :* ARMATURA utilise la FFD de Bernstein et le skinning pondéré, pas ce solveur breveté ; tout futur solveur de type ARAP devrait être examiné avec un conseil juridique. Ceci n'est pas un avis juridique.
+- Brevets Adobe US9865073 / US10078910, **« Computer animation of artwork using fast 2-dimensional deformation solving »** (mesh warp de Character Animator). *Note clean-room :* OSATURA utilise la FFD de Bernstein et le skinning pondéré, pas ce solveur breveté ; tout futur solveur de type ARAP devrait être examiné avec un conseil juridique. Ceci n'est pas un avis juridique.
 - arXiv 2025–26 sur l'auto-rigging : **ASMR** (squelette + skin de maillage 3D via des a priori génératifs 2D), UniRig, « How to Train Your Dragon » (rigging par diffusion), HumanRig, SPRig, UniMate — tous 3D/ML ; pertinents seulement comme future fonctionnalité de « suggestion d'auto-rig ».
 - Stony Brook TVC 2017 **retargeting automatique de poids de skinning** — copier les poids entre maillages (✅ feuille de route : copie de poids).
 
@@ -1096,7 +1096,7 @@ Sources : tableau des versions de Wikipédia (y compris la 26.0 de janv. 2026), 
 Des illustrations Photoshop/Illustrator en calques (aussi EPS/SVG depuis oct. 2018) deviennent une **marionnette** riggée automatiquement à partir des **noms/étiquettes de calques** ; la performance est capturée en direct (visage/corps par webcam, microphone, clavier, souris, MIDI) sous forme de **takes** sur une timeline ; les sorties vont vers des séquences PNG, WAV, Media Encoder (y compris **vidéo avec alpha**), Dynamic Link vers After Effects / Premiere, et Syphon / Mercury Transmit en direct. Le mode Starter est gratuit ; Pro nécessite Creative Cloud.
 
 ## Behaviors (liste complète d'après l'aide Adobe)
-| Behavior | Ce qu'il fait | ARMATURA |
+| Behavior | Ce qu'il fait | OSATURA |
 |---|---|---|
 | **Face** | tête, yeux, sourcils, nez, bouche à partir de la webcam ; parallaxe et intensité de position de la tête | ❌ (pas de suivi en direct) — feuille de route n° 88 |
 | **Body** (Body Tracker, Sensei AI, 22.0) | bras, torse, jambes à partir de la webcam | ❌ |
@@ -1124,7 +1124,7 @@ Des illustrations Photoshop/Illustrator en calques (aussi EPS/SVG depuis oct. 20
 | **Collide, Dynamic, Cycle Pause, Auto-swap (22.5)** | étiquettes/behaviors pour la physique et les échanges de type image | ❌ |
 
 ## Fonctionnalités de timeline, d'enregistrement et de flux de travail
-| Fonctionnalité | Version | ARMATURA |
+| Fonctionnalité | Version | OSATURA |
 |---|---|---|
 | Takes, replays (enregistrements réutilisables déclenchables), replays intelligents, replays éditables | 2.0 / 22.0 / 23.6 | 🟡 clips ✅ ; replays ❌ |
 | Clés, étirement temporel des clés, caméras de scène, audio déclenchable | 3.0 / 3.2 | ✅ clés/caméra ; ❌ audio déclenchable |
@@ -1143,9 +1143,9 @@ Des illustrations Photoshop/Illustrator en calques (aussi EPS/SVG depuis oct. 20
 | MIDI, scripts via V8 (JavaScript) | 1.1 / 2.0 | ❌ — feuille de route n° 31 |
 | Partage/publication de marionnettes, fichiers de marionnette partageables | Beta 5 | 🟡 JSON portable |
 | Dynamic Link vers AE / Premiere | Beta 5 | ❌ |
-| Faiblesses rapportées (test) : courbe d'apprentissage abrupte, dépendance matérielle (webcam/micro), long temps de préparation des personnages, Pro payant, complexité de configuration des triggers | | opportunité : pipeline hors ligne déterministe d'ARMATURA, CLI/JSON |
+| Faiblesses rapportées (test) : courbe d'apprentissage abrupte, dépendance matérielle (webcam/micro), long temps de préparation des personnages, Pro payant, complexité de configuration des triggers | | opportunité : pipeline hors ligne déterministe d'OSATURA, CLI/JSON |
 
-## Ce qui ressort pour ARMATURA (nouveaux candidats pour la feuille de route)
+## Ce qui ressort pour OSATURA (nouveaux candidats pour la feuille de route)
 89. **Auto-rig par étiquettes à partir des noms de calques** (tête, yeux, sourcils, visèmes de bouche, étiquettes bras/jambes) — idée centrale de Character Animator ; étend la feuille de route n° 61
 90. **Takes et replays** : enregistrer la performance de paramètres comme clips réutilisables et déclenchables avec interpolation de mélange
 91. **Pin Feet When Standing** et verrouillage de contact avec le sol pour le générateur de marche

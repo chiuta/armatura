@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
-# Indexul documentației ARMATURA
+# Indexul documentației OSATURA
 
 *Începe de aici pentru a găsi pagina potrivită. Toate documentele sunt în Markdown englez sub CC-BY-4.0, cu excepția fișierelor generate ale terților (vezi antetele lor). README-ul în limba română este [../README.ro.md](../../../README.ro.md).*
 
-ARMATURA este un motor de rigging și animație vectorială 2D scris în Rust. Este un proiect alpha (primele build-uri sunt pregătite ca pre-lansare ciornă `v0.1.0-alpha.3`; crate-urile sunt încă 0.1.0); citește [LIMITATIONS.md](LIMITATIONS.md) înainte de a te baza pe o funcționalitate.
+OSATURA este un motor de rigging și animație vectorială 2D scris în Rust. Este un proiect alpha (primele build-uri sunt pregătite ca pre-lansare ciornă `v0.1.0-alpha.3`; crate-urile sunt încă 0.1.0); citește [LIMITATIONS.md](LIMITATIONS.md) înainte de a te baza pe o funcționalitate.
 
 Cuprins: [Toate documentele](#toate-documentele) - [Trasee de lectură în funcție de public](#trasee-de-lectură-în-funcție-de-public) - [Documente din rădăcina repository-ului](#documente-din-rădăcina-repository-ului) - [Unde își găsește fiecare întrebare răspunsul](#unde-își-găsește-fiecare-întrebare-răspunsul) - [Convenții](#convenții-folosite-în-documente)
 
@@ -13,7 +13,7 @@ Cuprins: [Toate documentele](#toate-documentele) - [Trasee de lectură în func�
 | Document | Ce este | Public |
 |---|---|---|
 | [GETTING_STARTED.md](GETTING_STARTED.md) | Instalare, primul proiect, prima randare și primul export, prima sesiune în studio | toată lumea, prima lectură |
-| [CLI_REFERENCE.md](CLI_REFERENCE.md) | Fiecare comandă `armatura`, opțiune, cod de ieșire și exemplu | utilizatori, autori de scripturi, autori de CI |
+| [CLI_REFERENCE.md](CLI_REFERENCE.md) | Fiecare comandă `osatura`, opțiune, cod de ieșire și exemplu | utilizatori, autori de scripturi, autori de CI |
 | [STUDIO.md](STUDIO.md) | Editorul din browser: panouri, scurtături, colaborare, previzualizări scrub | animatori, riggeri |
 | [RIGGING_GUIDE.md](RIGGING_GUIDE.md) | Construirea unui rig: oase, IK, skinning, deformatori, drivere, mașini de stări, layout | riggeri, artiști tehnici |
 | [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md) | Chei, easing, clipuri și take-uri, fizică, lip-sync, audio, alegeri de export | animatori |
@@ -23,13 +23,13 @@ Cuprins: [Toate documentele](#toate-documentele) - [Trasee de lectură în func�
 | [GLOSSARY.md](GLOSSARY.md) | Termeni folosiți în motor, în documente și în CLI | toată lumea |
 | [FAQ.md](FAQ.md) | Răspunsuri scurte la întrebări frecvente | toată lumea |
 | [API.md](API.md) | Fațada Rust stabilă (versiunea 1.4.0): apeluri, erori, limite, exemple | integratori Rust |
-| [C_ABI.md](C_ABI.md) | Interfața C (`armatura-capi`): funcții, reguli de memorie, exemple în C și Python | integratori C, C++, Python, Go, C# |
+| [C_ABI.md](C_ABI.md) | Interfața C (`osatura-capi`): funcții, reguli de memorie, exemple în C și Python | integratori C, C++, Python, Go, C# |
 | [WASM.md](WASM.md) | Modulul WebAssembly și wrapper-ul JavaScript. **Stare: construit și testat sub Node în CI, niciodată rulat într-un browser**; include lista de verificare pentru prima rulare în browser | dezvoltatori web |
-| [CI.md](CI.md) | CI de animație (`armatura ci`): manifest, praguri, goldens, rapoarte, exemple de pipeline | artiști tehnici, ingineri de build |
+| [CI.md](CI.md) | CI de animație (`osatura ci`): manifest, praguri, goldens, rapoarte, exemple de pipeline | artiști tehnici, ingineri de build |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Compilare, teste, convenții, lista de verificare pentru module noi, lista de verificare pentru lansare, depanare | contribuitori, maintaineri |
 | [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Pașii din partea proprietarului înainte și după publicarea lansării ciornă | proprietar |
 | [SECURITY.md](SECURITY.md) | Model de amenințări, protecții încorporate, lacune cunoscute, raportare, lista de verificare pentru hardening | recenzori de securitate, cei care fac deploy |
-| [LIMITATIONS.md](LIMITATIONS.md) | Listă numerotată a limitelor cunoscute cu severitate, soluție ocolitoare și id din roadmap | oricine evaluează ARMATURA |
+| [LIMITATIONS.md](LIMITATIONS.md) | Listă numerotată a limitelor cunoscute cu severitate, soluție ocolitoare și id din roadmap | oricine evaluează OSATURA |
 | [PATENT_NOTES.md](PATENT_NOTES.md) | Notă despre starea brevetelor (nu este sfat juridic) | licențiați, avocați |
 | [THIRD_PARTY.md](THIRD_PARTY.md) | Inventar generat al crate-urilor și licențelor terților | licențiați, împachetători |
 | [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md) | Texte de licență generate ale dependențelor, de livrat împreună cu binarele | împachetători |
@@ -50,7 +50,7 @@ Fiecare traseu este o ordine, nu o cerință. Oprește-te când ai găsit ce î�
 
 **Contribuitor.** [../CONTRIBUTING.md](CONTRIBUTING.md) (DCO) -> [DEVELOPMENT.md](DEVELOPMENT.md) -> ARCHITECTURE -> [../CLEANROOM.md](CLEANROOM.md) -> [../ROADMAP.md](ROADMAP.md) secțiunea 9 (ce există și ce nu) -> LIMITATIONS (alege ceva de reparat).
 
-**Recenzor de securitate sau cel care face deploy.** [SECURITY.md](SECURITY.md) -> [DEVELOPMENT.md](DEVELOPMENT.md) secțiunea 3 (ce este testat) -> LIMITATIONS secțiunile 2 și 11 -> `armatura-cli/src/http.rs`, `studio.rs`, `collab_srv.rs`, `armatura-core/src/assets.rs`, `fsutil.rs` -> limitele din [CI.md](CI.md).
+**Recenzor de securitate sau cel care face deploy.** [SECURITY.md](SECURITY.md) -> [DEVELOPMENT.md](DEVELOPMENT.md) secțiunea 3 (ce este testat) -> LIMITATIONS secțiunile 2 și 11 -> `osatura-cli/src/http.rs`, `studio.rs`, `collab_srv.rs`, `osatura-core/src/assets.rs`, `fsutil.rs` -> limitele din [CI.md](CI.md).
 
 **Licențiat, împachetător sau avocat.** [../LICENSING.md](LICENSING.md) -> [../LICENSE](../../../LICENSE) și [../LICENSES/](../../../LICENSES/) -> [THIRD_PARTY.md](THIRD_PARTY.md) -> [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md) -> [PATENT_NOTES.md](PATENT_NOTES.md) -> [../TRADEMARK.md](TRADEMARK.md) -> [../CLEANROOM.md](CLEANROOM.md) -> lista de verificare pentru lansare din [DEVELOPMENT.md](DEVELOPMENT.md) secțiunea 7.
 

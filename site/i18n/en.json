@@ -84,7 +84,7 @@
  "ae": "Architecture",
  "ah": "Six crates, one workspace",
  "a1": "Engine, formats, tools and the stable Rust facade.",
- "a2": "The armatura binary, the browser studio and the collaboration server.",
+ "a2": "The osatura binary, the browser studio and the collaboration server.",
  "a3": "C ABI: header, shared and static library; also run under ASan/UBSan.",
  "a4": "WebAssembly ABI and JS wrapper. Built in CI and tested under Node; not yet run in a browser.",
  "a5": "Optional wgpu renderer, not a default member.",
@@ -96,12 +96,12 @@
  "l4": "Your projects and renders stay yours. The name and logo are not covered by these licences. Not legal advice; a lawyer review is still outstanding.",
  "gse": "Get started",
  "gsh": "Build a rig tonight",
- "gsp": "Clone it, run armatura demo, and open the studio on the result.",
+ "gsp": "Clone it, run osatura demo, and open the studio on the result.",
  "g1": "Open the repository",
  "g2": "Getting started",
  "g3": "Read the limitations",
  "sup": "If it is useful to you:",
- "foot": "Presentation page for the ARMATURA project. Name and logo: see TRADEMARK.md.",
+ "foot": "Presentation page for the OSATURA project. Name and logo: see TRADEMARK.md.",
  "vy": [
   "1338 tests plus 19 doc-tests pass locally (24 Oct 2026, Linux x86-64); the same suite and clippy pass on GitHub Actions for Linux, macOS and Windows",
   "The WebAssembly module builds in CI and the wrapper’s test passes against it under Node; cargo-deny and REUSE pass",
@@ -113,7 +113,7 @@
   "Only one person has tried the Windows launcher and the window app (Windows 11, alpha.2); nobody has used them on macOS; the binaries are not code-signed",
   "The studio was never used by a person in production, nor in a browser other than Chromium",
   "No real GPU, webcam, photograph or motion-capture file was ever used; no security audit, lawyer review or patent search",
-  "The name ARMATURA collides with a registered mark in the software classes 9 and 42 (EUIPO search); no lawyer has assessed it"
+  "The name OSATURA (renamed from ARMATURA after a conflict in the EU register) was searched only at the EUIPO; OSIM, WIPO and a lawyer’s opinion are still open"
  ],
  "nDocs": "Docs",
  "nStudio": "Studio",
@@ -189,8 +189,8 @@
   "mnt": "Maintainer"
  },
  "notices": "THIRD_PARTY_NOTICES.md — 1.4 MB of generated licence texts. Too large to embed; open on GitHub.",
- "metaTitle": "ARMATURA — 2D vector rigging and animation in Rust",
- "metaDesc": "ARMATURA: a 2D vector rigging and animation engine in Rust. Bones, IK, skinning, deformers, state-machine runtime, CLI, browser studio and libraries.",
+ "metaTitle": "OSATURA — 2D vector rigging and animation in Rust",
+ "metaDesc": "OSATURA: a 2D vector rigging and animation engine in Rust. Bones, IK, skinning, deformers, state-machine runtime, CLI, browser studio and libraries.",
  "trNote": "Translated from English. If anything differs, the English original is authoritative.",
  "trView": "View English original",
  "trShow": "Show translation",
