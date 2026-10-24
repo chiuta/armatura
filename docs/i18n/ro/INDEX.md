@@ -17,6 +17,10 @@ Cuprins: [Toate documentele](#toate-documentele) - [Trasee de lectură în func�
 | [STUDIO.md](STUDIO.md) | Editorul din browser: panouri, scurtături, colaborare, previzualizări scrub | animatori, riggeri |
 | [RIGGING_GUIDE.md](RIGGING_GUIDE.md) | Construirea unui rig: oase, IK, skinning, deformatori, drivere, mașini de stări, layout | riggeri, artiști tehnici |
 | [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md) | Chei, easing, clipuri și take-uri, fizică, lip-sync, audio, alegeri de export | animatori |
+| [TUTORIAL_SVG.md](TUTORIAL_SVG.md) | De la un desen vectorial la un GIF cu mers: import, rig prin script, export (comenzile și ieșirile sunt reale) | artiști |
+| [COMPARISON.md](COMPARISON.md) | O comparație sinceră, datată, cu alte instrumente de animație 2D | evaluatori |
+| [VERIFY_DOWNLOADS.md](VERIFY_DOWNLOADS.md) | Verificarea arhivelor de release cu sumele SHA-256 | oricine instalează |
+| [GOOD_FIRST_TASKS.md](GOOD_FIRST_TASKS.md) | Sarcini mici pentru o primă contribuție | contributori noi |
 | [PROJECT_FORMAT.md](PROJECT_FORMAT.md) | Formatul JSON al proiectului, câmp cu câmp | constructori de instrumente, riggeri care editează JSON |
 | [EXPORT_FORMATS.md](EXPORT_FORMATS.md) | Ce transportă și ce pierde fiecare format de export și de import | constructori de pipeline-uri, integratori |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Crate-uri, module, flux de date, designul evaluării și al randării | contribuitori, recenzenți |
@@ -24,7 +28,7 @@ Cuprins: [Toate documentele](#toate-documentele) - [Trasee de lectură în func�
 | [FAQ.md](FAQ.md) | Răspunsuri scurte la întrebări frecvente | toată lumea |
 | [API.md](API.md) | Fațada Rust stabilă (versiunea 1.4.0): apeluri, erori, limite, exemple | integratori Rust |
 | [C_ABI.md](C_ABI.md) | Interfața C (`osatura-capi`): funcții, reguli de memorie, exemple în C și Python | integratori C, C++, Python, Go, C# |
-| [WASM.md](WASM.md) | Modulul WebAssembly și wrapper-ul JavaScript. **Stare: construit și testat sub Node în CI, niciodată rulat într-un browser**; include lista de verificare pentru prima rulare în browser | dezvoltatori web |
+| [WASM.md](WASM.md) | Modulul WebAssembly și wrapper-ul JavaScript. **Stare: construit și testat sub Node în CI; rulat în Chromium headless, nu încă în Firefox sau Safari**; include lista de verificare pentru prima rulare în browser | dezvoltatori web |
 | [CI.md](CI.md) | CI de animație (`osatura ci`): manifest, praguri, goldens, rapoarte, exemple de pipeline | artiști tehnici, ingineri de build |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Compilare, teste, convenții, lista de verificare pentru module noi, lista de verificare pentru lansare, depanare | contribuitori, maintaineri |
 | [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Pașii din partea proprietarului înainte și după publicarea lansării ciornă | proprietar |

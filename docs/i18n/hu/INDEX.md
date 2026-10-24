@@ -17,6 +17,10 @@ Tartalom: [Minden dokumentum](#minden-dokumentum) - [Olvasási útvonalak célk�
 | [STUDIO.md](STUDIO.md) | A böngészős szerkesztő: panelek, gyorsbillentyűk, együttműködés, görgetési előnézetek | animátorok, riggerek |
 | [RIGGING_GUIDE.md](RIGGING_GUIDE.md) | Rig építése: csontok, IK, skinning, deformerek, driverek, állapotgépek, elrendezés | riggerek, technikai művészek |
 | [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md) | Kulcsok, easing, klipek és take-ek, fizika, lip-sync, hang, exportválasztás | animátorok |
+| [TUTORIAL_SVG.md](TUTORIAL_SVG.md) | Vektorrajzból sétáló GIF: importálás, rigelés szkripttel, export (a parancsok és kimenetek valódiak) | művészek |
+| [COMPARISON.md](COMPARISON.md) | Őszinte, dátumozott összehasonlítás más 2D animációs eszközökkel | értékelők |
+| [VERIFY_DOWNLOADS.md](VERIFY_DOWNLOADS.md) | A kiadási archívumok ellenőrzése a SHA-256 összegekkel | mindenki, aki telepít |
+| [GOOD_FIRST_TASKS.md](GOOD_FIRST_TASKS.md) | Kis feladatok az első közreműködéshez | új közreműködők |
 | [PROJECT_FORMAT.md](PROJECT_FORMAT.md) | A JSON projektformátum mezőről mezőre | eszközfejlesztők, JSON-t szerkesztő riggerek |
 | [EXPORT_FORMATS.md](EXPORT_FORMATS.md) | Mit visz és mit hagy el az egyes export- és importformátum | pipeline-építők, integrátorok |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Crate-ek, modulok, adatfolyam, kiértékelési és renderelési felépítés | közreműködők, átnézők |
@@ -24,7 +28,7 @@ Tartalom: [Minden dokumentum](#minden-dokumentum) - [Olvasási útvonalak célk�
 | [FAQ.md](FAQ.md) | Rövid válaszok gyakori kérdésekre | mindenki |
 | [API.md](API.md) | A stabil Rust homlokzat (1.4.0-s verzió): hívások, hibák, korlátok, példák | Rust-integrátorok |
 | [C_ABI.md](C_ABI.md) | A C interfész (`osatura-capi`): függvények, memóriaszabályok, C- és Python-példák | C, C++, Python, Go, C# integrátorok |
-| [WASM.md](WASM.md) | WebAssembly modul és JavaScript wrapper. **Állapot: a CI-ben lefordítva és Node alatt tesztelve, böngészőben soha nem futtatva**; tartalmazza az első böngészős futtatás ellenőrzőlistáját | webfejlesztők |
+| [WASM.md](WASM.md) | WebAssembly modul és JavaScript wrapper. **Állapot: a CI-ben lefordítva és Node alatt tesztelve, headless Chromiumban futtatva, Firefoxban és Safariban még nem**; tartalmazza az első böngészős futtatás ellenőrzőlistáját | webfejlesztők |
 | [CI.md](CI.md) | Animációs CI (`osatura ci`): manifeszt, küszöbök, referenciaképek, jelentések, pipeline-példák | technikai művészek, build-mérnökök |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Fordítás, tesztek, konvenciók, új modul ellenőrzőlistája, kiadási ellenőrzőlista, hibakeresés | közreműködők, karbantartók |
 | [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | A tulajdonosi lépések a vázlatkiadás közzététele előtt és után | tulajdonos |

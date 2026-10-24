@@ -109,7 +109,7 @@ Undo, Redo, **Save**; casete de bifat `bones` (desenează scheletul), `auto-key`
 `whole groups` (un clic pe o parte dintr-un grup selectează grupul de nivel superior), `points` (arată ancorele, mânerele, punctele de cage/lattice/pin și vârfurile de mesh ale
 straturilor selectate); un selector `box` pentru ceea ce selectează o casetă trasă (`touches`, `contains`, `bounds touch`; pornește cu `touches`); **Lock**; și butoanele **Overlays**, **Suggest**, **Layout**,
 **Commands** (paleta) și **Keys** (editorul de scurtături). Un al doilea rând conține numele tău și **Collab**, precum și butoanele de export **GIF**, **HTML player** și **Lottie**,
-care descarcă ceea ce ar scrie `osatura export` (playerul HTML include sunetul mixat când există sunet și `ffmpeg` poate produce mp3-ul).
+care descarcă ceea ce ar scrie `osatura export` (playerul HTML include sunetul mixat când există sunet și `ffmpeg` poate produce mp3-ul). Butonul **Simple view** ascunde casetele de editare, Overlays, Suggest și butonul paletei de comenzi, astfel încât rămân doar undo, save, panourile și exporturile; alegerea este reținută în acest browser (sau fereastră), iar bara completă revine cu **Full view**.
 
 ### Panouri și layouturi
 
@@ -197,11 +197,11 @@ confirmi „Take it over”. Combinațiile rezervate de browser sunt refuzate: `
 
 ### Demo ghidat
 
-Butonul **Demo** (comanda `demo.panel`) deschide un demo ghidat în 13 pași care construiește persoana care merge din `osatura demo-person`: decorul, corpul, capul și fața, brațele cu cinci degete pe mână, scheletul, picioarele care merg, brațele care se balansează, trunchiul și capul, un clipit și un zâmbet, solul care se mișcă, o verificare și exportul. Fiecare pas încarcă acea etapă a proiectului în editor printr-o singură operație de înlocuire, deci o poți reda, derula, poți selecta oase și straturi și poți citi timeline-ul. Etapele sunt tăieturi din proiectul terminat; comenzile și ieșirea lor afișate în panou au rulat cu binarul real.
+Butonul **Demo** (comanda `demo.panel`) deschide un demo ghidat în 13 pași care construiește omul care merge din `osatura demo-person`: decor, corp, cap și față, brațe cu cinci degete la fiecare mână, scheletul, picioarele care merg, brațele care se balansează, trunchi și cap, un clipit și un zâmbet, solul în mișcare, o verificare și exportul. Fiecare pas încarcă în editor etapa respectivă a proiectului printr-o singură operație de înlocuire totală, așa că o poți reda, parcurge, poți selecta oase și straturi și poți citi timeline-ul. Etapele sunt tăieturi din proiectul finalizat; comenzile și ieșirea lor afișate în panou au fost rulate cu binarul real.
 
-* **Nu se scrie nimic pe disc.** Save (și Ctrl+S) este dezactivat cât timp demo-ul e încărcat. Singura cale de scriere a studioului, `POST /api/save`, nu este apelată niciodată de demo.
-* **Proiectul tău revine.** *Restore my project* pune la loc proiectul deschis înainte (o singură operație de înlocuire, un pas de Undo). Dacă închizi fila sau reîncarci pagina cât demo-ul e încărcat, următoarea încărcare observă că serverul ține încă demo-ul, păstrează Save oprit și oferă din nou *Restore my project*; originalul este păstrat pentru asta în localStorage-ul browserului.
-* Demo-ul refuză să pornească într-o sesiune de colaborare, fiindcă înlocuiește tot proiectul.
+* **Nimic nu se scrie pe disc.** Save (și Ctrl+S) este dezactivat cât timp demo-ul este încărcat. Singura cale de scriere a studioului, `POST /api/save`, nu este apelată niciodată de demo.
+* **Proiectul tău revine.** *Restore my project* readuce proiectul care era deschis înainte (o singură operație de înlocuire totală, un pas de Undo). Dacă închizi fila sau reîncarci pagina cât timp demo-ul este încărcat, următoarea încărcare a paginii observă că serverul încă ține demo-ul, păstrează Save oprit și oferă din nou *Restore my project*; originalul este păstrat pentru asta în stocarea locală a browserului.
+* Demo-ul refuză să pornească într-o sesiune de colaborare, deoarece înlocuiește întregul proiect.
 * Regenerează etapele cu `node scripts/build-studio-tour.mjs --bin target/release/osatura`, apoi reconstruiește CLI-ul (pagina este încorporată în binar).
 
 ## 4. Scurtături de tastatură (implicite)

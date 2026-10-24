@@ -109,7 +109,7 @@ Annuler, Rétablir, **Enregistrer** ; les cases `bones` (dessiner le squelette),
 `whole groups` (un clic sur une partie d'un groupe sélectionne le groupe de premier niveau), `points` (afficher les ancres, poignées, points de cage/lattice/pin et sommets de maillage des
 calques sélectionnés) ; un sélecteur `box` pour ce que sélectionne un cadre de sélection (`touches`, `contains`, `bounds touch` ; il démarre à `touches`) ; **Lock** ; et les boutons **Overlays**, **Suggest**, **Layout**,
 **Commands** (palette) et **Keys** (éditeur de raccourcis). Une seconde rangée contient votre nom et **Collab**, ainsi que les boutons d'export **GIF**, **HTML player** et **Lottie**,
-qui téléchargent ce qu'écrirait `osatura export` (le lecteur HTML inclut le son mixé lorsqu'il y a du son et que `ffmpeg` peut produire le mp3).
+qui téléchargent ce qu'écrirait `osatura export` (le lecteur HTML inclut le son mixé lorsqu'il y a du son et que `ffmpeg` peut produire le mp3). Le bouton **Simple view** masque les cases d'édition, Overlays, Suggest et le bouton de la palette de commandes, de sorte qu'il ne reste que l'annulation, l'enregistrement, les panneaux et les exports ; ce choix est mémorisé dans ce navigateur (ou cette fenêtre) et la barre d'outils complète revient avec **Full view**.
 
 ### Panneaux et dispositions
 
@@ -199,12 +199,12 @@ noyau, un petit réseau facultatif que vous entraînez vous-même) ; avec une po
 
 ### Démo guidée
 
-Le bouton **Demo** (commande `demo.panel`) ouvre une démo guidée en 13 étapes qui construit la personne qui marche de `osatura demo-person` : le décor, le corps, la tête et le visage, les bras avec cinq doigts par main, le squelette, les jambes qui marchent, les bras qui balancent, le tronc et la tête, un clignement et un sourire, le sol qui bouge, une vérification et l'export. Chaque étape charge ce stade du projet dans l'éditeur par une seule opération de remplacement : vous pouvez le lire, le parcourir, sélectionner des os et des calques et lire la timeline. Les stades sont des coupes du projet terminé ; les commandes et leur sortie affichées dans le panneau ont été exécutées avec le vrai binaire.
+Le bouton **Demo** (commande `demo.panel`) ouvre une démo guidée en 13 étapes qui construit la personne qui marche de `osatura demo-person` : décor, corps, tête et visage, bras avec cinq doigts par main, squelette, jambes qui marchent, bras qui se balancent, tronc et tête, un clignement et un sourire, sol mobile, une vérification, et l'export. Chaque étape charge ce stade du projet dans l'éditeur par une seule opération de remplacement global ; vous pouvez donc le lire, le parcourir, sélectionner des os et des calques et lire la timeline. Les stades sont des extraits du projet terminé ; les commandes et leur sortie affichées dans le panneau ont été exécutées avec le vrai binaire.
 
 * **Rien n'est écrit sur le disque.** Save (et Ctrl+S) est désactivé tant que la démo est chargée. Le seul chemin d'écriture du studio, `POST /api/save`, n'est jamais appelé par la démo.
-* **Votre projet revient.** *Restore my project* remet le projet ouvert auparavant (une seule opération de remplacement, une étape d'Undo). Si vous fermez l'onglet ou rechargez la page pendant que la démo est chargée, le chargement suivant constate que le serveur détient encore la démo, garde Save désactivé et propose à nouveau *Restore my project* ; l'original est conservé pour cela dans le localStorage du navigateur.
+* **Votre projet revient.** *Restore my project* remet en place le projet qui était ouvert auparavant (une seule opération de remplacement global, une seule étape d'annulation). Si vous fermez l'onglet ou rechargez la page pendant que la démo est chargée, le chargement suivant remarque que le serveur détient encore la démo, laisse Save désactivé et propose de nouveau *Restore my project* ; l'original est conservé pour cela dans le stockage local du navigateur.
 * La démo refuse de démarrer dans une session de collaboration, car elle remplace tout le projet.
-* Régénérez les stades avec `node scripts/build-studio-tour.mjs --bin target/release/osatura`, puis reconstruisez le CLI (la page est intégrée au binaire).
+* Régénérez les stades avec `node scripts/build-studio-tour.mjs --bin target/release/osatura`, puis reconstruisez la CLI (la page est intégrée au binaire).
 
 ## 4. Raccourcis clavier (par défaut)
 

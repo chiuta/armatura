@@ -222,7 +222,7 @@ A kód olvasása közben találtuk; egyiket sem láttuk elbukni:
 
 ## Ellenőrzési lista az első embernek, aki böngészőben is le tudja futtatni
 
-Az 1. és az 5. lépést a CI elvégezte 2026. okt. 24-én (a build és a Node-futtatás; a 3. lépés ebből következik, de az exportlistát nem írattuk ki; a 4. lépést, a méretet, nem rögzítettük); a többi, mindenekelőtt a 11–13. böngészős lépés, még nyitott. Ezeket sorrendben végezd el; az első hibánál állj meg, és jegyezd fel a pontos üzenetet. A (kockázat) jelölésű elemek a fenti kockázatoknak felelnek meg. Ha megvannak az eredmények, frissítsd a [LIMITATIONS.md](LIMITATIONS.md) fájlt (1. szakasz), a ROADMAP.md 9. szakaszának R-090 sorát és ennek az oldalnak az állapotdobozát.
+Az 1. és az 5. lépést a CI elvégezte 2026. okt. 24-én. A 3., 4., 6., 8., 9., 11. és 13. lépést ugyanazon a napon **headless Chromium 141-ben (Linux, GPU nélkül)** végeztük el az `osatura-wasm/js/browser-check.js` fájllal; a számok az alábbi táblázatban vannak. **Még nyitott:** Firefox és Safari (ott a 11. és 12. lépés), a CSP és a content-type 12. lépés, a 10. veremmélység, valamint a lejátszós 7. és 14. lépés. Ezeket sorrendben végezd el; az első hibánál állj meg, és jegyezd fel a pontos üzenetet. A (kockázat) jelölésű elemek a fenti kockázatoknak felelnek meg. Ha megvannak az eredmények, frissítsd a [LIMITATIONS.md](LIMITATIONS.md) fájlt (1. szakasz), a ROADMAP.md 9. szakaszának R-090 sorát és ennek az oldalnak az állapotdobozát.
 
 1. **Telepítsd a célt és építs.** `rustup target add wasm32-unknown-unknown && ./osatura-wasm/build-wasm.sh`. (kockázat) Meglátod, lefordul-e a `zip`, a `tiny-skia`, a `png`, a `gif`, a `jpeg-decoder` és az `i_overlay`. Jegyezd fel a fordítót és a `rustc --version` kimenetét.
 2. **Nincs szkriptmotor.** A `cargo tree --target wasm32-unknown-unknown -p osatura-wasm | grep -ci 'rhai\|smartstring'` parancsnak 0-t kell kiírnia.
@@ -238,3 +238,16 @@ Az 1. és az 5. lépést a CI elvégezte 2026. okt. 24-én (a build és a Node-f
 12. **`instantiateStreaming` és CSP.** Szolgálj ki `Content-Type: application/wasm` fejléccel és nélküle, valamint olyan CSP-vel, amely kihagyja a `'wasm-unsafe-eval'` értéket; dokumentáld, mi történik.
 13. **Teljesítmény.** Mérd az `rgba(n, 1)` idejét a 640 x 480-as demóra (natív release: kb. 14 ms képkockánként) és egy nehéz projektre; jegyezd fel a `play()` képkocka/másodperc értékét a böngészőben.
 14. **Opcionális: pánikok.** Döntsd el, elfogadható-e a pánik esetén csapdába esés viselkedése a felhasználási esetedre. Ha nem, próbáld ki a forrásban említett `wasm32-wasip1` + `-C panic=unwind` útvonalat.
+
+### A Chromium-futtatás eredményei (2026. okt. 24.)
+
+| Lépés | Eredmény |
+|---|---|
+| 4. Méret | release modul 2,802,534 bájt; 853,804 gzip; 615,267 brotli (nem futott át a `wasm-opt`-on) |
+| 6. Natív összevetés | a 12. demókocka, 640x480: **0 eltérő bájt** az 1,228,800-ból (az abszolút eltérés átlaga és maximuma 0) |
+| 8. Hibabiztosság | az üres, a szemét, a rossz alakú JSON, az 5 MB véletlen adat és a „no frames” mind `Error`-t dob üzenettel; nincs csapda |
+| 9. Nagy render | a 4-es skála (2560x1920) működik; a 12000x12000-es stage-et elutasítja a korlátüzenettel, és a modul utána is működik |
+| 11. Szivárgás | 60 nyitás-zárás ciklus: a lineáris memória előtte és utána is 54,591,488 bájt |
+| 13. Sebesség | a 640x480-as demó `rgba` hívása: medián 72,5 ms, p95 96,5 ms, maximum 125,4 ms (kb. 14 fps; natív release kb. 14 ms) |
+
+Futtasd újra így: `node osatura-wasm/js/browser-check.js <unpacked osatura-web folder> <project.json>` (Playwright kell hozzá). Az oldal a futás alatt nem dobott hibát.

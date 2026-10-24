@@ -109,7 +109,7 @@ Annulla, Ripeti, **Save**; caselle `bones` (disegna lo scheletro), `auto-key`, `
 `whole groups` (un clic su una parte di un gruppo seleziona il gruppo di primo livello), `points` (mostra ancore, maniglie, punti di cage/lattice/pin e vertici delle mesh dei
 livelli selezionati); un selettore `box` per ciò che seleziona un riquadro trascinato (`touches`, `contains`, `bounds touch`; parte da `touches`); **Lock**; e i pulsanti **Overlays**, **Suggest**, **Layout**,
 **Commands** (palette) e **Keys** (editor delle scorciatoie). Una seconda riga contiene il tuo nome e **Collab**, e i pulsanti di esportazione **GIF**, **HTML player** e **Lottie**,
-che scaricano ciò che scriverebbe `osatura export` (il player HTML include il suono mixato quando c'è audio e `ffmpeg` può produrre l'mp3).
+che scaricano ciò che scriverebbe `osatura export` (il player HTML include il suono mixato quando c'è audio e `ffmpeg` può produrre l'mp3). Il pulsante **Simple view** nasconde le caselle di modifica, Overlays, Suggest e il pulsante della palette dei comandi, così restano solo annulla, salva, pannelli ed esportazioni; la scelta viene ricordata in questo browser (o finestra) e la barra completa torna con **Full view**.
 
 ### Pannelli e layout
 
@@ -199,11 +199,11 @@ a kernel, una piccola rete opzionale che addestri tu); con una manciata di pose 
 
 ### Demo guidata
 
-Il pulsante **Demo** (comando `demo.panel`) apre una demo guidata in 13 passi che costruisce la persona che cammina di `osatura demo-person`: lo scenario, il corpo, la testa e il viso, le braccia con cinque dita per mano, lo scheletro, le gambe che camminano, le braccia che oscillano, il busto e la testa, un battito di ciglia e un sorriso, il terreno che si muove, un controllo e l'esportazione. Ogni passo carica quella fase del progetto nell'editor con una sola operazione di sostituzione: puoi riprodurla, scorrerla, selezionare ossa e livelli e leggere la timeline. Le fasi sono tagli del progetto finito; i comandi e il loro output mostrati nel pannello sono stati eseguiti con il vero binario.
+Il pulsante **Demo** (comando `demo.panel`) apre una demo guidata in 13 passi che costruisce la persona che cammina di `osatura demo-person`: scenografia, corpo, testa e volto, braccia con cinque dita per mano, lo scheletro, le gambe che camminano, le braccia che oscillano, tronco e testa, un ammiccamento e un sorriso, il terreno in movimento, un controllo e l'esportazione. Ogni passo carica quella fase del progetto nell'editor con una sola operazione di sostituzione completa, così puoi riprodurla, scorrerla, selezionare ossa e livelli e leggere la timeline. Le fasi sono tagli del progetto finito; i comandi e il loro output mostrati nel pannello sono stati eseguiti con il binario reale.
 
-* **Non si scrive nulla su disco.** Save (e Ctrl+S) è disattivato finché la demo è caricata. L'unico percorso di scrittura dello studio, `POST /api/save`, non viene mai chiamato dalla demo.
-* **Il tuo progetto ritorna.** *Restore my project* rimette il progetto aperto prima (una sola operazione di sostituzione, un passo di Undo). Se chiudi la scheda o ricarichi la pagina mentre la demo è caricata, il caricamento successivo nota che il server tiene ancora la demo, mantiene Save disattivato e offre di nuovo *Restore my project*; l'originale è conservato a questo scopo nel localStorage del browser.
-* La demo rifiuta di partire in una sessione di collaborazione, perché sostituisce l'intero progetto.
+* **Nulla viene scritto su disco.** Salva (e Ctrl+S) è disattivato mentre la demo è caricata. L'unico percorso di scrittura dello studio, `POST /api/save`, non viene mai chiamato dalla demo.
+* **Il tuo progetto ritorna.** *Restore my project* rimette il progetto che era aperto prima (una sola operazione di sostituzione completa, un solo passo di Annulla). Se chiudi la scheda o ricarichi mentre la demo è caricata, al caricamento successivo la pagina nota che il server contiene ancora la demo, mantiene Salva disattivato e offre di nuovo *Restore my project*; l'originale viene conservato per questo nella memoria locale del browser.
+* La demo si rifiuta di partire all'interno di una sessione di collaborazione, perché sostituisce l'intero progetto.
 * Rigenera le fasi con `node scripts/build-studio-tour.mjs --bin target/release/osatura`, poi ricompila la CLI (la pagina è incorporata nel binario).
 
 ## 4. Scorciatoie da tastiera (predefinite)

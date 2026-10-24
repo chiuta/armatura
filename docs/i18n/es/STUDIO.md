@@ -108,7 +108,7 @@ Deshacer, Rehacer, **Save**; casillas `bones` (dibujar el esqueleto), `auto-key`
 `whole groups` (un clic en parte de un grupo selecciona el grupo de nivel superior), `points` (muestra anclas, manejadores, puntos de cage/lattice/pin y vértices de malla de las
 capas seleccionadas); un selector `box` para lo que selecciona un cuadro arrastrado (`touches`, `contains`, `bounds touch`; empieza en `touches`); **Lock**; y los botones **Overlays**, **Suggest**, **Layout**,
 **Commands** (paleta) y **Keys** (editor de atajos). Una segunda fila tiene tu nombre y **Collab**, y los botones de exportación **GIF**, **HTML player** y **Lottie**,
-que descargan lo que escribiría `osatura export` (el reproductor HTML incluye el sonido mezclado cuando hay sonido y `ffmpeg` puede crear el mp3).
+que descargan lo que escribiría `osatura export` (el reproductor HTML incluye el sonido mezclado cuando hay sonido y `ffmpeg` puede crear el mp3). El botón **Simple view** oculta las casillas de edición, Overlays, Suggest y el botón de la paleta de comandos, de modo que solo quedan deshacer, guardar, paneles y exportaciones; la elección se recuerda en este navegador (o ventana) y la barra completa vuelve con **Full view**.
 
 ### Paneles y disposiciones
 
@@ -198,12 +198,12 @@ con núcleo, una pequeña red opcional que entrenas tú); con un puñado de pose
 
 ### Demo guiada
 
-El botón **Demo** (comando `demo.panel`) abre una demo guiada de 13 pasos que construye la persona que camina de `osatura demo-person`: el escenario, el cuerpo, la cabeza y el rostro, los brazos con cinco dedos por mano, el esqueleto, las piernas que caminan, los brazos que se balancean, el tronco y la cabeza, un parpadeo y una sonrisa, el suelo que se mueve, una comprobación y la exportación. Cada paso carga esa etapa del proyecto en el editor con una sola operación de reemplazo: puedes reproducirla, recorrerla, seleccionar huesos y capas y leer la timeline. Las etapas son cortes del proyecto terminado; los comandos y su salida mostrados en el panel se ejecutaron con el binario real.
+El botón **Demo** (comando `demo.panel`) abre una demo guiada de 13 pasos que construye a la persona caminando de `osatura demo-person`: decorado, cuerpo, cabeza y rostro, brazos con cinco dedos por mano, el esqueleto, las piernas caminando, los brazos balanceándose, tronco y cabeza, un parpadeo y una sonrisa, el suelo en movimiento, una comprobación y la exportación. Cada paso carga esa etapa del proyecto en el editor con una única operación de reemplazo total, de modo que puedes reproducirla, hacer scrub, seleccionar huesos y capas y leer la línea de tiempo. Las etapas son cortes del proyecto terminado; los comandos y su salida que se muestran en el panel se ejecutaron con el binario real.
 
-* **No se escribe nada en disco.** Save (y Ctrl+S) está desactivado mientras la demo está cargada. La única vía de escritura del studio, `POST /api/save`, nunca es llamada por la demo.
-* **Tu proyecto vuelve.** *Restore my project* devuelve el proyecto abierto antes (una sola operación de reemplazo, un paso de Undo). Si cierras la pestaña o recargas la página con la demo cargada, la carga siguiente nota que el servidor aún tiene la demo, mantiene Save desactivado y ofrece de nuevo *Restore my project*; el original se guarda para ello en el localStorage del navegador.
+* **No se escribe nada en el disco.** Guardar (y Ctrl+S) está desactivado mientras la demo está cargada. La única vía de escritura del studio, `POST /api/save`, la demo nunca la llama.
+* **Tu proyecto vuelve.** *Restore my project* devuelve el proyecto que estaba abierto antes (una única operación de reemplazo total, un paso de Deshacer). Si cierras la pestaña o recargas mientras la demo está cargada, la siguiente carga de la página detecta que el servidor aún contiene la demo, mantiene Guardar desactivado y vuelve a ofrecer *Restore my project*; el original se conserva para ello en el almacenamiento local del navegador.
 * La demo se niega a iniciarse dentro de una sesión de colaboración, porque reemplaza todo el proyecto.
-* Regenera las etapas con `node scripts/build-studio-tour.mjs --bin target/release/osatura` y luego recompila la CLI (la página va incorporada en el binario).
+* Regenera las etapas con `node scripts/build-studio-tour.mjs --bin target/release/osatura` y luego recompila la CLI (la página está incrustada en el binario).
 
 ## 4. Atajos de teclado (valores por defecto)
 
