@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # OSATURA
 
-**Un motor de rigging și animație vectorială 2D scris în Rust: oase, cinematică inversă (IK), skinning, deformatoare, un runtime cu mașini de stări, o trusă de instrumente în linia de comandă, un studio în browser și biblioteci integrabile, într-un singur workspace.** Versiunea engleză: [README.md](README.md). Documentația din `docs/` este în limba engleză aici; traduceri ale documentației (ro, fr, it, es, pt, de, hu) există pe ramura `landing-page` și pe pagina https://armatura.chiuta.ro/.
+**Un motor de rigging și animație vectorială 2D scris în Rust: oase, cinematică inversă (IK), skinning, deformatoare, un runtime cu mașini de stări, o trusă de instrumente în linia de comandă, un studio în browser și biblioteci integrabile, într-un singur workspace.** Versiunea engleză: [README.md](README.md). Documentația din `docs/` este în limba engleză aici; traduceri ale documentației (ro, fr, it, es, pt, de, hu) există pe ramura `landing-page` și pe pagina https://osatura.chiuta.ro/.
 
 ## Rezumat și filozofie
 
@@ -18,7 +18,7 @@ Principiile proiectului:
 
 ## Stare
 
-> **Alpha. Primele build-uri sunt pregătite ca pre-lansare ciornă: `v0.1.0-alpha.2`.** Executabilele pentru Windows x86-64, macOS arm64 și Linux x86-64 și modulul WebAssembly sunt construite de GitHub Actions și atașate la o pre-lansare *ciornă* pe <https://github.com/chiuta/armatura/releases> (o ciornă este vizibilă doar proprietarului până când este publicată manual). Toate crate-urile au în continuare versiunea `0.1.0`; „v0.5 / v0.6 / v0.7” sunt *niveluri de funcționalitate* în istoric, nu numere de lansare ([CHANGELOG.md](CHANGELOG.md)).
+> **Alpha. Primele build-uri sunt pregătite ca pre-lansare ciornă: `v0.1.0-alpha.2`.** Executabilele pentru Windows x86-64, macOS arm64 și Linux x86-64 și modulul WebAssembly sunt construite de GitHub Actions și atașate la o pre-lansare *ciornă* pe <https://github.com/chiuta/osatura/releases> (o ciornă este vizibilă doar proprietarului până când este publicată manual). Toate crate-urile au în continuare versiunea `0.1.0`; „v0.5 / v0.6 / v0.7” sunt *niveluri de funcționalitate* în istoric, nu numere de lansare ([CHANGELOG.md](CHANGELOG.md)).
 >
 > | Verificat | Neverificat |
 > |---|---|
@@ -28,7 +28,7 @@ Principiile proiectului:
 
 ## Descărcare
 
-Arhivele precompilate, după ce proprietarul publică lansarea ciornă, se găsesc pe [pagina Releases](https://github.com/chiuta/armatura/releases) a proiectului:
+Arhivele precompilate, după ce proprietarul publică lansarea ciornă, se găsesc pe [pagina Releases](https://github.com/chiuta/osatura/releases) a proiectului:
 
 | Arhivă | Conținut |
 |---|---|

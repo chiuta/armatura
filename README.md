@@ -18,9 +18,9 @@ Principles that shape the project:
 
 ## Status
 
-*Name: the project was called ARMATURA until 24 Oct 2026 and was renamed OSATURA after a trademark search ([docs/LIMITATIONS.md](docs/LIMITATIONS.md) L-78). The repository address and the site domain still carry the old name until the owner moves them.*
+*Name: the project was called ARMATURA until 24 Oct 2026 and was renamed OSATURA after a trademark search ([docs/LIMITATIONS.md](docs/LIMITATIONS.md) L-78). The repository and the site address were renamed too (old repository links redirect).*
 
-> **Alpha. First builds prepared as a draft pre-release: `v0.1.0-alpha.3`.** The executables for Windows x86-64, macOS arm64 and Linux x86-64 and the WebAssembly module are built by GitHub Actions and attached to a *draft* pre-release on <https://github.com/chiuta/armatura/releases> (a draft is visible only to the owner until it is published by hand). All crates are still version `0.1.0`; "v0.5 / v0.6 / v0.7" are *feature levels* in the history, not release numbers ([CHANGELOG.md](CHANGELOG.md)).
+> **Alpha. First builds prepared as a draft pre-release: `v0.1.0-alpha.3`.** The executables for Windows x86-64, macOS arm64 and Linux x86-64 and the WebAssembly module are built by GitHub Actions and attached to a *draft* pre-release on <https://github.com/chiuta/osatura/releases> (a draft is visible only to the owner until it is published by hand). All crates are still version `0.1.0`; "v0.5 / v0.6 / v0.7" are *feature levels* in the history, not release numbers ([CHANGELOG.md](CHANGELOG.md)).
 >
 > | Verified | Not verified |
 > |---|---|
@@ -30,7 +30,7 @@ Principles that shape the project:
 
 ## Download
 
-Prebuilt archives, once the owner has published the draft release, are on the project's [Releases page](https://github.com/chiuta/armatura/releases):
+Prebuilt archives, once the owner has published the draft release, are on the project's [Releases page](https://github.com/chiuta/osatura/releases):
 
 | Archive | Contents |
 |---|---|
