@@ -85,7 +85,7 @@ Total: 1338 tests in the unit and integration binaries and 19 doc-tests, counted
 
 Suites outside `cargo test`:
 
-* **Studio smoke tests (Chromium).** Four Node scripts drive the real studio in headless Chromium with `playwright-core`: `studio_ui_smoke.js` (124 checks), `studio_collab_smoke.js` (60, two pages on one machine), `studio_overlays_smoke.js` (89), `studio_suggest_smoke.js` (35); all four were run in wave 8 and passed (counts as printed by the scripts). They are **not** run by `cargo test` and not part of CI by default. Run:
+* **Studio smoke tests (Chromium).** Five Node scripts drive the real studio in headless Chromium with `playwright-core`: `studio_ui_smoke.js` (128 checks), `studio_collab_smoke.js` (60, two pages on one machine), `studio_overlays_smoke.js` (89), `studio_suggest_smoke.js` (35) and `studio_demo_smoke.js` (12: the guided demo loads all 13 steps, never writes, restores the project byte for byte and recovers a closed tab); all five passed on 24 Oct 2026 (counts as printed by the scripts). They are **not** run by `cargo test` and not part of CI by default. Run:
 
   ```sh
   cargo build -p osatura-cli
@@ -174,6 +174,7 @@ Two different things share the word (a third workflow, `.github/workflows/releas
 * **Machine-readable output.** `--json` on commands that support it; `--quiet` for scripts. Exit codes: 0 on success, 1 on failure (failed check, unmet budget, bad usage; run: an unknown command and a missing argument both exit 1); `osatura ci` separates 1 (a check failed) from 2 (error).
 * **Inspect a project.** `osatura check`, `osatura lint` (exit 1 on errors) and `osatura diff a.json b.json` give structure and problems without rendering; `osatura render project.json N out.png` renders one frame, and `out.svg` gives vector output you can open in a browser (`--bones` shows the skeleton).
 * **Studio.** Run `osatura studio project.json --port 0` (prints the real port). Browser developer tools show the JSON API: requests are plain `POST /api/...` with `Content-Type: application/json`. A 421 means a Host header not in `--allow-host`; a 403 means an Origin or `Sec-Fetch-Site` check failed (use `--public-origin` behind a proxy); 415 means the content type; 429 is the token back-off.
+* **Demo stages.** The Studio's guided demo (and the step-by-step demo on the project site) are generated from `osatura demo-person` by `scripts/build-studio-tour.mjs` and `scripts/lib/person-stages.mjs`; the build fails if the finished demo no longer matches the figures quoted in the texts (`EXPECT` in the library). After changing `osatura-core/src/demo.rs`, rerun the script and rebuild the CLI.
 * **Collaboration log.** The log of a shared session (`--collab-log`) is text, one `<hash> <json>` line per operation; a broken chain is reported on load.
 * **A test fails only sometimes.** Look for the clock, temp-directory names and iteration order of `HashMap`; engine code is deterministic by construction, so intermittent failures are almost always test hygiene.
 * **Facade snapshot fails.** You changed a public signature: see section 5, item 6.

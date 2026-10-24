@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <!-- "Pip": a character drawn the way an artist would in Inkscape. Every part is its own shape with an id;
+       the order is the drawing order (back to front). Solid colours only. -->
+  <rect id="sky" x="0" y="0" width="400" height="400" fill="#dbeaf7"/>
+  <rect id="ground" x="0" y="372" width="400" height="28" fill="#b9cf98"/>
+  <path id="leg_far_up" fill="#2e364d" stroke="#3d2c2e" stroke-width="3" d="M190 240 A10 10 0 0 1 210 240 L210 292 A10 10 0 0 1 190 292 Z"/>
+  <path id="leg_far_low" fill="#2e364d" stroke="#3d2c2e" stroke-width="3" d="M191 305 A9 9 0 0 1 209 305 L209 353 A9 9 0 0 1 191 353 Z"/>
+  <path id="foot_far" d="M186 356 L206 356 L228 362 Q234 372 226 372 L186 372 Z" fill="#a8392f" stroke="#3d2c2e" stroke-width="3"/>
+  <path id="arm_far_up" fill="#d6a47f" stroke="#3d2c2e" stroke-width="3" d="M192 154 A8 8 0 0 1 208 154 L208 194 A8 8 0 0 1 192 194 Z"/>
+  <path id="arm_far_low" fill="#d6a47f" stroke="#3d2c2e" stroke-width="3" d="M193 203 A7 7 0 0 1 207 203 L207 241 A7 7 0 0 1 193 241 Z"/>
+  <path id="torso" fill="#4f86c6" stroke="#3d2c2e" stroke-width="3" d="M176 152 A20 20 0 0 1 224 152 L224 220 A20 20 0 0 1 176 220 Z"/>
+  <path id="leg_up" fill="#3c4560" stroke="#3d2c2e" stroke-width="3" d="M189 241 A11 11 0 0 1 211 241 L211 291 A11 11 0 0 1 189 291 Z"/>
+  <path id="leg_low" fill="#3c4560" stroke="#3d2c2e" stroke-width="3" d="M190 306 A10 10 0 0 1 210 306 L210 352 A10 10 0 0 1 190 352 Z"/>
+  <path id="foot" d="M185 356 L207 356 L230 362 Q237 372 228 372 L185 372 Z" fill="#d6483a" stroke="#3d2c2e" stroke-width="3"/>
+  <circle id="head" cx="206" cy="96" r="34" fill="#f1c7a3" stroke="#3d2c2e" stroke-width="3"/>
+  <ellipse id="ear" cx="192" cy="102" rx="7" ry="10" fill="#f1c7a3" stroke="#3d2c2e" stroke-width="3"/>
+  <circle id="eye" cx="222" cy="92" r="3.5" fill="#3d2c2e"/>
+  <path id="arm_up" fill="#f1c7a3" stroke="#3d2c2e" stroke-width="3" d="M192 154 A8 8 0 0 1 208 154 L208 194 A8 8 0 0 1 192 194 Z"/>
+  <path id="arm_low" fill="#f1c7a3" stroke="#3d2c2e" stroke-width="3" d="M193 203 A7 7 0 0 1 207 203 L207 241 A7 7 0 0 1 193 241 Z"/>
+</svg>

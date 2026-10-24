@@ -427,6 +427,14 @@ const stopServer = () => new Promise(r => { server.once('exit', r); server.kill(
 
   // ---------- no script errors ----------
   const real = errs.filter(e => !/net::ERR_FAILED|Failed to load resource|ERR_ABORTED|HTTP 400 http:\/\/127\.0\.0\.1:\d+\/api\/(nudge|delete)$/.test(e));
+  // Simple view: hides the advanced header controls, is remembered across a reload, and can be undone
+  await page.click('#simplebtn'); await sleep(300);
+  check('simple view hides overlays, suggestions, collaboration and the editing options', await ev(() => ['ovbtn', 'sgbtn', 'cb'].every(i => getComputedStyle($(i)).display === 'none') && getComputedStyle(document.querySelector('header .tool')).display === 'none'));
+  check('simple view keeps undo, save, layout and the exports', await ev(() => ['undo', 'save', 'lmenubtn'].every(i => getComputedStyle($(i)).display !== 'none') && getComputedStyle(document.querySelector('a[href="/export.gif"]')).display !== 'none'));
+  await page.reload(); await ready();
+  check('simple view is remembered after a reload', await ev(() => document.body.classList.contains('simple') && $('simplebtn').textContent === 'Full view'));
+  await page.click('#simplebtn'); await sleep(300);
+  check('full view brings everything back', await ev(() => !document.body.classList.contains('simple') && getComputedStyle($('ovbtn')).display !== 'none'));
   check('no page errors or console errors', real.length === 0, real.slice(0, 5));
 
   await browser.close(); await stopServer();
