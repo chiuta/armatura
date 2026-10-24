@@ -134,6 +134,10 @@ console.log(`ok: ${steps.length} pași → ${path.join(OUT, 'demo-assets.json')}
 // Pachet subțire pentru pagina de prezentare: fără proiectele JSON (pagina arată doar comenzi, scripturi și randări).
 const slim = {...bundle, steps: steps.map(({project, file, ...s}) => s)};
 fs.writeFileSync(path.join(OUT, 'demo-page.json'), JSON.stringify(slim));
+// Pachet pentru turul din Studio: proiectele JSON (încărcate prin /api/op), comenzile și scripturile; fără SVG-uri (Studio randează singur).
+const tour = {...bundle, steps: steps.map(({still, frames, sizes, ...s}) => s)};
+fs.writeFileSync(path.join(OUT, 'demo-studio.json'), JSON.stringify(tour));
+console.log(`studio: ${path.join(OUT, 'demo-studio.json')} (${(fs.statSync(path.join(OUT, 'demo-studio.json')).size / 1024).toFixed(0)} KiB)`);
 console.log(`pagina: ${path.join(OUT, 'demo-page.json')} (${(fs.statSync(path.join(OUT, 'demo-page.json')).size / 1024).toFixed(0)} KiB)`);
 console.log(`motor: ${bundle.engine}`);
 fs.rmSync(WORK, {recursive: true, force: true});
