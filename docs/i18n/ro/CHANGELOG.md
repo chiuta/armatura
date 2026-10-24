@@ -10,6 +10,10 @@ Versiuni înrudite care **sunt** reale și independente de cele de mai sus: `API
 
 ## [Nepublicat]
 
+### Studio
+
+- **Demo ghidat (butonul Demo, comanda `demo.panel`)**: construiește persoana care merge în 13 pași (decor, corp, cap, brațe cu cinci degete, schelet, mers, balansul brațelor, trunchi și cap, clipit și zâmbet, sol care se mișcă, verificare, export). Fiecare pas încarcă acea etapă a proiectului în editor printr-o singură operație de înlocuire (un pas de Undo); Save este dezactivat cât timp e încărcat, iar *Restore my project* îți readuce proiectul. Etapele sunt tăiate din `osatura demo-person`; `scripts/build-studio-tour.mjs` le regenerează cu binarul real.
+
 ### Pre-lansare ciornă `v0.1.0-alpha.3` (construită 2026-10-24, încă nepublicată)
 Pregătită din marcajul de commit `[release v0.1.0-alpha.3]`; înlocuiește ciornele `v0.1.0-alpha.1` și `v0.1.0-alpha.2` (niciodată publicate). Aceleași fișiere atașate ca la alpha.2. Modificările urmează primului test pe un desktop real Windows 11 (lansatorul prin dublu clic, `osatura-studio` și exporturile GIF / Lottie / HTML au funcționat):
 * **Modificat: proiectul se numește acum OSATURA** (până la 24 oct. 2026 s-a numit ARMATURA; vezi L-78). Niciodată nu s-a publicat nimic sub vechiul nume; ciornele nepublicate `v0.1.0-alpha.1` și `v0.1.0-alpha.2` conțin în continuare nume de fișiere `armatura`.

@@ -197,6 +197,15 @@ Mannigfaltigkeit, ein optionales kleines Netz, das du selbst trainierst); bei ei
   Die beiden synthetischen Modi funktionieren sofort. *Synthetic face (detector)* rendert den synthetischen Kopf auf dem Server und findet ihn mit dem eingebauten Detektor wieder,
   der **nur mit synthetischen Gesichtern trainiert wurde** (stilisierte Köpfe, keine Fotos); siehe den Abschnitt zum Gesicht in [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md).
 
+### Geführte Demo
+
+Die Schaltfläche **Demo** (Befehl `demo.panel`) öffnet eine geführte Demo in 13 Schritten, die die gehende Person aus `osatura demo-person` aufbaut: Kulisse, Körper, Kopf und Gesicht, Arme mit fünf Fingern je Hand, Skelett, gehende Beine, schwingende Arme, Rumpf und Kopf, ein Blinzeln und ein Lächeln, der sich bewegende Boden, eine Prüfung und der Export. Jeder Schritt lädt diese Stufe des Projekts mit einer einzigen Ersetzen-Operation in den Editor: Du kannst sie abspielen, durchfahren, Knochen und Ebenen auswählen und die Timeline lesen. Die Stufen sind Schnitte des fertigen Projekts; die im Panel gezeigten Befehle und ihre Ausgabe liefen mit dem echten Binary.
+
+* **Nichts wird auf die Platte geschrieben.** Save (und Strg+S) ist deaktiviert, solange die Demo geladen ist. Der einzige Schreibweg des Studios, `POST /api/save`, wird von der Demo nie aufgerufen.
+* **Dein Projekt kommt zurück.** *Restore my project* stellt das zuvor geöffnete Projekt wieder her (eine einzige Ersetzen-Operation, ein Undo-Schritt). Schließt du den Tab oder lädst die Seite neu, während die Demo geladen ist, bemerkt der nächste Seitenaufruf, dass der Server noch die Demo hält, lässt Save deaktiviert und bietet *Restore my project* erneut an; das Original wird dafür im localStorage des Browsers aufbewahrt.
+* Die Demo startet nicht in einer Kollaborationssitzung, weil sie das ganze Projekt ersetzt.
+* Die Stufen mit `node scripts/build-studio-tour.mjs --bin target/release/osatura` neu erzeugen und dann die CLI neu bauen (die Seite ist im Binary eingebettet).
+
 ## 4. Tastenkürzel (Standard)
 
 Dies ist die Ausgabe von `osatura ui shortcuts` für eine frische Konfiguration: **72 Belegungen, 84 Befehle, 0 Konflikte**. Tastenkürzel gehören zu einem **Kontext**:

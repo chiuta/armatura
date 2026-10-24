@@ -10,6 +10,10 @@ Kapcsolódó verziók, amelyek **valódiak**, és függetlenek a fentiektől: a 
 
 ## [Unreleased]
 
+### Studio
+
+- **Vezetett demó (Demo gomb, `demo.panel` parancs)**: 13 lépésben építi fel a sétáló személyt (díszlet, test, fej, öt ujjas karok, csontváz, járás, karlendítés, törzs és fej, pislogás és mosoly, mozgó talaj, ellenőrzés, export). Minden lépés egyetlen csere-művelettel tölti be a projekt adott szakaszát a szerkesztőbe (egy Undo-lépés); a Save le van tiltva, amíg be van töltve, a *Restore my project* pedig visszaadja a projektedet. A szakaszok az `osatura demo-person` projektből vannak kivágva; a `scripts/build-studio-tour.mjs` a valódi binárissal állítja elő újra őket.
+
 ### Előzetes kiadás-vázlat `v0.1.0-alpha.3` (építve 2026-10-24, még nincs közzétéve)
 A `[release v0.1.0-alpha.3]` commitjelölőből készült; felváltja a `v0.1.0-alpha.1` és `v0.1.0-alpha.2` vázlatokat (soha nem tették közzé). Ugyanazok a csatolmányok, mint az alpha.2-nél. A változtatások egy valódi Windows 11 asztalon végzett első teszt nyomán születtek (a dupla kattintásos indító, az `osatura-studio` és a GIF / Lottie / HTML exportok működtek):
 * **Módosítva: a projekt neve mostantól OSATURA** (2026. okt. 24-ig ARMATURA volt; lásd L-78). A régi név alatt soha nem tettek közzé semmit; a közzé nem tett `v0.1.0-alpha.1` és `v0.1.0-alpha.2` vázlatok még `armatura` fájlneveket tartalmaznak.

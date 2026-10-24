@@ -196,6 +196,15 @@ con núcleo, una pequeña red opcional que entrenas tú); con un puñado de pose
   Los dos modos sintéticos funcionan de entrada. *Synthetic face (detector)* renderiza la cabeza sintética en el servidor y la vuelve a encontrar con el detector integrado,
   que fue **entrenado solo con rostros sintéticos** (cabezas estilizadas, no fotografías); véase la sección de rostro de [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md).
 
+### Demo guiada
+
+El botón **Demo** (comando `demo.panel`) abre una demo guiada de 13 pasos que construye la persona que camina de `osatura demo-person`: el escenario, el cuerpo, la cabeza y el rostro, los brazos con cinco dedos por mano, el esqueleto, las piernas que caminan, los brazos que se balancean, el tronco y la cabeza, un parpadeo y una sonrisa, el suelo que se mueve, una comprobación y la exportación. Cada paso carga esa etapa del proyecto en el editor con una sola operación de reemplazo: puedes reproducirla, recorrerla, seleccionar huesos y capas y leer la timeline. Las etapas son cortes del proyecto terminado; los comandos y su salida mostrados en el panel se ejecutaron con el binario real.
+
+* **No se escribe nada en disco.** Save (y Ctrl+S) está desactivado mientras la demo está cargada. La única vía de escritura del studio, `POST /api/save`, nunca es llamada por la demo.
+* **Tu proyecto vuelve.** *Restore my project* devuelve el proyecto abierto antes (una sola operación de reemplazo, un paso de Undo). Si cierras la pestaña o recargas la página con la demo cargada, la carga siguiente nota que el servidor aún tiene la demo, mantiene Save desactivado y ofrece de nuevo *Restore my project*; el original se guarda para ello en el localStorage del navegador.
+* La demo se niega a iniciarse dentro de una sesión de colaboración, porque reemplaza todo el proyecto.
+* Regenera las etapas con `node scripts/build-studio-tour.mjs --bin target/release/osatura` y luego recompila la CLI (la página va incorporada en el binario).
+
 ## 4. Atajos de teclado (valores por defecto)
 
 Esta es la salida de `osatura ui shortcuts` para una configuración nueva: **72 asignaciones, 84 comandos, 0 conflictos**. Los atajos pertenecen a un **contexto**:

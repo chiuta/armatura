@@ -197,6 +197,15 @@ noyau, un petit réseau facultatif que vous entraînez vous-même) ; avec une po
   Les deux modes synthétiques fonctionnent d'emblée. *Synthetic face (detector)* rend la tête synthétique sur le serveur et la retrouve avec le détecteur intégré,
   qui a été **entraîné uniquement sur des visages synthétiques** (têtes stylisées, pas des photographies) ; voir la section sur le visage de [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md).
 
+### Démo guidée
+
+Le bouton **Demo** (commande `demo.panel`) ouvre une démo guidée en 13 étapes qui construit la personne qui marche de `osatura demo-person` : le décor, le corps, la tête et le visage, les bras avec cinq doigts par main, le squelette, les jambes qui marchent, les bras qui balancent, le tronc et la tête, un clignement et un sourire, le sol qui bouge, une vérification et l'export. Chaque étape charge ce stade du projet dans l'éditeur par une seule opération de remplacement : vous pouvez le lire, le parcourir, sélectionner des os et des calques et lire la timeline. Les stades sont des coupes du projet terminé ; les commandes et leur sortie affichées dans le panneau ont été exécutées avec le vrai binaire.
+
+* **Rien n'est écrit sur le disque.** Save (et Ctrl+S) est désactivé tant que la démo est chargée. Le seul chemin d'écriture du studio, `POST /api/save`, n'est jamais appelé par la démo.
+* **Votre projet revient.** *Restore my project* remet le projet ouvert auparavant (une seule opération de remplacement, une étape d'Undo). Si vous fermez l'onglet ou rechargez la page pendant que la démo est chargée, le chargement suivant constate que le serveur détient encore la démo, garde Save désactivé et propose à nouveau *Restore my project* ; l'original est conservé pour cela dans le localStorage du navigateur.
+* La démo refuse de démarrer dans une session de collaboration, car elle remplace tout le projet.
+* Régénérez les stades avec `node scripts/build-studio-tour.mjs --bin target/release/osatura`, puis reconstruisez le CLI (la page est intégrée au binaire).
+
 ## 4. Raccourcis clavier (par défaut)
 
 Voici la sortie de `osatura ui shortcuts` pour une configuration neuve : **72 raccourcis, 84 commandes, 0 conflit**. Les raccourcis appartiennent à un **contexte** :

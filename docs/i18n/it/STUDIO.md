@@ -197,6 +197,15 @@ a kernel, una piccola rete opzionale che addestri tu); con una manciata di pose 
   Le due modalità sintetiche funzionano subito. *Synthetic face (detector)* renderizza la testa sintetica sul server e la ritrova con il rilevatore integrato,
   che è stato **addestrato solo su volti sintetici** (teste stilizzate, non fotografie); vedi la sezione sul volto di [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md).
 
+### Demo guidata
+
+Il pulsante **Demo** (comando `demo.panel`) apre una demo guidata in 13 passi che costruisce la persona che cammina di `osatura demo-person`: lo scenario, il corpo, la testa e il viso, le braccia con cinque dita per mano, lo scheletro, le gambe che camminano, le braccia che oscillano, il busto e la testa, un battito di ciglia e un sorriso, il terreno che si muove, un controllo e l'esportazione. Ogni passo carica quella fase del progetto nell'editor con una sola operazione di sostituzione: puoi riprodurla, scorrerla, selezionare ossa e livelli e leggere la timeline. Le fasi sono tagli del progetto finito; i comandi e il loro output mostrati nel pannello sono stati eseguiti con il vero binario.
+
+* **Non si scrive nulla su disco.** Save (e Ctrl+S) è disattivato finché la demo è caricata. L'unico percorso di scrittura dello studio, `POST /api/save`, non viene mai chiamato dalla demo.
+* **Il tuo progetto ritorna.** *Restore my project* rimette il progetto aperto prima (una sola operazione di sostituzione, un passo di Undo). Se chiudi la scheda o ricarichi la pagina mentre la demo è caricata, il caricamento successivo nota che il server tiene ancora la demo, mantiene Save disattivato e offre di nuovo *Restore my project*; l'originale è conservato a questo scopo nel localStorage del browser.
+* La demo rifiuta di partire in una sessione di collaborazione, perché sostituisce l'intero progetto.
+* Rigenera le fasi con `node scripts/build-studio-tour.mjs --bin target/release/osatura`, poi ricompila la CLI (la pagina è incorporata nel binario).
+
 ## 4. Scorciatoie da tastiera (predefinite)
 
 Questo è l'output di `osatura ui shortcuts` per una configurazione nuova: **72 associazioni, 84 comandi, 0 conflitti**. Le scorciatoie appartengono a un **contesto**:

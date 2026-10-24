@@ -10,6 +10,10 @@ Versions associées qui **sont** réelles et indépendantes de ce qui précède 
 
 ## [Unreleased]
 
+### Studio
+
+- **Démo guidée (bouton Demo, commande `demo.panel`)** : construit la personne qui marche en 13 étapes (décor, corps, tête, bras avec cinq doigts, squelette, marche, balancement des bras, tronc et tête, clignement et sourire, sol qui bouge, vérification, export). Chaque étape charge ce stade du projet dans l'éditeur par une seule opération de remplacement (une étape d'Undo) ; Save est désactivé pendant le chargement et *Restore my project* vous rend votre projet. Les stades sont coupés dans `osatura demo-person` ; `scripts/build-studio-tour.mjs` les régénère avec le vrai binaire.
+
 ### Préversion en brouillon `v0.1.0-alpha.3` (construite le 2026-10-24, pas encore publiée)
 Préparée à partir du marqueur de commit `[release v0.1.0-alpha.3]` ; elle remplace les brouillons `v0.1.0-alpha.1` et `v0.1.0-alpha.2` (jamais publiés). Mêmes fichiers joints qu'alpha.2. Les changements font suite au premier test sur un vrai bureau Windows 11 (le lanceur par double-clic, `osatura-studio` et les exports GIF / Lottie / HTML ont fonctionné) :
 * **Modifié : le projet s'appelle désormais OSATURA** (il s'appelait ARMATURA jusqu'au 24 oct. 2026 ; voir L-78). Rien n'a jamais été publié sous l'ancien nom ; les brouillons non publiés `v0.1.0-alpha.1` et `v0.1.0-alpha.2` contiennent encore des noms de fichiers `armatura`.

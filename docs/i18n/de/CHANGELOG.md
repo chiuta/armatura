@@ -10,6 +10,10 @@ Verwandte Versionen, die **echt** und von den obigen unabhängig sind: die `API_
 
 ## [Unreleased]
 
+### Studio
+
+- **Geführte Demo (Schaltfläche Demo, Befehl `demo.panel`)**: baut die gehende Person in 13 Schritten auf (Kulisse, Körper, Kopf, Arme mit fünf Fingern, Skelett, Gang, Armschwung, Rumpf und Kopf, Blinzeln und Lächeln, bewegter Boden, Prüfung, Export). Jeder Schritt lädt diese Stufe des Projekts mit einer einzigen Ersetzen-Operation in den Editor (ein Undo-Schritt); Save ist deaktiviert, solange sie geladen ist, und *Restore my project* bringt dein Projekt zurück. Die Stufen sind aus `osatura demo-person` geschnitten; `scripts/build-studio-tour.mjs` erzeugt sie mit dem echten Binary neu.
+
 ### Draft pre-release `v0.1.0-alpha.3` (built 2026-10-24, not yet published)
 Vorbereitet aus der Commit-Markierung `[release v0.1.0-alpha.3]`; sie ersetzt die Entwürfe `v0.1.0-alpha.1` und `v0.1.0-alpha.2` (nie veröffentlicht). Dieselben Assets wie alpha.2. Die Änderungen folgen auf den ersten Test auf einem echten Windows-11-Desktop (der Doppelklick-Starter, `osatura-studio` und die GIF- / Lottie- / HTML-Exporte funktionierten):
 * **Geändert: Das Projekt heißt jetzt OSATURA** (bis zum 24. Okt. 2026 hieß es ARMATURA; siehe L-78). Unter dem alten Namen wurde nie etwas veröffentlicht; die unveröffentlichten Entwürfe `v0.1.0-alpha.1` und `v0.1.0-alpha.2` enthalten noch Dateinamen mit `armatura`.

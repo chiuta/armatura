@@ -195,6 +195,15 @@ confirmi „Take it over”. Combinațiile rezervate de browser sunt refuzate: `
   Cele două moduri sintetice funcționează din start. *Synthetic face (detector)* randează capul sintetic pe server și îl regăsește cu detectorul încorporat,
   care a fost **antrenat doar pe fețe sintetice** (capete stilizate, nu fotografii); vezi secțiunea despre față din [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md).
 
+### Demo ghidat
+
+Butonul **Demo** (comanda `demo.panel`) deschide un demo ghidat în 13 pași care construiește persoana care merge din `osatura demo-person`: decorul, corpul, capul și fața, brațele cu cinci degete pe mână, scheletul, picioarele care merg, brațele care se balansează, trunchiul și capul, un clipit și un zâmbet, solul care se mișcă, o verificare și exportul. Fiecare pas încarcă acea etapă a proiectului în editor printr-o singură operație de înlocuire, deci o poți reda, derula, poți selecta oase și straturi și poți citi timeline-ul. Etapele sunt tăieturi din proiectul terminat; comenzile și ieșirea lor afișate în panou au rulat cu binarul real.
+
+* **Nu se scrie nimic pe disc.** Save (și Ctrl+S) este dezactivat cât timp demo-ul e încărcat. Singura cale de scriere a studioului, `POST /api/save`, nu este apelată niciodată de demo.
+* **Proiectul tău revine.** *Restore my project* pune la loc proiectul deschis înainte (o singură operație de înlocuire, un pas de Undo). Dacă închizi fila sau reîncarci pagina cât demo-ul e încărcat, următoarea încărcare observă că serverul ține încă demo-ul, păstrează Save oprit și oferă din nou *Restore my project*; originalul este păstrat pentru asta în localStorage-ul browserului.
+* Demo-ul refuză să pornească într-o sesiune de colaborare, fiindcă înlocuiește tot proiectul.
+* Regenerează etapele cu `node scripts/build-studio-tour.mjs --bin target/release/osatura`, apoi reconstruiește CLI-ul (pagina este încorporată în binar).
+
 ## 4. Scurtături de tastatură (implicite)
 
 Aceasta este ieșirea comenzii `osatura ui shortcuts` pentru o configurație nouă: **72 de asocieri, 84 de comenzi, 0 conflicte**. Scurtăturile aparțin unui **context**:

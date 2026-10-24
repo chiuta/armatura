@@ -85,11 +85,11 @@ Total: 1338 pruebas en los binarios unitarios y de integración y 19 doc-tests, 
 
 Suites fuera de `cargo test`:
 
-* **Pruebas de humo del studio (Chromium).** Cuatro scripts de Node manejan el studio real en Chromium sin interfaz con `playwright-core`: `studio_ui_smoke.js` (124 comprobaciones), `studio_collab_smoke.js` (60, dos páginas en una misma máquina), `studio_overlays_smoke.js` (89), `studio_suggest_smoke.js` (35); los cuatro se ejecutaron en la oleada 8 y pasaron (cifras tal como las imprimen los scripts). **No** los ejecuta `cargo test` y no forman parte de la CI por defecto. Ejecución:
+* **Pruebas de humo del studio (Chromium).** Cinco scripts de Node manejan el studio real en Chromium sin interfaz con `playwright-core`: `studio_ui_smoke.js` (128 comprobaciones), `studio_collab_smoke.js` (60, dos páginas en una misma máquina), `studio_overlays_smoke.js` (89), `studio_suggest_smoke.js` (35) y `studio_demo_smoke.js` (12: la demo guiada carga los 13 pasos, nunca escribe en disco, restaura el proyecto idéntico y recupera una pestaña cerrada); los cinco pasaron el 24 oct. 2026 (cifras tal como las imprimen los scripts). **No** los ejecuta `cargo test` y no forman parte de la CI por defecto. Ejecución:
 
   ```sh
   cargo build -p osatura-cli
-  node osatura-cli/tests/studio_ui_smoke.js        # same for collab / overlays / suggest
+  node osatura-cli/tests/studio_ui_smoke.js        # same for collab / overlays / suggest / demo
   ```
 
   Entorno: `OSATURA_BIN` (por defecto `target/debug/osatura`), `PLAYWRIGHT_CORE`, `CHROME` y, para el script de overlays, `SHOTS` (directorio de capturas de pantalla). Los scripts limpian sus archivos temporales.
@@ -174,6 +174,7 @@ Dos cosas distintas comparten la palabra (un tercer workflow, `.github/workflows
 * **Salida legible por máquina.** `--json` en los comandos que lo admiten; `--quiet` para scripts. Códigos de salida: 0 si hay éxito, 1 si hay fallo (comprobación fallida, presupuesto incumplido, uso incorrecto; run: un comando desconocido y un argumento ausente terminan ambos con 1); `osatura ci` distingue 1 (una comprobación falló) de 2 (error).
 * **Inspeccionar un proyecto.** `osatura check`, `osatura lint` (termina con 1 si hay errores) y `osatura diff a.json b.json` ofrecen estructura y problemas sin renderizar; `osatura render project.json N out.png` renderiza un fotograma, y `out.svg` produce una salida vectorial que puedes abrir en un navegador (`--bones` muestra el esqueleto).
 * **Studio.** Ejecuta `osatura studio project.json --port 0` (imprime el puerto real). Las herramientas para desarrolladores del navegador muestran la API JSON: las peticiones son simples `POST /api/...` con `Content-Type: application/json`. Un 421 indica una cabecera Host que no está en `--allow-host`; un 403 indica que falló una comprobación de Origin o de `Sec-Fetch-Site` (usa `--public-origin` detrás de un proxy); 415 indica el tipo de contenido; 429 es el retroceso de tokens.
+* **Etapas de la demo.** La demo guiada del studio (y la demo paso a paso del sitio del proyecto) se generan desde `osatura demo-person` con `scripts/build-studio-tour.mjs` y `scripts/lib/person-stages.mjs`; la compilación falla si la demo terminada ya no coincide con las cifras citadas en los textos (`EXPECT` en la biblioteca). Tras cambiar `osatura-core/src/demo.rs`, vuelve a ejecutar el script y recompila la CLI.
 * **Registro de colaboración.** El registro de una sesión compartida (`--collab-log`) es texto, con una línea `<hash> <json>` por operación; una cadena rota se notifica al cargar.
 * **Una prueba falla solo a veces.** Busca el reloj, los nombres de directorios temporales y el orden de iteración de `HashMap`; el código del motor es determinista por construcción, así que los fallos intermitentes son casi siempre un problema de higiene de las pruebas.
 * **Falla la instantánea de la fachada.** Has cambiado una firma pública: véase la sección 5, punto 6.

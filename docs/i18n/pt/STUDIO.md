@@ -197,6 +197,15 @@ de kernel, uma pequena rede opcional que você mesmo treina); com um punhado de 
   Os dois modos sintéticos funcionam de imediato. *Synthetic face (detector)* renderiza a cabeça sintética no servidor e a encontra de novo com o detector integrado,
   que foi **treinado apenas com rostos sintéticos** (cabeças estilizadas, não fotografias); veja a seção de rosto em [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md).
 
+### Demo guiada
+
+O botão **Demo** (comando `demo.panel`) abre uma demo guiada de 13 passos que constrói a pessoa que caminha de `osatura demo-person`: o cenário, o corpo, a cabeça e o rosto, os braços com cinco dedos por mão, o esqueleto, as pernas que caminham, os braços que balançam, o tronco e a cabeça, uma piscadela e um sorriso, o chão que se move, uma verificação e a exportação. Cada passo carrega essa etapa do projeto no editor com uma única operação de substituição: você pode reproduzi-la, percorrê-la, selecionar ossos e camadas e ler a timeline. As etapas são cortes do projeto terminado; os comandos e a saída mostrados no painel foram executados com o binário real.
+
+* **Nada é escrito em disco.** Save (e Ctrl+S) fica desativado enquanto a demo está carregada. O único caminho de escrita do studio, `POST /api/save`, nunca é chamado pela demo.
+* **Seu projeto volta.** *Restore my project* recoloca o projeto aberto antes (uma única operação de substituição, um passo de Undo). Se você fechar a aba ou recarregar a página com a demo carregada, o carregamento seguinte percebe que o servidor ainda guarda a demo, mantém Save desativado e oferece de novo *Restore my project*; o original é guardado para isso no localStorage do navegador.
+* A demo recusa-se a iniciar numa sessão de colaboração, porque substitui todo o projeto.
+* Regenere as etapas com `node scripts/build-studio-tour.mjs --bin target/release/osatura` e depois recompile a CLI (a página vai embutida no binário).
+
 ## 4. Atalhos de teclado (padrões)
 
 Esta é a saída de `osatura ui shortcuts` para uma configuração nova: **72 associações, 84 comandos, 0 conflitos**. Os atalhos pertencem a um **contexto**:
