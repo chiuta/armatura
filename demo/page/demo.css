@@ -1,0 +1,41 @@
+/* demo pas cu pas */
+.demo{margin-top:40px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);padding:18px;overflow:hidden}
+.dsteps{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 14px;scrollbar-width:thin}
+.dsteps button{flex:none;display:flex;align-items:center;gap:8px;background:none;border:1px solid var(--line);color:var(--mut);border-radius:99px;padding:7px 14px 7px 8px;font:600 12px var(--mono);cursor:pointer;white-space:nowrap;transition:.2s}
+.dsteps button i{font-style:normal;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--bg2);color:var(--tx);font-size:11px}
+.dsteps button:hover{border-color:var(--a);color:var(--tx)}
+.dsteps button[aria-selected=true]{border-color:var(--a);color:var(--tx);background:color-mix(in srgb,var(--a) 12%,transparent)}
+.dsteps button[aria-selected=true] i{background:var(--a);color:#04120d}
+.dsteps button.done i{background:color-mix(in srgb,var(--a) 35%,var(--bg2))}
+.dview,.dside{min-width:0}
+.dgrid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:18px;align-items:start}
+.dview{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--bg2)}
+.dcanvas{aspect-ratio:400/360;width:100%;line-height:0}
+.dcanvas svg{width:100%;height:100%;display:block}
+.dbar{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line);background:var(--card)}
+.dbar input{flex:1;min-width:0;accent-color:var(--a)}
+.dfr{font:12px var(--mono);color:var(--mut);min-width:5.5em;text-align:right}
+.dbar.off{visibility:hidden}
+.dbtn{background:var(--bg2);border:1px solid var(--line);color:var(--tx);border-radius:99px;padding:8px 16px;font:600 13px var(--mono);cursor:pointer;min-height:36px;transition:.2s}
+.dbtn:hover:not(:disabled){border-color:var(--a)}
+.dbtn:disabled{opacity:.4;cursor:default}
+.dbtn.p{background:linear-gradient(100deg,var(--a),var(--b));color:#06100d;border:0}
+.dhead .dnum{font:600 12px var(--mono);color:color-mix(in srgb,var(--a) 55%,var(--tx));letter-spacing:.14em;text-transform:uppercase}
+.dhead h3{font-size:1.5rem;margin:4px 0 6px}
+.dhead p{color:var(--mut);font-size:.98rem;line-height:1.55;min-height:3.1em}
+.dtabs{display:flex;gap:6px;margin:14px 0 8px}
+.dtabs button{background:none;border:1px solid var(--line);color:var(--mut);border-radius:8px 8px 0 0;padding:6px 14px;font:12px var(--mono);cursor:pointer}
+.dtabs button[aria-selected=true]{color:var(--tx);border-color:var(--a)}
+.dtabs button[hidden]{display:none}
+.dterm{margin:0;background:#05080d;color:#d7dff0;border:1px solid #1f2838;border-radius:0 12px 12px 12px;padding:14px 16px;font:12.5px/1.6 var(--mono);height:19.5rem;overflow:auto;white-space:pre;tab-size:2}
+.dterm .pr{color:var(--a)}
+.dterm .out{color:#8f9bb3}
+.dterm .cur{display:inline-block;width:.6em;height:1.05em;background:var(--a);vertical-align:text-bottom;animation:dcur 1s steps(1) infinite}
+@keyframes dcur{50%{opacity:0}}
+.dnav{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.dnote{margin-top:14px;font:12px var(--mono);color:var(--mut)}
+@media(max-width:860px){.dgrid{grid-template-columns:minmax(0,1fr)}.dterm{height:15rem}}
+@media(max-width:600px){.demo{padding:12px}.dhead h3{font-size:1.25rem}.dnav .dbtn{flex:1 1 auto;text-align:center}.dfr{min-width:4.6em}}
+@media(prefers-reduced-motion:reduce){.dterm .cur{animation:none}}
+/* contrast în tema luminoasă (verde #00a77a pe #f5f6fa = 2,85:1): valabil pentru toate etichetele de secțiune */
+:root[data-theme=light] .eyebrow{color:color-mix(in srgb,var(--a) 55%,var(--tx))}

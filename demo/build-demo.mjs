@@ -131,5 +131,9 @@ for (const f of fs.readdirSync(WORK).filter((x) => /^\d\d-.*\.json$/.test(x))) s
 const bundle = {version: 1, generator: 'demo/build-demo.mjs', engine: run(['--version']).split('\n')[0], width: 400, height: 360, fps: 24, frames: 24, steps};
 fs.writeFileSync(path.join(OUT, 'demo-assets.json'), JSON.stringify(bundle));
 console.log(`ok: ${steps.length} pași → ${path.join(OUT, 'demo-assets.json')} (${(fs.statSync(path.join(OUT, 'demo-assets.json')).size / 1024).toFixed(0)} KiB)`);
+// Pachet subțire pentru pagina de prezentare: fără proiectele JSON (pagina arată doar comenzi, scripturi și randări).
+const slim = {...bundle, steps: steps.map(({project, file, ...s}) => s)};
+fs.writeFileSync(path.join(OUT, 'demo-page.json'), JSON.stringify(slim));
+console.log(`pagina: ${path.join(OUT, 'demo-page.json')} (${(fs.statSync(path.join(OUT, 'demo-page.json')).size / 1024).toFixed(0)} KiB)`);
 console.log(`motor: ${bundle.engine}`);
 fs.rmSync(WORK, {recursive: true, force: true});
