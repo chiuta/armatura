@@ -162,7 +162,7 @@ cannot write link.svg: link.svg: refusing to write through a symbolic link; pass
   Codul de ieșire **2** este folosit doar de `ci` (nu s-a putut evalua nimic: proiect/manifest lipsă, golden alterat).
 * Nicio argumentare, o comandă necunoscută, un număr greșit de argumente poziționale sau `osatura --help` afișează utilizarea completă pe
   **stderr** și ies cu **1**. `osatura <command> --help` afișează pe stdout liniile de utilizare ale comenzii și iese cu 0.
-  **Excepție (Windows, începând cu 0.1.0-alpha.2):** când `osatura.exe` este pornit prin dublu clic din Explorer (fereastra de consolă a fost creată pentru el și niciun alt proces nu o împarte) și nu are argumente, nu afișează utilizarea: creează `Documents\OSATURA\first-rig.json` dacă lipsește, rulează `studio` pe acel fișier la `127.0.0.1:8080`, deschide browserul și ține consola deschisă până o închizi sau apeși Enter după o eroare. Pornit dintr-un terminal, se comportă ca mai sus. Restul programului rulează pe un fir cu stivă de 256 MiB (firul principal de pe Windows are doar 1 MiB).
+  **Excepție (Windows, începând cu 0.1.0-alpha.2):** când `osatura.exe` este pornit prin dublu clic din Explorer (fereastra de consolă a fost creată pentru el și niciun alt proces nu o împarte) și nu are argumente, nu afișează utilizarea: creează `Documents\OSATURA\first-rig.json` (din `demo-person`) dacă lipsește, rulează `studio` pe acel fișier la `127.0.0.1:8080`, deschide browserul și ține consola deschisă până o închizi sau apeși Enter după o eroare. Pornit dintr-un terminal, se comportă ca mai sus. Restul programului rulează pe un fir cu stivă de 256 MiB (firul principal de pe Windows are doar 1 MiB).
 
 ### 1.6 Programe externe
 
@@ -211,6 +211,20 @@ Scrie ca fișier de proiect demo-ul de rig încorporat (640x480, 24 fps, 48 de c
 ```
 $ osatura demo demo.json
 wrote demo.json
+```
+
+### `demo-person`
+
+**Sinopsis:** `osatura demo-person <out.json>`
+
+Scrie ca fișier de proiect demo-ul cu persoana care merge (640x480, 24 fps, 32 de cadre, 42 de oase, 45 de straturi): o persoană văzută din lateral, cu cap, ureche și coadă de cal, gât, trunchi, două brațe cu mâini și câte cinci degete și două picioare cu labe și degetele piciorului. Ciclul de mers are doi pași și se repetă fără cusătură: bazinul se mișcă în sus și în jos și se înclină, trunchiul se apleacă și se rotește în contrasens, capul este ținut drept, cu o mică aplecare întârziată, brațele se balansează împotriva picioarelor, cu coatele îndoindu-se mai mult la balansul înainte, iar mâinile, degetele, urechea și coada de cal urmează ceva mai târziu. Fiecare picior aterizează pe călcâi, se așază plat și pleacă de pe vârful labei; solul, gardul și umbra se derulează exact cu viteza piciorului sprijinit, deci picioarele nu alunecă. Acesta este proiectul pe care lansatoarele Windows (`osatura.exe`, `osatura-studio.exe`) îl creează ca `first-rig.json` la prima pornire; `osatura demo` rămâne baza mică a exemplelor din acest document.
+**Ieșire:** `wrote <out.json>`. **Erori:** argument lipsă (utilizare, exit 1); cale neinscriptibilă. **Conexe:** `demo`, `studio`.
+**Limite:** cheile sunt eșantionate din două în două cadre, cu o cheie suplimentară înainte de cadrul 0 și una după ultimul cadru, astfel încât bucla este lină; `lint` raportează aceste două chei ca aflându-se în afara liniei de timp (informație, nu eroare). Figura este o vedere laterală, deci nu există întoarcere sau adâncime.
+
+```
+$ osatura demo-person person.json && osatura check person.json
+wrote person.json
+ok: 'OSATURA walking person' 640×480 @ 24 fps, 32 frames, 42 bones, 0 ik, 45 layers, 48 channels
 ```
 
 ### `demo-fx`

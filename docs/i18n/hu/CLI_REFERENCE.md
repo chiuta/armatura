@@ -159,7 +159,7 @@ cannot write link.svg: link.svg: refusing to write through a symbolic link; pass
   A **2** kilépési kódot csak a `ci` használja (semmit nem lehetett kiértékelni: hiányzó projekt/manifest, meghamisított golden).
 * Argumentumok nélkül, ismeretlen parancsnál, hibás számú pozicionális argumentumnál vagy az `osatura --help` esetén a teljes használati szöveg a
   **stderrre** kerül, és a kilépési kód **1**. Az `osatura <command> --help` a parancs használati sorait a stdoutra írja, és 0-val lép ki.
-  **Kivétel (Windows, a 0.1.0-alpha.2 óta):** ha az `osatura.exe` fájlt dupla kattintással indítják az Intézőből (a konzolablakot neki hozták létre, és más folyamat nem osztozik rajta), és nincs argumentuma, nem írja ki a használati szöveget: létrehozza a `Documents\OSATURA\first-rig.json` fájlt, ha hiányzik, lefuttatja a `studio` parancsot ezen a fájlon a `127.0.0.1:8080` címen, megnyitja a böngészőt, és nyitva tartja a konzolt, amíg be nem zárod, vagy hiba után Entert nem nyomsz. Terminálból indítva a fent leírtak szerint viselkedik. A program többi része 256 MiB vermű szálon fut (a Windows főszálának csak 1 MiB-ja van).
+  **Kivétel (Windows, a 0.1.0-alpha.2 óta):** ha az `osatura.exe` fájlt dupla kattintással indítják az Intézőből (a konzolablakot neki hozták létre, és más folyamat nem osztozik rajta), és nincs argumentuma, nem írja ki a használati szöveget: létrehozza a `Documents\OSATURA\first-rig.json` fájlt (a `demo-person` parancsból), ha hiányzik, lefuttatja a `studio` parancsot ezen a fájlon a `127.0.0.1:8080` címen, megnyitja a böngészőt, és nyitva tartja a konzolt, amíg be nem zárod, vagy hiba után Entert nem nyomsz. Terminálból indítva a fent leírtak szerint viselkedik. A program többi része 256 MiB vermű szálon fut (a Windows főszálának csak 1 MiB-ja van).
 
 ### 1.6 Külső programok
 
@@ -208,6 +208,20 @@ Kiírja a beépített rig-demót (640x480, 24 fps, 48 képkocka, 6 csont, IK-lá
 ```
 $ osatura demo demo.json
 wrote demo.json
+```
+
+### `demo-person`
+
+**Synopsis:** `osatura demo-person <out.json>`
+
+Kiírja a sétáló személy demót (640x480, 24 fps, 32 képkocka, 42 csont, 45 réteg) projektfájlként: oldalnézetből látott személy fejjel, füllel és lófarokkal, nyakkal, törzzsel, két karral (mindegyiken kéz és öt ujj) és két lábbal lábfejjel és lábujjakkal. A járásciklus két lépés hosszú, és varratmentesen ismétlődik: a medence lengedezik és billeg, a törzs dől és ellenforog, a fej vízszintes marad apró, késő bólintással, a karok a lábakkal ellentétesen lengenek, a könyök az előrelengésnél jobban hajlik, a kezek, ujjak, fül és lófarok pedig kicsit később követik. Minden láb a sarkára érkezik, laposra gördül, és a lábujjpercen emelkedik el; a talaj, a kerítés és az árnyék pontosan a talajon álló láb sebességével gördül, így a lábak nem csúsznak. Ezt a projektet hozzák létre a Windows-indítók (`osatura.exe`, `osatura-studio.exe`) az első indításkor `first-rig.json` néven; az `osatura demo` marad a dokumentum példáinak kis alapja.
+**Kimenet:** `wrote <out.json>`. **Hibák:** hiányzó argumentum (használat, kilépési kód 1); nem írható útvonal. **Kapcsolódó:** `demo`, `studio`.
+**Korlátok:** a kulcsok kétképkockánként vannak mintavételezve, eggyel a 0. képkocka előtt és eggyel az utolsó után, hogy a hurok sima legyen; a `lint` ezt a két kulcsot az idővonalon kívülinek jelzi (információ, nem hiba). Az alak oldalnézet, ezért nincs fordulás és mélység.
+
+```
+$ osatura demo-person person.json && osatura check person.json
+wrote person.json
+ok: 'OSATURA walking person' 640×480 @ 24 fps, 32 frames, 42 bones, 0 ik, 45 layers, 48 channels
 ```
 
 ### `demo-fx`

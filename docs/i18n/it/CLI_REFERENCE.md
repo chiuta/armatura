@@ -162,7 +162,7 @@ cannot write link.svg: link.svg: refusing to write through a symbolic link; pass
   Il codice di uscita **2** è usato solo da `ci` (non è stato possibile valutare nulla: progetto/manifest mancante, golden manomesso).
 * Nessun argomento, un comando sconosciuto, un numero errato di argomenti posizionali o `osatura --help` stampano l'uso completo su
   **stderr** e terminano con **1**. `osatura <command> --help` stampa su stdout le righe d'uso di quel comando e termina con 0.
-  **Eccezione (Windows, dalla 0.1.0-alpha.2):** quando `osatura.exe` viene avviato con un doppio clic da Esplora file (la finestra della console è stata creata per lui e nessun altro processo la condivide) e non ha argomenti, non stampa l'uso: crea `Documents\OSATURA\first-rig.json` se manca, esegue `studio` su quel file su `127.0.0.1:8080`, apre il browser e tiene aperta la console finché non la chiudi o premi Invio dopo un errore. Avviato da un terminale, si comporta come descritto sopra. Il resto del programma gira su un thread con uno stack da 256 MiB (il thread principale di Windows ne ha solo 1 MiB).
+  **Eccezione (Windows, dalla 0.1.0-alpha.2):** quando `osatura.exe` viene avviato con un doppio clic da Esplora file (la finestra della console è stata creata per lui e nessun altro processo la condivide) e non ha argomenti, non stampa l'uso: crea `Documents\OSATURA\first-rig.json` (da `demo-person`) se manca, esegue `studio` su quel file su `127.0.0.1:8080`, apre il browser e tiene aperta la console finché non la chiudi o premi Invio dopo un errore. Avviato da un terminale, si comporta come descritto sopra. Il resto del programma gira su un thread con uno stack da 256 MiB (il thread principale di Windows ne ha solo 1 MiB).
 
 ### 1.6 Programmi esterni
 
@@ -211,6 +211,20 @@ Scrive il rig demo integrato (640x480, 24 fps, 48 fotogrammi, 6 ossa, gamba IK, 
 ```
 $ osatura demo demo.json
 wrote demo.json
+```
+
+### `demo-person`
+
+**Sinossi:** `osatura demo-person <out.json>`
+
+Scrive la demo della persona che cammina (640x480, 24 fps, 32 fotogrammi, 42 ossa, 45 livelli) come file di progetto: una persona vista di lato con testa, orecchio e coda di cavallo, collo, tronco, due braccia con mani e cinque dita ciascuna, e due gambe con piedi e dita dei piedi. Il ciclo di camminata dura due passi e si ripete senza stacchi: il bacino oscilla e si inclina, il tronco si piega e ruota in controfase, la testa resta in piano con un piccolo cenno in ritardo, le braccia oscillano in senso opposto alle gambe con i gomiti che si piegano di più nell'oscillazione in avanti, e mani, dita, orecchio e coda di cavallo seguono un attimo dopo. Ogni piede atterra sul tallone, rotola fino ad appoggiarsi piatto e si stacca sull'avampiede; il terreno, la recinzione e l'ombra scorrono esattamente alla velocità del piede appoggiato, così i piedi non scivolano. È il progetto che i launcher per Windows (`osatura.exe`, `osatura-studio.exe`) creano come `first-rig.json` al primo avvio; `osatura demo` resta la piccola base degli esempi di questo documento.
+**Output:** `wrote <out.json>`. **Errori:** argomento mancante (uso, uscita 1); percorso non scrivibile. **Correlati:** `demo`, `studio`.
+**Limiti:** le chiavi sono campionate ogni due fotogrammi, con una chiave in più prima del fotogramma 0 e una dopo l'ultimo, così il loop è fluido; `lint` segnala quelle due chiavi come fuori dalla timeline (informazione, non errore). La figura è vista di lato, quindi non ci sono rotazioni né profondità.
+
+```
+$ osatura demo-person person.json && osatura check person.json
+wrote person.json
+ok: 'OSATURA walking person' 640×480 @ 24 fps, 32 frames, 42 bones, 0 ik, 45 layers, 48 channels
 ```
 
 ### `demo-fx`

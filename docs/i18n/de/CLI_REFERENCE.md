@@ -162,7 +162,7 @@ cannot write link.svg: link.svg: refusing to write through a symbolic link; pass
   Exit-Code **2** wird nur von `ci` verwendet (nichts konnte ausgewertet werden: fehlendes Projekt/Manifest, manipuliertes Golden).
 * Keine Argumente, ein unbekannter Befehl, die falsche Anzahl von Positionsargumenten oder `osatura --help` geben die vollständige Usage auf
   **stderr** aus und beenden mit **1**. `osatura <command> --help` gibt die Usage-Zeilen dieses Befehls auf stdout aus und beendet mit 0.
-  **Ausnahme (Windows, seit 0.1.0-alpha.2):** Wird `osatura.exe` per Doppelklick im Explorer gestartet (das Konsolenfenster wurde dafür angelegt, und kein anderer Prozess teilt es) und hat keine Argumente, gibt es die Usage nicht aus: Es legt `Documents\OSATURA\first-rig.json` an, falls die Datei fehlt, führt `studio` mit dieser Datei auf `127.0.0.1:8080` aus, öffnet den Browser und hält die Konsole offen, bis du sie schließt oder nach einem Fehler die Eingabetaste drückst. Aus einem Terminal gestartet, verhält es sich wie oben beschrieben. Der Rest des Programms läuft auf einem Thread mit 256 MiB Stack (der Hauptthread unter Windows hat nur 1 MiB).
+  **Ausnahme (Windows, seit 0.1.0-alpha.2):** Wird `osatura.exe` per Doppelklick im Explorer gestartet (das Konsolenfenster wurde dafür angelegt, und kein anderer Prozess teilt es) und hat keine Argumente, gibt es die Usage nicht aus: Es legt `Documents\OSATURA\first-rig.json` (aus `demo-person`) an, falls die Datei fehlt, führt `studio` mit dieser Datei auf `127.0.0.1:8080` aus, öffnet den Browser und hält die Konsole offen, bis du sie schließt oder nach einem Fehler die Eingabetaste drückst. Aus einem Terminal gestartet, verhält es sich wie oben beschrieben. Der Rest des Programms läuft auf einem Thread mit 256 MiB Stack (der Hauptthread unter Windows hat nur 1 MiB).
 
 ### 1.6 Externe Programme
 
@@ -211,6 +211,20 @@ Schreibt die eingebaute Rig-Demo (640x480, 24 fps, 48 Frames, 6 Knochen, IK-Bein
 ```
 $ osatura demo demo.json
 wrote demo.json
+```
+
+### `demo-person`
+
+**Synopsis:** `osatura demo-person <out.json>`
+
+Schreibt die Demo „laufende Person“ (640x480, 24 fps, 32 Frames, 42 Knochen, 45 Ebenen) als Projektdatei: eine Person in Seitenansicht mit Kopf, Ohr und Pferdeschwanz, Hals, Rumpf, zwei Armen mit Händen und je fünf Fingern sowie zwei Beinen mit Füßen und Zehen. Der Laufzyklus umfasst zwei Schritte und läuft ohne Naht in einer Schleife: Das Becken wippt und kippt, der Rumpf neigt sich und dreht gegenläufig, der Kopf bleibt waagerecht mit einem kleinen nachlaufenden Nicken, die Arme schwingen gegen die Beine, wobei sich die Ellbogen beim Vorschwung stärker beugen, und Hände, Finger, Ohr und Pferdeschwanz folgen etwas später. Jeder Fuß setzt mit der Ferse auf, rollt flach ab und löst sich über den Fußballen; Boden, Zaun und Schatten laufen genau mit der Geschwindigkeit des aufgesetzten Fußes, sodass die Füße nicht rutschen. Dies ist das Projekt, das die Windows-Starter (`osatura.exe`, `osatura-studio.exe`) beim ersten Start als `first-rig.json` anlegen; `osatura demo` bleibt die kleine Grundlage der Beispiele in diesem Dokument.
+**Ausgabe:** `wrote <out.json>`. **Fehler:** fehlendes Argument (Usage, Exit 1); nicht beschreibbarer Pfad. **Verwandt:** `demo`, `studio`.
+**Grenzen:** Die Keys werden alle zwei Frames abgetastet, mit einem zusätzlichen Key vor Frame 0 und einem nach dem letzten Frame, damit die Schleife weich ist; `lint` meldet diese beiden Keys als außerhalb der Zeitleiste (Information, kein Fehler). Die Figur ist eine Seitenansicht, daher gibt es weder Drehung noch Tiefe.
+
+```
+$ osatura demo-person person.json && osatura check person.json
+wrote person.json
+ok: 'OSATURA walking person' 640×480 @ 24 fps, 32 frames, 42 bones, 0 ik, 45 layers, 48 channels
 ```
 
 ### `demo-fx`
