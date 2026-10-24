@@ -65,4 +65,4 @@ Prevents commercial competition for N years. Cost: **not open source**; conflict
 - [x] `CONTRIBUTING.md` with the DCO 1.1 text. A CLA is still needed before any dual licence.
 - [x] `TRADEMARK.md` (permitted: "compatible with OSATURA", unmodified redistribution; not permitted: modified builds under the same name).
 - [x] `.github/FUNDING.yml` (`buy_me_a_coffee: echo.of.the.strings`) so the platform shows a Sponsor button.
-- [~] Trademark search for "OSATURA": the EUIPO search of 24 Oct 2026 found a conflicting mark in classes 9 and 42 (ZKTECO CO., LTD., IR 1687065), see [docs/LIMITATIONS.md](docs/LIMITATIONS.md) L-78; OSIM / WIPO / domain searches and a lawyer's opinion are still open.
+- [~] Trademark search: the first name ARMATURA collided with a mark in classes 9/42 (EUIPO, 24 Oct 2026), so the project was renamed OSATURA; the EUIPO search for "osatura" found no conflict (one unrelated expired hit in class 10). OSIM / TMview / WIPO / domain searches and a lawyer's opinion are still open, see [docs/LIMITATIONS.md](docs/LIMITATIONS.md) L-78.
