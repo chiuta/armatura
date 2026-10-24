@@ -104,7 +104,7 @@ nav ul a:hover,nav ul a.act{color:var(--tx)}
 .tl{position:relative}
 
 /* terminal */
-#term{background:var(--bg2)}
+#demo{background:var(--bg2)}
 .cols{display:grid;grid-template-columns:1.25fr 1fr;gap:34px;align-items:center}
 @media(max-width:900px){.cols{grid-template-columns:1fr}}
 .term{background:#05080d;border:1px solid #1f2838;border-radius:16px;overflow:hidden;box-shadow:0 30px 80px -30px rgba(0,0,0,.6);color:#d7dff0}
@@ -564,20 +564,6 @@ body.rd{overflow:hidden}
   <div class="atl" id="atl"></div>
 </div></section>
 
-<section id="term"><div class="wrap">
-  <div class="eyebrow rv" data-i="te"></div>
-  <h2 class="rv" data-i="th"></h2>
-  <div class="cols">
-    <div class="term rv"><header><i></i><i></i><i></i><span>~/osatura — bash</span></header><pre id="tp"></pre></div>
-    <ol class="steps rv">
-      <li><div><b data-i="s1h"></b><span data-i="s1p"></span></div></li>
-      <li><div><b data-i="s2h"></b><span data-i="s2p"></span></div></li>
-      <li><div><b data-i="s3h"></b><span data-i="s3p"></span></div></li>
-      <li><div><b data-i="s4h"></b><span data-i="s4p"></span></div></li>
-    </ol>
-  </div>
-</div></section>
-
 <section id="formats"><div class="wrap">
   <div class="eyebrow rv" data-i="oe"></div>
   <h2 class="rv" data-i="oh"></h2>
@@ -735,7 +721,7 @@ $('#copy').onclick=async()=>{try{await navigator.clipboard.writeText('git clone 
 
 /* scroll: progress, reveal, counters, active nav, card glow */
 addEventListener('scroll',()=>{$('#bar').style.width=scrollY/(document.body.scrollHeight-innerHeight)*100+'%'},{passive:true});
-const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;e.target.classList.add('in');e.target.querySelectorAll('[data-n]').forEach(count);if(e.target.querySelector('#tp')||e.target.id==='tpw')startTerm();io.unobserve(e.target)}),{threshold:.15});
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;e.target.classList.add('in');e.target.querySelectorAll('[data-n]').forEach(count);io.unobserve(e.target)}),{threshold:.15});
 $$('.rv').forEach(e=>io.observe(e));
 function count(el){const n=+el.dataset.n,t0=performance.now();(function f(t){const p=Math.min((t-t0)/1500,1);el.textContent=Math.round(n*(1-Math.pow(1-p,3))).toLocaleString('en-US').replace(/,/g,'.');if(p<1)requestAnimationFrame(f)})(t0)}
 const links=$$('nav ul a');
@@ -866,34 +852,7 @@ function frame(t){
 }
 requestAnimationFrame(frame);
 
-/* ---------- terminal ---------- */
-const script=[
- ['cargo build -p osatura-cli','# builds target/debug/osatura'],
- ['osatura demo demo.json','# writes the built-in rig demo (640x480, 48 frames)'],
- ['osatura check demo.json',"ok: 'OSATURA demo' 640x480 @ 24 fps, 48 frames, 6 bones..."],
- ['osatura lint demo.json','0 finding(s), 0 error(s)'],
- ['osatura render demo.json 12 frame12.png --bones','# one frame, with the skeleton overlay'],
- ['osatura export demo.json demo.gif','# also .html (player), .json (Lottie), .lottie, .mp4'],
- ['osatura studio demo.json --port 8080','# browser editor at http://127.0.0.1:8080']
-];
-let termOn=false;
-function startTerm(){
-  if(termOn)return;termOn=true;const pre=$('#tp');let html='',li=0;
-  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
-  (function line(){
-    if(li>=script.length){pre.innerHTML=html+'<span class="p">$</span> <span class="caret"></span>';return}
-    const [cmd,out]=script[li];let i=0;
-    (function ty(){
-      pre.innerHTML=html+'<span class="p">$</span> '+esc(cmd.slice(0,i))+'<span class="caret"></span>';
-      if(i++<cmd.length)return setTimeout(ty,18+Math.random()*30);
-      setTimeout(()=>{
-        const c=out.startsWith('#');
-        html+='<span class="p">$</span> '+esc(cmd)+'\n'+(c?`<span class="cm">${esc(out)}</span>`:`<span class="ok">${esc(out)}</span>`)+'\n';
-        li++;setTimeout(line,350)},260);
-    })();
-  })();
-}
-new IntersectionObserver((e,ob)=>{if(e[0].isIntersecting){startTerm();ob.disconnect()}},{threshold:.3}).observe($('#tp'));
+
 
 /* ---------- determinism demo ---------- */
 function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
