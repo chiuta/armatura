@@ -18,9 +18,9 @@ Principi che danno forma al progetto:
 
 ## Stato
 
-*Nome: il progetto si chiamava OSATURA fino al 24 ott 2026 ed è stato rinominato OSATURA dopo una ricerca di marchio ([docs/LIMITATIONS.md](docs/i18n/it/LIMITATIONS.md) L-78). L'indirizzo del repository e il dominio del sito portano ancora il vecchio nome finché il titolare non li sposta.*
+*Nome: il progetto si chiamava ARMATURA fino al 24 ott 2026 ed è stato rinominato OSATURA dopo una ricerca di marchio ([docs/LIMITATIONS.md](docs/i18n/it/LIMITATIONS.md) L-78). Sono stati rinominati anche il repository e l'indirizzo del sito (i vecchi link al repository reindirizzano).*
 
-> **Alpha. Prime build preparate come pre-release in bozza: `v0.1.0-alpha.3`.** Gli eseguibili per Windows x86-64, macOS arm64 e Linux x86-64 e il modulo WebAssembly sono compilati da GitHub Actions e allegati a una pre-release *in bozza* su <https://github.com/chiuta/armatura/releases> (una bozza è visibile solo al proprietario finché non viene pubblicata a mano). Tutti i crate sono ancora alla versione `0.1.0`; "v0.5 / v0.6 / v0.7" sono *livelli di funzionalità* nella cronologia, non numeri di release ([CHANGELOG.md](docs/i18n/it/CHANGELOG.md)).
+> **Alpha. Prime build preparate come pre-release in bozza: `v0.1.0-alpha.3`.** Gli eseguibili per Windows x86-64, macOS arm64 e Linux x86-64 e il modulo WebAssembly sono compilati da GitHub Actions e allegati a una pre-release *in bozza* su <https://github.com/chiuta/osatura/releases> (una bozza è visibile solo al proprietario finché non viene pubblicata a mano). Tutti i crate sono ancora alla versione `0.1.0`; "v0.5 / v0.6 / v0.7" sono *livelli di funzionalità* nella cronologia, non numeri di release ([CHANGELOG.md](docs/i18n/it/CHANGELOG.md)).
 >
 > | Verificato | Non verificato |
 > |---|---|
@@ -30,7 +30,7 @@ Principi che danno forma al progetto:
 
 ## Download
 
-Gli archivi precompilati, una volta che il proprietario avrà pubblicato la release in bozza, si trovano nella [pagina Releases](https://github.com/chiuta/armatura/releases) del progetto:
+Gli archivi precompilati, una volta che il proprietario avrà pubblicato la release in bozza, si trovano nella [pagina Releases](https://github.com/chiuta/osatura/releases) del progetto:
 
 | Archivio | Contenuto |
 |---|---|

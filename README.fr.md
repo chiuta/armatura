@@ -18,9 +18,9 @@ Principes qui structurent le projet :
 
 ## État d'avancement
 
-*Nom : le projet s'appelait OSATURA jusqu'au 24 oct. 2026 et a été renommé OSATURA après une recherche de marque ([docs/LIMITATIONS.md](docs/i18n/fr/LIMITATIONS.md) L-78). L'adresse du dépôt et le domaine du site portent encore l'ancien nom tant que le propriétaire ne les a pas déplacés.*
+*Nom : le projet s'appelait ARMATURA jusqu'au 24 oct. 2026 et a été renommé OSATURA après une recherche de marque ([docs/LIMITATIONS.md](docs/i18n/fr/LIMITATIONS.md) L-78). Le dépôt et l'adresse du site ont également été renommés (les anciens liens du dépôt redirigent).*
 
-> **Alpha. Premiers builds préparés comme préversion en brouillon : `v0.1.0-alpha.3`.** Les exécutables pour Windows x86-64, macOS arm64 et Linux x86-64 ainsi que le module WebAssembly sont construits par GitHub Actions et joints à une préversion *en brouillon* sur <https://github.com/chiuta/armatura/releases> (un brouillon n'est visible que de son propriétaire tant qu'il n'a pas été publié à la main). Tous les crates sont toujours en version `0.1.0` ; « v0.5 / v0.6 / v0.7 » sont des *niveaux de fonctionnalités* dans l'historique, pas des numéros de version ([CHANGELOG.md](docs/i18n/fr/CHANGELOG.md)).
+> **Alpha. Premiers builds préparés comme préversion en brouillon : `v0.1.0-alpha.3`.** Les exécutables pour Windows x86-64, macOS arm64 et Linux x86-64 ainsi que le module WebAssembly sont construits par GitHub Actions et joints à une préversion *en brouillon* sur <https://github.com/chiuta/osatura/releases> (un brouillon n'est visible que de son propriétaire tant qu'il n'a pas été publié à la main). Tous les crates sont toujours en version `0.1.0` ; « v0.5 / v0.6 / v0.7 » sont des *niveaux de fonctionnalités* dans l'historique, pas des numéros de version ([CHANGELOG.md](docs/i18n/fr/CHANGELOG.md)).
 >
 > | Vérifié | Non vérifié |
 > |---|---|
@@ -30,7 +30,7 @@ Principes qui structurent le projet :
 
 ## Téléchargement
 
-Les archives précompilées, une fois que le propriétaire a publié la version en brouillon, se trouvent sur la [page des versions](https://github.com/chiuta/armatura/releases) du projet :
+Les archives précompilées, une fois que le propriétaire a publié la version en brouillon, se trouvent sur la [page des versions](https://github.com/chiuta/osatura/releases) du projet :
 
 | Archive | Contenu |
 |---|---|

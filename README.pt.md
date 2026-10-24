@@ -18,9 +18,9 @@ Princípios que moldam o projeto:
 
 ## Status
 
-*Nome: o projeto se chamou OSATURA até 24 out 2026 e foi renomeado para OSATURA depois de uma busca de marca ([docs/LIMITATIONS.md](docs/i18n/pt/LIMITATIONS.md) L-78). O endereço do repositório e o domínio do site ainda carregam o nome antigo até que o proprietário os mova.*
+*Nome: o projeto se chamou ARMATURA até 24 out 2026 e foi renomeado para OSATURA depois de uma busca de marca ([docs/LIMITATIONS.md](docs/i18n/pt/LIMITATIONS.md) L-78). O endereço do repositório e o do site também foram renomeados (os links antigos do repositório redirecionam).*
 
-> **Alpha. Primeiros builds preparados como um pré-lançamento em rascunho: `v0.1.0-alpha.3`.** Os executáveis para Windows x86-64, macOS arm64 e Linux x86-64 e o módulo WebAssembly são compilados pelo GitHub Actions e anexados a um pré-lançamento *em rascunho* em <https://github.com/chiuta/armatura/releases> (um rascunho só é visível para o dono até ser publicado manualmente). Todos os crates continuam na versão `0.1.0`; "v0.5 / v0.6 / v0.7" são *níveis de recursos* no histórico, não números de versão ([CHANGELOG.md](docs/i18n/pt/CHANGELOG.md)).
+> **Alpha. Primeiros builds preparados como um pré-lançamento em rascunho: `v0.1.0-alpha.3`.** Os executáveis para Windows x86-64, macOS arm64 e Linux x86-64 e o módulo WebAssembly são compilados pelo GitHub Actions e anexados a um pré-lançamento *em rascunho* em <https://github.com/chiuta/osatura/releases> (um rascunho só é visível para o dono até ser publicado manualmente). Todos os crates continuam na versão `0.1.0`; "v0.5 / v0.6 / v0.7" são *níveis de recursos* no histórico, não números de versão ([CHANGELOG.md](docs/i18n/pt/CHANGELOG.md)).
 >
 > | Verificado | Não verificado |
 > |---|---|
@@ -30,7 +30,7 @@ Princípios que moldam o projeto:
 
 ## Download
 
-Os arquivos pré-compilados, depois que o dono publicar o rascunho do lançamento, estão na [página de Releases](https://github.com/chiuta/armatura/releases) do projeto:
+Os arquivos pré-compilados, depois que o dono publicar o rascunho do lançamento, estão na [página de Releases](https://github.com/chiuta/osatura/releases) do projeto:
 
 | Arquivo | Conteúdo |
 |---|---|

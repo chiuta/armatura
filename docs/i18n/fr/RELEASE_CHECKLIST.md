@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # Liste de contrôle de publication (côté propriétaire)
 
-*Étapes que seul le propriétaire peut réaliser, dans l'ordre. État au 24 oct. 2026 : le dépôt <https://github.com/chiuta/armatura> existe, GitHub Actions est au vert (tests sous Linux, macOS et Windows, clippy, wasm32, cargo-deny, REUSE) et la préversion en brouillon `v0.1.0-alpha.3` a été construite (archives Windows, macOS et Linux, module web et `SHA256SUMS.txt`) ; **rien n'est encore publié**. Les étapes ci-dessous que la CI a déjà accomplies sont cochées ; les autres demandent une personne, un juriste ou un compte. Ceci n'est pas un avis juridique. Les éléments marqués **[bloquant]** doivent être traités avant toute annonce publique.*
+*Étapes que seul le propriétaire peut réaliser, dans l'ordre. État au 24 oct. 2026 : le dépôt <https://github.com/chiuta/osatura> existe, GitHub Actions est au vert (tests sous Linux, macOS et Windows, clippy, wasm32, cargo-deny, REUSE) et la préversion en brouillon `v0.1.0-alpha.3` a été construite (archives Windows, macOS et Linux, module web et `SHA256SUMS.txt`) ; **rien n'est encore publié**. Les étapes ci-dessous que la CI a déjà accomplies sont cochées ; les autres demandent une personne, un juriste ou un compte. Ceci n'est pas un avis juridique. Les éléments marqués **[bloquant]** doivent être traités avant toute annonce publique.*
 
 ## 1. Avant de publier quoi que ce soit
 

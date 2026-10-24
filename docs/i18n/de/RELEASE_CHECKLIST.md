@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # Release-Checkliste (Seite des Inhabers)
 
-*Schritte, die nur der Inhaber ausführen kann, in dieser Reihenfolge. Stand 24. Okt. 2026: Das Repository <https://github.com/chiuta/armatura> existiert, GitHub Actions ist grün (Tests unter Linux, macOS und Windows, clippy, wasm32, cargo-deny, REUSE), und die Entwurfs-Vorabversion `v0.1.0-alpha.3` wurde gebaut (Archive für Windows, macOS und Linux, das Web-Modul und `SHA256SUMS.txt`); **noch nichts ist veröffentlicht**. Die Schritte unten, die CI schon erledigt hat, sind abgehakt; die übrigen brauchen eine Person, einen Anwalt oder ein Konto. Keine Rechtsberatung. Mit **[blocker]** markierte Punkte sollten vor einer öffentlichen Ankündigung erledigt sein.*
+*Schritte, die nur der Inhaber ausführen kann, in dieser Reihenfolge. Stand 24. Okt. 2026: Das Repository <https://github.com/chiuta/osatura> existiert, GitHub Actions ist grün (Tests unter Linux, macOS und Windows, clippy, wasm32, cargo-deny, REUSE), und die Entwurfs-Vorabversion `v0.1.0-alpha.3` wurde gebaut (Archive für Windows, macOS und Linux, das Web-Modul und `SHA256SUMS.txt`); **noch nichts ist veröffentlicht**. Die Schritte unten, die CI schon erledigt hat, sind abgehakt; die übrigen brauchen eine Person, einen Anwalt oder ein Konto. Keine Rechtsberatung. Mit **[blocker]** markierte Punkte sollten vor einer öffentlichen Ankündigung erledigt sein.*
 
 ## 1. Bevor irgendetwas veröffentlicht wird
 

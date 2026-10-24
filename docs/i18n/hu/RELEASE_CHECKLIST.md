@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # Kiadási ellenőrzőlista (tulajdonosi oldal)
 
-*Olyan lépések, amelyeket csak a tulajdonos végezhet el, sorrendben. Állapot 2026. okt. 24-én: a <https://github.com/chiuta/armatura> repository létezik, a GitHub Actions zöld (tesztek Linuxon, macOS-en és Windowson, clippy, wasm32, cargo-deny, REUSE), és a `v0.1.0-alpha.3` előzetes kiadás-vázlat megépült (Windows, macOS és Linux archívumok, a webes modul és a `SHA256SUMS.txt`); **még semmi nincs közzétéve**. Az alábbi lépések közül azokat, amelyeket a CI már elvégzett, kipipáltuk; a többihez ember, jogász vagy fiók kell. Nem jogi tanács. A **[blocker]** jelölésű tételeket nyilvános bejelentés előtt el kell végezni.*
+*Olyan lépések, amelyeket csak a tulajdonos végezhet el, sorrendben. Állapot 2026. okt. 24-én: a <https://github.com/chiuta/osatura> repository létezik, a GitHub Actions zöld (tesztek Linuxon, macOS-en és Windowson, clippy, wasm32, cargo-deny, REUSE), és a `v0.1.0-alpha.3` előzetes kiadás-vázlat megépült (Windows, macOS és Linux archívumok, a webes modul és a `SHA256SUMS.txt`); **még semmi nincs közzétéve**. Az alábbi lépések közül azokat, amelyeket a CI már elvégzett, kipipáltuk; a többihez ember, jogász vagy fiók kell. Nem jogi tanács. A **[blocker]** jelölésű tételeket nyilvános bejelentés előtt el kell végezni.*
 
 ## 1. Bármi közzététele előtt
 

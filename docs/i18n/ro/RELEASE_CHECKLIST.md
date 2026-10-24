@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # Listă de verificare pentru lansare (partea proprietarului)
 
-*Pași pe care îi poate face doar proprietarul, în ordine. Stare la 24 oct. 2026: depozitul <https://github.com/chiuta/armatura> există, GitHub Actions este verde (teste pe Linux, macOS și Windows, clippy, wasm32, cargo-deny, REUSE), iar pre-lansarea ciornă `v0.1.0-alpha.3` a fost construită (arhive pentru Windows, macOS și Linux, modulul web și `SHA256SUMS.txt`); **nimic nu este încă publicat**. Pașii de mai jos pe care CI i-a făcut deja sunt bifați; restul au nevoie de o persoană, un avocat sau un cont. Nu constituie consultanță juridică. Elementele marcate cu **[blocker]** trebuie făcute înainte de un anunț public.*
+*Pași pe care îi poate face doar proprietarul, în ordine. Stare la 24 oct. 2026: depozitul <https://github.com/chiuta/osatura> există, GitHub Actions este verde (teste pe Linux, macOS și Windows, clippy, wasm32, cargo-deny, REUSE), iar pre-lansarea ciornă `v0.1.0-alpha.3` a fost construită (arhive pentru Windows, macOS și Linux, modulul web și `SHA256SUMS.txt`); **nimic nu este încă publicat**. Pașii de mai jos pe care CI i-a făcut deja sunt bifați; restul au nevoie de o persoană, un avocat sau un cont. Nu constituie consultanță juridică. Elementele marcate cu **[blocker]** trebuie făcute înainte de un anunț public.*
 
 ## 1. Înainte de a publica orice
 

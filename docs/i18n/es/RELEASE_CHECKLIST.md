@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # Lista de comprobación de publicación (lado del titular)
 
-*Pasos que solo puede dar el titular, en orden. Estado a 24 oct 2026: el repositorio <https://github.com/chiuta/armatura> existe, GitHub Actions está en verde (pruebas en Linux, macOS y Windows, clippy, wasm32, cargo-deny, REUSE) y se ha compilado la versión preliminar en borrador `v0.1.0-alpha.3` (archivos de Windows, macOS y Linux, el módulo web y `SHA256SUMS.txt`); **todavía no se ha publicado nada**. Los pasos de abajo que la CI ya hizo están marcados; el resto necesita una persona, un abogado o una cuenta. Esto no es asesoramiento jurídico. Los elementos marcados con **[blocker]** deben hacerse antes de un anuncio público.*
+*Pasos que solo puede dar el titular, en orden. Estado a 24 oct 2026: el repositorio <https://github.com/chiuta/osatura> existe, GitHub Actions está en verde (pruebas en Linux, macOS y Windows, clippy, wasm32, cargo-deny, REUSE) y se ha compilado la versión preliminar en borrador `v0.1.0-alpha.3` (archivos de Windows, macOS y Linux, el módulo web y `SHA256SUMS.txt`); **todavía no se ha publicado nada**. Los pasos de abajo que la CI ya hizo están marcados; el resto necesita una persona, un abogado o una cuenta. Esto no es asesoramiento jurídico. Los elementos marcados con **[blocker]** deben hacerse antes de un anuncio público.*
 
 ## 1. Antes de publicar nada
 

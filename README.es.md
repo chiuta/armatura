@@ -18,9 +18,9 @@ Principios que dan forma al proyecto:
 
 ## Estado
 
-*Nombre: el proyecto se llamó OSATURA hasta el 24 oct 2026 y pasó a llamarse OSATURA tras una búsqueda de marca ([docs/LIMITATIONS.md](docs/i18n/es/LIMITATIONS.md) L-78). La dirección del repositorio y el dominio del sitio conservan por ahora el nombre antiguo hasta que el propietario los traslade.*
+*Nombre: el proyecto se llamó ARMATURA hasta el 24 oct 2026 y pasó a llamarse OSATURA tras una búsqueda de marca ([docs/LIMITATIONS.md](docs/i18n/es/LIMITATIONS.md) L-78). También se cambiaron el nombre del repositorio y la dirección del sitio (los enlaces antiguos al repositorio redirigen).*
 
-> **Alfa. Primeras compilaciones preparadas como versión preliminar en borrador: `v0.1.0-alpha.3`.** Los ejecutables para Windows x86-64, macOS arm64 y Linux x86-64 y el módulo WebAssembly los compila GitHub Actions y se adjuntan a una versión preliminar *en borrador* en <https://github.com/chiuta/armatura/releases> (un borrador solo lo ve el propietario hasta que lo publica a mano). Todos los crates siguen en la versión `0.1.0`; "v0.5 / v0.6 / v0.7" son *niveles de funciones* del historial, no números de versión ([CHANGELOG.md](docs/i18n/es/CHANGELOG.md)).
+> **Alfa. Primeras compilaciones preparadas como versión preliminar en borrador: `v0.1.0-alpha.3`.** Los ejecutables para Windows x86-64, macOS arm64 y Linux x86-64 y el módulo WebAssembly los compila GitHub Actions y se adjuntan a una versión preliminar *en borrador* en <https://github.com/chiuta/osatura/releases> (un borrador solo lo ve el propietario hasta que lo publica a mano). Todos los crates siguen en la versión `0.1.0`; "v0.5 / v0.6 / v0.7" son *niveles de funciones* del historial, no números de versión ([CHANGELOG.md](docs/i18n/es/CHANGELOG.md)).
 >
 > | Verificado | No verificado |
 > |---|---|
@@ -30,7 +30,7 @@ Principios que dan forma al proyecto:
 
 ## Descarga
 
-Los archivos precompilados, una vez que el propietario haya publicado la versión en borrador, están en la [página de Releases](https://github.com/chiuta/armatura/releases) del proyecto:
+Los archivos precompilados, una vez que el propietario haya publicado la versión en borrador, están en la [página de Releases](https://github.com/chiuta/osatura/releases) del proyecto:
 
 | Archivo | Contenido |
 |---|---|

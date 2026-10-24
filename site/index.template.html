@@ -423,7 +423,7 @@ body.rd{overflow:hidden}
     <button class="ib" id="navsearch" aria-label="Search">⌕ Ctrl K</button>
     <button class="ib" id="lang" aria-haspopup="true" aria-label="Language">EN ▾</button>
     <button class="ib" id="theme" aria-label="Theme">◐</button>
-    <a class="ib gh" href="https://github.com/chiuta/armatura" target="_blank" rel="noopener">★ GitHub</a>
+    <a class="ib gh" href="https://github.com/chiuta/osatura" target="_blank" rel="noopener">★ GitHub</a>
   </div>
 </div></nav>
 
@@ -435,11 +435,11 @@ body.rd{overflow:hidden}
     <p class="sub" data-i="sub"></p>
     <div class="btns">
       <a class="btn p" href="#play" data-i="cta1"></a>
-      <a class="btn" href="https://github.com/chiuta/armatura" target="_blank" rel="noopener" data-i="cta2"></a>
+      <a class="btn" href="https://github.com/chiuta/osatura" target="_blank" rel="noopener" data-i="cta2"></a>
       <a class="btn" href="#docs" data-i="cta3"></a>
-      <a class="btn" href="https://github.com/chiuta/armatura/releases" target="_blank" rel="noopener" data-i="cta4"></a>
+      <a class="btn" href="https://github.com/chiuta/osatura/releases" target="_blank" rel="noopener" data-i="cta4"></a>
     </div>
-    <div class="install"><span><b>$</b> git clone https://github.com/chiuta/armatura &amp;&amp; cargo build -p osatura-cli</span><button id="copy" data-i="copy"></button></div>
+    <div class="install"><span><b>$</b> git clone https://github.com/chiuta/osatura &amp;&amp; cargo build -p osatura-cli</span><button id="copy" data-i="copy"></button></div>
   </div>
   <div class="hint" data-i="hint"></div>
 </header>
@@ -661,9 +661,9 @@ body.rd{overflow:hidden}
   <h2 class="rv" data-i="gsh"></h2>
   <p class="lead rv" data-i="gsp"></p>
   <div class="btns rv">
-    <a class="btn p" href="https://github.com/chiuta/armatura" target="_blank" rel="noopener" data-i="g1"></a>
-    <a class="btn" href="https://github.com/chiuta/armatura/blob/main/docs/GETTING_STARTED.md" target="_blank" rel="noopener" data-i="g2"></a>
-    <a class="btn" href="https://github.com/chiuta/armatura/blob/main/docs/LIMITATIONS.md" target="_blank" rel="noopener" data-i="g3"></a>
+    <a class="btn p" href="https://github.com/chiuta/osatura" target="_blank" rel="noopener" data-i="g1"></a>
+    <a class="btn" href="https://github.com/chiuta/osatura/blob/main/docs/GETTING_STARTED.md" target="_blank" rel="noopener" data-i="g2"></a>
+    <a class="btn" href="https://github.com/chiuta/osatura/blob/main/docs/LIMITATIONS.md" target="_blank" rel="noopener" data-i="g3"></a>
   </div>
   <div class="sup rv"><span data-i="sup"></span>
     <a href="https://buymeacoffee.com/echo.of.the.strings" target="_blank" rel="noopener">Buy Me a Coffee</a>
@@ -731,7 +731,7 @@ addEventListener('click',e=>{if(!e.target.closest('#lmenu'))lmenu.classList.remo
 const root=document.documentElement;
 try{const t=localStorage.getItem('t');if(t)root.dataset.theme=t}catch(e){}
 $('#theme').onclick=()=>{const n=root.dataset.theme==='light'?'dark':'light';root.dataset.theme=n;try{localStorage.setItem('t',n)}catch(e){};cols()};
-$('#copy').onclick=async()=>{try{await navigator.clipboard.writeText('git clone https://github.com/chiuta/armatura && cargo build -p osatura-cli');const b=$('#copy');b.textContent='✓';setTimeout(()=>b.textContent=T[L].copy,1400)}catch(e){}};
+$('#copy').onclick=async()=>{try{await navigator.clipboard.writeText('git clone https://github.com/chiuta/osatura && cargo build -p osatura-cli');const b=$('#copy');b.textContent='✓';setTimeout(()=>b.textContent=T[L].copy,1400)}catch(e){}};
 
 /* scroll: progress, reveal, counters, active nav, card glow */
 addEventListener('scroll',()=>{$('#bar').style.width=scrollY/(document.body.scrollHeight-innerHeight)*100+'%'},{passive:true});
@@ -923,7 +923,7 @@ const DATA_DIR='site/data/';
 const imgUrl=n=>'docs/img/'+n;
 window.ARM_DATA=window.ARM_DATA||{};
 function loadScript(src){return new Promise((ok,fail)=>{const s=document.createElement('script');s.src=src+'?v='+BUILD;s.onload=ok;s.onerror=()=>fail(new Error('cannot load '+src));document.head.appendChild(s)})}
-const REPO='https://github.com/chiuta/armatura';
+const REPO='https://github.com/chiuta/osatura';
 const GROUPS=['start','use','build','trust','project'];
 const gname=g=>T[L]['g'+g[0].toUpperCase()+g.slice(1)];
 const gcol=g=>`var(--g-${g})`;

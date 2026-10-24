@@ -18,9 +18,9 @@ Prinzipien, die das Projekt prägen:
 
 ## Status
 
-*Name: Das Projekt hieß bis zum 24. Okt. 2026 OSATURA und wurde nach einer Markenrecherche in OSATURA umbenannt ([docs/LIMITATIONS.md](docs/i18n/de/LIMITATIONS.md) L-78). Die Repository-Adresse und die Site-Domain tragen noch den alten Namen, bis der Eigentümer sie umzieht.*
+*Name: Das Projekt hieß bis zum 24. Okt. 2026 ARMATURA und wurde nach einer Markenrecherche in OSATURA umbenannt ([docs/LIMITATIONS.md](docs/i18n/de/LIMITATIONS.md) L-78). Auch die Repository-Adresse und die Site-Domain wurden umbenannt (alte Repository-Links werden weitergeleitet).*
 
-> **Alpha. Erste Builds als Entwurf einer Vorabversion vorbereitet: `v0.1.0-alpha.3`.** Die Programme für Windows x86-64, macOS arm64 und Linux x86-64 sowie das WebAssembly-Modul werden von GitHub Actions gebaut und an eine *Entwurfs*-Vorabversion auf <https://github.com/chiuta/armatura/releases> angehängt (ein Entwurf ist nur für den Eigentümer sichtbar, bis er von Hand veröffentlicht wird). Alle Crates tragen weiterhin die Version `0.1.0`; „v0.5 / v0.6 / v0.7“ sind *Funktionsstufen* in der Historie, keine Release-Nummern ([CHANGELOG.md](docs/i18n/de/CHANGELOG.md)).
+> **Alpha. Erste Builds als Entwurf einer Vorabversion vorbereitet: `v0.1.0-alpha.3`.** Die Programme für Windows x86-64, macOS arm64 und Linux x86-64 sowie das WebAssembly-Modul werden von GitHub Actions gebaut und an eine *Entwurfs*-Vorabversion auf <https://github.com/chiuta/osatura/releases> angehängt (ein Entwurf ist nur für den Eigentümer sichtbar, bis er von Hand veröffentlicht wird). Alle Crates tragen weiterhin die Version `0.1.0`; „v0.5 / v0.6 / v0.7“ sind *Funktionsstufen* in der Historie, keine Release-Nummern ([CHANGELOG.md](docs/i18n/de/CHANGELOG.md)).
 >
 > | Verifiziert | Nicht verifiziert |
 > |---|---|
@@ -30,7 +30,7 @@ Prinzipien, die das Projekt prägen:
 
 ## Download
 
-Fertige Archive findest du, sobald der Eigentümer die Entwurfsversion veröffentlicht hat, auf der [Releases-Seite](https://github.com/chiuta/armatura/releases) des Projekts:
+Fertige Archive findest du, sobald der Eigentümer die Entwurfsversion veröffentlicht hat, auf der [Releases-Seite](https://github.com/chiuta/osatura/releases) des Projekts:
 
 | Archiv | Inhalt |
 |---|---|
