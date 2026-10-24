@@ -1,14 +1,14 @@
-# ARMATURA studio
+# OSATURA studio
 
-The studio is a browser editor served by the `armatura` binary itself: `armatura studio project.json`.
+The studio is a browser editor served by the `osatura` binary itself: `osatura studio project.json`.
 It has a canvas with selection and transform gizmos, a layer list, a bone list, a dope sheet and curve graph,
 onion skin and motion trails, a command palette with rebindable shortcuts, pose suggestions, live-input and
 face panels, GIF/HTML/Lottie export buttons, and a shared multi-user editing session. It has no accounts, no TLS and
 no database: it is a small standard-library HTTP server in front of the same editor the command line uses.
 
-Everything here was checked against the real binary (`armatura 0.1.0`, debug build, Linux) and, for the user
+Everything here was checked against the real binary (`osatura 0.1.0`, debug build, Linux) and, for the user
 interface, in headless Chromium driven by Playwright. Screenshots were taken that way (1400x900, the built-in demo
-project). Only **Chromium** was tested; see section 11. On Windows and macOS the release archives also contain `armatura-studio`, the same studio in a native window (compiled and self-tested in CI, not yet used by a person; see [GETTING_STARTED.md](GETTING_STARTED.md) and [LIMITATIONS.md](LIMITATIONS.md) L-75), and on Windows double-clicking `armatura.exe` starts the studio and opens the browser (L-76).
+project). Only **Chromium** was tested; see section 11. On Windows and macOS the release archives also contain `osatura-studio`, the same studio in a native window (compiled and self-tested in CI, not yet used by a person; see [GETTING_STARTED.md](GETTING_STARTED.md) and [LIMITATIONS.md](LIMITATIONS.md) L-75), and on Windows double-clicking `osatura.exe` starts the studio and opens the browser (L-76).
 
 Licence of this document: CC-BY-4.0. For the command line see [GETTING_STARTED.md](GETTING_STARTED.md) and
 [CLI_REFERENCE.md](CLI_REFERENCE.md); for server security see also [SECURITY.md](SECURITY.md).
@@ -18,16 +18,16 @@ Licence of this document: CC-BY-4.0. For the command line see [GETTING_STARTED.m
 ## 1. Starting the studio
 
 ```
-armatura studio <project.json> [--port N] [--ui-config F] [--bind ADDR] [--allow-host NAMES]
+osatura studio <project.json> [--port N] [--ui-config F] [--bind ADDR] [--allow-host NAMES]
                 [--public-origin URL] [--source-url URL] [--collab-token T] [--collab-log LOG [--collab-nosync]]
 ```
 
 ```
-$ armatura demo demo.json
-$ armatura studio demo.json --port 8080
+$ osatura demo demo.json
+$ osatura studio demo.json --port 8080
 AGPL-3.0 source offer: http://127.0.0.1:8080/source
-ARMATURA studio on http://127.0.0.1:8080  (Ctrl-C to stop; saves go to demo.json)
-UI settings (layout, shortcuts) in /home/you/.config/armatura/ui.json      (your own home directory)
+OSATURA studio on http://127.0.0.1:8080  (Ctrl-C to stop; saves go to demo.json)
+UI settings (layout, shortcuts) in /home/you/.config/osatura/ui.json      (your own home directory)
 ```
 
 Open the address in a browser. The project is validated at start; a file that does not pass `check` is refused with the
@@ -37,7 +37,7 @@ same message. Unknown fields are warned about (`warning: unknown field bogus (ig
 |---|---|---|
 | `--port N` | 8080 | TCP port. An occupied port gives `cannot listen on 127.0.0.1:8861: Address already in use (os error 98)`; a bad one `cannot listen on 127.0.0.1:99999: invalid port value`. |
 | `--bind ADDR` | `127.0.0.1` | Interface to listen on. Anything that is not a loopback address **requires `--collab-token`**. |
-| `--ui-config F` | `$ARMATURA_UI_CONFIG`, else `$XDG_CONFIG_HOME/armatura/ui.json`, else on Windows `%APPDATA%\ARMATURA\ui.json` (before alpha.3 there was none: settings were kept for the session only), else `~/.config/armatura/ui.json` | Where layout, shortcuts, recent commands and overlay settings are kept. It is a per-user file, never part of the project. |
+| `--ui-config F` | `$OSATURA_UI_CONFIG`, else `$XDG_CONFIG_HOME/osatura/ui.json`, else on Windows `%APPDATA%\OSATURA\ui.json` (before alpha.3 there was none: settings were kept for the session only), else `~/.config/osatura/ui.json` | Where layout, shortcuts, recent commands and overlay settings are kept. It is a per-user file, never part of the project. |
 | `--allow-host NAMES` | none | Extra `Host` names to accept (comma separated), for access under a DNS name. |
 | `--public-origin URL` | none | The bare origin (`https://studio.example.org`, no path) that a TLS reverse proxy presents; its `Host` and `Origin` are then accepted. |
 | `--source-url URL` | none; in the official release binaries the commit they were built from (`https://github.com/chiuta/armatura/tree/<commit>`) | Where the corresponding source of *your* build can be downloaded (AGPL section 13); shown on `/source` and by `--version`. An explicit value always wins. |
@@ -99,7 +99,7 @@ and behind a proxy every client appears to have the proxy's address, so the back
 ### The AGPL source offer
 
 The studio is AGPL-3.0-or-later software: if you modify it and let other people use it over a network, you must offer them your
-version's source. `/source` is that offer; set `--source-url` to where your build's source lives. Without it (a build you made yourself with a plain `cargo build` has none) the page says so and names the maintainer. The release binaries built by `.github/workflows/release.yml` carry the address of their own commit (`ARMATURA_SOURCE_URL` at compile time; a fork building with its own workflow points to itself).
+version's source. `/source` is that offer; set `--source-url` to where your build's source lives. Without it (a build you made yourself with a plain `cargo build` has none) the page says so and names the maintainer. The release binaries built by `.github/workflows/release.yml` carry the address of their own commit (`OSATURA_SOURCE_URL` at compile time; a fork building with its own workflow points to itself).
 
 ## 3. A tour of the interface
 
@@ -109,7 +109,7 @@ Undo, Redo, **Save**; checkboxes `bones` (draw the skeleton), `auto-key`, `grid`
 `whole groups` (a click on part of a group selects the top-level group), `points` (show anchors, handles, cage/lattice/pin points and mesh vertices of
 selected layers); a `box` selector for what a drag-box selects (`touches`, `contains`, `bounds touch`; it starts at `touches`); **Lock**; and the buttons **Overlays**, **Suggest**, **Layout**,
 **Commands** (palette) and **Keys** (shortcut editor). A second row has your name and **Collab**, and the export buttons **GIF**, **HTML player** and **Lottie**,
-which download what `armatura export` would write (the HTML player includes the mixed sound when there is sound and `ffmpeg` can make the mp3).
+which download what `osatura export` would write (the HTML player includes the mixed sound when there is sound and `ffmpeg` can make the mp3).
 
 ### Panels and layouts
 
@@ -124,7 +124,7 @@ live     stage and timeline on the left; live, face, bones and selection on the 
 ```
 
 Switch presets from the **Layout** menu or the palette; drag tabs to re-dock or float a panel; "reset layout" returns to the default.
-The layout is saved in the UI config, per user. `armatura ui layout presets|show NAME|validate FILE.json` prints and validates the same data
+The layout is saved in the UI config, per user. `osatura ui layout presets|show NAME|validate FILE.json` prints and validates the same data
 (a layout must keep every panel reachable; an incomplete one is rejected by the server with 400).
 
 ### Layers panel
@@ -154,7 +154,7 @@ selected keys), `ripple` N with `Insert` / `Remove` (and `grow project` to chang
 
 Mouse: click a key to select, Shift-click to add, drag a box to select, drag keys to move them; **Alt-drag or the middle button pans**, **Ctrl+wheel zooms**,
 **Shift+wheel scrolls** vertically; in the graph **Shift constrains the key drag to one axis**. Snap tolerance for canvas snapping is 6 canvas units by default.
-Every key edit goes through the same validated operations as `armatura keyedit` (see [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md)), so it is one undo step and locked channels refuse it.
+Every key edit goes through the same validated operations as `osatura keyedit` (see [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md)), so it is one undo step and locked channels refuse it.
 
 ### Overlays: onion skin, trails, proxies
 
@@ -170,7 +170,7 @@ Settings are stored in the UI config and survive a restart. Overlays are never p
 ![The command palette opened with Ctrl+K and filtered by the word "toggle", listing matching commands with their shortcut hints.](img/studio-palette.png)
 
 `Ctrl+K` (or `Ctrl+Shift+P`) opens the palette: type to filter (fuzzy, matched letters highlighted), arrow keys move, Enter runs, Esc closes. With nothing typed it
-lists recent commands first. There are **84 commands**; `armatura ui commands` lists them and `armatura ui search onion` ranks them exactly as the palette does.
+lists recent commands first. There are **84 commands**; `osatura ui commands` lists them and `osatura ui search onion` ranks them exactly as the palette does.
 
 ![The keyboard shortcut editor opened with Ctrl+comma, listing commands by category with their key chords.](img/studio-shortcuts.png)
 
@@ -184,7 +184,7 @@ confirm "Take it over". Browser-reserved chords are refused: `Ctrl+W`, `Ctrl+T`,
 
 `Suggest` (`Alt+8`) proposes poses learned from the project's own key poses: an in-between of two frames, a completion of a partially fixed pose, or "what usually
 comes next". On the demo project, between frames 12 and 24 it ranked `linear` 1.00, `pca` 1.00 and `manifold` 0.99, built from 5 poses on 2 axes (99 % of the variance).
-`Apply` writes the pose as keys, one undo step. The same engine is `armatura pose-suggest` and `/api/suggest`. These are classical methods (linear blend, PCA, a kernel
+`Apply` writes the pose as keys, one undo step. The same engine is `osatura pose-suggest` and `/api/suggest`. These are classical methods (linear blend, PCA, a kernel
 manifold, an optional small network you train yourself); with a handful of poses the three agree.
 
 ### Live input and Webcam face panels
@@ -193,13 +193,13 @@ manifold, an optional small network you train yourself); with a handful of poses
   step. Web MIDI needs a browser that supports it (Chromium does).
 * **Webcam face** (`Alt+5`): landmarks drive the same mapping table (source `face`, ids such as `mouth_open`, `eye_r_open`, `head_yaw`). The buttons are
   *Start camera*, *Synthetic face*, *Synthetic face (detector)*, *Calibrate (hold neutral)* and *Face example mapping*. The camera path needs a landmark provider function
-  that you supply (`window.armaturaLandmarkProvider`, see the comment in the page source); video never leaves the page and only landmarks go to the local server.
+  that you supply (`window.osaturaLandmarkProvider`, see the comment in the page source); video never leaves the page and only landmarks go to the local server.
   The two synthetic modes work out of the box. *Synthetic face (detector)* renders the synthetic head on the server and finds it again with the built-in detector,
   which was **trained on synthetic faces only** (stylised heads, not photographs); see the face section of [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md).
 
 ## 4. Keyboard shortcuts (defaults)
 
-This is the output of `armatura ui shortcuts` for a fresh configuration: **72 bindings, 84 commands, 0 conflicts**. Shortcuts belong to a **context**:
+This is the output of `osatura ui shortcuts` for a fresh configuration: **72 bindings, 84 commands, 0 conflicts**. Shortcuts belong to a **context**:
 `global` (everywhere), `canvas` (focus on the picture) and `timeline` (focus on the timeline). Text fields keep their own keys.
 
 ### Global
@@ -290,7 +290,7 @@ project and is lost when the server stops.
 ![Two browser users in one session: the toolbar shows two participant chips, Ana (you) at frame 14 and Bo at frame 0, and Bo's selection box and cursor are drawn on the canvas around the leg layer.](img/studio-collab.png)
 
 1. Start the studio. For people on other machines you must add a token and bind to a network address:
-   `armatura studio demo.json --bind 0.0.0.0 --port 8080 --collab-token $(openssl rand -hex 16) --collab-log session.log`,
+   `osatura studio demo.json --bind 0.0.0.0 --port 8080 --collab-token $(openssl rand -hex 16) --collab-log session.log`,
    preferably behind a TLS proxy (section 2). On one machine no token is needed.
 2. In the first browser, type your name next to **Collab** ("Ana") and press **Collab**. The button becomes **Leave** and a chip appears for you. In the second browser
    type "Bo" and join. Each chip shows the participant's current frame (`Ana (you) @14`, `Bo @0`).
@@ -299,7 +299,7 @@ project and is lost when the server stops.
 4. Edit at the same time. In the test: Ana nudged the arm layer 10 units (`Shift+ArrowRight`); Bo saw `[10,0]` appear in `/api/project`. Bo then hid the `sun` layer, which Ana saw
    immediately.
 5. Ana pressed `Ctrl+Z`. **Only Ana's nudge was undone** (the arm returned to `[0,0]`); Bo's hidden sun stayed hidden.
-6. Edits made while someone was working from an older view are merged, not rejected: I ran the project's own simulation (`armatura collab-sim`, 6 replicas, 600 random concurrent
+6. Edits made while someone was working from an older view are merged, not rejected: I ran the project's own simulation (`osatura collab-sim`, 6 replicas, 600 random concurrent
    edits, 12 other delivery orders) and all replicas ended identical and the merged project compiled.
 7. Press **Save** (or `Ctrl+S`) in either browser to write the shared state to the project file; nothing is written to the file before that.
 
@@ -308,7 +308,7 @@ Only Chromium was tested, with two pages on one machine. I did not test differen
 ### Persistence: `--collab-log`
 
 ```
-$ armatura studio demo.json --collab-log session.log
+$ osatura studio demo.json --collab-log session.log
 ...
 $ # (an edit is made in a session, the server is stopped and started again)
 collaboration log session.log: resumed at index 1 (1 envelopes after the checkpoint)
@@ -316,7 +316,7 @@ collaboration log session.log: resumed at index 1 (1 envelopes after the checkpo
 
 The log is a line file (mode `0600`, owner only) that holds a hash-chained checkpoint of **the whole project** (about 178 KB for the demo) plus one line per accepted edit. Appends are
 `fsync`ed per request unless `--collab-nosync`. After a restart the session state is resumed (I changed the project name in a session; after the restart `/api/project` still had the
-new name) while the file on disk was unchanged (`ARMATURA demo`) until Save. **Participants and undo history are not persisted**: pages join again with new ids. A damaged log or a log
+new name) while the file on disk was unchanged (`OSATURA demo`) until Save. **Participants and undo history are not persisted**: pages join again with new ids. A damaged log or a log
 of another project stops the server with an error instead of being overwritten. A crash during an append loses at most one cut-off last line.
 
 **The log contains your whole project in clear text; protect it like the project itself.**
@@ -341,7 +341,7 @@ The studio's page uses these routes and you may too (scripts, tests). All bodies
 | `GET /api/cache` | | `{ok, revision, entries, bytes, hits, misses, invalidations, lod:{builds, engines, invalidations, last_build_ms, levels, unavailable}}` |
 | `GET /api/overlays` | `frame`, `sel` (comma-separated layer names) | `{ok, frames, settings, ...}` plus ghosts and SVG for the frame when one is given |
 | `GET /api/sounds` | | `{ok, total, sounds:[{name, start, gain, duration, peaks, error?}]}` waveform peaks after trim, fades and gain |
-| `GET /api/vcs/log` | `limit` (max 1000), `rev` | `{ok, branch, commits:[{hash, author, time, message, parents}]}`; `{"ok":false,"errors":["no .armatura-vcs repository found ..."]}` without a repository (see `armatura vcs`) |
+| `GET /api/vcs/log` | `limit` (max 1000), `rev` | `{ok, branch, commits:[{hash, author, time, message, parents}]}`; `{"ok":false,"errors":["no .osatura-vcs repository found ..."]}` without a repository (see `osatura vcs`) |
 | `GET /api/vcs/diff` | `a` (default `HEAD`), `b` | `{ok, changes}` |
 | `GET /api/timeline` | | `{ok, fps, frames, groups, rows, tracks}` the dope-sheet model |
 | `GET /api/graph` | `ch` (comma-separated channel indexes), `f0`, `f1`, `n` (samples, 2-2000, default 200) | `{ok, channels, f0, f1, range, skipped}` curve samples and tangent handles |
@@ -395,7 +395,7 @@ For instance `{"preview":true,"op":{"op":"delete","keys":[{"ch":0,"frame":12}]}}
 | `POST /api/face/config` | `{"config"?,"calibration"?}` | `{ok}` |
 | `POST /api/face/calibrate` | `{"on":true}` / `{"on":false}` | `{ok, frames, calibration}` |
 | `POST /api/face/push` | `{"frames":[...landmarks...],"layout"?,"size"?}` (at most 10000 frames per push) | live status |
-| `POST /api/face/detect` | `{"image":"<base64 PNG/JPEG or data: URI>","track":bool,"push":bool,"t"}` | `{ok, found, layout:"armatura23", size, points, box, note:"detector trained on synthetic faces only"}` |
+| `POST /api/face/detect` | `{"image":"<base64 PNG/JPEG or data: URI>","track":bool,"push":bool,"t"}` | `{ok, found, layout:"osatura23", size, points, box, note:"detector trained on synthetic faces only"}` |
 | `POST /api/face/synth` | `{"t","size":32-512,"seed"}` | `{ok, image:"data:image/png;base64,...", layout, size, points}` one frame of the synthetic head with its exact landmarks |
 | `POST /api/ui` | any of `{"layout":{...}\|null,"shortcuts":{...}\|null,"recents":[...],"overlays":{...},"reset":"layout"\|"shortcuts"\|"overlays"\|"all"}` | `GET /api/ui` document; unknown fields (`unknown field 'bogus'`), conflicts and incomplete layouts are refused and nothing changes |
 | `POST /api/login` | `{"token":"..."}` | `{ok:true}` and `Set-Cookie: arm_token=...; Path=/; HttpOnly; SameSite=Strict`; wrong: 401 (429 from the 5th failure); without a configured token `{"ok":true,"token_required":false}` |
@@ -444,7 +444,7 @@ Web MIDI needs a browser that implements it (Chromium does); the camera needs `g
 shared session. Pointer events are used for dragging; touch screens were not tested.
 
 **Accessibility, honestly.** I did not audit the studio with a screen reader or a keyboard-only session. What exists: a `lang` attribute and viewport meta tag, labelled checkboxes, a
-`role="status"` toast, a few ARIA attributes, **a complete set of keyboard shortcuts and a command palette** that reach every command, rebindable shortcuts, and the `armatura` command line, which does
+`role="status"` toast, a few ARIA attributes, **a complete set of keyboard shortcuts and a command palette** that reach every command, rebindable shortcuts, and the `osatura` command line, which does
 everything the editor does without a pointer. What is missing: the canvas is a picture and most canvas editing is by pointer (arrow-key nudging exists), there is no light theme and no
 `prefers-reduced-motion` or `prefers-color-scheme` handling, focus outlines are the browser defaults and I did not check them, and I did not measure colour contrast. If you depend on assistive technology,
 prefer the CLI and the JSON panel, and tell the project what breaks.
@@ -452,5 +452,5 @@ prefer the CLI and the JSON panel, and tell the project what breaks.
 ## 12. Known rough edges
 
 * Fixed since the first write-up: the Webcam face panel text, the `/favicon.ico` 404, `--collab-nosync` without `--collab-log`, and the missing `Secure` cookie flag behind an https `--public-origin`.
-* `armatura render p.json 99 o.png` on a 24-frame project is now an error too (add `--clamp` to render the last frame); the studio's `/api/frame` refuses an out-of-range frame (`frame 999 out of range`) and now accepts frames `0..frames-1` only.
+* `osatura render p.json 99 o.png` on a 24-frame project is now an error too (add `--clamp` to render the last frame); the studio's `/api/frame` refuses an out-of-range frame (`frame 999 out of range`) and now accepts frames `0..frames-1` only.
 * Layout and shortcut changes are stored per user in the UI config, not in the project, so they do not travel with the file.

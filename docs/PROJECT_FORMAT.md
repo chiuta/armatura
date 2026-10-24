@@ -1,13 +1,13 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 
-# ARMATURA project format
+# OSATURA project format
 
-This is the reference for the ARMATURA project file: a single JSON document that
+This is the reference for the OSATURA project file: a single JSON document that
 holds the stage, the rig, the artwork and the animation. It is written from the
-serde structs in `armatura-core/src/project.rs` and the modules they reference,
-and every example in sections 13 to 15 was checked with the `armatura` binary
-(`armatura check`, `armatura render`, `armatura explain`).
+serde structs in `osatura-core/src/project.rs` and the modules they reference,
+and every example in sections 13 to 15 was checked with the `osatura` binary
+(`osatura check`, `osatura render`, `osatura explain`).
 
 Contents
 
@@ -63,7 +63,7 @@ and the Studio. It does, in order:
    with `invalid JSON in <file>: value ... is outside the supported range of +-1e7 ...`. Integer
    literals are caught later, by the re-check inside `Engine::new` (see section 12).
 3. Apply the format gate: `format` greater than the build's `FORMAT_VERSION` (currently `1`) is
-   rejected with `project format 2 is newer than this build supports (1); update ARMATURA`.
+   rejected with `project format 2 is newer than this build supports (1); update OSATURA`.
 
 `Engine::new` (or `Engine::with_asset_dir`) then validates the whole project and returns every
 problem it finds as a list. The CLI prints them as:
@@ -86,7 +86,7 @@ did not survive:
 warning: unknown field layers[0].paths[0].fil (ignored)
 ```
 
-`armatura check` prints these warnings. Values that equal the default are not reported (the writer
+`osatura check` prints these warnings. Values that equal the default are not reported (the writer
 omits defaults, so an explicit `"visible": true` is fine). A few structures are strict instead of
 lenient and reject unknown keys with a hard error: machine `Transition` and `Condition`, CI config,
 live-input config, overlays and face-parameter config; config files are read with `parse_strict`.
@@ -94,7 +94,7 @@ live-input config, overlays and face-parameter config; config files are read wit
 ### Editor metadata round trip
 
 The project serializes with `skip_serializing_if` for optional lists. A file you write by hand may
-be shorter than what `armatura` writes back; both are equivalent.
+be shorter than what `osatura` writes back; both are equivalent.
 
 ## 3. Top-level fields
 
@@ -107,7 +107,7 @@ be shorter than what `armatura` writes back; both are equivalent.
 | `fps` | number | **Req** | `(0, 1000]` | Frames per second. |
 | `frames` | integer (`u32`) | **Req** | `1..=200000` | Length of the timeline. Frame indices are `0..frames-1`. A float literal such as `48.0` is rejected: `invalid type: floating point `48.0`, expected u32`. |
 | `background` | `Rgba` or null | null (transparent) | | Stage colour behind everything. |
-| `color_space` | string | `"srgb"` (not written) | `srgb`, `linear` | Space in which the raster and float compositors blend. `linear`: colours are converted to linear light, composited in f32 and converted back once (a 50 % black over white is 188/255, not 128/255). Set with `armatura color-space`. SVG, Lottie, the GPU renderer, `dof` and `fx` ignore it. |
+| `color_space` | string | `"srgb"` (not written) | `srgb`, `linear` | Space in which the raster and float compositors blend. `linear`: colours are converted to linear light, composited in f32 and converted back once (a 50 % black over white is 188/255, not 128/255). Set with `osatura color-space`. SVG, Lottie, the GPU renderer, `dof` and `fx` ignore it. |
 | `camera` | object | defaults | section 10 | Global camera. |
 | `bones` | array | `[]` | at most 4096 | Skeleton, section 4. |
 | `ik` | array | `[]` | | IK chains. |
@@ -380,8 +380,8 @@ Example of a radial gradient fill with a stroke (from the ball example):
 "stroke": {"paint": "#3d2c2e", "width": 2}
 ```
 
-The linter (`armatura lint`) warns about gradient problems (L011), switch keys (L012) and editor-data problems (L013); see
-`armatura-core/src/lint.rs`.
+The linter (`osatura lint`) warns about gradient problems (L011), switch keys (L012) and editor-data problems (L013); see
+`osatura-core/src/lint.rs`.
 
 ## 7. Deformers, effects, normal map
 
@@ -701,7 +701,7 @@ Container offsets are added to the layer position and multiplied into scale (eva
 
 ### 11.6 `lods[]`
 
-A record of a level-of-detail pass written by `armatura lod`: `level`, `tolerance_px`, `scale`,
+A record of a level-of-detail pass written by `osatura lod`: `level`, `tolerance_px`, `scale`,
 `declared_px`, `bound_stage`, `path_px`, `mesh_px`, `keys_px`, `cull_px`, `stats`
 (`path_anchors`, `mesh_vertices`, `keys`, `layers`, `bytes`) and `notes`. It is documentation of what
 a pass did; the renderer never reads it.
@@ -710,7 +710,7 @@ a pass did; the renderer never reads it.
 ## 12. Validation rules, limits and error messages
 
 `Engine::new` validates in one pass and returns all problems. The table lists what is enforced;
-messages in quotes were produced by `armatura check` on deliberately broken files.
+messages in quotes were produced by `osatura check` on deliberately broken files.
 
 ### 12.1 Global limits
 
@@ -722,7 +722,7 @@ messages in quotes were produced by `armatura check` on deliberately broken file
 | width, height | `<= 32768` | `width and height must be at most 32768` |
 | any float | `abs <= 1e7` | `value 100000000.0 at /bones/0/length is outside the supported range of +-1e7 (coordinates, scales, offsets and key values must stay below it)` |
 | bones | at most 4096 | `at most 4096 bones` |
-| format | `<= 1` | `project format 2 is newer than this build supports (1); update ARMATURA` |
+| format | `<= 1` | `project format 2 is newer than this build supports (1); update OSATURA` |
 | JSON size | CLI `--max-input-bytes`, default 256 MiB; API `MAX_JSON_BYTES` 256 MiB | |
 
 The 1e7 limit is applied twice. At load, a float literal beyond it fails the parse and the message
@@ -804,12 +804,12 @@ a **warning** printed by `check` (and reported by `lint` as L013): camera zoom `
 animation, invalid skins (`skins::validate`), clips (`clipstack::validate`, and take-track targets that do not resolve,
 honouring `rename`), `channel_meta` and `lods`. The `out/` fixtures load with no warnings.
 
-`armatura check` prints the lint warnings of this kind; the full linter (`armatura lint`) has more rules (L001 onward).
+`osatura check` prints the lint warnings of this kind; the full linter (`osatura lint`) has more rules (L001 onward).
 
 ## 13. Example 1: bouncing ball
 
-Verified with `armatura check` (`ok: 'bouncing ball' 320×240 @ 24 fps, 48 frames, 0 bones, 0 ik,
-3 layers, 5 channels`) and `armatura render ball.json 7 out.png`. What it shows:
+Verified with `osatura check` (`ok: 'bouncing ball' 320×240 @ 24 fps, 48 frames, 0 bones, 0 ik,
+3 layers, 5 channels`) and `osatura render ball.json 7 out.png`. What it shows:
 
 - Keyed `layer_y` with `bounce` easing on the first segment: the ball falls from y=40 to the
   floor at y=170 and bounces three times. The first impact lands at about frame 7.2 (24 / 3.352).
@@ -938,8 +938,8 @@ Verified with `armatura check` (`ok: 'bouncing ball' 320×240 @ 24 fps, 48 frame
 
 ## 14. Example 2: rigged arm with IK
 
-Verified with `armatura check` (3 bones, 1 ik, 3 layers, 2 channels). `armatura explain arm.json
-24` reports the tip at (170, 190), equal to the `target` bone, and `armatura render arm.json 24
+Verified with `osatura check` (3 bones, 1 ik, 3 layers, 2 channels). `osatura explain arm.json
+24` reports the tip at (170, 190), equal to the `target` bone, and `osatura render arm.json 24
 out.png --bones` draws the skeleton. What it shows:
 
 - `upper` is a root with an angle limit; `lower` is its child (`rest_offset` `[90, 0]` equals the
@@ -1088,7 +1088,7 @@ out.png --bones` draws the skeleton. What it shows:
 
 ## 15. Example 3: switch-layer mouth
 
-Verified with `armatura check` and by rendering frames 0, 5 and 9, which show three different
+Verified with `osatura check` and by rendering frames 0, 5 and 9, which show three different
 mouths. Out-of-range keys clamp: a key value of 7 shows child 2 and -3 shows child 0.
 
 ```json

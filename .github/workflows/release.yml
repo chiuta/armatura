@@ -29,9 +29,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: linux-x86_64, os: ubuntu-latest, exe: armatura, lib: libarmatura_capi.so, slib: libarmatura_capi.a }
-          - { name: macos-arm64, os: macos-latest, exe: armatura, lib: libarmatura_capi.dylib, slib: libarmatura_capi.a }
-          - { name: windows-x86_64, os: windows-latest, exe: armatura.exe, lib: armatura_capi.dll, slib: armatura_capi.lib }
+          - { name: linux-x86_64, os: ubuntu-latest, exe: osatura, lib: libosatura_capi.so, slib: libosatura_capi.a }
+          - { name: macos-arm64, os: macos-latest, exe: osatura, lib: libosatura_capi.dylib, slib: libosatura_capi.a }
+          - { name: windows-x86_64, os: windows-latest, exe: osatura.exe, lib: osatura_capi.dll, slib: osatura_capi.lib }
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.97.0
@@ -40,40 +40,40 @@ jobs:
         env:
           # AGPL section 13: the studio's /source page and `--version` point to the exact commit this binary is built from
           # (a fork that builds with its own workflow points to itself).
-          ARMATURA_SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}/tree/${{ github.sha }}
-        run: cargo build --release --locked -p armatura-cli -p armatura-capi -p armatura-gui
+          OSATURA_SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}/tree/${{ github.sha }}
+        run: cargo build --release --locked -p osatura-cli -p osatura-capi -p osatura-gui
       - name: Smoke test the release binary
         shell: bash
         env:
-          ARMATURA_SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}/tree/${{ github.sha }}
+          OSATURA_SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}/tree/${{ github.sha }}
         run: |
           ./target/release/${{ matrix.exe }} --version | tee version.txt
-          grep -q "available at: ${ARMATURA_SOURCE_URL}" version.txt
+          grep -q "available at: ${OSATURA_SOURCE_URL}" version.txt
           ./target/release/${{ matrix.exe }} demo smoke.json
           ./target/release/${{ matrix.exe }} check smoke.json
           ./target/release/${{ matrix.exe }} render smoke.json 0 smoke.png
           test -s smoke.png
-          if [ "${{ runner.os }}" != "Linux" ]; then ./target/release/armatura-studio --selftest; fi
+          if [ "${{ runner.os }}" != "Linux" ]; then ./target/release/osatura-studio --selftest; fi
       - name: Package
         shell: bash
         run: |
-          d=armatura-${{ matrix.name }}
+          d=osatura-${{ matrix.name }}
           mkdir -p $d/lib $d/include
           cp target/release/${{ matrix.exe }} $d/
-          if [ "${{ runner.os }}" != "Linux" ]; then cp target/release/armatura-studio* $d/ ; fi
+          if [ "${{ runner.os }}" != "Linux" ]; then cp target/release/osatura-studio* $d/ ; fi
           cp target/release/${{ matrix.lib }} $d/lib/ || true
           cp target/release/${{ matrix.slib }} $d/lib/ || true
-          cp armatura-capi/armatura.h $d/include/
+          cp osatura-capi/osatura.h $d/include/
           cp -r LICENSE LICENSES README.md CHANGELOG.md TRADEMARK.md docs/THIRD_PARTY_NOTICES.md $d/
-          printf 'ARMATURA binaries: armatura (CLI + studio) is AGPL-3.0-or-later; the C library is MPL-2.0.\nCorresponding source: https://github.com/chiuta/armatura at the commit/tag of this build (%s).\n' "$GITHUB_SHA" > $d/SOURCE.txt
+          printf 'OSATURA binaries: osatura (CLI + studio) is AGPL-3.0-or-later; the C library is MPL-2.0.\nCorresponding source: https://github.com/chiuta/armatura at the commit/tag of this build (%s).\n' "$GITHUB_SHA" > $d/SOURCE.txt
           if [ "${{ runner.os }}" = "Windows" ]; then 7z a $d.zip $d >/dev/null; else tar czf $d.tar.gz $d; fi
           ls -la $d.* 
       - uses: actions/upload-artifact@v4
         with:
-          name: armatura-${{ matrix.name }}
+          name: osatura-${{ matrix.name }}
           path: |
-            armatura-${{ matrix.name }}.tar.gz
-            armatura-${{ matrix.name }}.zip
+            osatura-${{ matrix.name }}.tar.gz
+            osatura-${{ matrix.name }}.zip
           if-no-files-found: error
           retention-days: 30
 
@@ -87,21 +87,21 @@ jobs:
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
       - name: Build the release module
-        run: cargo build --release --target wasm32-unknown-unknown -p armatura-wasm --locked
+        run: cargo build --release --target wasm32-unknown-unknown -p osatura-wasm --locked
       - name: Package
         run: |
-          d=armatura-web
+          d=osatura-web
           mkdir -p $d
-          cp target/wasm32-unknown-unknown/release/armatura_wasm.wasm $d/
-          cp armatura-wasm/js/armatura.js armatura-wasm/index.html $d/
+          cp target/wasm32-unknown-unknown/release/osatura_wasm.wasm $d/
+          cp osatura-wasm/js/osatura.js osatura-wasm/index.html $d/
           cp -r LICENSES $d/ && cp LICENSE $d/
           printf 'Module: MPL-2.0. Source: https://github.com/chiuta/armatura at %s\n' "$GITHUB_SHA" > $d/SOURCE.txt
-          ls -la $d/armatura_wasm.wasm | tee wasm-size.txt
-          tar czf armatura-web.tar.gz $d
+          ls -la $d/osatura_wasm.wasm | tee wasm-size.txt
+          tar czf osatura-web.tar.gz $d
       - uses: actions/upload-artifact@v4
         with:
-          name: armatura-web
-          path: armatura-web.tar.gz
+          name: osatura-web
+          path: osatura-web.tar.gz
           retention-days: 30
 
   draft-release:
@@ -131,5 +131,5 @@ jobs:
           for t in "$TAG" vX; do
             gh api "repos/$GH_REPO/releases?per_page=100" --jq ".[] | select(.draft and .tag_name==\"$t\") | .id" | while read -r id; do gh api -X DELETE "repos/$GH_REPO/releases/$id"; done
           done
-          gh release create "$TAG" dist/* --target "$GITHUB_SHA" --draft --prerelease --title "ARMATURA $TAG" \
+          gh release create "$TAG" dist/* --target "$GITHUB_SHA" --draft --prerelease --title "OSATURA $TAG" \
             --notes "Pre-release builds from CI. Unverified by people on Windows and macOS; see docs/LIMITATIONS.md. Licences: CLI AGPL-3.0-or-later, libraries MPL-2.0, docs CC-BY-4.0."

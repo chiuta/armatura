@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 
-# ARMATURA glossary
+# OSATURA glossary
 
 Domain terms used in the code and documentation, in alphabetical order. "See" points to the
-module (in `armatura-core/src` unless stated) or document where the term is implemented or
+module (in `osatura-core/src` unless stated) or document where the term is implemented or
 specified. Documents: [PROJECT_FORMAT.md](PROJECT_FORMAT.md), [ARCHITECTURE.md](ARCHITECTURE.md).
 Sources for techniques are listed in `CLEANROOM.md`.
 
@@ -92,7 +92,7 @@ alignment and wrapping, which positions layers and other containers. See `contai
 `rig`.
 
 **CRDT.** Conflict-free replicated data type: a structure that replicas can edit independently and
-merge to the same result without coordination. ARMATURA uses an operation-based CRDT. See `collab`;
+merge to the same result without coordination. OSATURA uses an operation-based CRDT. See `collab`;
 ARCHITECTURE section 10. Related: LWW register, RGA, Lamport clock, vector clock, tombstone.
 
 **Cubic Bezier easing.** A CSS-style easing curve defined by two control points between (0,0) and
@@ -188,9 +188,9 @@ PROJECT_FORMAT section 5.
 See `layerfx`.
 
 **Level of detail (LOD).** A simplified version of a project produced under a declared error bound in
-pixels, for fast preview or small output. See `lod`, `armatura lod`.
+pixels, for fast preview or small output. See `lod`, `osatura lod`.
 
-**Linter.** The advisory checker (`armatura lint`) that reports animation-quality problems with codes
+**Linter.** The advisory checker (`osatura lint`) that reports animation-quality problems with codes
 such as L011 and L012. Separate from validation. See `lint`.
 
 **Liquid layer.** A layer of metaballs whose outline is the iso-contour of a sum-of-influence field. See
@@ -234,7 +234,7 @@ per-layer lighting. See `postfx`; PROJECT_FORMAT section 7.3.
 inverse for undo. See `edit`.
 
 **OT.** Operational transformation: an alternative to CRDTs that rewrites concurrent operations against
-each other, usually with a central server. ARMATURA does not use it; it uses a CRDT with a central
+each other, usually with a central server. OSATURA does not use it; it uses a CRDT with a central
 sequencer. See ARCHITECTURE section 10.
 
 **Parallax.** A per-layer factor that scales camera movement, so distant layers move less. Also the
@@ -295,7 +295,7 @@ section 4.
 group, such as costumes. See `skins`.
 
 **Skinning.** Deforming geometry by blending the transforms of bones, weighted per anchor or vertex.
-ARMATURA normalizes the weights and treats empty weights as static. See `engine`, `weights`.
+OSATURA normalizes the weights and treats empty weights as static. See `engine`, `weights`.
 
 **Soft IK.** An IK option that eases extension near full reach to avoid snapping straight. Range 0 to
 0.9. See `rig`.
@@ -312,7 +312,7 @@ curve and re-attaching them to the deformed curve. See PROJECT_FORMAT section 7.
 load so any frame can be evaluated. See PROJECT_FORMAT section 4.4.
 
 **SSIM.** Structural similarity index (Wang et al. 2004): an image-quality measure from local means,
-variances and covariance. ARMATURA uses a block version. See `percep`.
+variances and covariance. OSATURA uses a block version. See `percep`.
 
 **Stage.** The coordinate space of the output image: pixels, +x right, +y down.
 

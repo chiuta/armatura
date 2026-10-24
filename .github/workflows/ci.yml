@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio)
 #
-# Continuous integration for ARMATURA. First fully green run: 2026-10-24 (ubuntu, windows, macos tests and
+# Continuous integration for OSATURA. First fully green run: 2026-10-24 (ubuntu, windows, macos tests and
 # clippy with -D warnings, wasm32 build + Node test, cargo-deny, REUSE; gpu parity jobs are informational).
 # The toolchain is pinned so that new clippy lints do not break the build; bump it deliberately.
 # See docs/DEVELOPMENT.md ("Continuous integration").
@@ -33,13 +33,13 @@ jobs:
         with:
           components: clippy
       - uses: Swatinem/rust-cache@v2
-      # armatura-gpu is outside the default members on purpose (it needs a GPU adapter); the workspace
+      # osatura-gpu is outside the default members on purpose (it needs a GPU adapter); the workspace
       # commands below therefore cover core, cli, capi and wasm (host build).
       - name: Tests
         shell: bash
         run: |
           set +e
-          cargo test --workspace --exclude armatura-gpu --locked --no-fail-fast 2>&1 | tee test.log
+          cargo test --workspace --exclude osatura-gpu --locked --no-fail-fast 2>&1 | tee test.log
           code=${PIPESTATUS[0]}
           # Surface the failures as ONE annotation (readable without log access).
           msg=$( { sed 's/\x1b\[[0-9;]*m//g' test.log > test.plain; grep -E -A7 '^---- |^error(\[|:)' test.plain | grep -v '^--$' | head -150; echo '--- tail ---'; tail -25 test.plain; } | head -c 6000 | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')
@@ -48,14 +48,14 @@ jobs:
       - name: Studio application self-test (starts the server next to the window app, fetches the page)
         shell: bash
         run: |
-          cargo build --locked -p armatura-cli -p armatura-gui
-          ./target/debug/armatura-studio --selftest; echo "armatura-studio --selftest exit: $?"
-          if [ "${{ runner.os }}" != "Linux" ]; then ./target/debug/armatura-studio --selftest || { echo "::error title=gui-selftest::armatura-studio --selftest failed"; exit 1; }; fi
+          cargo build --locked -p osatura-cli -p osatura-gui
+          ./target/debug/osatura-studio --selftest; echo "osatura-studio --selftest exit: $?"
+          if [ "${{ runner.os }}" != "Linux" ]; then ./target/debug/osatura-studio --selftest || { echo "::error title=gui-selftest::osatura-studio --selftest failed"; exit 1; }; fi
       - name: Clippy (warnings are errors)
         shell: bash
         run: |
           set +e
-          cargo clippy --workspace --exclude armatura-gpu --all-targets --locked -- -D warnings 2>&1 | tee clippy.log
+          cargo clippy --workspace --exclude osatura-gpu --all-targets --locked -- -D warnings 2>&1 | tee clippy.log
           code=${PIPESTATUS[0]}
           msg=$( { sed 's/\x1b\[[0-9;]*m//g' clippy.log > clippy.plain; grep -E -A6 '^(error|warning)' clippy.plain | head -70; } | head -c 6000 | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')
           if [ "$code" != 0 ]; then echo "::error title=clippy::$msg"; fi
@@ -71,9 +71,9 @@ jobs:
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
       - name: Build the wasm module
-        run: cargo build --target wasm32-unknown-unknown -p armatura-wasm --locked
+        run: cargo build --target wasm32-unknown-unknown -p osatura-wasm --locked
       - name: Put the module where the Node test looks for it (it then also runs its real-module part)
-        run: cp target/wasm32-unknown-unknown/debug/armatura_wasm.wasm armatura-wasm/armatura_wasm.wasm
+        run: cp target/wasm32-unknown-unknown/debug/osatura_wasm.wasm osatura-wasm/osatura_wasm.wasm
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -81,8 +81,8 @@ jobs:
         shell: bash
         run: |
           set +e
-          cargo run -q -p armatura-cli --locked -- demo demo-ci.json
-          node armatura-wasm/js/test.mjs demo-ci.json 2>&1 | tee js.log
+          cargo run -q -p osatura-cli --locked -- demo demo-ci.json
+          node osatura-wasm/js/test.mjs demo-ci.json 2>&1 | tee js.log
           code=${PIPESTATUS[0]}
           head -30 js.log | while IFS= read -r l; do echo "::error title=js-test::${l:0:900}"; done
           exit $code
@@ -103,7 +103,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          cargo test -p armatura-gpu --locked --no-fail-fast -- --nocapture 2>&1 | tee gpu.log
+          cargo test -p osatura-gpu --locked --no-fail-fast -- --nocapture 2>&1 | tee gpu.log
           code=${PIPESTATUS[0]}
           grep -E -A3 'adapter|FAILED|panicked at|SKIP' gpu.log | grep -v '^--$' | head -60 | while IFS= read -r l; do echo "::warning title=gpu::${l:0:900}"; done
           exit $code

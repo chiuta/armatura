@@ -10,26 +10,26 @@ Contents: [Installation and setup](#installation-and-setup) - [ffmpeg](#ffmpeg) 
 
 ## Installation and setup
 
-**1. How do I install ARMATURA?**
-Prebuilt archives (Windows x86-64, macOS arm64, Linux x86-64, and the WebAssembly module) are prepared as the draft pre-release `v0.1.0-alpha.3` on <https://github.com/chiuta/armatura/releases>; they become downloadable when the owner publishes the draft, and they are not code-signed (SmartScreen shows "Unknown publisher"; macOS asks for approval). There is no installer: unpack the archive and run `armatura`. Or build it from source with a recent stable Rust toolchain: `cargo build -p armatura-cli` gives `target/debug/armatura`; add `--release` for `target/release/armatura`. See [DEVELOPMENT.md](DEVELOPMENT.md).
+**1. How do I install OSATURA?**
+Prebuilt archives (Windows x86-64, macOS arm64, Linux x86-64, and the WebAssembly module) are prepared as the draft pre-release `v0.1.0-alpha.3` on <https://github.com/chiuta/armatura/releases>; they become downloadable when the owner publishes the draft, and they are not code-signed (SmartScreen shows "Unknown publisher"; macOS asks for approval). There is no installer: unpack the archive and run `osatura`. Or build it from source with a recent stable Rust toolchain: `cargo build -p osatura-cli` gives `target/debug/osatura`; add `--release` for `target/release/osatura`. See [DEVELOPMENT.md](DEVELOPMENT.md).
 
 **2. Which platforms work?**
 Linux x86-64 is where the project was developed and exercised. On GitHub Actions the test suite and clippy also pass on macOS (arm64) and Windows (x86-64), and release binaries for those three are built there; but no person has used the Windows or macOS executables on a real desktop yet, so they are "tested by CI", not "supported" ([LIMITATIONS.md](LIMITATIONS.md), section 1).
 
 **3. Is there a graphical installer or an app?**
-There is no installer. The command line is the product. The studio is a local web page served by `armatura studio`; on Windows, double-clicking `armatura.exe` starts it and opens your browser. The Windows and macOS archives also contain `armatura-studio`, a small native window around the same studio (it has only been compiled and self-tested in CI); see [STUDIO.md](STUDIO.md) and [GETTING_STARTED.md](GETTING_STARTED.md).
+There is no installer. The command line is the product. The studio is a local web page served by `osatura studio`; on Windows, double-clicking `osatura.exe` starts it and opens your browser. The Windows and macOS archives also contain `osatura-studio`, a small native window around the same studio (it has only been compiled and self-tested in CI); see [STUDIO.md](STUDIO.md) and [GETTING_STARTED.md](GETTING_STARTED.md).
 
 **4. How do I get started quickly?**
 Follow [GETTING_STARTED.md](GETTING_STARTED.md): it builds one animated character from an empty project, every step run, and ends with a GIF.
 
 **5. Can I build without the scripting engine?**
-Yes: `cargo build -p armatura-cli --no-default-features` leaves out Rhai, so the `script` command is absent (see [DEVELOPMENT.md](DEVELOPMENT.md)). The `scripting` feature is the only place a crate with a weak-copyleft licence (smartstring) comes in; see [THIRD_PARTY.md](THIRD_PARTY.md).
+Yes: `cargo build -p osatura-cli --no-default-features` leaves out Rhai, so the `script` command is absent (see [DEVELOPMENT.md](DEVELOPMENT.md)). The `scripting` feature is the only place a crate with a weak-copyleft licence (smartstring) comes in; see [THIRD_PARTY.md](THIRD_PARTY.md).
 
 **6. Does it need a network connection or an account?**
 No. The program needs no account and no network to work (the studio has no accounts). By default the studio listens on your own machine only (see question 51).
 
 **7. Where does the studio keep its settings?**
-In `$ARMATURA_UI_CONFIG` if set, else `$XDG_CONFIG_HOME/armatura/ui.json`, else on Windows `%APPDATA%\ARMATURA\ui.json`, else `~/.config/armatura/ui.json`. Your projects are never touched by it.
+In `$OSATURA_UI_CONFIG` if set, else `$XDG_CONFIG_HOME/osatura/ui.json`, else on Windows `%APPDATA%\OSATURA\ui.json`, else `~/.config/osatura/ui.json`. Your projects are never touched by it.
 
 ---
 
@@ -39,7 +39,7 @@ In `$ARMATURA_UI_CONFIG` if set, else `$XDG_CONFIG_HOME/armatura/ui.json`, else 
 Only for MP4 and WebM export, for `sound mix`, for mp3/ogg audio and for `face-track` on a video file. GIF, APNG, HTML, PNG sequences, SVG, glTF and JSON export need nothing else. The full list is in [CLI_REFERENCE.md](CLI_REFERENCE.md), section 1.6.
 
 **9. Is ffmpeg bundled?**
-Never. ARMATURA starts `ffmpeg` from your `PATH` as a separate program and nothing else is executed. Whatever licence and patent situation your ffmpeg build has is yours to check; see [PATENT_NOTES.md](PATENT_NOTES.md).
+Never. OSATURA starts `ffmpeg` from your `PATH` as a separate program and nothing else is executed. Whatever licence and patent situation your ffmpeg build has is yours to check; see [PATENT_NOTES.md](PATENT_NOTES.md).
 
 **10. What does it say when ffmpeg is missing?**
 `cannot run ffmpeg (No such file or directory (os error 2)); install it or export a GIF/HTML instead` (for WebM the hint ends `or export an APNG instead`). Nothing is written.
@@ -52,19 +52,19 @@ Never. ARMATURA starts `ffmpeg` from your `PATH` as a separate program and nothi
 ## Performance
 
 **12. Why is it so slow?**
-You are probably running a debug build. The numbers in the documents come from a debug build and are 10 to 30 times slower than a release build ([CLI_REFERENCE.md](CLI_REFERENCE.md), section 1.7). On the 2-core test machine a debug build needed 46 s to write the 48 frames of the demo project as PNG and 57 s to export it as a GIF. A fresh release build did the same two jobs in 1.5 s and 2.2 s. Build with `cargo build --release` and use `target/release/armatura`.
+You are probably running a debug build. The numbers in the documents come from a debug build and are 10 to 30 times slower than a release build ([CLI_REFERENCE.md](CLI_REFERENCE.md), section 1.7). On the 2-core test machine a debug build needed 46 s to write the 48 frames of the demo project as PNG and 57 s to export it as a GIF. A fresh release build did the same two jobs in 1.5 s and 2.2 s. Build with `cargo build --release` and use `target/release/osatura`.
 
 **13. Does it use the GPU?**
 The default renderer is the CPU. A `gpu` crate and a `render-gpu` command exist behind a feature flag, but no real GPU was available while building: on a software GPU (llvmpipe) a 640x480 frame took 253 to 295 ms against 13.8 ms on the CPU path. Treat GPU rendering as untested on hardware ([LIMITATIONS.md](LIMITATIONS.md)).
 
 **14. How much does a rig cost per frame?**
-In a debug build the `biped` example had a median of 64.5 ms per frame in the `ci` perf check. A cloth bake of a small flag took 0.43 s. Measure your own project with `armatura stats` and `armatura ci`; rigs differ a lot.
+In a debug build the `biped` example had a median of 64.5 ms per frame in the `ci` perf check. A cloth bake of a small flag took 0.43 s. Measure your own project with `osatura stats` and `osatura ci`; rigs differ a lot.
 
 **15. How can I make a heavy project lighter?**
 Use `lod` to make cheaper variants, `export-fit` to find the export settings that meet a byte budget, and `proxy-bench` to compare proxies. See [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md) and [EXPORT_FORMATS.md](EXPORT_FORMATS.md). `export-fit` can stop early with `--max-seconds` and then reports it ran out of time.
 
 **16. A script with thousands of calls fails. Why?**
-`armatura script` accepts at most 5000 requests per run and is all-or-nothing: if any request is rejected nothing is written. Split a big job into several scripts that read the previous output.
+`osatura script` accepts at most 5000 requests per run and is all-or-nothing: if any request is rejected nothing is written. Split a big job into several scripts that read the previous output.
 
 ---
 
@@ -89,22 +89,22 @@ Run `lint`. `make-loop` removes travel entirely: in a test a rolling ball became
 *This is a plain-language summary of [LICENSING.md](../LICENSING.md), not legal advice. A lawyer's review of the licensing set-up is still outstanding.*
 
 **21. What licences apply?**
-MPL-2.0 for the core library, C ABI, WASM and GPU crates; AGPL-3.0-or-later for the command-line program and the studio (`armatura-cli`); CC-BY-4.0 for the documentation and for the synthetic example assets and models.
+MPL-2.0 for the core library, C ABI, WASM and GPU crates; AGPL-3.0-or-later for the command-line program and the studio (`osatura-cli`); CC-BY-4.0 for the documentation and for the synthetic example assets and models.
 
 **22. Who owns the animations and renders I make?**
-You do. The project statement is that projects, animations and renders you create with ARMATURA belong entirely to you; the licences apply to the software, not to its output. Exporting a GIF or running a command triggers no obligation.
+You do. The project statement is that projects, animations and renders you create with OSATURA belong entirely to you; the licences apply to the software, not to its output. Exporting a GIF or running a command triggers no obligation.
 
 **23. Can I use the output commercially?**
 Yes, under the statement above. The exception is anything you copy from the example assets: those are CC-BY-4.0 and need attribution.
 
 **24. Do I have to publish my projects if I use the AGPL parts?**
-No. The AGPL covers the program. If you run a modified `armatura-cli` or studio so that other people use it over a network, you must offer them its source. The studio does this with a `/source` page and a `--source-url` flag that points to your copy.
+No. The AGPL covers the program. If you run a modified `osatura-cli` or studio so that other people use it over a network, you must offer them its source. The studio does this with a `/source` page and a `--source-url` flag that points to your copy.
 
 **25. Can I link the core library into a closed-source application?**
 The core is MPL-2.0, which is file-level copyleft: you may use it from closed code and must share changes to the MPL-covered files themselves. The CLI and studio are AGPL and are a different matter.
 
-**26. May I say my tool "works with ARMATURA"?**
-Yes: "compatible with ARMATURA" and "made with ARMATURA" are allowed. A modified build must not be distributed under the same name ([TRADEMARK.md](../TRADEMARK.md)).
+**26. May I say my tool "works with OSATURA"?**
+Yes: "compatible with OSATURA" and "made with OSATURA" are allowed. A modified build must not be distributed under the same name ([TRADEMARK.md](../TRADEMARK.md)).
 
 **27. Can I dual-license my contribution?**
 There is no contributor licence agreement. Contributions are accepted under the project licence with a DCO sign-off (`git commit -s`), so there is no owner who could relicense them. Details in [CONTRIBUTING.md](../CONTRIBUTING.md).
@@ -123,7 +123,7 @@ See [PATENT_NOTES.md](PATENT_NOTES.md). It is engineering notes, not a legal opi
 Writes are atomic: the result goes into a temporary file in the same directory, is synced, and is renamed over the target, so a crash leaves the old file. Editing commands re-validate the project they are about to write and refuse to write an invalid one (`output would be invalid: ...`). The `script` command applies nothing if any request fails.
 
 **31. Is it safe to open a project from someone else?**
-Reasonably, but not unconditionally. A project is data, not code; the one external program ARMATURA starts is ffmpeg, for the formats listed in question 8. The loader refuses devices, pipes and directories, caps the input size, and refuses absolute or `..` asset paths. Rhai scripts run in a sandbox. Still read [SECURITY.md](SECURITY.md) before processing untrusted files in a service.
+Reasonably, but not unconditionally. A project is data, not code; the one external program OSATURA starts is ffmpeg, for the formats listed in question 8. The loader refuses devices, pipes and directories, caps the input size, and refuses absolute or `..` asset paths. Rhai scripts run in a sandbox. Still read [SECURITY.md](SECURITY.md) before processing untrusted files in a service.
 
 **32. Where does a project look for sounds and images?**
 Relative to the folder of the project file. Absolute paths and any path with `..` are refused unless you pass `--allow-external-assets`, and you must pass it again on every later command that loads that project. Example from the reference:
@@ -149,7 +149,7 @@ No: `warning: unknown field bogus (ignored)` is printed and the exit status is 0
 For commands that read a project and write a picture, video or other non-project file, the output name may not be the input name. The message is `refusing to overwrite the input project X with output of the same name`. It prevents the classic slip of exporting over your only copy of the project.
 
 **38. Then why can `script` and `autorig` write over their own input?**
-The guard covers non-project outputs. Commands that read a project and write a project (`script`, `autorig`, `loop-solve` and others) may name the same file for input and output; the write is atomic, and if the command fails nothing changes. If you want the original kept, give a new name, or use `armatura vcs` to keep history ([CI.md](CI.md) and [CLI_REFERENCE.md](CLI_REFERENCE.md)).
+The guard covers non-project outputs. Commands that read a project and write a project (`script`, `autorig`, `loop-solve` and others) may name the same file for input and output; the write is atomic, and if the command fails nothing changes. If you want the original kept, give a new name, or use `osatura vcs` to keep history ([CI.md](CI.md) and [CLI_REFERENCE.md](CLI_REFERENCE.md)).
 
 **39. Why does `render` refuse `out.jpg`?**
 `render` writes `.png` or `.svg` only: `render writes .png or .svg; 'out.jpg' has another extension (nothing was written)`. For other formats use `export`; the list is in [EXPORT_FORMATS.md](EXPORT_FORMATS.md).
@@ -190,7 +190,7 @@ Edit the layer's `layer_x` and `layer_y` channels. In the studio, turn on auto-k
 ## Studio
 
 **49. How do I open the studio?**
-`armatura studio project.json` and open the address it prints, normally `http://127.0.0.1:<port>`. It is a single-page app served by ARMATURA's own small HTTP server (standard library only); it needs no internet.
+`osatura studio project.json` and open the address it prints, normally `http://127.0.0.1:<port>`. It is a single-page app served by OSATURA's own small HTTP server (standard library only); it needs no internet.
 
 **50. Does the studio change my file while I work?**
 No. The file on disk changes only when you press Save. Closing the page without saving loses the edits (the collaboration log, if enabled, keeps the whole project, but not undo history).
@@ -211,7 +211,7 @@ It was tested only in headless Chromium. Others are untested. There is no canvas
 
 ## Face, speech and motion capture
 
-**55. Does ARMATURA track faces?**
+**55. Does OSATURA track faces?**
 There is a small built-in detector, trained on synthetic faces only. On 50 synthetic test scenes (seed 9) it found every face, with a mean landmark error of 0.028 of the face size, and it raised 2 false alarms in 50 scenes without a face. On cartoon-style drawings it did poorly: 0 of 6 boxy-robot faces were found, and the round-emoji and manga-oval cases had errors of 0.164 and 0.166. It has never been run on real photographs or a real webcam. Note that [LIMITATIONS.md](LIMITATIONS.md) L-13 and the studio's webcam panel text say no face detector is bundled; that is out of date with respect to this synthetic one.
 
 **56. How does lip-sync work?**
@@ -225,7 +225,7 @@ Mouth cues choose between five shapes (rest, small, open, round, wide). A cue ti
 ## Bugs, security and contributing
 
 **58. How do I report a bug?**
-Open an issue with the command line, the exact output (stderr too), the exit status, the build (`armatura --version`) and, if you can, a minimal project. Run `armatura check project.json` and `armatura lint project.json` first: many problems are reported there. See [CONTRIBUTING.md](../CONTRIBUTING.md).
+Open an issue with the command line, the exact output (stderr too), the exit status, the build (`osatura --version`) and, if you can, a minimal project. Run `osatura check project.json` and `osatura lint project.json` first: many problems are reported there. See [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 **59. How do I report a security problem?**
 Privately, not in a public issue; see [SECURITY.md](SECURITY.md). The address in the repository is `alexio@trom.tf`; that is the same address as the maintainer contact and has not been replaced by a security-team mailbox.
@@ -234,7 +234,7 @@ Privately, not in a public issue; see [SECURITY.md](SECURITY.md). The address in
 No. The documents name one maintainer contact; the first release is still a draft pre-release.
 
 **61. How do I contribute?**
-Sign off each commit (`git commit -s`), keep the tests passing (`cargo test`, and `armatura ci` for animation work) and read [DEVELOPMENT.md](DEVELOPMENT.md). Documentation is CC-BY-4.0 and welcomes corrections, especially where a page and the program disagree.
+Sign off each commit (`git commit -s`), keep the tests passing (`cargo test`, and `osatura ci` for animation work) and read [DEVELOPMENT.md](DEVELOPMENT.md). Documentation is CC-BY-4.0 and welcomes corrections, especially where a page and the program disagree.
 
 ---
 
@@ -244,31 +244,31 @@ Sign off each commit (`git commit -s`), keep the tests passing (`cargo test`, an
 It has been built and tested by one project in one environment. Anything not listed as run is "not tested". Read [LIMITATIONS.md](LIMITATIONS.md); it has ids you can quote in issues.
 
 **63. Which export formats need care?**
-Video needs ffmpeg. Lottie and glTF cover a subset of what ARMATURA can draw and animate, so check what is lost in [EXPORT_FORMATS.md](EXPORT_FORMATS.md). The `export` error for an unknown extension lists `.gif .html .json .mp4 .apng .webm .png .glb`, which omits `.lottie`; `.lottie` (dotLottie) is a valid target, see [EXPORT_FORMATS.md](EXPORT_FORMATS.md), section 6.
+Video needs ffmpeg. Lottie and glTF cover a subset of what OSATURA can draw and animate, so check what is lost in [EXPORT_FORMATS.md](EXPORT_FORMATS.md). The `export` error for an unknown extension lists `.gif .html .json .mp4 .apng .webm .png .glb`, which omits `.lottie`; `.lottie` (dotLottie) is a valid target, see [EXPORT_FORMATS.md](EXPORT_FORMATS.md), section 6.
 
 **64. Is the WASM build usable?**
-It builds for `wasm32-unknown-unknown` on GitHub Actions and the wrapper's test passes against the real module under Node 20, and it is attached to the draft release as `armatura-web.tar.gz`. It has not been run in a browser, and its speed and memory are unmeasured ([WASM.md](WASM.md), [LIMITATIONS.md](LIMITATIONS.md)). Treat it as partly verified.
+It builds for `wasm32-unknown-unknown` on GitHub Actions and the wrapper's test passes against the real module under Node 20, and it is attached to the draft release as `osatura-web.tar.gz`. It has not been run in a browser, and its speed and memory are unmeasured ([WASM.md](WASM.md), [LIMITATIONS.md](LIMITATIONS.md)). Treat it as partly verified.
 
 **65. Does it import other tools' project files?**
 It imports SVG, OpenRaster, Lottie JSON, images, GIF/APNG, BVH motion capture and MIDI ([EXPORT_FORMATS.md](EXPORT_FORMATS.md), sections 9 and 10). It does not import PSD, `.lottie` zip files or OCA folders. Imports create a new project. Note that `import-lottie in.json in.json` has no overwrite guard and replaces its input. Do not expect an imported file to match the original pixel for pixel.
 
 **66. Is the project JSON stable?**
-It is "format 1". A newer file is refused: `project format 2 is newer than this build supports (1); update ARMATURA`. Since only an alpha pre-release exists, format 1 itself may still change before a stable release; see [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
+It is "format 1". A newer file is refused: `project format 2 is newer than this build supports (1); update OSATURA`. Since only an alpha pre-release exists, format 1 itself may still change before a stable release; see [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
 
 ---
 
 ## Comparisons with other tools
 
 **67. How does it differ from a timeline-based desktop animation editor?**
-Those are interactive, drawing-first programs. ARMATURA is command-first: every operation is a command or a script, the project is diffable JSON, and renders are deterministic so they can be tested in CI. The studio is a thin web view over the same engine, and it is far less polished than a mature editor.
+Those are interactive, drawing-first programs. OSATURA is command-first: every operation is a command or a script, the project is diffable JSON, and renders are deterministic so they can be tested in CI. The studio is a thin web view over the same engine, and it is far less polished than a mature editor.
 
 **68. How does it differ from a 2D skeletal animation tool for games?**
-Those tools focus on meshes, skins and runtime libraries for specific game engines. ARMATURA has bones, IK, constraints and meshes too, but a smaller runtime story: its own player in HTML, a C ABI and a WASM crate that is unbuilt. Choose by the runtime you must target.
+Those tools focus on meshes, skins and runtime libraries for specific game engines. OSATURA has bones, IK, constraints and meshes too, but a smaller runtime story: its own player in HTML, a C ABI and a WASM crate that is unbuilt. Choose by the runtime you must target.
 
 **69. How does it differ from a motion-graphics compositor?**
-A compositor is built around layers with effects and expressions on video footage. ARMATURA has layer effects and expressions, but its centre is character rigging and vector art, and it does not do video compositing, 3D or colour grading of footage.
+A compositor is built around layers with effects and expressions on video footage. OSATURA has layer effects and expressions, but its centre is character rigging and vector art, and it does not do video compositing, 3D or colour grading of footage.
 
-**70. When is ARMATURA the wrong choice?**
+**70. When is OSATURA the wrong choice?**
 When you need real-time performance on a GPU today, a polished drawing tablet workflow, frame-by-frame hand-drawn animation, a vendor-supported product with a stable release and support, or confirmed behaviour outside Linux x86-64.
 
 ---
@@ -280,13 +280,13 @@ Every message below was produced by a real build and ends with exit status 1 unl
 | Message | Cause | Fix |
 |---|---|---|
 | `cannot read nope.json: No such file or directory (os error 2)` | Wrong path or name | Check the path and the current directory |
-| `invalid JSON in broken.json: EOF while parsing a value at line 2 column 0` | The file is not complete JSON | Fix the syntax at the line named; restore from backup or `armatura vcs` |
+| `invalid JSON in broken.json: EOF while parsing a value at line 2 column 0` | The file is not complete JSON | Fix the syntax at the line named; restore from backup or `osatura vcs` |
 | `badparent.json is not a valid project:` then `bone 'a' has parent 'ghost' which is missing or listed after it` | A parent bone is missing or listed after its child | Define parents before children; fix the name |
-| `invalid JSON in fmt2.json: project format 2 is newer than this build supports (1); update ARMATURA` | File from a newer build | Use a newer build |
+| `invalid JSON in fmt2.json: project format 2 is newer than this build supports (1); update OSATURA` | File from a newer build | Use a newer build |
 | `warning: unknown field bogus (ignored)` (exit 0) | A key this build does not know | Remove or fix the key; check for a typo |
 | `refusing to overwrite the input project X with output of the same name` | Output file name equals the input | Choose a different output name |
 | `render writes .png or .svg; 'out.jpg' has another extension (nothing was written)` | Wrong extension for `render` | Use `.png`/`.svg`, or `export` for other formats |
-| `unknown option --bone for 'render' (did you mean --bones?); see: armatura (no arguments) for the usage` | Misspelt option | Use the suggested option |
+| `unknown option --bone for 'render' (did you mean --bones?); see: osatura (no arguments) for the usage` | Misspelt option | Use the suggested option |
 | `unknown export format '.bmp' (use .gif .html .json .mp4 .apng .webm .png .glb)` | Extension not exportable | Pick a listed format (`.lottie` is also valid) |
 | `--scale needs a number in (0, 16]` | Scale out of range | Use a value above 0 and up to 16 |
 | `bad frame number 'x'` | A frame argument is not a whole number | Pass an integer |
@@ -318,12 +318,12 @@ Every message below was produced by a real build and ends with exit status 1 unl
 | `budget not met: the smallest export found is 14952 bytes (raw), above the budget of 8000 bytes ...` | `export-fit` cannot reach the budget | Raise the budget or simplify the project (the smallest file is still written) |
 | `time budget exhausted (60 s ...)` | `export-fit` ran out of time | Raise `--max-seconds` |
 | `fuzz: failure rate 98.00% exceeds --max-fail-rate 50.00%` | Poses broke the rig, and you asked for a gate (`--gate` or `--max-fail-rate`) | Look at the failing cases; raise the rate only if intended; plain `fuzz` only reports (exit 0) |
-| `no .armatura-vcs repository found from ... (run: armatura vcs init <project.json>)` | No history yet | Run `vcs init` |
+| `no .osatura-vcs repository found from ... (run: osatura vcs init <project.json>)` | No history yet | Run `vcs init` |
 | `frame 999 out of range` (studio API) | Frame beyond the project | Use a frame within 0 to the last frame |
 | `bad kind 'x' (vector, raster, png)` (studio API) | Wrong kind | Use a listed kind |
 | `nothing selected` (studio API) | A selection command with no selection | Select layers or bones first |
 
-Exit codes for `armatura ci` are 0 pass, 1 fail, 2 error.
+Exit codes for `osatura ci` are 0 pass, 1 fail, 2 error.
 
 ---
 

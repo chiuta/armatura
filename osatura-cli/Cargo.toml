@@ -1,0 +1,28 @@
+[package]
+name = "osatura-cli"
+version = "0.1.0"
+edition = "2021"
+description = "OSATURA command-line tools and web studio (independently implemented; AGPL-3.0-or-later)"
+license = "AGPL-3.0-or-later"
+
+[[bin]]
+name = "osatura"
+path = "src/main.rs"
+
+[dependencies]
+osatura-core = { path = "../osatura-core", default-features = false }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+serde = "1"
+tiny-skia = "0.12"
+osatura-gpu = { path = "../osatura-gpu", optional = true }
+
+[features]
+default = ["scripting"]
+# Rhai scripting command (pulls the MPL-2.0+ crate smartstring). `--no-default-features` builds without it.
+scripting = ["osatura-core/scripting"]
+# Optional wgpu renderer (command render-gpu). Off by default so normal builds stay small and fast.
+gpu = ["dep:osatura-gpu"]
+
+[dev-dependencies]
+# Only used by tests/e2e.rs to write and decode PNG files; already a dependency of osatura-core.
+png = "0.18"

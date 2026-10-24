@@ -1,8 +1,8 @@
-# ARMATURA rigging guide
+# OSATURA rigging guide
 
 This guide covers everything that makes a drawing move: bones, constraints, inverse kinematics,
 skinning, deformers, physics, auto-rigging, mirroring, view swapping, face rigs and camera work.
-Every example was run against the real binary (`armatura 0.1.0`, debug build, Linux) and the numbers
+Every example was run against the real binary (`osatura 0.1.0`, debug build, Linux) and the numbers
 quoted are the numbers it printed. If you have not built a first project yet, do
 [GETTING_STARTED.md](GETTING_STARTED.md) first. Flags of every command are in
 [CLI_REFERENCE.md](CLI_REFERENCE.md); the file format is in [PROJECT_FORMAT.md](PROJECT_FORMAT.md).
@@ -17,19 +17,19 @@ Licence of this document: CC-BY-4.0.
 ## 1. Two ways to edit a rig
 
 * **Commands and `script`.** Most rig edits have a command (`autorig`, `cage`, `physics`, `skin`...) or
-  a Rhai function in `armatura script` (`add_bone`, `add_ik`, `add_aim`, `add_copy_rotation`, `add_pin`,
+  a Rhai function in `osatura script` (`add_bone`, `add_ik`, `add_aim`, `add_copy_rotation`, `add_pin`,
   `set_layer`, `set_bone`, `set_parent`, `delete_bone`...). A script is all-or-nothing: if any request is
   rejected nothing is written. A script may contain at most 5000 requests.
 * **JSON.** A few things have no command or script setter: IK `soft` and `stretch`, springs, vector
   deformers (lattice, spine, pin) and per-anchor skin weights. Edit the project JSON (any editor, a
-  Python script, or the studio's JSON panel) and run `armatura check` afterwards.
+  Python script, or the studio's JSON panel) and run `osatura check` afterwards.
 
 `check`, `lint`, `explain` and `render --bones` are the four commands you will use constantly while rigging.
 `explain` is the most valuable: it lists, in order, every rest value, channel, constraint and IK
 contribution that produced one bone's final transform, so you never have to guess why something is where it is.
 
 ```
-$ armatura explain con1.json b3 0
+$ osatura explain con1.json b3 0
 - bone 'b3' (length 80), parent 'b2'
 - ancestry: b3 ← b2 ← b1
 - rest pose: offset (80.00, 0.00), angle 0.00°
@@ -102,7 +102,7 @@ Angle limits are bone properties (`set_bone(name, "angle_min", -20); set_bone(na
 They clamp the **animated** rotation: key `b1` to 60 degrees and it is held at 20:
 
 ```
-$ armatura explain l2.json b1 12
+$ osatura explain l2.json b1 12
 - channel #0 BoneAngle: keys → 60.000 (2 key(s), Hold outside range); mode replace, weight 1.00
 - angle limits: animated rotation is clamped to [-20, 20]°
 - result at frame 12: head (60.0, 150.0), tip (135.2, 177.4), world angle 20.0°
@@ -147,7 +147,7 @@ d = json.load(open('03-ik.json'))        # the Buddy project of GETTING_STARTED.
 d['ik'][0]['soft'] = 0.5                 # or: d['ik'][0]['stretch'] = 1.5
 json.dump(d, open('ik_soft.json', 'w'))
 EOF
-armatura check ik_soft.json
+osatura check ik_soft.json
 ```
 
 On the Buddy arm (reach 80 from the shoulder at (160,140)) with the goal at (250,140), 90 away:
@@ -174,7 +174,7 @@ about the sampled range, not a bug.
 
 ## 5. Skinning
 
-ARMATURA has four skinning mechanisms; pick by the kind of art you have.
+OSATURA has four skinning mechanisms; pick by the kind of art you have.
 
 ### 5.1 Vector anchors with weights (JSON)
 
@@ -205,7 +205,7 @@ d["channels"] = [{"target":"b2","prop":"bone_angle","source":"keys","track":{"ke
     {"frame":0,"value":0,"ease":ease},{"frame":12,"value":50,"ease":ease},{"frame":24,"value":0,"ease":ease}]}}]
 json.dump(d, open('lab.json','w'), indent=1)
 EOF
-armatura check lab.json && armatura render lab.json 12 lab12.png --bones
+osatura check lab.json && osatura render lab.json 12 lab12.png --bones
 ```
 ```
 ok: 'Lab' 400×300 @ 24 fps, 24 frames, 3 bones, 0 ik, 1 layers, 1 channels
@@ -227,7 +227,7 @@ its corners. Subdivide the shape (add anchors along the edges) before skinning o
 For raster art, trace the alpha silhouette into a triangle mesh, then compute weights by heat diffusion:
 
 ```
-armatura mesh-trace flag.json flag_m.json flag density=12
+osatura mesh-trace flag.json flag_m.json flag density=12
 ```
 ```
 wrote flag_m.json: 369 vertices (178 on the outline), 558 triangles, area 17237 px2
@@ -235,7 +235,7 @@ wrote flag_m.json: 369 vertices (178 on the outline), 558 triangles, area 17237 
 ok: ...
 ```
 ```
-armatura skin-diffuse flag_m.json flag flag_s.json --influences 4
+osatura skin-diffuse flag_m.json flag flag_s.json --influences 4
 ```
 
 `skin-diffuse <project> <layer> <out> [--influences N]` assigns each mesh vertex up to N bone weights. It
@@ -260,13 +260,13 @@ set_layer("hat_red", "bone", "neck");
 set_layer("hat_blue", "bone", "neck");
 set_layer("tail_shape", "bone", "tail");
 EOF
-armatura script blob.json k0.json hats.rhai
-armatura skin k0.json k1.json add hat red hat_red
-armatura skin k1.json k2.json add hat blue hat_blue
-armatura skin k2.json k3.json bones hat red tail        # the tail exists only with the red hat
-armatura skin k3.json k4.json apply hat blue            # show blue, hide red
-armatura skin k4.json k5.json schedule hat 0:red,12:blue
-armatura check k5.json
+osatura script blob.json k0.json hats.rhai
+osatura skin k0.json k1.json add hat red hat_red
+osatura skin k1.json k2.json add hat blue hat_blue
+osatura skin k2.json k3.json bones hat red tail        # the tail exists only with the red hat
+osatura skin k3.json k4.json apply hat blue            # show blue, hide red
+osatura skin k4.json k5.json schedule hat 0:red,12:blue
+osatura check k5.json
 ```
 
 `apply` shows one skin and hides the others of the same group. `schedule` animates the choice with **step keys
@@ -298,9 +298,9 @@ mesh's vertices. **If a shape has too few anchors it will barely deform: subdivi
 ### Cage (mean-value coordinates)
 
 ```
-$ armatura cage lab0.json c1.json strip auto verts=3 pad=10
+$ osatura cage lab0.json c1.json strip auto verts=3 pad=10
 added cage 'cage' (12 vertices) to 'strip'; wrote c1.json
-$ armatura cage-pose c1.json c2.json strip 12 move=1:0,-40 ease=ease_in_out
+$ osatura cage-pose c1.json c2.json strip 12 move=1:0,-40 ease=ease_in_out
 keyed cage 'cage' on 'strip' at frame 12; wrote c2.json
 ```
 
@@ -336,10 +336,10 @@ deformer alone.
 ### Warping a selection: `warp-pivot`, `soft-scale`, `layer-pivot`
 
 ```
-armatura warp-pivot c1.json w1.json strip 12 deformer=cage verts=1-2 rotate=25 pivot=centroid radius=60 falloff=smooth ease=ease_in_out
-armatura soft-scale c1.json w2.json strip 12 deformer=cage scale=1.5
-armatura soft-scale c1.json w3.json strip 12 height=60 aspect=free
-armatura layer-pivot lab0.json w4.json strip pivot=60,150
+osatura warp-pivot c1.json w1.json strip 12 deformer=cage verts=1-2 rotate=25 pivot=centroid radius=60 falloff=smooth ease=ease_in_out
+osatura soft-scale c1.json w2.json strip 12 deformer=cage scale=1.5
+osatura soft-scale c1.json w3.json strip 12 height=60 aspect=free
+osatura layer-pivot lab0.json w4.json strip pivot=60,150
 ```
 
 `warp-pivot` rotates, scales or moves a selection of control points (cage, lattice, cloth, pin, spine, or a
@@ -363,7 +363,7 @@ Cloth needs a **grid** mesh. A traced free-form mesh is refused:
 `cloth needs a grid mesh; the layer has a free-form (traced) mesh`. Ask for a grid with `cols=` and `rows=`:
 
 ```
-$ armatura cloth flag.json flag_c.json flag pin=top gravity=900 wind=140,0 gust=0.5 cols=8 rows=10 from=0 to=35
+$ osatura cloth flag.json flag_c.json flag pin=top gravity=900 wind=140,0 gust=0.5 cols=8 rows=10 from=0 to=35
 baked cloth on 'flag' (180 channels); wrote flag_c.json
 ```
 
@@ -379,10 +379,10 @@ and you may see faint triangle seams in a PNG render at high zoom.
 `physics` simulates a chain of bones (gravity, wind, collisions) and bakes the result to ordinary bone-angle keys.
 
 ```
-armatura physics lab0.json ph1.json b2,b3 preset=tail gravity=600 --allow-empty
-armatura physics lab0.json ph2.json b2,b3 preset=hair circle=200,230,30
-armatura physics lab0.json ph3.json b2,b3 gravity=600 capsule=150,200,250,220,15 wind=40,0 gust=0.5
-armatura physics lab.json  ph4.json b2,b3 gravity=300 drive=b1:0.5 vortex=b1:0.8:0.2:120
+osatura physics lab0.json ph1.json b2,b3 preset=tail gravity=600 --allow-empty
+osatura physics lab0.json ph2.json b2,b3 preset=hair circle=200,230,30
+osatura physics lab0.json ph3.json b2,b3 gravity=600 capsule=150,200,250,220,15 wind=40,0 gust=0.5
+osatura physics lab.json  ph4.json b2,b3 gravity=300 drive=b1:0.5 vortex=b1:0.8:0.2:120
 ```
 
 * `preset=` is one of `hair`, `tail`, `rope`, `antenna`, `cape`.
@@ -408,7 +408,7 @@ A `Spring` adds a damped follow-through to a bone at evaluation time, with nothi
 To match a feel you drew, fit it:
 
 ```
-$ armatura spring-fit --start 0 --samples 0.3,0.7,1.1,1.2,1.05,0.95,1.0,1.02 --fps 24
+$ osatura spring-fit --start 0 --samples 0.3,0.7,1.1,1.2,1.05,0.95,1.0,1.02 --fps 24
 frequency 3.36 Hz, damping 0.52 (rms error 0.055 of the step size)
 add to the project: {"bone": "<bone>", "frequency": 3.36, "damping": 0.52}
 ```
@@ -418,11 +418,11 @@ equivalent; `export --report` lists what was approximated.
 
 ## 8. Auto-rig, tagging and `coach`
 
-Name your bones and layers with standard words (`arm_upper_l`, `thigh_r`, `eye_l`, `mouth`) and ARMATURA can
+Name your bones and layers with standard words (`arm_upper_l`, `thigh_r`, `eye_l`, `mouth`) and OSATURA can
 recognise their roles:
 
 ```
-$ armatura tag biped.json | head -8
+$ osatura tag biped.json | head -8
 bone  hips                     -> hips           (90%)
 bone  torso                    -> torso          (80%)
 bone  head                     -> head           (90%)
@@ -435,7 +435,7 @@ no bone found for: neck, face.eye.l, face.eye.r, face.brow.l, ...
 `autorig <in> <out> [seed]` then adds non-destructive automation from those roles:
 
 ```
-$ armatura autorig biped.json ar.json 7
+$ osatura autorig biped.json ar.json 7
 + IK arm_l -> arm_l_ctrl (mix 0, bend +1)
 + IK arm_r -> arm_r_ctrl (mix 0, bend +1)
 + IK leg_l -> leg_l_ctrl (mix 0, bend -1)
@@ -451,7 +451,7 @@ added is ordinary data: delete what you do not want. Missing parts are skipped w
 (`- arm_l: upper/lower bone not found`, `- breathing: no torso bone`, `- blink: no eye layers`) so read the report.
 
 **Pitfall.** `autorig` is a project-to-project command and the output may be the input. On a file you care about,
-write to a new name: `armatura autorig buddy.json buddy.json` replaces `buddy.json` (the write is atomic, but
+write to a new name: `osatura autorig buddy.json buddy.json` replaces `buddy.json` (the write is atomic, but
 there is no undo).
 
 `coach <project>` reads the animation and prints timing and principles suggestions; `lint` checks the rig
@@ -466,9 +466,9 @@ keys `0.0, 10.7, 19.8, 25.9` became the right thigh's `-0.0, -10.7, -19.8, -25.9
 kept its values. `diff` lists the six changed channels:
 
 ```
-$ armatura mirror walk.json mir.json
+$ osatura mirror walk.json mir.json
 wrote mir.json
-$ armatura diff walk.json mir.json
+$ osatura diff walk.json mir.json
 ~ channel 'arm_upper_l:BoneAngle' changed (track)
 ~ channel 'arm_upper_r:BoneAngle' changed (track)
 ...
@@ -489,8 +489,8 @@ property:
 cat > ctl.rhai <<'EOF'
 add_bone("view_ctrl", "", 10, 20, 20, 0);
 EOF
-armatura script biped.json v0.json ctl.rhai
-armatura view-swap v0.json v1.json mouth view_ctrl.bone_offset_x "-40:0,0:2,40:4"
+osatura script biped.json v0.json ctl.rhai
+osatura view-swap v0.json v1.json mouth view_ctrl.bone_offset_x "-40:0,0:2,40:4"
 ```
 
 Output channel: a `driven` channel `layer_switch` ← `view_ctrl.bone_offset_x` with a step curve (child 0 below 0,
@@ -501,7 +501,7 @@ must be a switch (`child index 5 is out of range (the layer has 3)`).
 `offset_x` blends between stored poses:
 
 ```
-$ armatura slider biped.json sl.json look "0:head.bone_angle=0;24:head.bone_angle=15"
+$ osatura slider biped.json sl.json look "0:head.bone_angle=0;24:head.bone_angle=15"
 controller bone: ctrl_look (animate its offset_x)
 ```
 
@@ -510,7 +510,7 @@ controller bone: ctrl_look (animate its offset_x)
 To pass an object from one hand to another (or to pick up a prop) without a pop:
 
 ```
-$ armatura parent-switch biped.json ps.json arm_upper_r 0:torso,12:head
+$ osatura parent-switch biped.json ps.json arm_upper_r 0:torso,12:head
 wrote ps.json
 ```
 
@@ -536,7 +536,7 @@ eye. `autorig` runs it. On a rig with no iris/pupil layers it writes the file un
 `layer_scale_y` on the eye layer:
 
 ```
-$ armatura idle blink p1.json i1.json --target eye_l --prop layer_scale_y --interval 2 --seed 4 --closed 0.1
+$ osatura idle blink p1.json i1.json --target eye_l --prop layer_scale_y --interval 2 --seed 4 --closed 0.1
 wrote i1.json
 ```
 
@@ -562,12 +562,12 @@ covered, with honest accuracy figures, in the [face tracking section of the anim
 Verified on the walking biped:
 
 ```
-armatura shot walk.json sh1.json wide 200 180 1          # name x y zoom
-armatura shot sh1.json sh2.json close 200 100 2.2
-armatura camera-seq sh2.json sh3.json 0:wide,12:close,23:wide
-armatura parallax sh3.json px.json sky,ground 0.2 1.0
-armatura dof px.json 12 dof.png --focus 1.0 --strength 10
-armatura dof-export px.json dof.gif --from 0 --to 11 --scale 0.5     # 80 KB
+osatura shot walk.json sh1.json wide 200 180 1          # name x y zoom
+osatura shot sh1.json sh2.json close 200 100 2.2
+osatura camera-seq sh2.json sh3.json 0:wide,12:close,23:wide
+osatura parallax sh3.json px.json sky,ground 0.2 1.0
+osatura dof px.json 12 dof.png --focus 1.0 --strength 10
+osatura dof-export px.json dof.gif --from 0 --to 11 --scale 0.5     # 80 KB
 ```
 
 Layer effects (blur, drop shadow, tint, fill, outline, posterize...) can be per layer or applied as a chain: see the

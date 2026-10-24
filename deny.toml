@@ -1,8 +1,8 @@
 # cargo-deny configuration. Run: scripts/licence-audit.sh  (or: cargo deny --all-features check)
-# Not legal advice. This file only polices third-party dependencies; the workspace crates themselves are MPL-2.0 (libraries) and AGPL-3.0-or-later (armatura-cli).
+# Not legal advice. This file only polices third-party dependencies; the workspace crates themselves are MPL-2.0 (libraries) and AGPL-3.0-or-later (osatura-cli).
 [graph]
 all-features = true
-# The window toolkit (wry / tao) is only a dependency on Windows and macOS (see armatura-gui/Cargo.toml); its Linux-only
+# The window toolkit (wry / tao) is only a dependency on Windows and macOS (see osatura-gui/Cargo.toml); its Linux-only
 # GTK dependencies are therefore not part of what ships. Judge the three platforms that are built.
 targets = ["x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc", "aarch64-apple-darwin"]
 
@@ -15,14 +15,14 @@ allow = [
   "CC0-1.0", "Unicode-3.0", "Unicode-DFS-2016",
 ]
 # Weak copyleft that is accepted ONLY for the named crate (file-level copyleft, MPL-2.0).
-# smartstring comes in through rhai, which is behind the `scripting` feature of armatura-core (on by default; `--no-default-features` builds without it).
+# smartstring comes in through rhai, which is behind the `scripting` feature of osatura-core (on by default; `--no-default-features` builds without it).
 exceptions = [
-  { allow = ["MPL-2.0"], crate = "armatura-core" },
-  { allow = ["MPL-2.0"], crate = "armatura-capi" },
-  { allow = ["MPL-2.0"], crate = "armatura-wasm" },
-  { allow = ["MPL-2.0"], crate = "armatura-gpu" },
-  { allow = ["AGPL-3.0-or-later"], crate = "armatura-cli" },
-  { allow = ["AGPL-3.0-or-later"], crate = "armatura-gui" },
+  { allow = ["MPL-2.0"], crate = "osatura-core" },
+  { allow = ["MPL-2.0"], crate = "osatura-capi" },
+  { allow = ["MPL-2.0"], crate = "osatura-wasm" },
+  { allow = ["MPL-2.0"], crate = "osatura-gpu" },
+  { allow = ["AGPL-3.0-or-later"], crate = "osatura-cli" },
+  { allow = ["AGPL-3.0-or-later"], crate = "osatura-gui" },
   # MPL-2.0 (file-level copyleft, compatible with AGPL-3.0-or-later), pulled in by the window app's `dirs` dependency.
   { allow = ["MPL-2.0"], crate = "option-ext" },
   # `smartstring` (via the scripting engine rhai) is licensed MPL-2.0+.

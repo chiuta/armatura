@@ -7,7 +7,7 @@
 ## 1. Before publishing anything
 
 - [ ] **[blocker]** Confirm or replace the security contact (`alexio@trom.tf` is a placeholder in `docs/SECURITY.md`, `--version` and the licence documents).
-- [ ] **[blocker]** Search the name "ARMATURA" in the trademark registers you care about (EUIPO, USPTO, OSIM) and in app stores / package registries. See `TRADEMARK.md`. If it clashes, rename before the first release (the name appears in the binary, crates, docs).
+- [ ] **[blocker]** Search the name "OSATURA" in the trademark registers you care about (EUIPO, USPTO, OSIM) and in app stores / package registries. See `TRADEMARK.md`. If it clashes, rename before the first release (the name appears in the binary, crates, docs).
 - [ ] **[blocker]** Ask a lawyer to review `LICENSING.md`, the MPL-2.0 / AGPL-3.0 split, `docs/THIRD_PARTY.md` and `docs/PATENT_NOTES.md`. Decide whether you want dual licensing; if yes, a CLA is needed *before* accepting outside contributions (today: DCO only).
 - [ ] Check the terms of the Graphics Gems curve-fitting reference (quoted from memory in `CLEANROOM.md`); keep the independent-implementation wording only if it is accurate.
 - [x] `reuse lint` and `cargo deny check` pass in CI (the `licences` job); run them once on your machine too.
@@ -30,7 +30,7 @@
 
 - [ ] Give the studio to 3 to 5 animators for a week with a short task (rig a character, make a walk cycle, export a GIF). Record where they stall; file each as an issue.
 - [ ] Test on real browsers (Chrome, Firefox, Safari), a touch device and a keyboard-only session.
-- [ ] On a real **Windows 11** and a real **Mac**: unpack the archive, double-click `armatura.exe` (Windows) and `armatura-studio`, rig and export one project, and report what fails (L-74 to L-76).
+- [ ] On a real **Windows 11** and a real **Mac**: unpack the archive, double-click `osatura.exe` (Windows) and `osatura-studio`, rig and export one project, and report what fails (L-74 to L-76).
 - [ ] Try the face detector / mocap / voice features with real data; report honestly that they are limited (L-12, L-13).
 
 ## 5. Deployment safety (if you host the studio or collaboration)

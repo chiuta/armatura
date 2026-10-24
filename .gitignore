@@ -3,6 +3,6 @@ out/
 *.mp4
 *.log
 demo-ci.json
-armatura-wasm/armatura_wasm.wasm
+osatura-wasm/osatura_wasm.wasm
 *.plain
 __pycache__/

@@ -4,4 +4,4 @@ docs/THIRD_PARTY_NOTICES.md reproduces, verbatim, licence and notice files that
 the authors of third-party Rust crates ship with their packages. Each text keeps
 the licence of its own author (named in the heading above it in that file);
 none of it is covered by the CC-BY-4.0 that applies to the rest of the
-documentation, and none of it is written by the ARMATURA author.
+documentation, and none of it is written by the OSATURA author.

@@ -37,68 +37,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "armatura-capi"
-version = "0.1.0"
-dependencies = [
- "armatura-core",
-]
-
-[[package]]
-name = "armatura-cli"
-version = "0.1.0"
-dependencies = [
- "armatura-core",
- "armatura-gpu",
- "png",
- "serde",
- "serde_json",
- "tiny-skia",
-]
-
-[[package]]
-name = "armatura-core"
-version = "0.1.0"
-dependencies = [
- "flate2",
- "gif",
- "hound",
- "i_overlay",
- "jpeg-decoder",
- "png",
- "rhai",
- "serde",
- "serde_json",
- "tiny-skia",
- "zip",
-]
-
-[[package]]
-name = "armatura-gpu"
-version = "0.1.0"
-dependencies = [
- "armatura-core",
- "pollster",
- "tiny-skia",
- "wgpu",
-]
-
-[[package]]
-name = "armatura-gui"
-version = "0.1.0"
-dependencies = [
- "rfd",
- "tao",
- "wry",
-]
-
-[[package]]
-name = "armatura-wasm"
-version = "0.1.0"
-dependencies = [
- "armatura-core",
-]
-
-[[package]]
 name = "arrayref"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1922,6 +1860,68 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8c7c9e0d9b23589f26070720bac724174bfec1083e82f7854cdd0267518343c0"
 dependencies = [
  "num-traits",
+]
+
+[[package]]
+name = "osatura-capi"
+version = "0.1.0"
+dependencies = [
+ "osatura-core",
+]
+
+[[package]]
+name = "osatura-cli"
+version = "0.1.0"
+dependencies = [
+ "osatura-core",
+ "osatura-gpu",
+ "png",
+ "serde",
+ "serde_json",
+ "tiny-skia",
+]
+
+[[package]]
+name = "osatura-core"
+version = "0.1.0"
+dependencies = [
+ "flate2",
+ "gif",
+ "hound",
+ "i_overlay",
+ "jpeg-decoder",
+ "png",
+ "rhai",
+ "serde",
+ "serde_json",
+ "tiny-skia",
+ "zip",
+]
+
+[[package]]
+name = "osatura-gpu"
+version = "0.1.0"
+dependencies = [
+ "osatura-core",
+ "pollster",
+ "tiny-skia",
+ "wgpu",
+]
+
+[[package]]
+name = "osatura-gui"
+version = "0.1.0"
+dependencies = [
+ "rfd",
+ "tao",
+ "wry",
+]
+
+[[package]]
+name = "osatura-wasm"
+version = "0.1.0"
+dependencies = [
+ "osatura-core",
 ]
 
 [[package]]
