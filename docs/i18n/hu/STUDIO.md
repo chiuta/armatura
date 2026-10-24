@@ -109,7 +109,7 @@ Visszavonás, Újra, **Save**; jelölőnégyzetek: `bones` (a csontváz rajzolá
 `whole groups` (egy csoport egy részére kattintva a legfelső szintű csoportot jelöli ki), `points` (a kijelölt rétegek horgonyainak, fogantyúinak, cage/lattice/pin pontjainak és mesh-csúcsainak mutatása);
 egy `box` választó arra, mit jelöl ki a húzott doboz (`touches`, `contains`, `bounds touch`; alapértéke `touches`); **Lock**; valamint a **Overlays**, **Suggest**, **Layout**,
 **Commands** (paletta) és **Keys** (gyorsbillentyű-szerkesztő) gombok. A második sorban a neved és a **Collab** található, valamint az exportgombok: **GIF**, **HTML player** és **Lottie**,
-amelyek letöltik azt, amit az `osatura export` írna ki (a HTML-lejátszó tartalmazza a kevert hangot, ha van hang, és az `ffmpeg` elő tudja állítani az mp3-at).
+amelyek letöltik azt, amit az `osatura export` írna ki (a HTML-lejátszó tartalmazza a kevert hangot, ha van hang, és az `ffmpeg` elő tudja állítani az mp3-at). A **Simple view** gomb elrejti a szerkesztési jelölőnégyzeteket, az Overlays és a Suggest gombot, valamint a parancspaletta gombját, így csak a visszavonás, a mentés, a panelek és az exportok maradnak; a választást ez a böngésző (vagy ablak) megjegyzi, és a teljes eszköztár a **Full view** gombbal tér vissza.
 
 ### Panelek és elrendezések
 
@@ -196,6 +196,15 @@ sokaság, egy opcionális, általad tanított kis hálózat); néhány pózzal a
   (`window.osaturaLandmarkProvider`, lásd az oldal forrásában a megjegyzést); a videó soha nem hagyja el az oldalt, és csak a tereptárgypontok mennek a helyi szerverre.
   A két szintetikus mód kapásból működik. A *Synthetic face (detector)* a szerveren rendereli a szintetikus fejet, és a beépített detektorral találja meg újra,
   amelyet **csak szintetikus arcokon tanítottak** (stilizált fejek, nem fényképek); lásd az [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md) arcokról szóló szakaszát.
+
+### Vezetett demó
+
+A **Demo** gomb (`demo.panel` parancs) 13 lépéses vezetett demót nyit, amely felépíti az `osatura demo-person` sétáló személyét: díszlet, test, fej és arc, kezenként öt ujjal rendelkező karok, a váz, a lábak sétája, a karok lendítése, törzs és fej, pislogás és mosoly, a mozgó talaj, ellenőrzés és az export. Minden lépés egyetlen mindent-lecserélő művelettel tölti be a projekt adott állapotát a szerkesztőbe, így lejátszhatod, tekerheted, kijelölhetsz csontokat és rétegeket, és olvashatod az idővonalat. Az állapotok a kész projekt kivágásai; a panelben látható parancsokat és kimenetüket a valódi binárissal futtattuk.
+
+* **Semmi sem íródik lemezre.** A Mentés (és a Ctrl+S) le van tiltva, amíg a demó be van töltve. A stúdió egyetlen írási útvonalát, a `POST /api/save` hívást a demó soha nem hívja.
+* **A projekted visszajön.** A *Restore my project* visszaállítja az előzőleg megnyitott projektet (egyetlen mindent-lecserélő művelet, egy Undo-lépés). Ha a demó betöltött állapotában bezárod a lapot vagy újratöltöd, a következő oldalbetöltés észreveszi, hogy a szerver még a demót tartja, a Mentést kikapcsolva tartja, és újra felajánlja a *Restore my project* lehetőséget; az eredetit ehhez a böngésző helyi tárolója őrzi.
+* A demó nem indul el együttműködési munkamenetben, mert az egész projektet lecseréli.
+* Az állapotokat a `node scripts/build-studio-tour.mjs --bin target/release/osatura` paranccsal generálhatod újra, majd építsd újra a CLI-t (az oldal be van ágyazva a binárisba).
 
 ## 4. Gyorsbillentyűk (alapértelmezések)
 

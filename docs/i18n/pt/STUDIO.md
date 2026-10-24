@@ -109,7 +109,7 @@ Undo, Redo, **Save**; caixas de seleção `bones` (desenhar o esqueleto), `auto-
 `whole groups` (um clique em parte de um grupo seleciona o grupo de nível superior), `points` (mostra âncoras, alças, pontos de cage/lattice/pin e vértices de malha das
 camadas selecionadas); um seletor `box` para o que uma caixa arrastada seleciona (`touches`, `contains`, `bounds touch`; começa em `touches`); **Lock**; e os botões **Overlays**, **Suggest**, **Layout**,
 **Commands** (paleta) e **Keys** (editor de atalhos). Uma segunda linha tem o seu nome e **Collab**, e os botões de exportação **GIF**, **HTML player** e **Lottie**,
-que baixam o que `osatura export` gravaria (o player HTML inclui o som mixado quando há som e o `ffmpeg` consegue gerar o mp3).
+que baixam o que `osatura export` gravaria (o player HTML inclui o som mixado quando há som e o `ffmpeg` consegue gerar o mp3). O botão **Simple view** oculta as caixas de seleção de edição, Overlays, Suggest e o botão da paleta de comandos, de modo que restam apenas desfazer, salvar, painéis e exportações; a escolha fica lembrada neste navegador (ou janela) e a barra completa volta com **Full view**.
 
 ### Painéis e layouts
 
@@ -196,6 +196,15 @@ de kernel, uma pequena rede opcional que você mesmo treina); com um punhado de 
   que você fornece (`window.osaturaLandmarkProvider`, veja o comentário no código-fonte da página); o vídeo nunca sai da página e apenas os pontos de referência vão para o servidor local.
   Os dois modos sintéticos funcionam de imediato. *Synthetic face (detector)* renderiza a cabeça sintética no servidor e a encontra de novo com o detector integrado,
   que foi **treinado apenas com rostos sintéticos** (cabeças estilizadas, não fotografias); veja a seção de rosto em [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md).
+
+### Demonstração guiada
+
+O botão **Demo** (comando `demo.panel`) abre uma demonstração guiada de 13 passos que constrói a pessoa caminhando de `osatura demo-person`: cenário, corpo, cabeça e rosto, braços com cinco dedos por mão, o esqueleto, as pernas caminhando, os braços balançando, tronco e cabeça, uma piscada e um sorriso, o chão em movimento, uma verificação e a exportação. Cada passo carrega essa etapa do projeto no editor com uma única operação de substituição total, de modo que você pode reproduzi-la, percorrê-la, selecionar ossos e camadas e ler a timeline. As etapas são recortes do projeto concluído; os comandos e a saída mostrados no painel foram executados com o binário real.
+
+* **Nada é gravado em disco.** Salvar (e Ctrl+S) fica desativado enquanto a demonstração está carregada. O único caminho de escrita do studio, `POST /api/save`, nunca é chamado pela demonstração.
+* **Seu projeto volta.** *Restore my project* recoloca o projeto que estava aberto antes (uma única operação de substituição total, um passo de Desfazer). Se você fechar a aba ou recarregar enquanto a demonstração está carregada, o próximo carregamento da página percebe que o servidor ainda guarda a demonstração, mantém Salvar desligado e oferece *Restore my project* de novo; o original fica guardado no armazenamento local do navegador para isso.
+* A demonstração se recusa a iniciar dentro de uma sessão de colaboração, porque substitui o projeto inteiro.
+* Regenere as etapas com `node scripts/build-studio-tour.mjs --bin target/release/osatura` e depois recompile a CLI (a página é incorporada no binário).
 
 ## 4. Atalhos de teclado (padrões)
 

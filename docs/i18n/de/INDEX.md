@@ -17,6 +17,10 @@ Inhalt: [Alle Dokumente](#alle-dokumente) - [Lesepfade nach Zielgruppe](#lesepfa
 | [STUDIO.md](STUDIO.md) | Der Browser-Editor: Panels, Tastenkürzel, Zusammenarbeit, Scrub-Vorschauen | Animatoren, Rigger |
 | [RIGGING_GUIDE.md](RIGGING_GUIDE.md) | Ein Rig bauen: Knochen, IK, Skinning, Deformer, Driver, Zustandsautomaten, Layout | Rigger, Technical Artists |
 | [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md) | Keys, Easing, Clips und Takes, Physik, Lip-Sync, Audio, Wahl des Exports | Animatoren |
+| [TUTORIAL_SVG.md](TUTORIAL_SVG.md) | Von einer Vektorzeichnung zu einem laufenden GIF: Import, Rig per Skript, Export (Befehle und Ausgaben sind echt) | Künstler |
+| [COMPARISON.md](COMPARISON.md) | Ein ehrlicher, datierter Vergleich mit anderen 2D-Animationswerkzeugen | Evaluierende |
+| [VERIFY_DOWNLOADS.md](VERIFY_DOWNLOADS.md) | Release-Archive anhand der SHA-256-Summen prüfen | alle, die installieren |
+| [GOOD_FIRST_TASKS.md](GOOD_FIRST_TASKS.md) | Kleine Aufgaben für einen ersten Beitrag | neue Mitwirkende |
 | [PROJECT_FORMAT.md](PROJECT_FORMAT.md) | Das JSON-Projektformat Feld für Feld | Werkzeugentwickler, Rigger, die JSON bearbeiten |
 | [EXPORT_FORMATS.md](EXPORT_FORMATS.md) | Was jedes Export- und Importformat enthält und weglässt | Pipeline-Entwickler, Integratoren |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Crates, Module, Datenfluss, Entwurf von Auswertung und Rendering | Mitwirkende, Reviewer |
@@ -24,7 +28,7 @@ Inhalt: [Alle Dokumente](#alle-dokumente) - [Lesepfade nach Zielgruppe](#lesepfa
 | [FAQ.md](FAQ.md) | Kurze Antworten auf häufige Fragen | alle |
 | [API.md](API.md) | Die stabile Rust-Fassade (Version 1.4.0): Aufrufe, Fehler, Grenzen, Beispiele | Rust-Integratoren |
 | [C_ABI.md](C_ABI.md) | Die C-Schnittstelle (`osatura-capi`): Funktionen, Speicherregeln, C- und Python-Beispiele | Integratoren für C, C++, Python, Go, C# |
-| [WASM.md](WASM.md) | WebAssembly-Modul und JavaScript-Wrapper. **Status: in CI gebaut und unter Node getestet, nie in einem Browser ausgeführt**; enthält die Checkliste für den ersten Lauf im Browser | Webentwickler |
+| [WASM.md](WASM.md) | WebAssembly-Modul und JavaScript-Wrapper. **Status: in CI gebaut und unter Node getestet; in Headless-Chromium ausgeführt, noch nicht in Firefox oder Safari**; enthält die Checkliste für den ersten Lauf im Browser | Webentwickler |
 | [CI.md](CI.md) | Animations-CI (`osatura ci`): Manifest, Schwellwerte, Goldens, Berichte, Pipeline-Beispiele | Technical Artists, Build-Ingenieure |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Bauen, Tests, Konventionen, Checkliste für neue Module, Release-Checkliste, Debugging | Mitwirkende, Maintainer |
 | [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Schritte auf Eigentümerseite vor und nach der Veröffentlichung der Entwurfsversion | Eigentümer |

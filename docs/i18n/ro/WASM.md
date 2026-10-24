@@ -222,7 +222,7 @@ Găsite la citirea codului; niciunul nu a fost văzut eșuând:
 
 ## Lista de verificare pentru prima persoană care îl poate rula într-un browser
 
-Pașii 1 și 5 au fost făcuți de CI pe 24 oct. 2026 (build-ul și rularea Node; pasul 3 este implicat de acea rulare, dar lista exporturilor nu a fost afișată; pasul 4, dimensiunea, nu a fost consemnat); restul, mai ales pașii 11–13 din browser, sunt încă deschiși. Parcurge-le în ordine; oprește-te la primul eșec și notează mesajul exact. Elementele marcate (risc) corespund riscurilor de mai sus. Când ai rezultate, actualizează [LIMITATIONS.md](LIMITATIONS.md) (secțiunea 1), linia R-090 din secțiunea 9 a ROADMAP.md și caseta de stare a acestei pagini.
+Pașii 1 și 5 au fost făcuți de CI pe 24 oct. 2026. Pașii 3, 4, 6, 8, 9, 11 și 13 au fost făcuți în aceeași zi în **Chromium 141 headless (Linux, fără GPU)** cu `osatura-wasm/js/browser-check.js`; cifrele sunt în tabelul de mai jos. **Încă deschise:** Firefox și Safari (pașii 11 și 12 acolo), pasul 12 cu CSP și content-type, adâncimea stivei 10 și pașii 7 și 14 cu playerul. Parcurge-le în ordine; oprește-te la primul eșec și notează mesajul exact. Elementele marcate (risc) corespund riscurilor de mai sus. Când ai rezultate, actualizează [LIMITATIONS.md](LIMITATIONS.md) (secțiunea 1), linia R-090 din secțiunea 9 a ROADMAP.md și caseta de stare a acestei pagini.
 
 1. **Instalează ținta și construiește.** `rustup target add wasm32-unknown-unknown && ./osatura-wasm/build-wasm.sh`. (risc) Așteaptă-te să vezi dacă `zip`, `tiny-skia`, `png`, `gif`, `jpeg-decoder` și `i_overlay` compilează. Notează compilatorul și `rustc --version`.
 2. **Fără motor de scripting.** `cargo tree --target wasm32-unknown-unknown -p osatura-wasm | grep -ci 'rhai\|smartstring'` trebuie să afișeze 0.
@@ -238,3 +238,16 @@ Pașii 1 și 5 au fost făcuți de CI pe 24 oct. 2026 (build-ul și rularea Node
 12. **`instantiateStreaming` și CSP.** Servește cu și fără `Content-Type: application/wasm`, și cu un CSP care omite `'wasm-unsafe-eval'`; documentează ce se întâmplă.
 13. **Performanță.** Măsoară timpul `rgba(n, 1)` pentru demo-ul 640 x 480 (nativ release: aproximativ 14 ms pe cadru) și pentru un proiect greu; notează cadrele pe secundă ale lui `play()` în browser.
 14. **Opțional: panic-uri.** Decide dacă comportamentul de trap la panic este acceptabil pentru utilizarea ta. Dacă nu, încearcă ruta `wasm32-wasip1` + `-C panic=unwind` menționată în sursă.
+
+### Rezultatele rulării în Chromium (24 oct. 2026)
+
+| Pas | Rezultat |
+|---|---|
+| 4. Dimensiune | modul release 2.802.534 octeți; 853.804 gzip; 615.267 brotli (netrecut prin `wasm-opt`) |
+| 6. Comparație cu nativul | cadrul 12 al demo-ului, 640x480: **0 octeți diferiți** din 1.228.800 (diferența absolută medie și maximă 0) |
+| 8. Siguranță la erori | JSON gol, nefolositor, cu formă greșită, 5 MB aleatori și „fără cadre” aruncă fiecare un `Error` cu mesaj; fără trap |
+| 9. Randare mare | scara 4 (2560x1920) funcționează; o scenă de 12000x12000 este refuzată cu mesajul de limită, iar modulul funcționează în continuare după aceea |
+| 11. Scurgeri | 60 de cicluri de deschidere și închidere: memoria liniară 54.591.488 octeți înainte și după |
+| 13. Viteză | `rgba` pentru demo-ul 640x480: mediană 72,5 ms, p95 96,5 ms, maxim 125,4 ms (aproximativ 14 fps; nativ release aproximativ 14 ms) |
+
+Rulează-l din nou cu `node osatura-wasm/js/browser-check.js <unpacked osatura-web folder> <project.json>` (are nevoie de Playwright). Pagina nu a ridicat nicio eroare în timpul rulării.

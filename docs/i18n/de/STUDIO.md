@@ -109,7 +109,7 @@ Rückgängig, Wiederholen, **Speichern**; die Kontrollkästchen `bones` (das Ske
 `whole groups` (ein Klick auf einen Teil einer Gruppe wählt die Gruppe der obersten Ebene), `points` (Anker, Handles, Cage-/Lattice-/Pin-Punkte und Mesh-Eckpunkte der
 ausgewählten Ebenen anzeigen); eine Auswahl `box`, was ein Aufziehen eines Rahmens auswählt (`touches`, `contains`, `bounds touch`; sie beginnt bei `touches`); **Lock**; und die Schaltflächen **Overlays**, **Suggest**, **Layout**,
 **Commands** (Palette) und **Keys** (Tastenkürzel-Editor). Eine zweite Zeile enthält deinen Namen und **Collab** sowie die Export-Schaltflächen **GIF**, **HTML player** und **Lottie**,
-die herunterladen, was `osatura export` schreiben würde (der HTML-Player enthält den gemischten Ton, wenn es Ton gibt und `ffmpeg` das mp3 erzeugen kann).
+die herunterladen, was `osatura export` schreiben würde (der HTML-Player enthält den gemischten Ton, wenn es Ton gibt und `ffmpeg` das mp3 erzeugen kann). Die Schaltfläche **Simple view** blendet die Bearbeitungs-Checkboxen, Overlays, Suggest und die Schaltfläche der Befehlspalette aus, sodass nur Undo, Speichern, Panels und Exporte bleiben; die Wahl wird in diesem Browser (oder Fenster) gemerkt, und mit **Full view** kommt die volle Werkzeugleiste zurück.
 
 ### Panels und Layouts
 
@@ -196,6 +196,15 @@ Mannigfaltigkeit, ein optionales kleines Netz, das du selbst trainierst); bei ei
   die du bereitstellst (`window.osaturaLandmarkProvider`, siehe den Kommentar im Seitenquelltext); das Video verlässt die Seite nie, und nur Landmarks gehen an den lokalen Server.
   Die beiden synthetischen Modi funktionieren sofort. *Synthetic face (detector)* rendert den synthetischen Kopf auf dem Server und findet ihn mit dem eingebauten Detektor wieder,
   der **nur mit synthetischen Gesichtern trainiert wurde** (stilisierte Köpfe, keine Fotos); siehe den Abschnitt zum Gesicht in [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md).
+
+### Geführte Demo
+
+Die Schaltfläche **Demo** (Befehl `demo.panel`) öffnet eine geführte Demo in 13 Schritten, die die laufende Person aus `osatura demo-person` aufbaut: Kulisse, Körper, Kopf und Gesicht, Arme mit fünf Fingern pro Hand, das Skelett, die gehenden Beine, die schwingenden Arme, Rumpf und Kopf, ein Blinzeln und ein Lächeln, der bewegte Boden, eine Prüfung und der Export. Jeder Schritt lädt diese Stufe des Projekts mit einer einzigen Ersetzen-alles-Operation in den Editor, sodass du sie abspielen, scrubben, Knochen und Ebenen auswählen und die Timeline lesen kannst. Die Stufen sind Ausschnitte des fertigen Projekts; die im Panel gezeigten Befehle und ihre Ausgabe wurden mit dem echten Programm ausgeführt.
+
+* **Nichts wird auf die Festplatte geschrieben.** Speichern (und Ctrl+S) ist deaktiviert, solange die Demo geladen ist. Der einzige Schreibweg des Studios, `POST /api/save`, wird von der Demo nie aufgerufen.
+* **Dein Projekt kommt zurück.** *Restore my project* stellt das zuvor geöffnete Projekt wieder her (eine einzige Ersetzen-alles-Operation, ein Undo-Schritt). Wenn du den Tab schließt oder neu lädst, während die Demo geladen ist, bemerkt das nächste Laden der Seite, dass der Server noch die Demo hält, lässt Speichern ausgeschaltet und bietet *Restore my project* erneut an; das Original wird dafür im lokalen Speicher des Browsers aufbewahrt.
+* Die Demo weigert sich, innerhalb einer Zusammenarbeitssitzung zu starten, weil sie das ganze Projekt ersetzt.
+* Erzeuge die Stufen mit `node scripts/build-studio-tour.mjs --bin target/release/osatura` neu und baue dann die CLI neu (die Seite ist in das Programm eingebettet).
 
 ## 4. Tastenkürzel (Standard)
 

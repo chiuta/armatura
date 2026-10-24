@@ -222,7 +222,7 @@ Encontrados al leer el código; no se ha visto fallar ninguno:
 
 ## Lista de verificación para la primera persona que pueda ejecutarlo en un navegador
 
-Los pasos 1 y 5 los hizo la CI el 24 oct 2026 (la compilación y la ejecución con Node; el paso 3 está implícito en esa ejecución, pero no se imprimió la lista de exportaciones; el paso 4, el tamaño, no se registró); el resto, sobre todo los pasos 11 a 13 del navegador, siguen abiertos. Haz esto en orden; detente en el primer fallo y anota el mensaje exacto. Los elementos marcados (riesgo) corresponden a los riesgos de arriba. Cuando tengas resultados, actualiza [LIMITATIONS.md](LIMITATIONS.md) (sección 1), la línea R-090 de la sección 9 de ROADMAP.md y el recuadro de estado de esta página.
+Los pasos 1 y 5 los hizo la CI el 24 oct 2026. Los pasos 3, 4, 6, 8, 9, 11 y 13 se hicieron el mismo día en **Chromium 141 sin interfaz (Linux, sin GPU)** con `osatura-wasm/js/browser-check.js`; las cifras están en la tabla de abajo. **Siguen abiertos:** Firefox y Safari (los pasos 11 y 12 allí), el paso 12 de CSP y tipo de contenido, la profundidad de pila del paso 10 y los pasos 7 y 14 del reproductor. Haz esto en orden; detente en el primer fallo y anota el mensaje exacto. Los elementos marcados (riesgo) corresponden a los riesgos de arriba. Cuando tengas resultados, actualiza [LIMITATIONS.md](LIMITATIONS.md) (sección 1), la línea R-090 de la sección 9 de ROADMAP.md y el recuadro de estado de esta página.
 
 1. **Instala el destino y compila.** `rustup target add wasm32-unknown-unknown && ./osatura-wasm/build-wasm.sh`. (riesgo) Comprueba si compilan `zip`, `tiny-skia`, `png`, `gif`, `jpeg-decoder` e `i_overlay`. Anota el compilador y `rustc --version`.
 2. **Sin motor de scripting.** `cargo tree --target wasm32-unknown-unknown -p osatura-wasm | grep -ci 'rhai\|smartstring'` debe imprimir 0.
@@ -238,3 +238,16 @@ Los pasos 1 y 5 los hizo la CI el 24 oct 2026 (la compilación y la ejecución c
 12. **`instantiateStreaming` y CSP.** Sirve con y sin `Content-Type: application/wasm`, y con una CSP que omita `'wasm-unsafe-eval'`; documenta lo que ocurre.
 13. **Rendimiento.** Mide el tiempo de `rgba(n, 1)` para la demostración de 640 x 480 (release nativo: unos 14 ms por fotograma) y para un proyecto pesado; anota los fotogramas por segundo de `play()` en el navegador.
 14. **Opcional: pánicos.** Decide si el comportamiento de trap ante un pánico es aceptable para tu uso. Si no, prueba la vía `wasm32-wasip1` + `-C panic=unwind` mencionada en el código fuente.
+
+### Resultados de la ejecución en Chromium (24 oct 2026)
+
+| Paso | Resultado |
+|---|---|
+| 4. Tamaño | módulo release 2.802.534 bytes; 853.804 con gzip; 615.267 con brotli (sin pasar por `wasm-opt`) |
+| 6. Comparación con nativo | fotograma 12 de la demo, 640x480: **0 bytes distintos** de 1.228.800 (diferencia absoluta media y máxima 0) |
+| 8. A prueba de fallos | JSON vacío, basura, con forma incorrecta, 5 MB aleatorios y «sin fotogramas» lanzan cada uno un `Error` con mensaje; sin trap |
+| 9. Render grande | la escala 4 (2560x1920) funciona; un escenario de 12000x12000 se rechaza con el mensaje del límite y el módulo sigue funcionando después |
+| 11. Fugas | 60 ciclos de apertura y cierre: memoria lineal de 54.591.488 bytes antes y después |
+| 13. Velocidad | `rgba` de la demo de 640x480: mediana 72,5 ms, p95 96,5 ms, máx. 125,4 ms (unos 14 fps; release nativo unos 14 ms) |
+
+Vuelve a ejecutarlo con `node osatura-wasm/js/browser-check.js <carpeta osatura-web descomprimida> <project.json>` (requiere Playwright). La página no generó ningún error durante la ejecución.

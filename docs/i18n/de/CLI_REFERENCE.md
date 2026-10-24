@@ -1499,7 +1499,9 @@ $ osatura sound add small.json x.json x nosuch.wav              # a missing file
 
 ### `import-svg`
 
-**Synopsis:** `osatura import-svg <file.svg> <out.json>`
+**Synopsis:** `osatura import-svg <file.svg> <out.json> [--split]`
+
+Usage line: `osatura import-svg <file.svg> <out.json> [--split]  SVG subset -> one vector layer, or one layer per shape named by its id (warnings for the rest)`
 
 Erzeugt ein neues Projekt (24 fps, 24 Frames; Größe aus der `viewBox` oder aus `width`/`height`, sonst 512x512) mit **einer Vektor-Ebene `svg`**, die die Formen einer SVG-Teilmenge enthält: `path` (alle Befehle), `rect` (abgerundete Ecken werden ignoriert), `circle`, `ellipse`, `line`, `polyline`, `polygon`, `g`/`a` mit `transform` sowie einfarbige `fill`/`stroke`/`stroke-width`. Alles andere wird mit einer `warning:`-Zeile **auf stdout** übersprungen: `<text>`, `<filter>`, `<clipPath>`, `<mask>`, `<pattern>`, `<linearGradient>`/`<radialGradient>`, `<image>`, `<use>`, `<foreignObject>`. Eine Verlaufsfüllung (`fill="url(#g)"`) fällt auf Grau zurück. Grenzen: 8 MB SVG, 200.000 Anker, eine Obergrenze für Elemente.
 
@@ -1512,6 +1514,12 @@ warning: <image> is not supported and was skipped
 wrote svg.json (3 paths)
 $ osatura check svg.json
 ok: 's' 200×100 @ 24 fps, 24 frames, 0 bones, 0 ik, 1 layers, 0 channels
+```
+Mit `--split` wird jede Form zu **einer eigenen Ebene**, benannt nach der `id` der Form (Formen ohne id heißen `shape`; ein wiederholter Name erhält ` 2`, ` 3`...), in Dateireihenfolge. Das ist die Form der Wahl, wenn die Zeichnung Teil für Teil gerigged werden soll; siehe [TUTORIAL_SVG.md](TUTORIAL_SVG.md).
+
+```
+$ osatura import-svg pip.svg pip.json --split
+wrote pip.json (16 paths, 16 layers)
 ```
 Import und anschließendes Zusammenführen: Es gibt keinen Befehl, der die Ebene in ein bestehendes Projekt einfügt; verwende `script` oder bearbeite das JSON.
 

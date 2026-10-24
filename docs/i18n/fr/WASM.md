@@ -222,7 +222,7 @@ Relevées à la lecture du code ; aucune n'a été vue en échec :
 
 ## Liste de vérification pour la première personne en mesure de l'exécuter dans un navigateur
 
-Les étapes 1 et 5 ont été faites par la CI le 24 oct. 2026 (la compilation et l'exécution sous Node ; l'étape 3 est impliquée par cette exécution, mais la liste des exports n'a pas été affichée ; l'étape 4, la taille, n'a pas été consignée) ; les autres, surtout les étapes 11 à 13 dans le navigateur, restent ouvertes. Faites ceci dans l'ordre ; arrêtez-vous au premier échec et consignez le message exact. Les éléments marqués (risque) correspondent aux risques ci-dessus. Lorsque vous avez des résultats, mettez à jour [LIMITATIONS.md](LIMITATIONS.md) (section 1), la ligne R-090 de la section 9 de ROADMAP.md et le cadre de statut de cette page.
+Les étapes 1 et 5 ont été faites par la CI le 24 oct. 2026. Les étapes 3, 4, 6, 8, 9, 11 et 13 ont été faites le même jour dans **Chromium 141 sans interface (Linux, sans GPU)** avec `osatura-wasm/js/browser-check.js` ; les chiffres figurent dans le tableau ci-dessous. **Toujours ouvertes :** Firefox et Safari (étapes 11 et 12 là-bas), l'étape 12 sur la CSP et le type de contenu, la profondeur de pile de l'étape 10, et les étapes 7 et 14 du lecteur. Faites ceci dans l'ordre ; arrêtez-vous au premier échec et consignez le message exact. Les éléments marqués (risque) correspondent aux risques ci-dessus. Lorsque vous avez des résultats, mettez à jour [LIMITATIONS.md](LIMITATIONS.md) (section 1), la ligne R-090 de la section 9 de ROADMAP.md et le cadre de statut de cette page.
 
 1. **Installer la cible et compiler.** `rustup target add wasm32-unknown-unknown && ./osatura-wasm/build-wasm.sh`. (risque) Vous verrez si `zip`, `tiny-skia`, `png`, `gif`, `jpeg-decoder` et `i_overlay` compilent. Consignez le compilateur et `rustc --version`.
 2. **Pas de moteur de script.** `cargo tree --target wasm32-unknown-unknown -p osatura-wasm | grep -ci 'rhai\|smartstring'` doit afficher 0.
@@ -238,3 +238,16 @@ Les étapes 1 et 5 ont été faites par la CI le 24 oct. 2026 (la compilation et
 12. **`instantiateStreaming` et CSP.** Servez avec et sans `Content-Type: application/wasm`, et avec une CSP qui omet `'wasm-unsafe-eval'` ; documentez ce qui se passe.
 13. **Performance.** Chronométrez `rgba(n, 1)` pour la démo 640 x 480 (natif release : environ 14 ms par image) et un projet lourd ; consignez le nombre d'images par seconde de `play()` dans le navigateur.
 14. **Facultatif : paniques.** Décidez si le comportement de trap sur panique est acceptable pour votre usage. Sinon, essayez la voie `wasm32-wasip1` + `-C panic=unwind` mentionnée dans le source.
+
+### Résultats de l'exécution Chromium (24 oct. 2026)
+
+| Étape | Résultat |
+|---|---|
+| 4. Taille | module release 2 802 534 octets ; 853 804 en gzip ; 615 267 en brotli (non passé par `wasm-opt`) |
+| 6. Comparaison avec le natif | image 12 de la démo, 640x480 : **0 octet différent** sur 1 228 800 (différence absolue moyenne et maximale 0) |
+| 8. Sécurité en cas d'échec | JSON vide, absurde, de mauvaise forme, 5 Mo aléatoires et « no frames » lèvent chacun une `Error` avec un message ; aucun trap |
+| 9. Gros rendu | l'échelle 4 (2560x1920) fonctionne ; une scène de 12000x12000 est refusée avec le message de limite et le module fonctionne encore ensuite |
+| 11. Fuite | 60 cycles d'ouverture et de fermeture : mémoire linéaire de 54 591 488 octets avant et après |
+| 13. Vitesse | `rgba` de la démo 640x480 : médiane 72,5 ms, p95 96,5 ms, max 125,4 ms (environ 14 i/s ; natif release environ 14 ms) |
+
+Relancez-le avec `node osatura-wasm/js/browser-check.js <dossier osatura-web décompressé> <project.json>` (nécessite Playwright). La page n'a levé aucune erreur pendant l'exécution.

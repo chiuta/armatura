@@ -85,11 +85,11 @@ Total: 1338 de teste în binarele de unit și de integrare și 19 doc-tests, num
 
 Suite în afara `cargo test`:
 
-* **Teste smoke ale studioului (Chromium).** Patru scripturi Node controlează studioul real în Chromium headless cu `playwright-core`: `studio_ui_smoke.js` (124 de verificări), `studio_collab_smoke.js` (60, două pagini pe aceeași mașină), `studio_overlays_smoke.js` (89), `studio_suggest_smoke.js` (35); toate patru au fost rulate în valul 8 și au trecut (numerele sunt cele afișate de scripturi). **Nu** sunt rulate de `cargo test` și, implicit, nu fac parte din CI. Rulare:
+* **Teste smoke ale studioului (Chromium).** Cinci scripturi Node controlează studioul real în Chromium headless cu `playwright-core`: `studio_ui_smoke.js` (128 de verificări), `studio_collab_smoke.js` (60, două pagini pe aceeași mașină), `studio_overlays_smoke.js` (89), `studio_suggest_smoke.js` (35) și `studio_demo_smoke.js` (12: demo-ul ghidat încarcă toți cei 13 pași, nu scrie niciodată, restaurează proiectul octet cu octet și recuperează o filă închisă); toate cinci au trecut pe 24 oct. 2026 (numerele sunt cele afișate de scripturi). **Nu** sunt rulate de `cargo test` și, implicit, nu fac parte din CI. Rulare:
 
   ```sh
   cargo build -p osatura-cli
-  node osatura-cli/tests/studio_ui_smoke.js        # same for collab / overlays / suggest
+  node osatura-cli/tests/studio_ui_smoke.js        # same for collab / overlays / suggest / demo
   ```
 
   Mediu: `OSATURA_BIN` (implicit `target/debug/osatura`), `PLAYWRIGHT_CORE`, `CHROME`, iar pentru scriptul overlays `SHOTS` (directorul pentru capturi de ecran). Scripturile își șterg fișierele temporare.
@@ -174,6 +174,7 @@ Două lucruri diferite folosesc același cuvânt (un al treilea workflow, `.gith
 * **Ieșire citibilă de mașină.** `--json` la comenzile care îl suportă; `--quiet` pentru scripturi. Coduri de ieșire: 0 la succes, 1 la eșec (verificare eșuată, buget neîndeplinit, utilizare greșită; run: o comandă necunoscută și un argument lipsă ies amândouă cu 1); `osatura ci` separă 1 (o verificare a eșuat) de 2 (eroare).
 * **Inspectarea unui proiect.** `osatura check`, `osatura lint` (exit 1 la erori) și `osatura diff a.json b.json` dau structura și problemele fără randare; `osatura render project.json N out.png` randează un cadru, iar `out.svg` dă o ieșire vectorială pe care o poți deschide într-un browser (`--bones` arată scheletul).
 * **Studio.** Rulează `osatura studio project.json --port 0` (afișează portul real). Uneltele de dezvoltator ale browserului arată API-ul JSON: cererile sunt `POST /api/...` simple, cu `Content-Type: application/json`. Un 421 înseamnă un antet Host care nu este în `--allow-host`; un 403 înseamnă că o verificare Origin sau `Sec-Fetch-Site` a eșuat (folosește `--public-origin` în spatele unui proxy); 415 se referă la tipul de conținut; 429 este back-off-ul tokenului.
+* **Etapele demo-ului.** Demo-ul ghidat al Studioului (și demo-ul pas cu pas de pe site-ul proiectului) sunt generate din `osatura demo-person` de `scripts/build-studio-tour.mjs` și `scripts/lib/person-stages.mjs`; build-ul eșuează dacă demo-ul finalizat nu mai corespunde cifrelor citate în texte (`EXPECT` din bibliotecă). După modificarea `osatura-core/src/demo.rs`, rulează din nou scriptul și reconstruiește CLI-ul.
 * **Jurnalul de colaborare.** Jurnalul unei sesiuni partajate (`--collab-log`) este text, o linie `<hash> <json>` pe operație; un lanț rupt este raportat la încărcare.
 * **Un test eșuează doar uneori.** Caută ceasul, numele directoarelor temporare și ordinea de iterare a `HashMap`; codul motorului este determinist prin construcție, deci eșecurile intermitente sunt aproape întotdeauna o problemă de igienă a testelor.
 * **Snapshot-ul fațadei eșuează.** Ai schimbat o semnătură publică: vezi secțiunea 5, punctul 6.
