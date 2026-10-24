@@ -11,7 +11,7 @@ Cuprins: [Instalare și configurare](#instalare-și-configurare) - [ffmpeg](#ffm
 ## Instalare și configurare
 
 **1. Cum instalez ARMATURA?**
-Arhivele precompilate (Windows x86-64, macOS arm64, Linux x86-64 și modulul WebAssembly) sunt pregătite ca pre-lansare ciornă `v0.1.0-alpha.2` pe <https://github.com/chiuta/armatura/releases>; devin descărcabile când proprietarul publică ciorna și nu sunt semnate cu cod (SmartScreen afișează „Unknown publisher”; macOS cere aprobare). Nu există installer: despachetează arhiva și rulează `armatura`. Sau îl compilezi din sursă cu un toolchain Rust stable recent: `cargo build -p armatura-cli` produce `target/debug/armatura`; adaugă `--release` pentru `target/release/armatura`. Vezi [DEVELOPMENT.md](DEVELOPMENT.md).
+Arhivele precompilate (Windows x86-64, macOS arm64, Linux x86-64 și modulul WebAssembly) sunt pregătite ca pre-lansare ciornă `v0.1.0-alpha.3` pe <https://github.com/chiuta/armatura/releases>; devin descărcabile când proprietarul publică ciorna și nu sunt semnate cu cod (SmartScreen afișează „Unknown publisher”; macOS cere aprobare). Nu există installer: despachetează arhiva și rulează `armatura`. Sau îl compilezi din sursă cu un toolchain Rust stable recent: `cargo build -p armatura-cli` produce `target/debug/armatura`; adaugă `--release` pentru `target/release/armatura`. Vezi [DEVELOPMENT.md](DEVELOPMENT.md).
 
 **2. Ce platforme funcționează?**
 Linux x86-64 este locul unde proiectul a fost dezvoltat și exersat. Pe GitHub Actions, suita de teste și clippy trec și pe macOS (arm64) și Windows (x86-64), iar binarele de lansare pentru cele trei sunt construite acolo; dar nicio persoană nu a folosit încă executabilele pentru Windows sau macOS pe un desktop real, deci sunt „testate de CI”, nu „acceptate” ([LIMITATIONS.md](LIMITATIONS.md), secțiunea 1).
@@ -29,7 +29,7 @@ Da: `cargo build -p armatura-cli --no-default-features` lasă deoparte Rhai, dec
 Nu. Programul nu are nevoie de cont și nici de rețea pentru a funcționa (studio nu are conturi). Implicit, studio ascultă doar pe propria ta mașină (vezi întrebarea 51).
 
 **7. Unde își păstrează studio setările?**
-În `$ARMATURA_UI_CONFIG` dacă este setată, altfel în `$XDG_CONFIG_HOME/armatura/ui.json`, altfel în `~/.config/armatura/ui.json`. Proiectele tale nu sunt atinse niciodată de el.
+În `$ARMATURA_UI_CONFIG` dacă este setată, altfel în `$XDG_CONFIG_HOME/armatura/ui.json`, altfel pe Windows în `%APPDATA%\ARMATURA\ui.json`, altfel în `~/.config/armatura/ui.json`. Proiectele tale nu sunt atinse niciodată de el.
 
 ---
 

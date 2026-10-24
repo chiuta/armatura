@@ -1,6 +1,6 @@
 # ARMATURA — matrice des fonctionnalités + listes de contrôle de référence et de la concurrence
 
-> Formulation des versions : toutes les crates sont en `0.1.0` (les premiers builds sont la préversion en brouillon `v0.1.0-alpha.2`) ; « v0.5 / v0.6 / v0.7 » dans ce dépôt désignent des *niveaux de fonctionnalités* (voir [CHANGELOG.md](CHANGELOG.md)), et la section 9 de `ROADMAP.md` fait foi sur ce qui est construit.
+> Formulation des versions : toutes les crates sont en `0.1.0` (les premiers builds sont la préversion en brouillon `v0.1.0-alpha.3`) ; « v0.5 / v0.6 / v0.7 » dans ce dépôt désignent des *niveaux de fonctionnalités* (voir [CHANGELOG.md](CHANGELOG.md)), et la section 9 de `ROADMAP.md` fait foi sur ce qui est construit.
 
 État honnête de ce qui existe. **✅ terminé et testé · 🟡 partiel · ❌ non implémenté.**
 
@@ -118,7 +118,7 @@ Elle remplace les listes de « candidats n° » dispersées plus bas ; les déta
 - Embarquer des encodeurs **H.264/H.265/AAC**.
 
 ## Conditions applicables à chaque ligne 🟢
-Journal de provenance tenu (`CLEANROOM.md` ; implémentation indépendante, et non clean-room stricte) ; uniquement des dépendances permissives (à régénérer avec `scripts/licence-audit.sh` ; actuellement 362 crates tierces toutes plateformes confondues, toutes de classe MIT / Apache-2.0 / BSD / Zlib / Unlicense sauf six crates MPL-2.0 (smartstring via la fonctionnalité `scripting`, activée par défaut, et cinq via l'application à fenêtre `armatura-gui`) ; voir docs/THIRD_PARTY.md) ; aucune illustration ou audio tiers livré sans son propre fichier de licence ; le nom **ARMATURA** validé par une recherche de marque avant le lancement.
+Journal de provenance tenu (`CLEANROOM.md` ; implémentation indépendante, et non clean-room stricte) ; uniquement des dépendances permissives (à régénérer avec `scripts/licence-audit.sh` ; actuellement 363 crates tierces toutes plateformes confondues, toutes de classe MIT / Apache-2.0 / BSD / Zlib / Unlicense sauf six crates MPL-2.0 (smartstring via la fonctionnalité `scripting`, activée par défaut, et cinq via l'application à fenêtre `armatura-gui`) ; voir docs/THIRD_PARTY.md) ; aucune illustration ou audio tiers livré sans son propre fichier de licence ; le nom **ARMATURA** validé par une recherche de marque avant le lancement.
 
 
 # Tableaux détaillés des capacités

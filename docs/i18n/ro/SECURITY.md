@@ -49,7 +49,7 @@ Fiecare răspuns poartă `Connection: close` (nicio stare keep-alive de epuizat)
 3. **Tipul de conținut.** `POST` cere `Content-Type: application/json` (altfel 415), deci un formular HTML simplu nu poate posta către API.
 4. **Token** (vezi secțiunea 3), când este configurat; obligatoriu când `--bind` nu este o adresă loopback.
 
-**Oferta sursei.** Studioul servește `/source` (inclusiv când se cere token), iar `--source-url` stabilește adresa, așa cum cere AGPL-3.0 secțiunea 13 (vezi [LICENSING.md](LICENSING.md)).
+**Oferta sursei.** Studioul servește `/source` (inclusiv când se cere token), iar `--source-url` stabilește adresa (binarele oficiale de lansare folosesc implicit commit-ul din care au fost construite), așa cum cere AGPL-3.0 secțiunea 13 (vezi [LICENSING.md](LICENSING.md)).
 
 **Căile și metodele necunoscute sau malformate** primesc un răspuns de eroare simplu; pagina editorului este compilată în binar (`studio.html`) și nu este citită din sistemul de fișiere, deci nu există o suprafață de path traversal pentru conținutul static.
 
@@ -130,7 +130,7 @@ Listă sinceră; vezi [LIMITATIONS.md](LIMITATIONS.md) pentru lista mai largă d
 * **Nu deschide un issue public** pentru o vulnerabilitate. Trimite un raport privat către mentenanță: **`alexio@trom.tf`**. *(Substituent: adresa apare în notificarea `--version` a programului și în documentele de licență; proprietarul trebuie să o confirme drept contact de securitate și o poate înlocui cu o adresă dedicată sau cu un canal privat de advisory înainte de prima lansare.)*
 * Include: versiunea (`armatura --version`) și platforma, proiectul sau cererea care declanșează problema (un fișier minimal este cel mai bun), ce te așteptai să se întâmple și ce s-a întâmplat, și dacă dorești să fii menționat.
 * La ce să te aștepți *(intenție, nu contract: acesta este un proiect al unei singure persoane)*: o confirmare într-un timp rezonabil, o remediere dezvoltată în privat, un test de regresie adăugat în suită, o notă în [CHANGELOG.md](CHANGELOG.md) și menționare dacă dorești. Te rugăm să lași timp pentru o remediere înainte de a publica detalii.
-* Versiuni suportate: este suportată doar cea mai nouă pre-lansare (`v0.1.0-alpha.2` după publicare) și arborele curent de pe `main`.
+* Versiuni suportate: este suportată doar cea mai nouă pre-lansare (`v0.1.0-alpha.3` după publicare) și arborele curent de pe `main`.
 * Rapoartele despre expunerea în rețea a studioului când este legat în mod deliberat la o adresă publică fără reverse proxy sunt mai întâi probleme de documentație: vezi secțiunea 11.
 
 ## 11. Listă de consolidare pentru cel care implementează

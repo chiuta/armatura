@@ -1,6 +1,6 @@
 # ARMATURA — matriz de funcionalidades y listas de comprobación de referencia y competidores
 
-> Redacción de las versiones: todos los crates son `0.1.0` (las primeras compilaciones son la versión preliminar en borrador `v0.1.0-alpha.2`); "v0.5 / v0.6 / v0.7" en este repositorio son *niveles de funcionalidad* (véase [CHANGELOG.md](CHANGELOG.md)), y la sección 9 de `ROADMAP.md` es la autoridad sobre lo que está construido.
+> Redacción de las versiones: todos los crates son `0.1.0` (las primeras compilaciones son la versión preliminar en borrador `v0.1.0-alpha.3`); "v0.5 / v0.6 / v0.7" en este repositorio son *niveles de funcionalidad* (véase [CHANGELOG.md](CHANGELOG.md)), y la sección 9 de `ROADMAP.md` es la autoridad sobre lo que está construido.
 
 Estado honesto de lo que existe. **✅ hecho y probado · 🟡 parcial · ❌ no implementado.**
 
@@ -118,7 +118,7 @@ Sustituye a las listas dispersas de "candidatos n.º" que aparecen más abajo; l
 - Incluir codificadores **H.264/H.265/AAC**.
 
 ## Condiciones que se aplican a todas las filas 🟢
-Registro de procedencia mantenido (`CLEANROOM.md`; implementación independiente, no una sala limpia estricta); solo dependencias permisivas (se regenera con `scripts/licence-audit.sh`; actualmente 362 crates de terceros en todas las plataformas, todos de clase MIT / Apache-2.0 / BSD / Zlib / Unlicense salvo seis crates MPL-2.0 (smartstring mediante la funcionalidad `scripting`, que está activada por defecto, y cinco mediante la aplicación de ventana `armatura-gui`); véase docs/THIRD_PARTY.md); sin ilustraciones ni audio de terceros incluidos sin su propio archivo de licencia; el nombre **ARMATURA** autorizado en una búsqueda de marcas antes del lanzamiento.
+Registro de procedencia mantenido (`CLEANROOM.md`; implementación independiente, no una sala limpia estricta); solo dependencias permisivas (se regenera con `scripts/licence-audit.sh`; actualmente 363 crates de terceros en todas las plataformas, todos de clase MIT / Apache-2.0 / BSD / Zlib / Unlicense salvo seis crates MPL-2.0 (smartstring mediante la funcionalidad `scripting`, que está activada por defecto, y cinco mediante la aplicación de ventana `armatura-gui`); véase docs/THIRD_PARTY.md); sin ilustraciones ni audio de terceros incluidos sin su propio archivo de licencia; el nombre **ARMATURA** autorizado en una búsqueda de marcas antes del lanzamiento.
 
 
 # Tablas detalladas de capacidades

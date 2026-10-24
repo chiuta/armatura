@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # Release-Checkliste (Seite des Inhabers)
 
-*Schritte, die nur der Inhaber ausführen kann, in dieser Reihenfolge. Stand 24. Okt. 2026: Das Repository <https://github.com/chiuta/armatura> existiert, GitHub Actions ist grün (Tests unter Linux, macOS und Windows, clippy, wasm32, cargo-deny, REUSE), und die Entwurfs-Vorabversion `v0.1.0-alpha.2` wurde gebaut (Archive für Windows, macOS und Linux, das Web-Modul und `SHA256SUMS.txt`); **noch nichts ist veröffentlicht**. Die Schritte unten, die CI schon erledigt hat, sind abgehakt; die übrigen brauchen eine Person, einen Anwalt oder ein Konto. Keine Rechtsberatung. Mit **[blocker]** markierte Punkte sollten vor einer öffentlichen Ankündigung erledigt sein.*
+*Schritte, die nur der Inhaber ausführen kann, in dieser Reihenfolge. Stand 24. Okt. 2026: Das Repository <https://github.com/chiuta/armatura> existiert, GitHub Actions ist grün (Tests unter Linux, macOS und Windows, clippy, wasm32, cargo-deny, REUSE), und die Entwurfs-Vorabversion `v0.1.0-alpha.3` wurde gebaut (Archive für Windows, macOS und Linux, das Web-Modul und `SHA256SUMS.txt`); **noch nichts ist veröffentlicht**. Die Schritte unten, die CI schon erledigt hat, sind abgehakt; die übrigen brauchen eine Person, einen Anwalt oder ein Konto. Keine Rechtsberatung. Mit **[blocker]** markierte Punkte sollten vor einer öffentlichen Ankündigung erledigt sein.*
 
 ## 1. Bevor irgendetwas veröffentlicht wird
 
@@ -41,7 +41,7 @@
 
 ## 6. Release-Artefakte
 
-- [x] Die Release-Binärdateien werden auf von GitHub gehosteten Runnern gebaut (`release.yml`), und `SHA256SUMS.txt` wird im Entwurf erzeugt. **Offen:** den Entwurf `v0.1.0-alpha.2` prüfen, „pre-release“ ankreuzen, ihn veröffentlichen und den Commit taggen (der Tag wird mit dem Release angelegt).
+- [x] Die Release-Binärdateien werden auf von GitHub gehosteten Runnern gebaut (`release.yml`), und `SHA256SUMS.txt` wird im Entwurf erzeugt. **Offen:** den Entwurf `v0.1.0-alpha.3` prüfen, „pre-release“ ankreuzen, ihn veröffentlichen und den Commit taggen (der Tag wird mit dem Release angelegt).
 - [ ] Über Code-Signierung entscheiden (Authenticode-Zertifikat für Windows, Apple Developer ID und Notarisierung); bis dahin gelten die Downloads als unsigniert (L-74).
 - [ ] Den passenden Quellcode für die AGPL-Teile beilegen (der Tag selbst genügt; ihn verfügbar halten, solange du Binaries verteilst).
 - [x] `docs/THIRD_PARTY_NOTICES.md` ist neu generiert (24. Okt. 2026), und jedes Archiv enthält es; vor jedem späteren Release mit `scripts/licence-audit.sh` erneut generieren.

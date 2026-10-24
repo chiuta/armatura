@@ -5,7 +5,7 @@
  "n4": "Formate",
  "n5": "Status",
  "n6": "Lizenzen",
- "pill": "Alpha · Entwurf v0.1.0-alpha.2 · Rust · offene Formate",
+ "pill": "Alpha · Entwurf v0.1.0-alpha.3 · Rust · offene Formate",
  "sub": "2D-Vektor-Rigging und -Animation als Code: Knochen, IK, Skinning, Deformer, eine Laufzeitumgebung und ein Studio im Browser — deterministisch und skriptbar.",
  "cta1": "Rig ausprobieren",
  "cta3": "Dokumentation lesen",
@@ -77,7 +77,7 @@
  "k1": "Tests in cargo test --workspace ohne die GPU- und Fenster-Crates (plus 19 Doc-Tests), 24. Okt. 2026, Linux x86-64; die CI läuft auch auf macOS und Windows durch",
  "k2": "nummerierte Einschränkungen, mit Schweregrad und Umgehung",
  "k3": "Drittanbieter-Crates im Inventar vom 24. Okt. 2026 (alle Plattformen zusammen)",
- "k4": "bisher veröffentlichte Releases — v0.1.0-alpha.2 liegt als Entwurf vor; „0.7“ ist eine Funktionsstufe, keine Version",
+ "k4": "bisher veröffentlichte Releases — v0.1.0-alpha.3 liegt als Entwurf vor; „0.7“ ist eine Funktionsstufe, keine Version",
  "vyh": "Geprüft",
  "vxh": "Nicht geprüft",
  "ai": "<b>Offenlegung:</b> Der Code wurde größtenteils mit einem KI-Modell geschrieben, und das Projekt ist eine unabhängige Implementierung nach öffentlichen Spezifikationen; siehe CLEANROOM.md. Es ist weder mit einem kommerziellen Animationsprodukt verbunden noch davon abgeleitet oder dazu kompatibel.",
@@ -110,9 +110,10 @@
  ],
  "vx": [
   "Das WebAssembly-Modul wurde nie in einem Browser ausgeführt; Geschwindigkeit und Speicher sind nicht gemessen",
-  "Keine Person hat die Windows- oder macOS-Programme, den Doppelklick-Starter oder die Fenster-App auf einem echten Desktop benutzt; die Binärdateien sind nicht signiert",
+  "Nur eine Person hat den Windows-Starter und die Fenster-App ausprobiert (Windows 11, alpha.2); unter macOS hat sie niemand benutzt; die Binärdateien sind nicht signiert",
   "Das Studio wurde nie von einer Person produktiv benutzt, auch nicht in einem anderen Browser als Chromium",
-  "Nie wurde eine echte GPU, Webcam, Fotografie oder Motion-Capture-Datei benutzt; kein Sicherheitsaudit, keine Rechtsprüfung, keine Patentrecherche"
+  "Nie wurde eine echte GPU, Webcam, Fotografie oder Motion-Capture-Datei benutzt; kein Sicherheitsaudit, keine Rechtsprüfung, keine Patentrecherche",
+  "Der Name ARMATURA kollidiert mit einer eingetragenen Marke in den Software-Klassen 9 und 42 (EUIPO-Recherche); kein Anwalt hat das geprüft"
  ],
  "nDocs": "Doku",
  "nStudio": "Studio",
@@ -195,6 +196,6 @@
  "trShow": "Übersetzung anzeigen",
  "trMissing": "Noch nicht übersetzt — das englische Original wird angezeigt.",
  "langLabel": "Sprache",
- "a6": "Das Studio in einem nativen Fenster (Windows, macOS). In der CI kompiliert und selbstgetestet; noch von keiner Person benutzt.",
+ "a6": "Das Studio in einem nativen Fenster (Windows, macOS). In der CI kompiliert und selbstgetestet; Fenster und Exporte hat eine Person unter Windows 11 ausprobiert (alpha.2); der Dialog „Speichern unter“ ist ungetestet.",
  "cta4": "Herunterladen (Releases)"
 }

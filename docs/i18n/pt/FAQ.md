@@ -11,7 +11,7 @@ Conteúdo: [Instalação e configuração](#instalação-e-configuração) - [ff
 ## Instalação e configuração
 
 **1. Como instalo o ARMATURA?**
-Arquivos pré-compilados (Windows x86-64, macOS arm64, Linux x86-64 e o módulo WebAssembly) estão preparados como o pré-lançamento em rascunho `v0.1.0-alpha.2` em <https://github.com/chiuta/armatura/releases>; eles ficam disponíveis para download quando o dono publicar o rascunho, e não são assinados digitalmente (o SmartScreen mostra "Editor desconhecido"; o macOS pede aprovação). Não há instalador: descompacte o arquivo e execute `armatura`. Ou compile a partir do código-fonte com uma toolchain Rust stable recente: `cargo build -p armatura-cli` gera `target/debug/armatura`; acrescente `--release` para `target/release/armatura`. Veja [DEVELOPMENT.md](DEVELOPMENT.md).
+Arquivos pré-compilados (Windows x86-64, macOS arm64, Linux x86-64 e o módulo WebAssembly) estão preparados como o pré-lançamento em rascunho `v0.1.0-alpha.3` em <https://github.com/chiuta/armatura/releases>; eles ficam disponíveis para download quando o dono publicar o rascunho, e não são assinados digitalmente (o SmartScreen mostra "Editor desconhecido"; o macOS pede aprovação). Não há instalador: descompacte o arquivo e execute `armatura`. Ou compile a partir do código-fonte com uma toolchain Rust stable recente: `cargo build -p armatura-cli` gera `target/debug/armatura`; acrescente `--release` para `target/release/armatura`. Veja [DEVELOPMENT.md](DEVELOPMENT.md).
 
 **2. Quais plataformas funcionam?**
 O Linux x86-64 é onde o projeto foi desenvolvido e exercitado. No GitHub Actions, a suíte de testes e o clippy também passam em macOS (arm64) e Windows (x86-64), e os binários de release para esses três são compilados lá; mas nenhuma pessoa usou ainda os executáveis de Windows ou macOS em um desktop real, então eles são "testados pelo CI", e não "suportados" ([LIMITATIONS.md](LIMITATIONS.md), seção 1).
@@ -29,7 +29,7 @@ Sim: `cargo build -p armatura-cli --no-default-features` deixa o Rhai de fora, d
 Não. O programa não precisa de conta nem de rede para funcionar (o estúdio não tem contas). Por padrão, o estúdio escuta apenas na sua própria máquina (veja a pergunta 51).
 
 **7. Onde o estúdio guarda suas configurações?**
-Em `$ARMATURA_UI_CONFIG`, se definida; caso contrário em `$XDG_CONFIG_HOME/armatura/ui.json`; caso contrário em `~/.config/armatura/ui.json`. Seus projetos nunca são tocados por ele.
+Em `$ARMATURA_UI_CONFIG`, se definida; caso contrário em `$XDG_CONFIG_HOME/armatura/ui.json`; caso contrário, no Windows, em `%APPDATA%\ARMATURA\ui.json`; caso contrário em `~/.config/armatura/ui.json`. Seus projetos nunca são tocados por ele.
 
 ---
 

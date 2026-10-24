@@ -1,6 +1,6 @@
 # ARMATURA — matricea de funcționalități + liste de verificare pentru produsul de referință și concurenți
 
-> Formularea versiunilor: toate crate-urile sunt `0.1.0` (primele build-uri sunt pre-lansarea ciornă `v0.1.0-alpha.2`); „v0.5 / v0.6 / v0.7" din acest depozit sunt *niveluri de funcționalități* (vezi [CHANGELOG.md](CHANGELOG.md)), iar secțiunea 9 din `ROADMAP.md` este autoritatea privind ceea ce este construit.
+> Formularea versiunilor: toate crate-urile sunt `0.1.0` (primele build-uri sunt pre-lansarea ciornă `v0.1.0-alpha.3`); „v0.5 / v0.6 / v0.7" din acest depozit sunt *niveluri de funcționalități* (vezi [CHANGELOG.md](CHANGELOG.md)), iar secțiunea 9 din `ROADMAP.md` este autoritatea privind ceea ce este construit.
 
 Starea sinceră a ceea ce există. **✅ gata și testat · 🟡 parțial · ❌ neimplementat.**
 
@@ -118,7 +118,7 @@ Ea înlocuiește listele răzlețe de „candidați #" de mai jos; detaliile și
 - Includerea de encodere **H.264/H.265/AAC**.
 
 ## Condiții valabile pentru fiecare rând 🟢
-Jurnal de proveniență păstrat (`CLEANROOM.md`; implementare independentă, nu clean-room strict); doar dependențe permisive (regenerează cu `scripts/licence-audit.sh`; în prezent 362 de crate-uri terțe pentru toate platformele, toate de clasă MIT / Apache-2.0 / BSD / Zlib / Unlicense, cu excepția a șase crate-uri MPL-2.0 (smartstring prin funcționalitatea `scripting`, activă implicit, și cinci prin aplicația cu fereastră `armatura-gui`); vezi docs/THIRD_PARTY.md); nicio ilustrație sau audio terță livrată fără propriul fișier de licență; numele **ARMATURA** verificat într-o căutare de mărci comerciale înainte de lansare.
+Jurnal de proveniență păstrat (`CLEANROOM.md`; implementare independentă, nu clean-room strict); doar dependențe permisive (regenerează cu `scripts/licence-audit.sh`; în prezent 363 de crate-uri terțe pentru toate platformele, toate de clasă MIT / Apache-2.0 / BSD / Zlib / Unlicense, cu excepția a șase crate-uri MPL-2.0 (smartstring prin funcționalitatea `scripting`, activă implicit, și cinci prin aplicația cu fereastră `armatura-gui`); vezi docs/THIRD_PARTY.md); nicio ilustrație sau audio terță livrată fără propriul fișier de licență; numele **ARMATURA** verificat într-o căutare de mărci comerciale înainte de lansare.
 
 
 # Tabele detaliate de capabilități

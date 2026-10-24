@@ -4,7 +4,7 @@
 
 *Empieza aquí para encontrar la página adecuada. Todos los documentos son Markdown en inglés bajo CC-BY-4.0, salvo los archivos generados de terceros (véanse sus cabeceras). El README en rumano es [../README.ro.md](../../../README.es.md).*
 
-ARMATURA es un motor de rigging y animación vectorial 2D en Rust. Es un proyecto alfa (las primeras compilaciones se preparan como la versión preliminar en borrador `v0.1.0-alpha.2`; los crates siguen en 0.1.0); lee [LIMITATIONS.md](LIMITATIONS.md) antes de depender de una función.
+ARMATURA es un motor de rigging y animación vectorial 2D en Rust. Es un proyecto alfa (las primeras compilaciones se preparan como la versión preliminar en borrador `v0.1.0-alpha.3`; los crates siguen en 0.1.0); lee [LIMITATIONS.md](LIMITATIONS.md) antes de depender de una función.
 
 Contenido: [Todos los documentos](#todos-los-documentos) - [Rutas de lectura por destinatario](#rutas-de-lectura-por-destinatario) - [Documentos en la raíz del repositorio](#documentos-en-la-raíz-del-repositorio) - [Dónde se responde cada pregunta](#dónde-se-responde-cada-pregunta) - [Convenciones](#convenciones-usadas-en-los-documentos)
 

@@ -11,7 +11,7 @@ Sommaire : [Installation et configuration](#installation-et-configuration) - [ff
 ## Installation et configuration
 
 **1. Comment installer ARMATURA ?**
-Des archives précompilées (Windows x86-64, macOS arm64, Linux x86-64, et le module WebAssembly) sont préparées comme la préversion en brouillon `v0.1.0-alpha.2` sur <https://github.com/chiuta/armatura/releases> ; elles deviennent téléchargeables quand le propriétaire publie le brouillon, et elles ne sont pas signées (SmartScreen affiche « Éditeur inconnu » ; macOS demande une approbation). Il n'y a pas d'installateur : décompressez l'archive et lancez `armatura`. Ou compilez-le depuis les sources avec une chaîne d'outils Rust stable récente : `cargo build -p armatura-cli` produit `target/debug/armatura` ; ajoutez `--release` pour obtenir `target/release/armatura`. Voir [DEVELOPMENT.md](DEVELOPMENT.md).
+Des archives précompilées (Windows x86-64, macOS arm64, Linux x86-64, et le module WebAssembly) sont préparées comme la préversion en brouillon `v0.1.0-alpha.3` sur <https://github.com/chiuta/armatura/releases> ; elles deviennent téléchargeables quand le propriétaire publie le brouillon, et elles ne sont pas signées (SmartScreen affiche « Éditeur inconnu » ; macOS demande une approbation). Il n'y a pas d'installateur : décompressez l'archive et lancez `armatura`. Ou compilez-le depuis les sources avec une chaîne d'outils Rust stable récente : `cargo build -p armatura-cli` produit `target/debug/armatura` ; ajoutez `--release` pour obtenir `target/release/armatura`. Voir [DEVELOPMENT.md](DEVELOPMENT.md).
 
 **2. Quelles plateformes fonctionnent ?**
 Linux x86-64 est l'endroit où le projet a été développé et éprouvé. Sur GitHub Actions, la suite de tests et clippy passent aussi sous macOS (arm64) et Windows (x86-64), et les binaires de release pour ces trois plateformes y sont construits ; mais personne n'a encore utilisé les exécutables Windows ou macOS sur un vrai bureau, ils sont donc « testés par la CI », pas « pris en charge » ([LIMITATIONS.md](LIMITATIONS.md), section 1).
@@ -29,7 +29,7 @@ Oui : `cargo build -p armatura-cli --no-default-features` laisse de côté Rhai,
 Non. Le programme n'a besoin ni de compte ni de réseau pour fonctionner (le studio n'a pas de comptes). Par défaut, le studio n'écoute que sur votre propre machine (voir la question 51).
 
 **7. Où le studio conserve-t-il ses réglages ?**
-Dans `$ARMATURA_UI_CONFIG` s'il est défini, sinon dans `$XDG_CONFIG_HOME/armatura/ui.json`, sinon dans `~/.config/armatura/ui.json`. Vos projets n'en sont jamais modifiés.
+Dans `$ARMATURA_UI_CONFIG` s'il est défini, sinon dans `$XDG_CONFIG_HOME/armatura/ui.json`, sinon sous Windows dans `%APPDATA%\ARMATURA\ui.json`, sinon dans `~/.config/armatura/ui.json`. Vos projets n'en sont jamais modifiés.
 
 ---
 

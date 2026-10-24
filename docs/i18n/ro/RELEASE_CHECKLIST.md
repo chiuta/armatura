@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # Listă de verificare pentru lansare (partea proprietarului)
 
-*Pași pe care îi poate face doar proprietarul, în ordine. Stare la 24 oct. 2026: depozitul <https://github.com/chiuta/armatura> există, GitHub Actions este verde (teste pe Linux, macOS și Windows, clippy, wasm32, cargo-deny, REUSE), iar pre-lansarea ciornă `v0.1.0-alpha.2` a fost construită (arhive pentru Windows, macOS și Linux, modulul web și `SHA256SUMS.txt`); **nimic nu este încă publicat**. Pașii de mai jos pe care CI i-a făcut deja sunt bifați; restul au nevoie de o persoană, un avocat sau un cont. Nu constituie consultanță juridică. Elementele marcate cu **[blocker]** trebuie făcute înainte de un anunț public.*
+*Pași pe care îi poate face doar proprietarul, în ordine. Stare la 24 oct. 2026: depozitul <https://github.com/chiuta/armatura> există, GitHub Actions este verde (teste pe Linux, macOS și Windows, clippy, wasm32, cargo-deny, REUSE), iar pre-lansarea ciornă `v0.1.0-alpha.3` a fost construită (arhive pentru Windows, macOS și Linux, modulul web și `SHA256SUMS.txt`); **nimic nu este încă publicat**. Pașii de mai jos pe care CI i-a făcut deja sunt bifați; restul au nevoie de o persoană, un avocat sau un cont. Nu constituie consultanță juridică. Elementele marcate cu **[blocker]** trebuie făcute înainte de un anunț public.*
 
 ## 1. Înainte de a publica orice
 
@@ -41,7 +41,7 @@
 
 ## 6. Artefacte de lansare
 
-- [x] Binarele de lansare sunt construite pe runnere găzduite de GitHub (`release.yml`), iar `SHA256SUMS.txt` este generat în ciornă. **Deschis:** verifică ciorna `v0.1.0-alpha.2`, bifează „pre-release”, publică-o și etichetează commit-ul (tag-ul este creat odată cu lansarea).
+- [x] Binarele de lansare sunt construite pe runnere găzduite de GitHub (`release.yml`), iar `SHA256SUMS.txt` este generat în ciornă. **Deschis:** verifică ciorna `v0.1.0-alpha.3`, bifează „pre-release”, publică-o și etichetează commit-ul (tag-ul este creat odată cu lansarea).
 - [ ] Decide asupra semnării codului (certificat Windows Authenticode, Apple Developer ID și notarizare); până atunci descărcările sunt marcate ca nesemnate (L-74).
 - [ ] Atașează codul sursă corespunzător pentru părțile AGPL (eticheta în sine este suficientă; păstrează-l disponibil cât timp distribui binare).
 - [x] `docs/THIRD_PARTY_NOTICES.md` este regenerat (24 oct. 2026), iar fiecare arhivă îl conține; regenerează-l din nou cu `scripts/licence-audit.sh` înainte de fiecare lansare ulterioară.

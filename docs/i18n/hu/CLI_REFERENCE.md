@@ -2465,8 +2465,8 @@ AGPL-3.0 source offer: http://127.0.0.1:18931/source
 ARMATURA studio on http://127.0.0.1:18931  (Ctrl-C to stop; saves go to demo.json)
 UI settings (layout, shortcuts) in ui.json
 ```
-Opciók: a `--ui-config F` az elrendezést és a gyorsbillentyűket őrzi (alapértelmezés: `~/.config/armatura/ui.json`); a `--source-url URL` a
-`/source` címen megjelenített, közzétett forráshoz vezető hivatkozást állítja be (AGPL-3.0 13. szakasz); az `--allow-host NAMES` és a `--public-origin URL` elfogadja a
+Opciók: a `--ui-config F` az elrendezést és a gyorsbillentyűket őrzi (alapértelmezés: `~/.config/armatura/ui.json`, Windowson `%APPDATA%\ARMATURA\ui.json`); a `--source-url URL` a
+`/source` címen és a `--version` kimenetében megjelenített, közzétett forráshoz vezető hivatkozást állítja be (AGPL-3.0 13. szakasz; a hivatalos kiadási binárisok alapértelmezése az a commit, amelyből épültek); az `--allow-host NAMES` és a `--public-origin URL` elfogadja a
 nyilvános név alatt, TLS fordított proxy mögül érkező kéréseket; a `--collab-token T` (legalább 16 karakter, például
 `openssl rand -hex 16`) bekapcsolja a többfelhasználós munkamenetet, és **minden nem loopback `--bind` esetén kötelező**; a `--collab-nosync` csak a `--collab-log` mellett érvényes (egyébként hiba); a `--collab-log LOG`
 tartósítja a megosztott munkamenetet, és újraindítás után folytatja (a `--collab-nosync` kihagyja az indításkori szinkronizálást).

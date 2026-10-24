@@ -11,7 +11,7 @@ Indice: [Installazione e configurazione](#installazione-e-configurazione) - [ffm
 ## Installazione e configurazione
 
 **1. Come installo ARMATURA?**
-Archivi precompilati (Windows x86-64, macOS arm64, Linux x86-64 e il modulo WebAssembly) sono preparati come pre-release in bozza `v0.1.0-alpha.2` su <https://github.com/chiuta/armatura/releases>; diventano scaricabili quando il proprietario pubblica la bozza e non sono firmati (SmartScreen mostra "Editore sconosciuto"; macOS chiede l'approvazione). Non c'è un installer: decomprimi l'archivio ed esegui `armatura`. Oppure lo compili dai sorgenti con una toolchain Rust stabile recente: `cargo build -p armatura-cli` produce `target/debug/armatura`; aggiungi `--release` per `target/release/armatura`. Vedi [DEVELOPMENT.md](DEVELOPMENT.md).
+Archivi precompilati (Windows x86-64, macOS arm64, Linux x86-64 e il modulo WebAssembly) sono preparati come pre-release in bozza `v0.1.0-alpha.3` su <https://github.com/chiuta/armatura/releases>; diventano scaricabili quando il proprietario pubblica la bozza e non sono firmati (SmartScreen mostra "Editore sconosciuto"; macOS chiede l'approvazione). Non c'è un installer: decomprimi l'archivio ed esegui `armatura`. Oppure lo compili dai sorgenti con una toolchain Rust stabile recente: `cargo build -p armatura-cli` produce `target/debug/armatura`; aggiungi `--release` per `target/release/armatura`. Vedi [DEVELOPMENT.md](DEVELOPMENT.md).
 
 **2. Su quali piattaforme funziona?**
 Linux x86-64 è dove il progetto è stato sviluppato ed esercitato. Su GitHub Actions la suite di test e clippy passano anche su macOS (arm64) e Windows (x86-64), e lì vengono compilati i binari di release per questi tre; ma nessuna persona ha ancora usato gli eseguibili Windows o macOS su un vero desktop, quindi sono "testati dalla CI", non "supportati" ([LIMITATIONS.md](LIMITATIONS.md), sezione 1).
@@ -29,7 +29,7 @@ Sì: `cargo build -p armatura-cli --no-default-features` lascia fuori Rhai, quin
 No. Il programma non richiede alcun account né la rete per funzionare (lo studio non ha account). Per impostazione predefinita lo studio ascolta solo sulla tua macchina (vedi la domanda 51).
 
 **7. Dove conserva le impostazioni lo studio?**
-In `$ARMATURA_UI_CONFIG` se impostata, altrimenti in `$XDG_CONFIG_HOME/armatura/ui.json`, altrimenti in `~/.config/armatura/ui.json`. I tuoi progetti non vengono mai toccati.
+In `$ARMATURA_UI_CONFIG` se impostata, altrimenti in `$XDG_CONFIG_HOME/armatura/ui.json`, altrimenti su Windows in `%APPDATA%\ARMATURA\ui.json`, altrimenti in `~/.config/armatura/ui.json`. I tuoi progetti non vengono mai toccati.
 
 ---
 

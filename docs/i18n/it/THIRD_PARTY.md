@@ -2,7 +2,7 @@
 
 *Generato da `scripts/licence-audit.sh` a partire da `cargo metadata --all-features` (tutti i target, dipendenze normali + di build, dev-dependencies escluse). Non modificare a mano. Non è consulenza legale; le espressioni SPDX sono quelle che ogni crate dichiara nel proprio `Cargo.toml` e non sono state verificate in modo indipendente rispetto ai file sorgente. I crate del workspace sono a loro volta MPL-2.0 (core, capi, wasm, gpu) e AGPL-3.0-or-later (armatura-cli); vedi LICENSE.*
 
-**362 crate di terze parti** (nome+versione distinti). Gruppo A (da rivedere): 6; gruppo B (licenze permissive / di pubblico dominio / sui dati degne di nota): 27; gruppo C (stile MIT / Apache-2.0): 329.
+**363 crate di terze parti** (nome+versione distinti). Gruppo A (da rivedere): 6; gruppo B (licenze permissive / di pubblico dominio / sui dati degne di nota): 27; gruppo C (stile MIT / Apache-2.0): 330.
 
 ## A. Da rivedere: un termine copyleft senza alternativa interamente permissiva
 
@@ -69,7 +69,7 @@
 | bitflags | 2.13.2 | MIT OR Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-gui, armatura-wasm |  |
 | block-buffer | 0.10.4 | MIT OR Apache-2.0 | registry crates.io | armatura-gui |  |
 | block2 | 0.6.2 | MIT | registry crates.io | armatura-cli, armatura-gpu, armatura-gui |  |
-| bumpalo | 3.20.3 | MIT OR Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-wasm |  |
+| bumpalo | 3.20.3 | MIT OR Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-gui, armatura-wasm |  |
 | bytemuck | 1.25.2 | Zlib OR Apache-2.0 OR MIT | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-wasm |  |
 | bytemuck_derive | 1.12.1 | Zlib OR Apache-2.0 OR MIT | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-wasm |  |
 | bytes | 1.12.1 | MIT | registry crates.io | armatura-gui |  |
@@ -177,7 +177,7 @@
 | jni-sys | 0.4.1 | MIT OR Apache-2.0 | registry crates.io | armatura-cli, armatura-gpu, armatura-gui |  |
 | jni-sys-macros | 0.4.1 | MIT OR Apache-2.0 | registry crates.io | armatura-cli, armatura-gpu, armatura-gui |  |
 | jpeg-decoder | 0.3.2 | MIT OR Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-wasm |  |
-| js-sys | 0.3.106 | MIT OR Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-wasm |  |
+| js-sys | 0.3.106 | MIT OR Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-gui, armatura-wasm |  |
 | khronos-egl | 6.0.0 | MIT/Apache-2.0 | registry crates.io | armatura-cli, armatura-gpu |  |
 | khronos_api | 3.1.0 | Apache-2.0 | registry crates.io | armatura-cli, armatura-gpu |  |
 | libc | 0.2.191 | MIT OR Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-gui, armatura-wasm |  |
@@ -256,6 +256,7 @@
 | redox_syscall | 0.5.18 | MIT | registry crates.io | armatura-cli, armatura-gpu, armatura-gui |  |
 | redox_users | 0.5.3 | MIT | registry crates.io | armatura-gui |  |
 | renderdoc-sys | 1.1.0 | MIT OR Apache-2.0 | registry crates.io | armatura-cli, armatura-gpu |  |
+| rfd | 0.17.2 | MIT | registry crates.io | armatura-gui |  |
 | rhai | 1.26.1 | MIT OR Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-wasm |  |
 | rhai_codegen | 3.2.0 | MIT OR Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-wasm |  |
 | rustc-hash | 1.1.0 | Apache-2.0/MIT | registry crates.io | armatura-cli, armatura-gpu |  |
@@ -302,7 +303,7 @@
 | time | 0.3.55 | MIT OR Apache-2.0 | registry crates.io | armatura-gui |  |
 | time-core | 0.1.9 | MIT OR Apache-2.0 | registry crates.io | armatura-gui |  |
 | time-macros | 0.2.32 | MIT OR Apache-2.0 | registry crates.io | armatura-gui |  |
-| tokio | 1.54.0 | MIT | registry crates.io | armatura-cli, armatura-gpu |  |
+| tokio | 1.54.0 | MIT | registry crates.io | armatura-cli, armatura-gpu, armatura-gui |  |
 | toml | 0.8.2 | MIT OR Apache-2.0 | registry crates.io | armatura-gui |  |
 | toml_datetime | 0.6.3 | MIT OR Apache-2.0 | registry crates.io | armatura-gui |  |
 | toml_datetime | 1.1.2+spec-1.1.0 | MIT OR Apache-2.0 | registry crates.io | armatura-gui |  |
@@ -320,13 +321,13 @@
 | version_check | 0.9.5 | MIT/Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-gui, armatura-wasm |  |
 | walkdir | 2.5.0 | Unlicense/MIT | registry crates.io | armatura-gui |  |
 | wasi | 0.11.1+wasi-snapshot-preview1 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-wasm |  |
-| wasm-bindgen | 0.2.129 | MIT OR Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-wasm |  |
-| wasm-bindgen-futures | 0.4.79 | MIT OR Apache-2.0 | registry crates.io | armatura-cli, armatura-gpu |  |
-| wasm-bindgen-macro | 0.2.129 | MIT OR Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-wasm |  |
-| wasm-bindgen-macro-support | 0.2.129 | MIT OR Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-wasm |  |
-| wasm-bindgen-shared | 0.2.129 | MIT OR Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-wasm |  |
+| wasm-bindgen | 0.2.129 | MIT OR Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-gui, armatura-wasm |  |
+| wasm-bindgen-futures | 0.4.79 | MIT OR Apache-2.0 | registry crates.io | armatura-cli, armatura-gpu, armatura-gui |  |
+| wasm-bindgen-macro | 0.2.129 | MIT OR Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-gui, armatura-wasm |  |
+| wasm-bindgen-macro-support | 0.2.129 | MIT OR Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-gui, armatura-wasm |  |
+| wasm-bindgen-shared | 0.2.129 | MIT OR Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-gui, armatura-wasm |  |
 | wayland-sys | 0.31.11 | MIT | registry crates.io | armatura-cli, armatura-gpu |  |
-| web-sys | 0.3.106 | MIT OR Apache-2.0 | registry crates.io | armatura-cli, armatura-gpu |  |
+| web-sys | 0.3.106 | MIT OR Apache-2.0 | registry crates.io | armatura-cli, armatura-gpu, armatura-gui |  |
 | web-time | 1.1.0 | MIT OR Apache-2.0 | registry crates.io | armatura-capi, armatura-cli, armatura-core, armatura-gpu, armatura-wasm |  |
 | web_atoms | 0.2.6 | MIT OR Apache-2.0 | registry crates.io | armatura-gui |  |
 | webkit2gtk | 2.0.2 | MIT | registry crates.io | armatura-gui |  |

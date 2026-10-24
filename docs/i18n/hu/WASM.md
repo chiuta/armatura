@@ -4,7 +4,7 @@
 
 > ## ÁLLAPOT: A CI-BEN LEFORDÍTVA ÉS TESZTELVE, BÖNGÉSZŐBEN SOSEM FUTTATTÁK
 >
-> **2026. okt. 24-től a modul a GitHub Actionsön épül** (`wasm32-unknown-unknown`, debug build a `ci.yml`-ben, release build a `release.yml`-ben), és **a burkoló tesztje sikeres a valódi modul ellen Node 20 alatt** (`node armatura-wasm/js/test.mjs demo.json`, a valódi-modul részét is beleértve). A release build `armatura-web.tar.gz` néven csatolva van a `v0.1.0-alpha.2` előzetes kiadás-vázlathoz (tömörítve kb. 0,9 MB, az `armatura.js` fájllal és a demóoldallal). **Böngészőben még soha nem töltötték be**: ezen az oldalon semmi, ami böngészőkről, sebességről vagy memóriáról szól, nem megfigyelt viselkedés, és maga a fejlesztői környezet továbbra sem tudja telepíteni a célt (a szabványkönyvtárának letöltése ott blokkolt).
+> **2026. okt. 24-től a modul a GitHub Actionsön épül** (`wasm32-unknown-unknown`, debug build a `ci.yml`-ben, release build a `release.yml`-ben), és **a burkoló tesztje sikeres a valódi modul ellen Node 20 alatt** (`node armatura-wasm/js/test.mjs demo.json`, a valódi-modul részét is beleértve). A release build `armatura-web.tar.gz` néven csatolva van a `v0.1.0-alpha.3` előzetes kiadás-vázlathoz (tömörítve kb. 0,9 MB, az `armatura.js` fájllal és a demóoldallal). **Böngészőben még soha nem töltötték be**: ezen az oldalon semmi, ami böngészőkről, sebességről vagy memóriáról szól, nem megfigyelt viselkedés, és maga a fejlesztői környezet továbbra sem tudja telepíteni a célt (a szabványkönyvtárának letöltése ott blokkolt).
 >
 > Ami tesztelve volt, és ez meddig terjed:
 >

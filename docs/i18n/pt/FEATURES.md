@@ -1,6 +1,6 @@
 # ARMATURA — matriz de recursos + listas de verificação de referência e da concorrência
 
-> Redação das versões: todos os crates estão em `0.1.0` (os primeiros builds são o pré-lançamento em rascunho `v0.1.0-alpha.2`); "v0.5 / v0.6 / v0.7" neste repositório são *níveis de recursos* (veja [CHANGELOG.md](CHANGELOG.md)), e a seção 9 de `ROADMAP.md` é a autoridade sobre o que está construído.
+> Redação das versões: todos os crates estão em `0.1.0` (os primeiros builds são o pré-lançamento em rascunho `v0.1.0-alpha.3`); "v0.5 / v0.6 / v0.7" neste repositório são *níveis de recursos* (veja [CHANGELOG.md](CHANGELOG.md)), e a seção 9 de `ROADMAP.md` é a autoridade sobre o que está construído.
 
 Estado honesto do que existe. **✅ pronto e testado · 🟡 parcial · ❌ não implementado.**
 
@@ -118,7 +118,7 @@ Ela substitui as listas dispersas de "candidatos n.º" mais adiante; os detalhes
 - Incluir **encoders H.264/H.265/AAC**.
 
 ## Condições que se aplicam a toda linha 🟢
-Log de proveniência mantido (`CLEANROOM.md`; implementação independente, não um clean-room estrito); somente dependências permissivas (regenere com `scripts/licence-audit.sh`; atualmente 362 crates de terceiros em todas as plataformas, todos da classe MIT / Apache-2.0 / BSD / Zlib / Unlicense, exceto seis crates MPL-2.0 (smartstring, via o recurso `scripting`, ativado por padrão, e cinco via o aplicativo de janela `armatura-gui`); veja docs/THIRD_PARTY.md); nenhuma arte ou áudio de terceiros distribuído sem o respectivo arquivo de licença; o nome **ARMATURA** liberado em uma busca de marca registrada antes do lançamento.
+Log de proveniência mantido (`CLEANROOM.md`; implementação independente, não um clean-room estrito); somente dependências permissivas (regenere com `scripts/licence-audit.sh`; atualmente 363 crates de terceiros em todas as plataformas, todos da classe MIT / Apache-2.0 / BSD / Zlib / Unlicense, exceto seis crates MPL-2.0 (smartstring, via o recurso `scripting`, ativado por padrão, e cinco via o aplicativo de janela `armatura-gui`); veja docs/THIRD_PARTY.md); nenhuma arte ou áudio de terceiros distribuído sem o respectivo arquivo de licença; o nome **ARMATURA** liberado em uma busca de marca registrada antes do lançamento.
 
 
 # Tabelas detalhadas de capacidades

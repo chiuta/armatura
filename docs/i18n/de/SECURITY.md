@@ -49,7 +49,7 @@ Jede Antwort trägt `Connection: close` (kein Keep-Alive-Zustand, der sich ersch
 3. **Content-Type.** `POST` verlangt `Content-Type: application/json` (sonst 415), sodass ein einfaches HTML-Formular nicht an die API senden kann.
 4. **Token** (siehe Abschnitt 3), wenn konfiguriert; verpflichtend, wenn `--bind` keine Loopback-Adresse ist.
 
-**Quellcode-Angebot.** Das Studio liefert `/source` aus (auch wenn ein Token erforderlich ist), und `--source-url` setzt die Adresse, wie es AGPL-3.0 Abschnitt 13 verlangt (siehe [LICENSING.md](LICENSING.md)).
+**Quellcode-Angebot.** Das Studio liefert `/source` aus (auch wenn ein Token erforderlich ist), und `--source-url` setzt die Adresse (die offiziellen Release-Binärdateien verwenden standardmäßig den Commit, aus dem sie gebaut wurden), wie es AGPL-3.0 Abschnitt 13 verlangt (siehe [LICENSING.md](LICENSING.md)).
 
 **Unbekannte oder fehlerhafte Pfade und Methoden** erhalten eine einfache Fehlerantwort; die Editorseite ist in die Binärdatei einkompiliert (`studio.html`) und wird nicht aus dem Dateisystem gelesen, sodass es für statische Inhalte keine Angriffsfläche für Path Traversal gibt.
 
@@ -130,7 +130,7 @@ Ehrliche Liste; für die weitere Liste funktionaler Einschränkungen siehe [LIMI
 * **Eröffne kein öffentliches Issue** für eine Schwachstelle. Sende eine private Meldung an den Maintainer: **`alexio@trom.tf`**. *(Platzhalter: Die Adresse steht im Hinweis des Programms bei `--version` und in den Lizenzdokumenten; der Eigentümer muss sie als Sicherheitskontakt bestätigen und kann sie vor dem ersten Release durch eine eigene Adresse oder einen privaten Advisory-Kanal ersetzen.)*
 * Gib an: Version (`armatura --version`) und Plattform, das Projekt oder die Anfrage, die das Problem auslöst (eine minimale Datei ist am besten), was du erwartet hast und was passiert ist, und ob du namentlich genannt werden möchtest.
 * Was dich erwartet *(Absicht, kein Vertrag: Dies ist ein Ein-Personen-Projekt)*: eine Bestätigung innerhalb angemessener Zeit, ein im Privaten entwickelter Fix, ein der Suite hinzugefügter Regressionstest, ein Vermerk in [CHANGELOG.md](CHANGELOG.md) und auf Wunsch eine Namensnennung. Bitte lass Zeit für einen Fix, bevor du Details veröffentlichst.
-* Unterstützte Versionen: Nur die neueste Vorabversion (`v0.1.0-alpha.2`, sobald veröffentlicht) und der aktuelle Baum auf `main` werden unterstützt.
+* Unterstützte Versionen: Nur die neueste Vorabversion (`v0.1.0-alpha.3`, sobald veröffentlicht) und der aktuelle Baum auf `main` werden unterstützt.
 * Meldungen zur Netzwerk-Exposition des Studios, wenn es absichtlich ohne Reverse-Proxy an eine öffentliche Adresse gebunden wird, sind zunächst Dokumentationsthemen: siehe Abschnitt 11.
 
 ## 11. Härtungs-Checkliste für Betreiber

@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # Lista de comprobación de publicación (lado del titular)
 
-*Pasos que solo puede dar el titular, en orden. Estado a 24 oct 2026: el repositorio <https://github.com/chiuta/armatura> existe, GitHub Actions está en verde (pruebas en Linux, macOS y Windows, clippy, wasm32, cargo-deny, REUSE) y se ha compilado la versión preliminar en borrador `v0.1.0-alpha.2` (archivos de Windows, macOS y Linux, el módulo web y `SHA256SUMS.txt`); **todavía no se ha publicado nada**. Los pasos de abajo que la CI ya hizo están marcados; el resto necesita una persona, un abogado o una cuenta. Esto no es asesoramiento jurídico. Los elementos marcados con **[blocker]** deben hacerse antes de un anuncio público.*
+*Pasos que solo puede dar el titular, en orden. Estado a 24 oct 2026: el repositorio <https://github.com/chiuta/armatura> existe, GitHub Actions está en verde (pruebas en Linux, macOS y Windows, clippy, wasm32, cargo-deny, REUSE) y se ha compilado la versión preliminar en borrador `v0.1.0-alpha.3` (archivos de Windows, macOS y Linux, el módulo web y `SHA256SUMS.txt`); **todavía no se ha publicado nada**. Los pasos de abajo que la CI ya hizo están marcados; el resto necesita una persona, un abogado o una cuenta. Esto no es asesoramiento jurídico. Los elementos marcados con **[blocker]** deben hacerse antes de un anuncio público.*
 
 ## 1. Antes de publicar nada
 
@@ -41,7 +41,7 @@
 
 ## 6. Artefactos de la versión
 
-- [x] Los binarios de la versión se compilan en runners alojados en GitHub (`release.yml`) y `SHA256SUMS.txt` se genera en el borrador. **Pendiente:** revisar el borrador `v0.1.0-alpha.2`, marcar "pre-release", publicarlo y etiquetar el commit (la etiqueta se crea con la publicación).
+- [x] Los binarios de la versión se compilan en runners alojados en GitHub (`release.yml`) y `SHA256SUMS.txt` se genera en el borrador. **Pendiente:** revisar el borrador `v0.1.0-alpha.3`, marcar "pre-release", publicarlo y etiquetar el commit (la etiqueta se crea con la publicación).
 - [ ] Decide sobre la firma de código (certificado Authenticode de Windows, Apple Developer ID y notarización); hasta entonces las descargas se marcan como sin firmar (L-74).
 - [ ] Adjunta el código fuente correspondiente de las partes AGPL (basta con la propia etiqueta; mantenla disponible mientras distribuyas binarios).
 - [x] `docs/THIRD_PARTY_NOTICES.md` está regenerado (24 oct 2026) y cada archivo lo incluye; regenéralo de nuevo con `scripts/licence-audit.sh` antes de cada versión posterior.

@@ -49,7 +49,7 @@ Ogni risposta porta `Connection: close` (nessuno stato keep-alive da esaurire), 
 3. **Tipo di contenuto.** `POST` richiede `Content-Type: application/json` (altrimenti 415), così un semplice modulo HTML non può fare POST all'API.
 4. **Token** (vedi sezione 3), quando configurato; obbligatorio quando `--bind` non è un indirizzo di loopback.
 
-**Offerta dei sorgenti.** Lo studio serve `/source` (anche quando è richiesto un token) e `--source-url` ne imposta l'indirizzo, come richiesto dalla sezione 13 dell'AGPL-3.0 (vedi [LICENSING.md](LICENSING.md)).
+**Offerta dei sorgenti.** Lo studio serve `/source` (anche quando è richiesto un token) e `--source-url` ne imposta l'indirizzo (i binari di release ufficiali usano come predefinito il commit da cui sono stati compilati), come richiesto dalla sezione 13 dell'AGPL-3.0 (vedi [LICENSING.md](LICENSING.md)).
 
 **Percorsi e metodi sconosciuti o malformati** ricevono una semplice risposta di errore; la pagina dell'editor è compilata nel binario (`studio.html`) e non viene letta dal file system, quindi non esiste una superficie di path traversal per i contenuti statici.
 
@@ -129,7 +129,7 @@ Elenco onesto; vedi [LIMITATIONS.md](LIMITATIONS.md) per l'elenco più ampio dei
 * **Non aprire una issue pubblica** per una vulnerabilità. Invia una segnalazione privata al maintainer: **`alexio@trom.tf`**. *(Segnaposto: l'indirizzo compare nell'avviso di `--version` del programma e nei documenti di licenza; il proprietario deve confermarlo come contatto per la sicurezza e può sostituirlo con un indirizzo dedicato o un canale di advisory privato prima del primo rilascio.)*
 * Includi: versione (`armatura --version`) e piattaforma, il progetto o la richiesta che provoca il problema (un file minimo è la cosa migliore), cosa ti aspettavi e cosa è successo, e se vuoi essere citato.
 * Cosa aspettarsi *(un'intenzione, non un contratto: questo è un progetto di una sola persona)*: una conferma di ricezione in tempi ragionevoli, una correzione sviluppata in privato, un test di regressione aggiunto alla suite, una nota in [CHANGELOG.md](CHANGELOG.md) e un riconoscimento se lo desideri. Lascia il tempo per una correzione prima di pubblicare i dettagli.
-* Versioni supportate: solo l'ultima pre-release (`v0.1.0-alpha.2` una volta pubblicata) e l'albero attuale su `main` sono supportati.
+* Versioni supportate: solo l'ultima pre-release (`v0.1.0-alpha.3` una volta pubblicata) e l'albero attuale su `main` sono supportati.
 * Le segnalazioni sull'esposizione di rete dello studio quando è deliberatamente in bind su un indirizzo pubblico senza reverse proxy sono prima di tutto problemi di documentazione: vedi sezione 11.
 
 ## 11. Checklist di hardening per chi installa

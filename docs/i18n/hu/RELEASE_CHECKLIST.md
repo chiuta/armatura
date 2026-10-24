@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # Kiadási ellenőrzőlista (tulajdonosi oldal)
 
-*Olyan lépések, amelyeket csak a tulajdonos végezhet el, sorrendben. Állapot 2026. okt. 24-én: a <https://github.com/chiuta/armatura> repository létezik, a GitHub Actions zöld (tesztek Linuxon, macOS-en és Windowson, clippy, wasm32, cargo-deny, REUSE), és a `v0.1.0-alpha.2` előzetes kiadás-vázlat megépült (Windows, macOS és Linux archívumok, a webes modul és a `SHA256SUMS.txt`); **még semmi nincs közzétéve**. Az alábbi lépések közül azokat, amelyeket a CI már elvégzett, kipipáltuk; a többihez ember, jogász vagy fiók kell. Nem jogi tanács. A **[blocker]** jelölésű tételeket nyilvános bejelentés előtt el kell végezni.*
+*Olyan lépések, amelyeket csak a tulajdonos végezhet el, sorrendben. Állapot 2026. okt. 24-én: a <https://github.com/chiuta/armatura> repository létezik, a GitHub Actions zöld (tesztek Linuxon, macOS-en és Windowson, clippy, wasm32, cargo-deny, REUSE), és a `v0.1.0-alpha.3` előzetes kiadás-vázlat megépült (Windows, macOS és Linux archívumok, a webes modul és a `SHA256SUMS.txt`); **még semmi nincs közzétéve**. Az alábbi lépések közül azokat, amelyeket a CI már elvégzett, kipipáltuk; a többihez ember, jogász vagy fiók kell. Nem jogi tanács. A **[blocker]** jelölésű tételeket nyilvános bejelentés előtt el kell végezni.*
 
 ## 1. Bármi közzététele előtt
 
@@ -41,7 +41,7 @@
 
 ## 6. Kiadási artefaktumok
 
-- [x] A kiadási binárisokat GitHub-hosztolt runnerek építik (`release.yml`), és a `SHA256SUMS.txt` a vázlatban generálódik. **Nyitott:** nézd át a `v0.1.0-alpha.2` vázlatot, jelöld be az „előzetes kiadás” mezőt, tedd közzé, és címkézd fel a commitot (a címke a kiadással jön létre).
+- [x] A kiadási binárisokat GitHub-hosztolt runnerek építik (`release.yml`), és a `SHA256SUMS.txt` a vázlatban generálódik. **Nyitott:** nézd át a `v0.1.0-alpha.3` vázlatot, jelöld be az „előzetes kiadás” mezőt, tedd közzé, és címkézd fel a commitot (a címke a kiadással jön létre).
 - [ ] Döntsd el a kódaláírást (Windows Authenticode tanúsítvány, Apple Developer ID és hitelesítés); addig a letöltéseket aláíratlanként jelöli a rendszer (L-74).
 - [ ] Mellékeld az AGPL-es részekhez tartozó forrást (maga a címke elég; tartsd elérhetően, amíg binárisokat terjesztesz).
 - [x] A `docs/THIRD_PARTY_NOTICES.md` újragenerálva (2026. okt. 24.), és minden archívum tartalmazza; minden későbbi kiadás előtt generáld újra a `scripts/licence-audit.sh`-val.

@@ -37,10 +37,10 @@ stesso messaggio. I campi sconosciuti vengono segnalati con un avviso (`warning:
 |---|---|---|
 | `--port N` | 8080 | Porta TCP. Una porta occupata dà `cannot listen on 127.0.0.1:8861: Address already in use (os error 98)`; una non valida `cannot listen on 127.0.0.1:99999: invalid port value`. |
 | `--bind ADDR` | `127.0.0.1` | Interfaccia su cui ascoltare. Qualsiasi indirizzo che non sia di loopback **richiede `--collab-token`**. |
-| `--ui-config F` | `$ARMATURA_UI_CONFIG`, altrimenti `$XDG_CONFIG_HOME/armatura/ui.json`, altrimenti `~/.config/armatura/ui.json` | Dove vengono conservati layout, scorciatoie, comandi recenti e impostazioni degli overlay. È un file per utente, mai parte del progetto. |
+| `--ui-config F` | `$ARMATURA_UI_CONFIG`, altrimenti `$XDG_CONFIG_HOME/armatura/ui.json`, altrimenti su Windows `%APPDATA%\ARMATURA\ui.json` (prima di alpha.3 non ce n'era uno: le impostazioni venivano conservate solo per la sessione), altrimenti `~/.config/armatura/ui.json` | Dove vengono conservati layout, scorciatoie, comandi recenti e impostazioni degli overlay. È un file per utente, mai parte del progetto. |
 | `--allow-host NAMES` | nessuno | Nomi `Host` aggiuntivi da accettare (separati da virgola), per l'accesso tramite un nome DNS. |
 | `--public-origin URL` | nessuno | L'origin semplice (`https://studio.example.org`, senza percorso) presentato da un reverse proxy TLS; il suo `Host` e `Origin` vengono quindi accettati. |
-| `--source-url URL` | nessuno | Dove si può scaricare il sorgente corrispondente alla *tua* build (AGPL sezione 13); mostrato su `/source`. |
+| `--source-url URL` | nessuno; nei binari di release ufficiali il commit da cui sono stati compilati (`https://github.com/chiuta/armatura/tree/<commit>`) | Dove si può scaricare il sorgente corrispondente alla *tua* build (AGPL sezione 13); mostrato su `/source` e da `--version`. Un valore esplicito ha sempre la precedenza. |
 | `--collab-token T` | nessuno | Segreto condiviso, **di almeno 16 caratteri** (`openssl rand -hex 16`). Obbligatorio per i bind non loopback. |
 | `--collab-log LOG` | nessuno | Rende persistente la sessione di modifica condivisa su un file e la riprende dopo un riavvio. |
 | `--collab-nosync` | off | Con `--collab-log`: non esegue `fsync` dopo ogni modifica (più veloce; un'interruzione di corrente può far perdere le ultime modifiche). Senza `--collab-log` viene rifiutato all'avvio (`--collab-nosync needs --collab-log`). |
@@ -99,7 +99,7 @@ e dietro un proxy ogni client appare con l'indirizzo del proxy, quindi il back-o
 ### L'offerta del sorgente AGPL
 
 Lo studio è software AGPL-3.0-or-later: se lo modifichi e permetti ad altre persone di usarlo tramite una rete, devi offrire loro il sorgente della
-tua versione. `/source` è quell'offerta; imposta `--source-url` su dove si trova il sorgente della tua build. Senza di esso la pagina lo dice e indica il maintainer.
+tua versione. `/source` è quell'offerta; imposta `--source-url` su dove si trova il sorgente della tua build. Senza di esso (una build che hai compilato tu con un semplice `cargo build` non ne ha) la pagina lo dice e indica il maintainer. I binari di release compilati da `.github/workflows/release.yml` riportano l'indirizzo del proprio commit (`ARMATURA_SOURCE_URL` in fase di compilazione; un fork che compila con il proprio workflow punta a se stesso).
 
 ## 3. Un giro dell'interfaccia
 

@@ -4,7 +4,7 @@
 
 *Itt kezdj, hogy megtaláld a megfelelő oldalt. Minden dokumentum angol nyelvű Markdown CC-BY-4.0 licenc alatt, kivéve a generált harmadik féltől származó fájlokat (lásd a fejlécüket). A román README itt található: [../README.ro.md](../../../README.hu.md).*
 
-Az ARMATURA egy Rustban írt 2D vektoros riggelő és animációs motor. Alfa projekt (az első buildek a `v0.1.0-alpha.2` előzetes kiadás-vázlatként készülnek; a crate-ek továbbra is 0.1.0); mielőtt egy funkcióra támaszkodnál, olvasd el a [LIMITATIONS.md](LIMITATIONS.md) fájlt.
+Az ARMATURA egy Rustban írt 2D vektoros riggelő és animációs motor. Alfa projekt (az első buildek a `v0.1.0-alpha.3` előzetes kiadás-vázlatként készülnek; a crate-ek továbbra is 0.1.0); mielőtt egy funkcióra támaszkodnál, olvasd el a [LIMITATIONS.md](LIMITATIONS.md) fájlt.
 
 Tartalom: [Minden dokumentum](#minden-dokumentum) - [Olvasási útvonalak célközönség szerint](#olvasási-útvonalak-célközönség-szerint) - [A tároló gyökerében lévő dokumentumok](#a-tároló-gyökerében-lévő-dokumentumok) - [Hol található válasz az egyes kérdésekre](#hol-található-válasz-az-egyes-kérdésekre) - [Konvenciók](#a-dokumentumokban-használt-konvenciók)
 

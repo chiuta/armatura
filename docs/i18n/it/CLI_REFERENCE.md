@@ -2467,8 +2467,8 @@ AGPL-3.0 source offer: http://127.0.0.1:18931/source
 ARMATURA studio on http://127.0.0.1:18931  (Ctrl-C to stop; saves go to demo.json)
 UI settings (layout, shortcuts) in ui.json
 ```
-Opzioni: `--ui-config F` conserva layout e scorciatoie (predefinito `~/.config/armatura/ui.json`); `--source-url URL` imposta il
-link al sorgente pubblicato mostrato su `/source` (AGPL-3.0 sezione 13); `--allow-host NAMES` e `--public-origin URL` accettano
+Opzioni: `--ui-config F` conserva layout e scorciatoie (predefinito `~/.config/armatura/ui.json`, su Windows `%APPDATA%\ARMATURA\ui.json`); `--source-url URL` imposta il
+link al sorgente pubblicato mostrato su `/source` e da `--version` (AGPL-3.0 sezione 13; i binari di release ufficiali usano come predefinito il commit da cui sono stati compilati); `--allow-host NAMES` e `--public-origin URL` accettano
 richieste sotto un nome pubblico dietro un reverse proxy TLS; `--collab-token T` (almeno 16 caratteri, per esempio
 `openssl rand -hex 16`) abilita la sessione multiutente ed è **obbligatorio per qualsiasi `--bind` non loopback**; `--collab-nosync` è valido solo insieme a `--collab-log` (altrimenti è un errore); `--collab-log LOG`
 rende persistente la sessione condivisa e la riprende dopo un riavvio (`--collab-nosync` salta la sincronizzazione all'avvio).

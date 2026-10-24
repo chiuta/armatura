@@ -1,6 +1,6 @@
 # ARMATURA — funkciómátrix + referencia- és versenytárs-ellenőrzőlisták
 
-> Verziójelölés: az összes crate `0.1.0` (az első buildek a `v0.1.0-alpha.2` előzetes kiadás-vázlatként készülnek); a „v0.5 / v0.6 / v0.7” ebben a repositoryban *funkciószintet* jelent (lásd [CHANGELOG.md](CHANGELOG.md)), és hogy mi készült el, azt a `ROADMAP.md` 9. szakasza dönti el.
+> Verziójelölés: az összes crate `0.1.0` (az első buildek a `v0.1.0-alpha.3` előzetes kiadás-vázlatként készülnek); a „v0.5 / v0.6 / v0.7” ebben a repositoryban *funkciószintet* jelent (lásd [CHANGELOG.md](CHANGELOG.md)), és hogy mi készült el, azt a `ROADMAP.md` 9. szakasza dönti el.
 
 Őszinte állapotkép arról, ami létezik. **✅ kész és tesztelt · 🟡 részleges · ❌ nincs megvalósítva.**
 
@@ -117,7 +117,7 @@ Felváltja a lejjebb szétszórt „jelölt #” listákat; a részletek és az 
 - **H.264/H.265/AAC kódolók** bundle-ölése.
 
 ## Feltételek, amelyek minden 🟢 sorra érvényesek
-Vezetett származási napló (`CLEANROOM.md`; független megvalósítás, nem szigorú clean-room); csak megengedő függőségek (a `scripts/licence-audit.sh` újragenerálja; jelenleg 362 harmadik féltől származó crate az összes platformon együtt, mind MIT / Apache-2.0 / BSD / Zlib / Unlicense jellegű, hat MPL-2.0 crate kivételével (a smartstring a `scripting` feature-ön keresztül, amely alapértelmezetten be van kapcsolva, öt pedig az `armatura-gui` ablakos alkalmazáson keresztül); lásd docs/THIRD_PARTY.md); harmadik féltől származó grafika vagy hang nem szállítható saját licencfájl nélkül; az **ARMATURA** nevet az indulás előtt védjegykeresésben tisztázni kell.
+Vezetett származási napló (`CLEANROOM.md`; független megvalósítás, nem szigorú clean-room); csak megengedő függőségek (a `scripts/licence-audit.sh` újragenerálja; jelenleg 363 harmadik féltől származó crate az összes platformon együtt, mind MIT / Apache-2.0 / BSD / Zlib / Unlicense jellegű, hat MPL-2.0 crate kivételével (a smartstring a `scripting` feature-ön keresztül, amely alapértelmezetten be van kapcsolva, öt pedig az `armatura-gui` ablakos alkalmazáson keresztül); lásd docs/THIRD_PARTY.md); harmadik féltől származó grafika vagy hang nem szállítható saját licencfájl nélkül; az **ARMATURA** nevet az indulás előtt védjegykeresésben tisztázni kell.
 
 
 # Részletes képességtáblázatok

@@ -1,6 +1,6 @@
 # ARMATURA — matrice delle funzionalità + checklist di riferimento e della concorrenza
 
-> Diciture di versione: tutti i crate sono `0.1.0` (le prime build sono la pre-release in bozza `v0.1.0-alpha.2`); "v0.5 / v0.6 / v0.7" in questo repository sono *livelli di funzionalità* (vedi [CHANGELOG.md](CHANGELOG.md)), e la sezione 9 di `ROADMAP.md` è l'autorità su ciò che è stato realizzato.
+> Diciture di versione: tutti i crate sono `0.1.0` (le prime build sono la pre-release in bozza `v0.1.0-alpha.3`); "v0.5 / v0.6 / v0.7" in questo repository sono *livelli di funzionalità* (vedi [CHANGELOG.md](CHANGELOG.md)), e la sezione 9 di `ROADMAP.md` è l'autorità su ciò che è stato realizzato.
 
 Stato onesto di ciò che esiste. **✅ fatto e testato · 🟡 parziale · ❌ non implementato.**
 
@@ -118,7 +118,7 @@ Sostituisce gli elenchi sparsi di "candidati n." più avanti; dettagli e ID si t
 - Includere encoder **H.264/H.265/AAC**.
 
 ## Condizioni valide per ogni riga 🟢
-Log di provenienza mantenuto (`CLEANROOM.md`; implementazione indipendente, non un clean-room rigoroso); solo dipendenze permissive (rigenerare con `scripts/licence-audit.sh`; attualmente 362 crate di terzi su tutte le piattaforme, tutti di classe MIT / Apache-2.0 / BSD / Zlib / Unlicense tranne sei crate MPL-2.0 (smartstring tramite la feature `scripting`, attiva per impostazione predefinita, e cinque tramite l'app a finestra `armatura-gui`); vedi docs/THIRD_PARTY.md); nessuna grafica o audio di terzi distribuiti senza il proprio file di licenza; il nome **ARMATURA** verificato con una ricerca di marchio prima del lancio.
+Log di provenienza mantenuto (`CLEANROOM.md`; implementazione indipendente, non un clean-room rigoroso); solo dipendenze permissive (rigenerare con `scripts/licence-audit.sh`; attualmente 363 crate di terzi su tutte le piattaforme, tutti di classe MIT / Apache-2.0 / BSD / Zlib / Unlicense tranne sei crate MPL-2.0 (smartstring tramite la feature `scripting`, attiva per impostazione predefinita, e cinque tramite l'app a finestra `armatura-gui`); vedi docs/THIRD_PARTY.md); nessuna grafica o audio di terzi distribuiti senza il proprio file di licenza; il nome **ARMATURA** verificato con una ricerca di marchio prima del lancio.
 
 
 # Tabelle dettagliate delle capacità

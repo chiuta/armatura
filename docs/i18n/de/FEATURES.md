@@ -1,6 +1,6 @@
 # ARMATURA — Feature-Matrix + Checklisten zu Referenz- und Konkurrenzprodukten
 
-> Hinweis zu Versionsangaben: Alle Crates haben die Version `0.1.0` (die ersten Builds sind die Entwurfs-Vorabversion `v0.1.0-alpha.2`); „v0.5 / v0.6 / v0.7" bezeichnen in diesem Repository *Funktionsstufen* (siehe [CHANGELOG.md](CHANGELOG.md)), und `ROADMAP.md` Abschnitt 9 ist maßgeblich dafür, was gebaut ist.
+> Hinweis zu Versionsangaben: Alle Crates haben die Version `0.1.0` (die ersten Builds sind die Entwurfs-Vorabversion `v0.1.0-alpha.3`); „v0.5 / v0.6 / v0.7" bezeichnen in diesem Repository *Funktionsstufen* (siehe [CHANGELOG.md](CHANGELOG.md)), und `ROADMAP.md` Abschnitt 9 ist maßgeblich dafür, was gebaut ist.
 
 Ehrlicher Stand dessen, was existiert. **✅ fertig & getestet · 🟡 teilweise · ❌ nicht implementiert.**
 
@@ -118,7 +118,7 @@ Er ersetzt die verstreuten „Kandidat #"-Listen weiter unten; Details und IDs s
 - **H.264-/H.265-/AAC-Encoder** mitliefern.
 
 ## Bedingungen, die für jede 🟢-Zeile gelten
-Provenienzprotokoll wird geführt (`CLEANROOM.md`; unabhängige Implementierung, kein strenger Clean Room); nur permissive Abhängigkeiten (neu erzeugen mit `scripts/licence-audit.sh`; derzeit 362 Fremd-Crates über alle Plattformen, alle der Klasse MIT / Apache-2.0 / BSD / Zlib / Unlicense bis auf sechs MPL-2.0-Crates (smartstring über das Feature `scripting`, das standardmäßig aktiv ist, und fünf über die Fenster-App `armatura-gui`); siehe docs/THIRD_PARTY.md); keine fremden Grafiken oder Audiodateien ohne eigene Lizenzdatei ausgeliefert; der Name **ARMATURA** vor dem Launch in einer Markenrecherche freigegeben.
+Provenienzprotokoll wird geführt (`CLEANROOM.md`; unabhängige Implementierung, kein strenger Clean Room); nur permissive Abhängigkeiten (neu erzeugen mit `scripts/licence-audit.sh`; derzeit 363 Fremd-Crates über alle Plattformen, alle der Klasse MIT / Apache-2.0 / BSD / Zlib / Unlicense bis auf sechs MPL-2.0-Crates (smartstring über das Feature `scripting`, das standardmäßig aktiv ist, und fünf über die Fenster-App `armatura-gui`); siehe docs/THIRD_PARTY.md); keine fremden Grafiken oder Audiodateien ohne eigene Lizenzdatei ausgeliefert; der Name **ARMATURA** vor dem Launch in einer Markenrecherche freigegeben.
 
 
 # Detaillierte Fähigkeitstabellen

@@ -4,7 +4,7 @@
 
 > ## STARE: CONSTRUIT ȘI TESTAT ÎN CI, NICIODATĂ RULAT ÎNTR-UN BROWSER
 >
-> **La 24 oct. 2026 modulul este construit pe GitHub Actions** (`wasm32-unknown-unknown`, build debug în `ci.yml`, build release în `release.yml`) și **testul wrapper-ului trece față de modulul real sub Node 20** (`node armatura-wasm/js/test.mjs demo.json`, inclusiv partea sa cu modulul real). Build-ul release este atașat la pre-lansarea ciornă `v0.1.0-alpha.2` ca `armatura-web.tar.gz` (aproximativ 0,9 MB comprimat, cu `armatura.js` și pagina demo). **Nu a fost niciodată încărcat într-un browser**: nimic din această pagină despre browsere, viteză sau memorie nu este comportament observat, iar mediul de dezvoltare în sine tot nu poate instala ținta (descărcarea bibliotecii sale standard este blocată acolo).
+> **La 24 oct. 2026 modulul este construit pe GitHub Actions** (`wasm32-unknown-unknown`, build debug în `ci.yml`, build release în `release.yml`) și **testul wrapper-ului trece față de modulul real sub Node 20** (`node armatura-wasm/js/test.mjs demo.json`, inclusiv partea sa cu modulul real). Build-ul release este atașat la pre-lansarea ciornă `v0.1.0-alpha.3` ca `armatura-web.tar.gz` (aproximativ 0,9 MB comprimat, cu `armatura.js` și pagina demo). **Nu a fost niciodată încărcat într-un browser**: nimic din această pagină despre browsere, viteză sau memorie nu este comportament observat, iar mediul de dezvoltare în sine tot nu poate instala ținta (descărcarea bibliotecii sale standard este blocată acolo).
 >
 > Ce a fost testat și până unde ajunge acest lucru:
 >

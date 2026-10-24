@@ -4,7 +4,7 @@
 
 > ## STATUS: COMPILADO E TESTADO NO CI, NUNCA EXECUTADO EM UM NAVEGADOR
 >
-> **Em 24 out 2026 o módulo é compilado no GitHub Actions** (`wasm32-unknown-unknown`, build de depuração em `ci.yml`, build de release em `release.yml`) e **o teste do wrapper passa contra o módulo real sob o Node 20** (`node armatura-wasm/js/test.mjs demo.json`, incluindo sua parte com o módulo real). O build de release está anexado ao pré-lançamento em rascunho `v0.1.0-alpha.2` como `armatura-web.tar.gz` (cerca de 0,9 MB compactado, com `armatura.js` e a página de demonstração). **Ele nunca foi carregado em um navegador**: nada nesta página sobre navegadores, velocidade ou memória é comportamento observado, e o próprio ambiente de desenvolvimento continua sem conseguir instalar o alvo (o download de sua biblioteca padrão está bloqueado ali).
+> **Em 24 out 2026 o módulo é compilado no GitHub Actions** (`wasm32-unknown-unknown`, build de depuração em `ci.yml`, build de release em `release.yml`) e **o teste do wrapper passa contra o módulo real sob o Node 20** (`node armatura-wasm/js/test.mjs demo.json`, incluindo sua parte com o módulo real). O build de release está anexado ao pré-lançamento em rascunho `v0.1.0-alpha.3` como `armatura-web.tar.gz` (cerca de 0,9 MB compactado, com `armatura.js` e a página de demonstração). **Ele nunca foi carregado em um navegador**: nada nesta página sobre navegadores, velocidade ou memória é comportamento observado, e o próprio ambiente de desenvolvimento continua sem conseguir instalar o alvo (o download de sua biblioteca padrão está bloqueado ali).
 >
 > O que foi testado, e até onde isso vai:
 >

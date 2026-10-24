@@ -11,7 +11,7 @@ Contenido: [Instalación y configuración](#instalación-y-configuración) - [ff
 ## Instalación y configuración
 
 **1. ¿Cómo instalo ARMATURA?**
-Los archivos precompilados (Windows x86-64, macOS arm64, Linux x86-64 y el módulo WebAssembly) se preparan como la versión preliminar en borrador `v0.1.0-alpha.2` en <https://github.com/chiuta/armatura/releases>; se podrán descargar cuando el propietario publique el borrador, y no están firmados (SmartScreen muestra "Editor desconocido"; macOS pide aprobación). No hay instalador: descomprime el archivo y ejecuta `armatura`. O compílalo desde el código fuente con una toolchain estable reciente de Rust: `cargo build -p armatura-cli` produce `target/debug/armatura`; añade `--release` para obtener `target/release/armatura`. Véase [DEVELOPMENT.md](DEVELOPMENT.md).
+Los archivos precompilados (Windows x86-64, macOS arm64, Linux x86-64 y el módulo WebAssembly) se preparan como la versión preliminar en borrador `v0.1.0-alpha.3` en <https://github.com/chiuta/armatura/releases>; se podrán descargar cuando el propietario publique el borrador, y no están firmados (SmartScreen muestra "Editor desconocido"; macOS pide aprobación). No hay instalador: descomprime el archivo y ejecuta `armatura`. O compílalo desde el código fuente con una toolchain estable reciente de Rust: `cargo build -p armatura-cli` produce `target/debug/armatura`; añade `--release` para obtener `target/release/armatura`. Véase [DEVELOPMENT.md](DEVELOPMENT.md).
 
 **2. ¿Qué plataformas funcionan?**
 Linux x86-64 es donde se desarrolló y ejercitó el proyecto. En GitHub Actions la batería de pruebas y clippy también pasan en macOS (arm64) y Windows (x86-64), y allí se compilan los binarios de la versión para los tres; pero ninguna persona ha usado todavía los ejecutables de Windows o macOS en un escritorio real, así que están "probados por CI", no "admitidos" ([LIMITATIONS.md](LIMITATIONS.md), sección 1).
@@ -29,7 +29,7 @@ Sí: `cargo build -p armatura-cli --no-default-features` deja fuera Rhai, de mod
 No. El programa no necesita ninguna cuenta ni red para funcionar (el estudio no tiene cuentas). Por defecto el estudio escucha solo en tu propia máquina (véase la pregunta 51).
 
 **7. ¿Dónde guarda el estudio su configuración?**
-En `$ARMATURA_UI_CONFIG` si está definida; si no, en `$XDG_CONFIG_HOME/armatura/ui.json`; si no, en `~/.config/armatura/ui.json`. Tus proyectos nunca los toca.
+En `$ARMATURA_UI_CONFIG` si está definida; si no, en `$XDG_CONFIG_HOME/armatura/ui.json`; si no, en Windows `%APPDATA%\ARMATURA\ui.json`; si no, en `~/.config/armatura/ui.json`. Tus proyectos nunca los toca.
 
 ---
 

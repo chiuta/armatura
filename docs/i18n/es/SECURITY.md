@@ -49,7 +49,7 @@ Cada respuesta lleva `Connection: close` (sin estado keep-alive que agotar), `Ca
 3. **Tipo de contenido.** `POST` exige `Content-Type: application/json` (415 en caso contrario), de modo que un formulario HTML simple no puede enviar datos a la API.
 4. **Token** (véase la sección 3), cuando está configurado; obligatorio cuando `--bind` no es una dirección de loopback.
 
-**Oferta de código fuente.** El studio sirve `/source` (también cuando se exige token) y `--source-url` fija la dirección, como exige la sección 13 de la AGPL-3.0 (véase [LICENSING.md](LICENSING.md)).
+**Oferta de código fuente.** El studio sirve `/source` (también cuando se exige token) y `--source-url` fija la dirección (los binarios oficiales de la versión usan por defecto el commit desde el que se compilaron), como exige la sección 13 de la AGPL-3.0 (véase [LICENSING.md](LICENSING.md)).
 
 **Las rutas y métodos desconocidos o mal formados** reciben una respuesta de error simple; la página del editor está compilada en el binario (`studio.html`) y no se lee del sistema de archivos, de modo que no hay superficie de path traversal para el contenido estático.
 
@@ -130,7 +130,7 @@ Lista honesta; véase [LIMITATIONS.md](LIMITATIONS.md) para la lista más amplia
 * **No abras un issue público** para una vulnerabilidad. Envía un informe privado al mantenedor: **`alexio@trom.tf`**. *(Marcador de posición: la dirección aparece en el aviso de `--version` del programa y en los documentos de licencia; el propietario debe confirmarla como contacto de seguridad y puede sustituirla por una dirección específica o por un canal de avisos privado antes de la primera publicación.)*
 * Incluye: la versión (`armatura --version`) y la plataforma, el proyecto o la petición que provoca el problema (lo mejor es un archivo mínimo), lo que esperabas y lo que ocurrió, y si quieres que se te reconozca la autoría.
 * Qué esperar *(intención, no un contrato: este es un proyecto de una sola persona)*: un acuse de recibo en un plazo razonable, una corrección desarrollada en privado, una prueba de regresión añadida a la suite, una nota en [CHANGELOG.md](CHANGELOG.md) y el reconocimiento si lo deseas. Concede tiempo para una corrección antes de publicar los detalles.
-* Versiones admitidas: solo la última versión preliminar (`v0.1.0-alpha.2` una vez publicada) y el árbol actual en `main`.
+* Versiones admitidas: solo la última versión preliminar (`v0.1.0-alpha.3` una vez publicada) y el árbol actual en `main`.
 * Los informes sobre la exposición de red del studio cuando se enlaza deliberadamente a una dirección pública sin proxy inverso son, en primer lugar, cuestiones de documentación: véase la sección 11.
 
 ## 11. Lista de refuerzo para quien despliega

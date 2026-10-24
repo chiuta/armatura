@@ -4,7 +4,7 @@
 
 *Beginne hier, um die richtige Seite zu finden. Alle Dokumente sind englisches Markdown unter CC-BY-4.0, mit Ausnahme der generierten Dateien zu Drittanbietern (siehe deren Header). Die rumänische README ist [../README.ro.md](../../../README.de.md).*
 
-ARMATURA ist eine 2D-Vektor-Rigging- und Animations-Engine in Rust. Es ist ein Alpha-Projekt (die ersten Builds sind als Entwurfs-Vorabversion `v0.1.0-alpha.2` vorbereitet; die Crates stehen weiterhin auf 0.1.0); lies [LIMITATIONS.md](LIMITATIONS.md), bevor du dich auf eine Funktion verlässt.
+ARMATURA ist eine 2D-Vektor-Rigging- und Animations-Engine in Rust. Es ist ein Alpha-Projekt (die ersten Builds sind als Entwurfs-Vorabversion `v0.1.0-alpha.3` vorbereitet; die Crates stehen weiterhin auf 0.1.0); lies [LIMITATIONS.md](LIMITATIONS.md), bevor du dich auf eine Funktion verlässt.
 
 Inhalt: [Alle Dokumente](#alle-dokumente) - [Lesepfade nach Zielgruppe](#lesepfade-nach-zielgruppe) - [Dokumente im Stammverzeichnis des Repositorys](#dokumente-im-stammverzeichnis-des-repositorys) - [Wo jede Frage beantwortet wird](#wo-jede-frage-beantwortet-wird) - [Konventionen](#in-den-dokumenten-verwendete-konventionen)
 

@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
 # Liste de contrôle de publication (côté propriétaire)
 
-*Étapes que seul le propriétaire peut réaliser, dans l'ordre. État au 24 oct. 2026 : le dépôt <https://github.com/chiuta/armatura> existe, GitHub Actions est au vert (tests sous Linux, macOS et Windows, clippy, wasm32, cargo-deny, REUSE) et la préversion en brouillon `v0.1.0-alpha.2` a été construite (archives Windows, macOS et Linux, module web et `SHA256SUMS.txt`) ; **rien n'est encore publié**. Les étapes ci-dessous que la CI a déjà accomplies sont cochées ; les autres demandent une personne, un juriste ou un compte. Ceci n'est pas un avis juridique. Les éléments marqués **[bloquant]** doivent être traités avant toute annonce publique.*
+*Étapes que seul le propriétaire peut réaliser, dans l'ordre. État au 24 oct. 2026 : le dépôt <https://github.com/chiuta/armatura> existe, GitHub Actions est au vert (tests sous Linux, macOS et Windows, clippy, wasm32, cargo-deny, REUSE) et la préversion en brouillon `v0.1.0-alpha.3` a été construite (archives Windows, macOS et Linux, module web et `SHA256SUMS.txt`) ; **rien n'est encore publié**. Les étapes ci-dessous que la CI a déjà accomplies sont cochées ; les autres demandent une personne, un juriste ou un compte. Ceci n'est pas un avis juridique. Les éléments marqués **[bloquant]** doivent être traités avant toute annonce publique.*
 
 ## 1. Avant de publier quoi que ce soit
 
@@ -41,7 +41,7 @@
 
 ## 6. Artefacts de publication
 
-- [x] Les binaires de release sont construits sur des runners hébergés par GitHub (`release.yml`) et `SHA256SUMS.txt` est généré dans le brouillon. **Reste ouvert :** relisez le brouillon `v0.1.0-alpha.2`, cochez « pre-release », publiez-le et étiquetez le commit (le tag est créé avec la version).
+- [x] Les binaires de release sont construits sur des runners hébergés par GitHub (`release.yml`) et `SHA256SUMS.txt` est généré dans le brouillon. **Reste ouvert :** relisez le brouillon `v0.1.0-alpha.3`, cochez « pre-release », publiez-le et étiquetez le commit (le tag est créé avec la version).
 - [ ] Décidez de la signature du code (certificat Authenticode pour Windows, Apple Developer ID et notarisation) ; d'ici là, les téléchargements sont signalés comme non signés (L-74).
 - [ ] Joignez le code source correspondant pour les parties AGPL (l'étiquette elle-même suffit ; gardez-le disponible aussi longtemps que vous distribuez des binaires).
 - [x] `docs/THIRD_PARTY_NOTICES.md` est régénéré (24 oct. 2026) et chaque archive le contient ; régénérez-le encore avec `scripts/licence-audit.sh` avant chaque version ultérieure.

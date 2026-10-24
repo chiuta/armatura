@@ -49,7 +49,7 @@ Toda resposta traz `Connection: close` (sem estado de keep-alive a esgotar), `Ca
 3. **Tipo de conteúdo.** `POST` exige `Content-Type: application/json` (caso contrário, 415), de modo que um formulário HTML simples não consegue enviar dados à API.
 4. **Token** (veja a seção 3), quando configurado; obrigatório quando `--bind` não é um endereço de loopback.
 
-**Oferta de código-fonte.** O studio serve `/source` (também quando um token é exigido) e `--source-url` define o endereço, conforme exigido pela seção 13 da AGPL-3.0 (veja [LICENSING.md](LICENSING.md)).
+**Oferta de código-fonte.** O studio serve `/source` (também quando um token é exigido) e `--source-url` define o endereço (os binários de release oficiais usam por padrão o commit a partir do qual foram compilados), conforme exigido pela seção 13 da AGPL-3.0 (veja [LICENSING.md](LICENSING.md)).
 
 **Caminhos e métodos desconhecidos ou malformados** recebem uma resposta de erro simples; a página do editor é compilada dentro do binário (`studio.html`) e não é lida do sistema de arquivos, portanto não há superfície de path traversal para conteúdo estático.
 
@@ -130,7 +130,7 @@ Lista honesta; veja [LIMITATIONS.md](LIMITATIONS.md) para a lista mais ampla de 
 * **Não abra uma issue pública** para uma vulnerabilidade. Envie um relatório privado ao mantenedor: **`alexio@trom.tf`**. *(Provisório: o endereço aparece no aviso de `--version` do programa e nos documentos de licença; o dono deve confirmá-lo como contato de segurança e pode substituí-lo por um endereço dedicado ou por um canal de advisory privado antes do primeiro lançamento.)*
 * Inclua: a versão (`armatura --version`) e a plataforma, o projeto ou a requisição que provoca o problema (um arquivo mínimo é o melhor), o que você esperava e o que aconteceu, e se deseja receber crédito.
 * O que esperar *(intenção, não um contrato: este é um projeto de uma pessoa só)*: uma confirmação de recebimento em prazo razoável, uma correção desenvolvida em privado, um teste de regressão adicionado à suíte, uma nota em [CHANGELOG.md](CHANGELOG.md) e crédito, se você desejar. Por favor, dê tempo para uma correção antes de publicar detalhes.
-* Versões suportadas: apenas o pré-lançamento mais recente (`v0.1.0-alpha.2` depois de publicado) e a árvore atual em `main` são suportados.
+* Versões suportadas: apenas o pré-lançamento mais recente (`v0.1.0-alpha.3` depois de publicado) e a árvore atual em `main` são suportados.
 * Relatos sobre a exposição de rede do studio quando ele é deliberadamente colocado em um endereço público sem proxy reverso são, antes de tudo, problemas de documentação: veja a seção 11.
 
 ## 11. Checklist de endurecimento para quem implanta

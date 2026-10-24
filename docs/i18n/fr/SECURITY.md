@@ -49,7 +49,7 @@ Chaque réponse porte `Connection: close` (aucun état keep-alive à épuiser), 
 3. **Type de contenu.** `POST` exige `Content-Type: application/json` (sinon 415), de sorte qu'un simple formulaire HTML ne peut pas poster vers l'API.
 4. **Jeton** (voir la section 3), lorsqu'il est configuré ; obligatoire lorsque `--bind` n'est pas une adresse de bouclage.
 
-**Offre de sources.** Le studio sert `/source` (y compris lorsqu'un jeton est exigé) et `--source-url` en définit l'adresse, comme l'exige l'AGPL-3.0 section 13 (voir [LICENSING.md](LICENSING.md)).
+**Offre de sources.** Le studio sert `/source` (y compris lorsqu'un jeton est exigé) et `--source-url` en définit l'adresse (les binaires de release officiels prennent par défaut le commit à partir duquel ils ont été construits), comme l'exige l'AGPL-3.0 section 13 (voir [LICENSING.md](LICENSING.md)).
 
 **Les chemins et méthodes inconnus ou mal formés** reçoivent une réponse d'erreur simple ; la page de l'éditeur est compilée dans le binaire (`studio.html`) et n'est pas lue depuis le système de fichiers : il n'y a donc aucune surface de traversée de chemin pour le contenu statique.
 
@@ -130,7 +130,7 @@ Liste franche ; voir [LIMITATIONS.md](LIMITATIONS.md) pour la liste plus large d
 * **N'ouvrez pas de ticket public** pour une vulnérabilité. Envoyez un rapport privé au mainteneur : **`alexio@trom.tf`**. *(Espace réservé : l'adresse figure dans l'avis affiché par `--version` du programme et dans les documents de licence ; le propriétaire doit la confirmer comme contact de sécurité et peut la remplacer par une adresse dédiée ou un canal d'avis privé avant la première publication.)*
 * Indiquez : la version (`armatura --version`) et la plateforme, le projet ou la requête qui déclenche le problème (un fichier minimal est idéal), ce que vous attendiez et ce qui s'est passé, et si vous souhaitez être crédité.
 * À quoi s'attendre *(intention, pas contrat : c'est un projet mené par une seule personne)* : un accusé de réception dans un délai raisonnable, un correctif développé en privé, un test de régression ajouté à la suite, une note dans [CHANGELOG.md](CHANGELOG.md), et un crédit si vous le souhaitez. Laissez le temps d'un correctif avant de publier les détails.
-* Versions prises en charge : seules la dernière préversion (`v0.1.0-alpha.2` une fois publiée) et l'arborescence actuelle sur `main` sont prises en charge.
+* Versions prises en charge : seules la dernière préversion (`v0.1.0-alpha.3` une fois publiée) et l'arborescence actuelle sur `main` sont prises en charge.
 * Les signalements concernant l'exposition réseau du studio lorsqu'il est délibérément lié à une adresse publique sans proxy inverse relèvent d'abord de la documentation : voir la section 11.
 
 ## 11. Liste de durcissement pour le déployeur

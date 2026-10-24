@@ -49,7 +49,7 @@ Minden válasz tartalmazza a `Connection: close` (nincs kimeríthető keep-alive
 3. **Tartalomtípus.** A `POST` `Content-Type: application/json` fejlécet igényel (különben 415), így egy egyszerű HTML-űrlap nem küldhet az API-nak.
 4. **Token** (lásd a 3. szakaszt), ha be van állítva; kötelező, ha a `--bind` nem loopback cím.
 
-**Forrásajánlat.** A stúdió kiszolgálja a `/source` címet (akkor is, ha token szükséges), és a `--source-url` állítja be a címet, ahogy az AGPL-3.0 13. szakasza megköveteli (lásd [LICENSING.md](LICENSING.md)).
+**Forrásajánlat.** A stúdió kiszolgálja a `/source` címet (akkor is, ha token szükséges), és a `--source-url` állítja be a címet (a hivatalos kiadási binárisok alapértelmezése az a commit, amelyből épültek), ahogy az AGPL-3.0 13. szakasza megköveteli (lásd [LICENSING.md](LICENSING.md)).
 
 Az **ismeretlen vagy hibás útvonalak és metódusok** sima hibaválaszt kapnak; a szerkesztőoldal a binárisba van fordítva (`studio.html`), és nem a fájlrendszerből olvassák, így statikus tartalomnál nincs útvonal-bejárási (path traversal) támadási felület.
 
@@ -130,7 +130,7 @@ Maga az ffmpeg összetett médiaformátumokat dolgoz fel, és voltak saját sebe
 * **Sebezhetőség miatt ne nyiss nyilvános issue-t.** Küldj privát jelentést a karbantartónak: **`alexio@trom.tf`**. *(Helyőrző: a cím megjelenik a program `--version` közleményében és a licencdokumentumokban; a tulajdonosnak kell biztonsági elérhetőségként megerősítenie, és az első kiadás előtt lecserélheti dedikált címre vagy privát advisory csatornára.)*
 * Tartalmazza: a verziót (`armatura --version`) és a platformot, a problémát kiváltó projektet vagy kérést (a minimális fájl a legjobb), hogy mit vártál és mi történt, és hogy kérsz-e említést.
 * Mire számíthatsz *(szándék, nem szerződés: ez egy egyszemélyes projekt)*: észszerű időn belüli visszaigazolás, privátban kidolgozott javítás, a csomaghoz hozzáadott regressziós teszt, egy megjegyzés a [CHANGELOG.md](CHANGELOG.md) fájlban, és kívánságra említés. Kérjük, hagyj időt a javításra, mielőtt részleteket közzéteszel.
-* Támogatott verziók: csak a legújabb előzetes kiadás (a `v0.1.0-alpha.2`, a közzététele után) és a `main` aktuális fája támogatott.
+* Támogatott verziók: csak a legújabb előzetes kiadás (a `v0.1.0-alpha.3`, a közzététele után) és a `main` aktuális fája támogatott.
 * A stúdió hálózati kitettségéről szóló jelentések, ha szándékosan nyilvános címhez van kötve reverse proxy nélkül, először dokumentációs problémák: lásd a 11. szakaszt.
 
 ## 11. Üzemeltetői keményítési ellenőrzőlista

@@ -11,7 +11,7 @@ Tartalom: [Telepítés és beállítás](#telepítés-és-beállítás) - [ffmpe
 ## Telepítés és beállítás
 
 **1. Hogyan telepítsem az ARMATURA-t?**
-Előre elkészített archívumok (Windows x86-64, macOS arm64, Linux x86-64 és a WebAssembly modul) készülnek a `v0.1.0-alpha.2` előzetes kiadás-vázlatként a <https://github.com/chiuta/armatura/releases> oldalon; akkor tölthetők le, amikor a tulajdonos közzéteszi a vázlatot, és nincsenek kódaláírással ellátva (a SmartScreen „Ismeretlen közzétevőt” mutat; a macOS jóváhagyást kér). Nincs telepítő: csomagold ki az archívumot, és futtasd az `armatura` programot. Vagy fordítsd le forrásból egy friss stabil Rust eszközlánccal: a `cargo build -p armatura-cli` a `target/debug/armatura` fájlt adja; a `--release` hozzáadásával a `target/release/armatura` készül el. Lásd [DEVELOPMENT.md](DEVELOPMENT.md).
+Előre elkészített archívumok (Windows x86-64, macOS arm64, Linux x86-64 és a WebAssembly modul) készülnek a `v0.1.0-alpha.3` előzetes kiadás-vázlatként a <https://github.com/chiuta/armatura/releases> oldalon; akkor tölthetők le, amikor a tulajdonos közzéteszi a vázlatot, és nincsenek kódaláírással ellátva (a SmartScreen „Ismeretlen közzétevőt” mutat; a macOS jóváhagyást kér). Nincs telepítő: csomagold ki az archívumot, és futtasd az `armatura` programot. Vagy fordítsd le forrásból egy friss stabil Rust eszközlánccal: a `cargo build -p armatura-cli` a `target/debug/armatura` fájlt adja; a `--release` hozzáadásával a `target/release/armatura` készül el. Lásd [DEVELOPMENT.md](DEVELOPMENT.md).
 
 **2. Mely platformokon működik?**
 Linux x86-64-en fejlesztették és próbálták ki a projektet. A GitHub Actionsön a tesztkészlet és a clippy macOS-en (arm64) és Windowson (x86-64) is sikeres, és ott épülnek a kiadási binárisok mindhárom rendszerre; de a Windows vagy macOS futtatható fájlokat ember még nem használta valódi asztali környezetben, ezért ezek „CI által tesztelt”, nem „támogatott” státuszúak ([LIMITATIONS.md](LIMITATIONS.md), 1. szakasz).
@@ -29,7 +29,7 @@ Igen: a `cargo build -p armatura-cli --no-default-features` kihagyja a Rhai-t, �
 Nem. A program működéséhez nem kell sem fiók, sem hálózat (a stúdiónak nincsenek fiókjai). Alapértelmezés szerint a stúdió csak a saját gépeden figyel (lásd az 51. kérdést).
 
 **7. Hol tartja a stúdió a beállításait?**
-Az `$ARMATURA_UI_CONFIG` fájlban, ha be van állítva, különben az `$XDG_CONFIG_HOME/armatura/ui.json` fájlban, különben a `~/.config/armatura/ui.json` fájlban. A projektjeidhez soha nem nyúl.
+Az `$ARMATURA_UI_CONFIG` fájlban, ha be van állítva, különben az `$XDG_CONFIG_HOME/armatura/ui.json` fájlban, különben Windowson a `%APPDATA%\ARMATURA\ui.json` fájlban, különben a `~/.config/armatura/ui.json` fájlban. A projektjeidhez soha nem nyúl.
 
 ---
 

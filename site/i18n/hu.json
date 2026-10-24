@@ -5,7 +5,7 @@
  "n4": "Formátumok",
  "n5": "Állapot",
  "n6": "Licencek",
- "pill": "alfa · v0.1.0-alpha.2 tervezet · Rust · nyílt formátumok",
+ "pill": "alfa · v0.1.0-alpha.3 tervezet · Rust · nyílt formátumok",
  "sub": "2D vektoros rigging és animáció kódként: csontok, IK, skinning, deformerek, futtatókörnyezet és böngészős stúdió — determinisztikusan és szkriptelhetően.",
  "cta1": "Próbáld ki a rigelést",
  "cta3": "Dokumentáció olvasása",
@@ -77,7 +77,7 @@
  "k1": "teszt a cargo test --workspace parancsban a GPU- és ablak-crate nélkül (plusz 19 doc-teszt), 2026. okt. 24., Linux x86-64; a CI macOS-en és Windowson is átmegy",
  "k2": "számozott korlátozás, súlyossággal és kerülőmegoldással",
  "k3": "külső crate a 2026. okt. 24-i leltárban (minden platform együtt)",
- "k4": "eddig közzétett kiadás — a v0.1.0-alpha.2 tervezetként elkészült; a „0.7” funkciószint, nem verzió",
+ "k4": "eddig közzétett kiadás — a v0.1.0-alpha.3 tervezetként elkészült; a „0.7” funkciószint, nem verzió",
  "vyh": "Ellenőrizve",
  "vxh": "Nincs ellenőrizve",
  "ai": "<b>Közzététel:</b> a kódot nagyrészt egy MI-modellel írták, a projekt pedig nyilvános specifikációkból készült független megvalósítás; lásd CLEANROOM.md. Nem áll kapcsolatban, nem származik és nem kompatibilis egyetlen kereskedelmi animációs termékkel sem.",
@@ -110,9 +110,10 @@
  ],
  "vx": [
   "A WebAssembly-modul böngészőben még soha nem futott; sebessége és memóriahasználata nincs megmérve",
-  "Ember még nem használta a Windows- vagy macOS-programokat, a dupla kattintásos indítót vagy az ablakos alkalmazást valódi asztalon; a binárisok nincsenek aláírva",
+  "A Windows-indítót és az ablakos alkalmazást csak egy ember próbálta ki (Windows 11, alpha.2); macOS-en senki nem használta; a binárisok nincsenek aláírva",
   "A stúdiót ember nem használta éles munkában, és nem is Chromiumtól eltérő böngészőben",
-  "Valódi GPU-t, webkamerát, fényképet vagy mozgásrögzítő fájlt soha nem használtak; nincs biztonsági audit, jogi felülvizsgálat vagy szabadalmi keresés"
+  "Valódi GPU-t, webkamerát, fényképet vagy mozgásrögzítő fájlt soha nem használtak; nincs biztonsági audit, jogi felülvizsgálat vagy szabadalmi keresés",
+  "Az ARMATURA név ütközik egy bejegyzett védjeggyel a 9. és 42. szoftverosztályban (EUIPO-keresés); ügyvéd nem értékelte"
  ],
  "nDocs": "Dok.",
  "nStudio": "Stúdió",
@@ -195,6 +196,6 @@
  "trShow": "Fordítás megjelenítése",
  "trMissing": "Még nincs lefordítva — az angol eredeti látható.",
  "langLabel": "Nyelv",
- "a6": "A stúdió natív ablakban (Windows, macOS). CI-ben lefordítva és önteszttel ellenőrizve; ember még nem használta.",
+ "a6": "A stúdió natív ablakban (Windows, macOS). CI-ben lefordítva és önteszttel ellenőrizve; az ablakot és az exportokat egy ember kipróbálta Windows 11-en (alpha.2); a „Mentés másként” párbeszédablak tesztelés nélküli.",
  "cta4": "Letöltés (kiadások)"
 }

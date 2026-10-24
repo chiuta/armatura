@@ -37,10 +37,10 @@ mesaj. Câmpurile necunoscute sunt semnalate cu avertisment (`warning: unknown f
 |---|---|---|
 | `--port N` | 8080 | Port TCP. Un port ocupat dă `cannot listen on 127.0.0.1:8861: Address already in use (os error 98)`; unul greșit dă `cannot listen on 127.0.0.1:99999: invalid port value`. |
 | `--bind ADDR` | `127.0.0.1` | Interfața pe care se ascultă. Orice adresă care nu este loopback **necesită `--collab-token`**. |
-| `--ui-config F` | `$ARMATURA_UI_CONFIG`, altfel `$XDG_CONFIG_HOME/armatura/ui.json`, altfel `~/.config/armatura/ui.json` | Unde sunt păstrate layoutul, scurtăturile, comenzile recente și setările overlay-urilor. Este un fișier per utilizator, niciodată parte a proiectului. |
+| `--ui-config F` | `$ARMATURA_UI_CONFIG`, altfel `$XDG_CONFIG_HOME/armatura/ui.json`, altfel pe Windows `%APPDATA%\ARMATURA\ui.json` (înainte de alpha.3 nu exista niciuna: setările erau păstrate doar pe durata sesiunii), altfel `~/.config/armatura/ui.json` | Unde sunt păstrate layoutul, scurtăturile, comenzile recente și setările overlay-urilor. Este un fișier per utilizator, niciodată parte a proiectului. |
 | `--allow-host NAMES` | niciuna | Nume `Host` suplimentare de acceptat (separate prin virgulă), pentru accesul sub un nume DNS. |
 | `--public-origin URL` | niciuna | Originea simplă (`https://studio.example.org`, fără cale) pe care o prezintă un reverse proxy TLS; `Host` și `Origin` ale ei sunt atunci acceptate. |
-| `--source-url URL` | niciuna | Locul de unde poate fi descărcat codul sursă corespunzător build-ului *tău* (AGPL secțiunea 13); afișat pe `/source`. |
+| `--source-url URL` | niciuna; în binarele oficiale de lansare, commit-ul din care au fost construite (`https://github.com/chiuta/armatura/tree/<commit>`) | Locul de unde poate fi descărcat codul sursă corespunzător build-ului *tău* (AGPL secțiunea 13); afișat pe `/source` și de `--version`. O valoare explicită câștigă întotdeauna. |
 | `--collab-token T` | niciuna | Secret partajat, **cel puțin 16 caractere** (`openssl rand -hex 16`). Necesar pentru legări non-loopback. |
 | `--collab-log LOG` | niciuna | Persistă sesiunea de editare partajată într-un fișier și o reia după o repornire. |
 | `--collab-nosync` | oprit | Cu `--collab-log`: nu se face `fsync` după fiecare editare (mai rapid; o pană de curent poate pierde ultimele editări). Fără `--collab-log` este refuzat la pornire (`--collab-nosync needs --collab-log`). |
@@ -99,7 +99,7 @@ iar în spatele unui proxy fiecare client pare să aibă adresa proxy-ului, deci
 ### Oferta de cod sursă AGPL
 
 Studio este software AGPL-3.0-or-later: dacă îl modifici și lași alte persoane să îl folosească printr-o rețea, trebuie să le oferi sursa
-versiunii tale. `/source` este acea ofertă; setează `--source-url` la locul unde se află sursa build-ului tău. Fără el, pagina spune acest lucru și numește maintainerul.
+versiunii tale. `/source` este acea ofertă; setează `--source-url` la locul unde se află sursa build-ului tău. Fără el (un build făcut de tine cu un simplu `cargo build` nu are niciuna), pagina spune acest lucru și numește maintainerul. Binarele de lansare construite de `.github/workflows/release.yml` poartă adresa propriului commit (`ARMATURA_SOURCE_URL` la compilare; un fork care construiește cu propriul workflow trimite la el însuși).
 
 ## 3. Un tur al interfeței
 

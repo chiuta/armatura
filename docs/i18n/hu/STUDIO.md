@@ -37,10 +37,10 @@ Nyisd meg a címet egy böngészőben. A projektet induláskor ellenőrzi; a `ch
 |---|---|---|
 | `--port N` | 8080 | TCP-port. Foglalt port esetén `cannot listen on 127.0.0.1:8861: Address already in use (os error 98)`, hibás portnál `cannot listen on 127.0.0.1:99999: invalid port value` az üzenet. |
 | `--bind ADDR` | `127.0.0.1` | A figyelt interfész. Minden, ami nem loopback cím, **megköveteli a `--collab-token` megadását**. |
-| `--ui-config F` | `$ARMATURA_UI_CONFIG`, különben `$XDG_CONFIG_HOME/armatura/ui.json`, különben `~/.config/armatura/ui.json` | Itt tárolódik az elrendezés, a gyorsbillentyűk, a legutóbbi parancsok és az overlay-beállítások. Felhasználónkénti fájl, soha nem része a projektnek. |
+| `--ui-config F` | `$ARMATURA_UI_CONFIG`, különben `$XDG_CONFIG_HOME/armatura/ui.json`, különben Windowson `%APPDATA%\ARMATURA\ui.json` (az alpha.3 előtt nem volt ilyen: a beállítások csak a munkamenet idejére maradtak meg), különben `~/.config/armatura/ui.json` | Itt tárolódik az elrendezés, a gyorsbillentyűk, a legutóbbi parancsok és az overlay-beállítások. Felhasználónkénti fájl, soha nem része a projektnek. |
 | `--allow-host NAMES` | nincs | További elfogadott `Host` nevek (vesszővel elválasztva), DNS-néven való eléréshez. |
 | `--public-origin URL` | nincs | A TLS fordított proxy által bemutatott puszta origin (`https://studio.example.org`, útvonal nélkül); ennek `Host` és `Origin` értékét ezután elfogadja. |
-| `--source-url URL` | nincs | Innen tölthető le a *te* buildedhez tartozó forráskód (AGPL 13. szakasz); a `/source` oldalon jelenik meg. |
+| `--source-url URL` | nincs; a hivatalos kiadási binárisokban az a commit, amelyből épültek (`https://github.com/chiuta/armatura/tree/<commit>`) | Innen tölthető le a *te* buildedhez tartozó forráskód (AGPL 13. szakasz); a `/source` oldalon és a `--version` kimenetében jelenik meg. Egy kifejezetten megadott érték mindig felülír. |
 | `--collab-token T` | nincs | Közös titok, **legalább 16 karakter** (`openssl rand -hex 16`). Nem loopback kötésekhez kötelező. |
 | `--collab-log LOG` | nincs | A közös szerkesztési munkamenetet fájlba menti, és újraindítás után folytatja. |
 | `--collab-nosync` | ki | A `--collab-log` mellett: nem végez `fsync`-et minden szerkesztés után (gyorsabb; áramkimaradás elvesztheti az utolsó szerkesztéseket). `--collab-log` nélkül indításkor elutasítja (`--collab-nosync needs --collab-log`). |
@@ -99,7 +99,7 @@ refusing to listen on 0.0.0.0:8851: the studio has no accounts and no TLS, so a 
 ### Az AGPL forráskód-ajánlat
 
 A stúdió AGPL-3.0-or-later szoftver: ha módosítod, és mások hálózaton keresztül használják, fel kell kínálnod nekik a saját
-változatod forráskódját. A `/source` ez az ajánlat; állítsd a `--source-url` kapcsolót arra a helyre, ahol a builded forráskódja van. Enélkül az oldal ezt közli, és megnevezi a karbantartót.
+változatod forráskódját. A `/source` ez az ajánlat; állítsd a `--source-url` kapcsolót arra a helyre, ahol a builded forráskódja van. Enélkül (a sima `cargo build`-del magad készített buildnek nincs ilyen) az oldal ezt közli, és megnevezi a karbantartót. A `.github/workflows/release.yml` által épített kiadási binárisok a saját commitjuk címét hordozzák (`ARMATURA_SOURCE_URL` fordítási időben; a saját munkafolyamatával építő fork önmagára mutat).
 
 ## 3. Az felület bejárása
 
