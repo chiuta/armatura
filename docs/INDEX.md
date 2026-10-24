@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio) -->
-# ARMATURA documentation index
+# OSATURA documentation index
 
 *Start here to find the right page. All documents are English Markdown under CC-BY-4.0, except the generated third-party files (see their headers). The Romanian README is [../README.ro.md](../README.ro.md).*
 
-ARMATURA is a 2D vector rigging and animation engine in Rust. It is an alpha project (the first builds are prepared as the draft pre-release `v0.1.0-alpha.3`; crates are still 0.1.0); read [LIMITATIONS.md](LIMITATIONS.md) before depending on a feature.
+OSATURA is a 2D vector rigging and animation engine in Rust. It is an alpha project (the first builds are prepared as the draft pre-release `v0.1.0-alpha.3`; crates are still 0.1.0); read [LIMITATIONS.md](LIMITATIONS.md) before depending on a feature.
 
 Contents: [All documents](#all-documents) - [Reading paths by audience](#reading-paths-by-audience) - [Documents at the repository root](#documents-at-the-repository-root) - [Where each question is answered](#where-each-question-is-answered) - [Conventions](#conventions-used-in-the-documents)
 
@@ -13,7 +13,7 @@ Contents: [All documents](#all-documents) - [Reading paths by audience](#reading
 | Document | What it is | Audience |
 |---|---|---|
 | [GETTING_STARTED.md](GETTING_STARTED.md) | Install, first project, first render and export, first studio session | everyone, first read |
-| [CLI_REFERENCE.md](CLI_REFERENCE.md) | Every `armatura` command, option, exit code and example | users, scripters, CI authors |
+| [CLI_REFERENCE.md](CLI_REFERENCE.md) | Every `osatura` command, option, exit code and example | users, scripters, CI authors |
 | [STUDIO.md](STUDIO.md) | The browser editor: panels, shortcuts, collaboration, scrub previews | animators, riggers |
 | [RIGGING_GUIDE.md](RIGGING_GUIDE.md) | Building a rig: bones, IK, skinning, deformers, drivers, state machines, layout | riggers, technical artists |
 | [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md) | Keys, easing, clips and takes, physics, lip-sync, audio, export choices | animators |
@@ -23,13 +23,13 @@ Contents: [All documents](#all-documents) - [Reading paths by audience](#reading
 | [GLOSSARY.md](GLOSSARY.md) | Terms used in the engine, the docs and the CLI | everyone |
 | [FAQ.md](FAQ.md) | Short answers to common questions | everyone |
 | [API.md](API.md) | The stable Rust facade (version 1.4.0): calls, errors, limits, examples | Rust integrators |
-| [C_ABI.md](C_ABI.md) | The C interface (`armatura-capi`): functions, memory rules, C and Python examples | C, C++, Python, Go, C# integrators |
+| [C_ABI.md](C_ABI.md) | The C interface (`osatura-capi`): functions, memory rules, C and Python examples | C, C++, Python, Go, C# integrators |
 | [WASM.md](WASM.md) | WebAssembly module and JavaScript wrapper. **Status: built and tested under Node in CI, never run in a browser**; includes the checklist for the first browser run | web developers |
-| [CI.md](CI.md) | Animation CI (`armatura ci`): manifest, thresholds, goldens, reports, pipeline examples | technical artists, build engineers |
+| [CI.md](CI.md) | Animation CI (`osatura ci`): manifest, thresholds, goldens, reports, pipeline examples | technical artists, build engineers |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Building, tests, conventions, new-module checklist, release checklist, debugging | contributors, maintainers |
 | [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Owner-side steps before and after publishing the draft release | owner |
 | [SECURITY.md](SECURITY.md) | Threat model, built-in protections, known gaps, reporting, hardening checklist | security reviewers, deployers |
-| [LIMITATIONS.md](LIMITATIONS.md) | Numbered list of known limits with severity, workaround and roadmap id | everyone evaluating ARMATURA |
+| [LIMITATIONS.md](LIMITATIONS.md) | Numbered list of known limits with severity, workaround and roadmap id | everyone evaluating OSATURA |
 | [PATENT_NOTES.md](PATENT_NOTES.md) | Patent status note (not legal advice) | licensees, lawyers |
 | [THIRD_PARTY.md](THIRD_PARTY.md) | Generated inventory of third-party crates and licences | licensees, packagers |
 | [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) | Generated licence texts of dependencies, to ship with binaries | packagers |
@@ -50,7 +50,7 @@ Each path is an order, not a requirement. Stop when you have what you need.
 
 **Contributor.** [../CONTRIBUTING.md](../CONTRIBUTING.md) (DCO) -> [DEVELOPMENT.md](DEVELOPMENT.md) -> ARCHITECTURE -> [../CLEANROOM.md](../CLEANROOM.md) -> [../ROADMAP.md](../ROADMAP.md) section 9 (what exists and does not) -> LIMITATIONS (pick something to fix).
 
-**Security reviewer or deployer.** [SECURITY.md](SECURITY.md) -> [DEVELOPMENT.md](DEVELOPMENT.md) section 3 (what is tested) -> LIMITATIONS section 2 and 11 -> `armatura-cli/src/http.rs`, `studio.rs`, `collab_srv.rs`, `armatura-core/src/assets.rs`, `fsutil.rs` -> [CI.md](CI.md) limits.
+**Security reviewer or deployer.** [SECURITY.md](SECURITY.md) -> [DEVELOPMENT.md](DEVELOPMENT.md) section 3 (what is tested) -> LIMITATIONS section 2 and 11 -> `osatura-cli/src/http.rs`, `studio.rs`, `collab_srv.rs`, `osatura-core/src/assets.rs`, `fsutil.rs` -> [CI.md](CI.md) limits.
 
 **Licensee, packager or lawyer.** [../LICENSING.md](../LICENSING.md) -> [../LICENSE](../LICENSE) and [../LICENSES/](../LICENSES/) -> [THIRD_PARTY.md](THIRD_PARTY.md) -> [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) -> [PATENT_NOTES.md](PATENT_NOTES.md) -> [../TRADEMARK.md](../TRADEMARK.md) -> [../CLEANROOM.md](../CLEANROOM.md) -> release checklist in [DEVELOPMENT.md](DEVELOPMENT.md) section 7.
 
