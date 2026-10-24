@@ -106,7 +106,7 @@ ffmpeg itself parses complex media formats and has had vulnerabilities of its ow
 
 * The **facade** validates every argument, returns `ApiError`, and converts panics to `ApiError::Internal` where the target unwinds. `Animation` and `Player` are `Send + Sync` (checked at compile time).
 * The **C ABI** ([C_ABI.md](C_ABI.md)) checks null pointers, lengths and UTF-8 and returns codes; the caller must still pass valid pointers and honour the buffer rules. The last-error string is per thread. The ABI was exercised under AddressSanitizer and UndefinedBehaviorSanitizer with the documented examples (clean). It is not hardened against a caller that violates the documented contracts (double close, use after close, wrong lengths).
-* The **WASM module** ([WASM.md](WASM.md)) builds in CI and passes the wrapper's test under Node, but **has never been run in a browser or reviewed as one**, so its security properties are known only from reading the code and that test. It has no file system or network access by construction; a panic there traps the instance.
+* The **WASM module** ([WASM.md](WASM.md)) builds in CI and passes the wrapper's test under Node, and was run once in headless Chromium (bad input gives errors, no leak over 60 open/close cycles, oversize stages refused), but **has not been reviewed as a browser component and was not run in Firefox or Safari**, so its security properties are known only from reading the code and that test. It has no file system or network access by construction; a panic there traps the instance.
 * Neither layer sandboxes the *project*: rendering a hostile project is bounded by the limits above, but a project can still ask for a lot of work within them (many layers, large pictures, long timelines).
 
 ## 9. Known gaps

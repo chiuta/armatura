@@ -109,7 +109,7 @@ Undo, Redo, **Save**; checkboxes `bones` (draw the skeleton), `auto-key`, `grid`
 `whole groups` (a click on part of a group selects the top-level group), `points` (show anchors, handles, cage/lattice/pin points and mesh vertices of
 selected layers); a `box` selector for what a drag-box selects (`touches`, `contains`, `bounds touch`; it starts at `touches`); **Lock**; and the buttons **Overlays**, **Suggest**, **Layout**,
 **Commands** (palette) and **Keys** (shortcut editor). A second row has your name and **Collab**, and the export buttons **GIF**, **HTML player** and **Lottie**,
-which download what `osatura export` would write (the HTML player includes the mixed sound when there is sound and `ffmpeg` can make the mp3).
+which download what `osatura export` would write (the HTML player includes the mixed sound when there is sound and `ffmpeg` can make the mp3). The **Simple view** button hides the editing checkboxes, Overlays, Suggest and the command palette button so that only undo, save, panels and exports remain; the choice is remembered in this browser (or window) and the full toolbar comes back with **Full view**.
 
 ### Panels and layouts
 
@@ -196,6 +196,15 @@ manifold, an optional small network you train yourself); with a handful of poses
   that you supply (`window.osaturaLandmarkProvider`, see the comment in the page source); video never leaves the page and only landmarks go to the local server.
   The two synthetic modes work out of the box. *Synthetic face (detector)* renders the synthetic head on the server and finds it again with the built-in detector,
   which was **trained on synthetic faces only** (stylised heads, not photographs); see the face section of [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md).
+
+### Guided demo
+
+The **Demo** button (command `demo.panel`) opens a 13-step guided demo that builds the walking person of `osatura demo-person`: scenery, body, head and face, arms with five fingers per hand, the skeleton, the legs walking, the arms swinging, trunk and head, a blink and a smile, the moving ground, a check, and the export. Each step loads that stage of the project into the editor with one replace-all operation, so you can play it, scrub it, select bones and layers and read the timeline. The stages are cuts of the finished project; the commands and their output shown in the panel were run with the real binary.
+
+* **Nothing is written to disk.** Save (and Ctrl+S) is disabled while the demo is loaded. The only write path of the studio, `POST /api/save`, is never called by the demo.
+* **Your project comes back.** *Restore my project* puts back the project that was open before (a single replace-all operation, one Undo step). If you close the tab or reload while the demo is loaded, the next page load notices that the server still holds the demo, keeps Save off and offers *Restore my project* again; the original is kept in the browser's local storage for that.
+* The demo refuses to start inside a collaboration session, because it replaces the whole project.
+* Regenerate the stages with `node scripts/build-studio-tour.mjs --bin target/release/osatura`, then rebuild the CLI (the page is embedded in the binary).
 
 ## 4. Keyboard shortcuts (defaults)
 
