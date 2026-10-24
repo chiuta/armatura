@@ -128,10 +128,7 @@ pub enum StateSource {
     /// A region marker (`Project.markers` entry with an `end`).
     Region { marker: String },
     /// 1-D blend tree: children (leaf sources) mixed by a number input.
-    Blend {
-        input: String,
-        children: Vec<BlendChild>,
-    },
+    Blend { input: String, children: Vec<BlendChild> },
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -236,80 +233,38 @@ fn mask_ok(mask: &[String], target: &str) -> bool {
 fn resolve_leaf(p: &Project, src: &StateSource, mask: &[String]) -> Result<Leaf, String> {
     match src {
         StateSource::Clip { clip } => {
-            let c = p
-                .clips
-                .iter()
-                .find(|c| &c.name == clip)
-                .ok_or_else(|| format!("unknown clip '{clip}'"))?;
+            let c = p.clips.iter().find(|c| &c.name == clip).ok_or_else(|| format!("unknown clip '{clip}'"))?;
             if !(c.take.length.is_finite() && c.take.length > 0.0) {
                 return Err(format!("clip '{clip}' has no positive length"));
             }
             let mut tracks = Vec::new();
             for tt in &c.take.tracks {
-                let target = c
-                    .rename
-                    .iter()
-                    .find(|(f, _)| f == &tt.target)
-                    .map_or(tt.target.as_str(), |(_, t)| t.as_str())
-                    .to_string();
+                let target = c.rename.iter().find(|(f, _)| f == &tt.target).map_or(tt.target.as_str(), |(_, t)| t.as_str()).to_string();
                 if tt.keys.is_empty() || !c.passes_mask(&target) || !mask_ok(mask, &target) {
                     continue;
                 }
                 let mut w = c.weight;
-                if let Some(r) = c
-                    .track_weights
-                    .iter()
-                    .find(|r| glob(&r.pattern, &target) && r.prop.is_none_or(|pp| pp == tt.prop))
-                {
+                if let Some(r) = c.track_weights.iter().find(|r| glob(&r.pattern, &target) && r.prop.is_none_or(|pp| pp == tt.prop)) {
                     w *= r.weight;
                 }
-                let t = Track::with_keys(
-                    &tt.keys
-                        .iter()
-                        .map(|k| (k.frame, k.value, k.ease))
-                        .collect::<Vec<_>>(),
-                );
+                let t = Track::with_keys(&tt.keys.iter().map(|k| (k.frame, k.value, k.ease)).collect::<Vec<_>>());
                 tracks.push((target, tt.prop, t, w));
             }
-            Ok(Leaf {
-                len: c.take.length,
-                offset: 0.0,
-                tracks,
-            })
+            Ok(Leaf { len: c.take.length, offset: 0.0, tracks })
         }
         StateSource::Segment { start, end } => {
             if !(start.is_finite() && end.is_finite() && *start >= 0.0 && end > start) {
                 return Err(format!("segment {start}..{end} needs 0 <= start < end"));
             }
             if *end > p.frames as f32 {
-                return Err(format!(
-                    "segment {start}..{end} lies beyond the {} project frames",
-                    p.frames
-                ));
+                return Err(format!("segment {start}..{end} lies beyond the {} project frames", p.frames));
             }
-            Ok(Leaf {
-                len: end - start,
-                offset: *start,
-                tracks: segment_tracks(p, mask),
-            })
+            Ok(Leaf { len: end - start, offset: *start, tracks: segment_tracks(p, mask) })
         }
         StateSource::Region { marker } => {
-            let m = p
-                .markers
-                .iter()
-                .find(|m| &m.name == marker)
-                .ok_or_else(|| format!("unknown marker '{marker}'"))?;
-            let end = m
-                .end
-                .ok_or_else(|| format!("marker '{marker}' is not a region (no end)"))?;
-            resolve_leaf(
-                p,
-                &StateSource::Segment {
-                    start: m.frame,
-                    end,
-                },
-                mask,
-            )
+            let m = p.markers.iter().find(|m| &m.name == marker).ok_or_else(|| format!("unknown marker '{marker}'"))?;
+            let end = m.end.ok_or_else(|| format!("marker '{marker}' is not a region (no end)"))?;
+            resolve_leaf(p, &StateSource::Segment { start: m.frame, end }, mask)
         }
         StateSource::Blend { .. } => Err("a blend tree cannot be nested".into()),
     }
@@ -323,12 +278,7 @@ fn segment_tracks(p: &Project, mask: &[String]) -> TrackSet {
             if track.keys.is_empty() || !mask_ok(mask, &c.target) {
                 continue;
             }
-            let item = (
-                c.target.clone(),
-                c.prop,
-                track.clone(),
-                c.weight.clamp(0.0, 1.0),
-            );
+            let item = (c.target.clone(), c.prop, track.clone(), c.weight.clamp(0.0, 1.0));
             match out.iter().position(|o| o.0 == c.target && o.1 == c.prop) {
                 Some(i) => out[i] = item,
                 None => out.push(item),
@@ -365,9 +315,7 @@ impl Pose {
 
     /// Value and coverage of one entry.
     pub fn get(&self, target: &str, prop: Prop) -> Option<(f32, f32)> {
-        self.ix
-            .get(&(target.to_string(), prop))
-            .map(|&i| (self.items[i].2, self.items[i].3))
+        self.ix.get(&(target.to_string(), prop)).map(|&i| (self.items[i].2, self.items[i].3))
     }
 
     pub fn len(&self) -> usize {
@@ -453,10 +401,7 @@ pub fn blend_weights(thresholds: &[f32], v: f32) -> Vec<f32> {
 
 fn source_leaves(p: &Project, src: &StateSource, mask: &[String]) -> Result<Vec<Leaf>, String> {
     match src {
-        StateSource::Blend { children, .. } => children
-            .iter()
-            .map(|c| resolve_leaf(p, &c.source, mask))
-            .collect(),
+        StateSource::Blend { children, .. } => children.iter().map(|c| resolve_leaf(p, &c.source, mask)).collect(),
         s => Ok(vec![resolve_leaf(p, s, mask)?]),
     }
 }
@@ -489,10 +434,7 @@ pub fn validate_machine(p: &Project, m: &Machine) -> Vec<String> {
             errs.push(format!("machine '{mn}': duplicate input '{}'", i.name));
         }
         if !i.default.is_finite() {
-            errs.push(format!(
-                "machine '{mn}': input '{}' default must be finite",
-                i.name
-            ));
+            errs.push(format!("machine '{mn}': input '{}' default must be finite", i.name));
         }
     }
     if m.layers.is_empty() {
@@ -533,19 +475,13 @@ pub fn validate_machine(p: &Project, m: &Machine) -> Vec<String> {
                 match inputs.get(input.as_str()) {
                     None => errs.push(format!("{sn}: blend input '{input}' does not exist")),
                     Some(InputKind::Number) => {}
-                    Some(_) => errs.push(format!(
-                        "{sn}: blend input '{input}' must be a number input"
-                    )),
+                    Some(_) => errs.push(format!("{sn}: blend input '{input}' must be a number input")),
                 }
                 if children.len() < 2 {
                     errs.push(format!("{sn}: a blend tree needs at least two children"));
                 }
-                if !children.iter().all(|c| c.threshold.is_finite())
-                    || !children.windows(2).all(|w| w[0].threshold < w[1].threshold)
-                {
-                    errs.push(format!(
-                        "{sn}: blend thresholds must be finite and strictly increasing"
-                    ));
+                if !children.iter().all(|c| c.threshold.is_finite()) || !children.windows(2).all(|w| w[0].threshold < w[1].threshold) {
+                    errs.push(format!("{sn}: blend thresholds must be finite and strictly increasing"));
                 }
             }
             match source_leaves(p, &s.source, &l.mask) {
@@ -641,11 +577,7 @@ pub fn validate_machine(p: &Project, m: &Machine) -> Vec<String> {
     }
     for i in 0..layer_targets.len() {
         for j in i + 1..layer_targets.len() {
-            if let Some((t, pr)) = layer_targets[i]
-                .1
-                .intersection(&layer_targets[j].1)
-                .min_by(|a, b| a.0.cmp(&b.0))
-            {
+            if let Some((t, pr)) = layer_targets[i].1.intersection(&layer_targets[j].1).min_by(|a, b| a.0.cmp(&b.0)) {
                 errs.push(format!(
                     "machine '{mn}': layers '{}' and '{}' both drive {t}.{pr:?}; layers need disjoint channel groups (use a mask)",
                     layer_targets[i].0, layer_targets[j].0
@@ -697,11 +629,7 @@ pub fn trial_errors(p: &Project, asset_dir: &std::path::Path) -> Vec<String> {
     let mut seen: HashSet<(String, Prop)> = HashSet::new();
     let mut add = |probe: &mut Project, t: &str, pr: Prop| {
         if seen.insert((t.to_string(), pr)) {
-            probe.channels.push(Channel::keys(
-                t,
-                pr,
-                Track::with_keys(&[(0.0, 0.0, Ease::Linear)]),
-            ));
+            probe.channels.push(Channel::keys(t, pr, Track::with_keys(&[(0.0, 0.0, Ease::Linear)])));
         }
     };
     for m in &p.machines {
@@ -724,10 +652,7 @@ pub fn trial_errors(p: &Project, asset_dir: &std::path::Path) -> Vec<String> {
     }
     match Engine::with_asset_dir(probe, asset_dir) {
         Ok(_) => vec![],
-        Err(e) => e
-            .into_iter()
-            .map(|m| format!("machine/binding targets: {m}"))
-            .collect(),
+        Err(e) => e.into_iter().map(|m| format!("machine/binding targets: {m}")).collect(),
     }
 }
 
@@ -753,11 +678,7 @@ struct RtTrans {
 
 enum RtKind {
     Leaf(Leaf),
-    Blend {
-        input: usize,
-        thresholds: Vec<f32>,
-        children: Vec<Leaf>,
-    },
+    Blend { input: usize, thresholds: Vec<f32>, children: Vec<Leaf> },
 }
 
 struct RtState {
@@ -837,54 +758,28 @@ impl MachineRuntime {
         MachineRuntime::with_asset_dir(project, machine, std::path::Path::new("."))
     }
 
-    pub fn with_asset_dir(
-        project: &Project,
-        machine: &str,
-        asset_dir: &std::path::Path,
-    ) -> Result<MachineRuntime, String> {
-        let m = project
-            .machines
-            .iter()
-            .find(|m| m.name == machine)
-            .ok_or_else(|| format!("unknown machine '{machine}'"))?;
+    pub fn with_asset_dir(project: &Project, machine: &str, asset_dir: &std::path::Path) -> Result<MachineRuntime, String> {
+        let m = project.machines.iter().find(|m| m.name == machine).ok_or_else(|| format!("unknown machine '{machine}'"))?;
         let mut errs = validate_machine(project, m);
         errs.extend(crate::binding::validate(project));
         if !errs.is_empty() {
             return Err(errs.join("; "));
         }
-        let in_ix: HashMap<&str, usize> = m
-            .inputs
-            .iter()
-            .enumerate()
-            .map(|(i, x)| (x.name.as_str(), i))
-            .collect();
+        let in_ix: HashMap<&str, usize> = m.inputs.iter().enumerate().map(|(i, x)| (x.name.as_str(), i)).collect();
         let mut layers = Vec::new();
         for l in &m.layers {
-            let sx: HashMap<&str, usize> = l
-                .states
-                .iter()
-                .enumerate()
-                .map(|(i, s)| (s.name.as_str(), i))
-                .collect();
+            let sx: HashMap<&str, usize> = l.states.iter().enumerate().map(|(i, s)| (s.name.as_str(), i)).collect();
             let mut states = Vec::new();
             for s in &l.states {
                 let kind = match &s.source {
                     StateSource::Blend { input, children } => RtKind::Blend {
                         input: in_ix[input.as_str()],
                         thresholds: children.iter().map(|c| c.threshold).collect(),
-                        children: children
-                            .iter()
-                            .map(|c| resolve_leaf(project, &c.source, &l.mask))
-                            .collect::<Result<_, _>>()?,
+                        children: children.iter().map(|c| resolve_leaf(project, &c.source, &l.mask)).collect::<Result<_, _>>()?,
                     },
                     other => RtKind::Leaf(resolve_leaf(project, other, &l.mask)?),
                 };
-                states.push(RtState {
-                    name: s.name.clone(),
-                    mode: s.mode,
-                    speed: s.speed as f64,
-                    kind,
-                });
+                states.push(RtState { name: s.name.clone(), mode: s.mode, speed: s.speed as f64, kind });
             }
             let trans = l
                 .transitions
@@ -892,37 +787,16 @@ impl MachineRuntime {
                 .map(|t| {
                     let to = sx[t.to.as_str()];
                     RtTrans {
-                        from: if t.from == "*" {
-                            None
-                        } else {
-                            Some(sx[t.from.as_str()])
-                        },
+                        from: if t.from == "*" { None } else { Some(sx[t.from.as_str()]) },
                         to,
-                        conds: t
-                            .conditions
-                            .iter()
-                            .map(|c| RtCond {
-                                input: in_ix[c.input.as_str()],
-                                op: c.op,
-                                value: c.value,
-                            })
-                            .collect(),
+                        conds: t.conditions.iter().map(|c| RtCond { input: in_ix[c.input.as_str()], op: c.op, value: c.value }).collect(),
                         exit: t.exit_time,
                         dur: t.duration.unwrap_or(l.states[to].blend_in) as f64,
                         ease: t.ease,
                     }
                 })
                 .collect();
-            layers.push(LayerRt {
-                name: l.name.clone(),
-                states,
-                trans,
-                cur: Play {
-                    state: sx[l.entry.as_str()],
-                    pos: 0.0,
-                },
-                fade: None,
-            });
+            layers.push(LayerRt { name: l.name.clone(), states, trans, cur: Play { state: sx[l.entry.as_str()], pos: 0.0 }, fade: None });
         }
         let mut base = project.clone();
         base.machines.clear();
@@ -936,17 +810,7 @@ impl MachineRuntime {
             in_names: m.inputs.iter().map(|i| i.name.clone()).collect(),
             in_kind: m.inputs.iter().map(|i| i.kind).collect(),
             in_hold: m.inputs.iter().map(|i| i.hold).collect(),
-            values: m
-                .inputs
-                .iter()
-                .map(|i| {
-                    if i.kind == InputKind::Trigger {
-                        0.0
-                    } else {
-                        i.default
-                    }
-                })
-                .collect(),
+            values: m.inputs.iter().map(|i| if i.kind == InputKind::Trigger { 0.0 } else { i.default }).collect(),
             layers,
             time: 0.0,
             events: Vec::new(),
@@ -954,12 +818,7 @@ impl MachineRuntime {
         };
         for l in 0..rt.layers.len() {
             let name = rt.layers[l].states[rt.layers[l].cur.state].name.clone();
-            rt.events.push(MachineEvent {
-                time: 0.0,
-                layer: rt.layers[l].name.clone(),
-                kind: EventKind::Entered,
-                state: name,
-            });
+            rt.events.push(MachineEvent { time: 0.0, layer: rt.layers[l].name.clone(), kind: EventKind::Entered, state: name });
         }
         Ok(rt)
     }
@@ -976,10 +835,7 @@ impl MachineRuntime {
     }
 
     fn input_ix(&self, name: &str) -> Result<usize, String> {
-        self.in_names
-            .iter()
-            .position(|n| n == name)
-            .ok_or_else(|| format!("machine '{}' has no input '{name}'", self.machine_name))
+        self.in_names.iter().position(|n| n == name).ok_or_else(|| format!("machine '{}' has no input '{name}'", self.machine_name))
     }
 
     pub fn set_bool(&mut self, name: &str, v: bool) -> Result<(), String> {
@@ -1028,10 +884,7 @@ impl MachineRuntime {
     }
 
     pub fn input_value(&self, name: &str) -> Option<f64> {
-        self.in_names
-            .iter()
-            .position(|n| n == name)
-            .map(|i| self.values[i])
+        self.in_names.iter().position(|n| n == name).map(|i| self.values[i])
     }
 
     /// Publish an external value for the project's data bindings (applied on the next `step`).
@@ -1041,26 +894,17 @@ impl MachineRuntime {
 
     /// Name of the current state of a layer.
     pub fn state_of(&self, layer: &str) -> Option<&str> {
-        self.layers
-            .iter()
-            .find(|l| l.name == layer)
-            .map(|l| l.states[l.cur.state].name.as_str())
+        self.layers.iter().find(|l| l.name == layer).map(|l| l.states[l.cur.state].name.as_str())
     }
 
     /// `(layer, state)` for every layer.
     pub fn states(&self) -> Vec<(String, String)> {
-        self.layers
-            .iter()
-            .map(|l| (l.name.clone(), l.states[l.cur.state].name.clone()))
-            .collect()
+        self.layers.iter().map(|l| (l.name.clone(), l.states[l.cur.state].name.clone())).collect()
     }
 
     /// Whether the layer is currently crossfading.
     pub fn is_fading(&self, layer: &str) -> bool {
-        self.layers
-            .iter()
-            .find(|l| l.name == layer)
-            .is_some_and(|l| l.fade.is_some())
+        self.layers.iter().find(|l| l.name == layer).is_some_and(|l| l.fade.is_some())
     }
 
     /// Events not yet taken, oldest first.
@@ -1099,17 +943,9 @@ impl MachineRuntime {
     fn state_len(&self, st: &RtState) -> f64 {
         match &st.kind {
             RtKind::Leaf(l) => l.len as f64,
-            RtKind::Blend {
-                input,
-                thresholds,
-                children,
-            } => {
+            RtKind::Blend { input, thresholds, children } => {
                 let w = self.weights_of(thresholds, *input);
-                children
-                    .iter()
-                    .zip(&w)
-                    .map(|(c, w)| c.len as f64 * *w as f64)
-                    .sum()
+                children.iter().zip(&w).map(|(c, w)| c.len as f64 * *w as f64).sum()
             }
         }
     }
@@ -1119,23 +955,9 @@ impl MachineRuntime {
         let phase = sample_phase(st.mode, play.pos);
         match &st.kind {
             RtKind::Leaf(leaf) => MachineRuntime::leaf_pose(leaf, phase),
-            RtKind::Blend {
-                input,
-                thresholds,
-                children,
-            } => {
+            RtKind::Blend { input, thresholds, children } => {
                 let w = self.weights_of(thresholds, *input);
-                let poses: Vec<Pose> = children
-                    .iter()
-                    .zip(&w)
-                    .map(|(c, w)| {
-                        if *w > 0.0 {
-                            MachineRuntime::leaf_pose(c, phase)
-                        } else {
-                            Pose::default()
-                        }
-                    })
-                    .collect();
+                let poses: Vec<Pose> = children.iter().zip(&w).map(|(c, w)| if *w > 0.0 { MachineRuntime::leaf_pose(c, phase) } else { Pose::default() }).collect();
                 let parts: Vec<(&Pose, f32)> = poses.iter().zip(&w).map(|(p, w)| (p, *w)).collect();
                 Pose::mix(&parts)
             }
@@ -1152,11 +974,7 @@ impl MachineRuntime {
                     FadeFrom::Live(p) => self.play_pose(l, *p),
                     FadeFrom::Snap(s) => s.clone(),
                 };
-                let u = if f.dur > 0.0 {
-                    f.ease.apply((f.elapsed / f.dur) as f32).clamp(0.0, 1.0)
-                } else {
-                    1.0
-                };
+                let u = if f.dur > 0.0 { f.ease.apply((f.elapsed / f.dur) as f32).clamp(0.0, 1.0) } else { 1.0 };
                 Pose::mix(&[(&from, 1.0 - u), (&cur, u)])
             }
         }
@@ -1235,11 +1053,7 @@ impl MachineRuntime {
                 }
             }
         }
-        let n = if dt == 0.0 {
-            1
-        } else {
-            (dt / SUBSTEP).ceil() as usize
-        };
+        let n = if dt == 0.0 { 1 } else { (dt / SUBSTEP).ceil() as usize };
         let h = dt / n as f64;
         for _ in 0..n {
             self.substep(h);
@@ -1289,9 +1103,7 @@ impl MachineRuntime {
             }
             // transitions (zero-duration ones may chain)
             for _ in 0..MAX_HOPS {
-                let Some(ti) = self.find_transition(li) else {
-                    break;
-                };
+                let Some(ti) = self.find_transition(li) else { break };
                 let instant = self.fire_transition(li, ti);
                 if !instant {
                     break;
@@ -1327,17 +1139,8 @@ impl MachineRuntime {
 
     /// Returns whether the transition was instantaneous.
     fn fire_transition(&mut self, li: usize, ti: usize) -> bool {
-        let snap = if self.layers[li].fade.is_some() {
-            Some(self.layer_pose(li))
-        } else {
-            None
-        };
-        let consumed: Vec<usize> = self.layers[li].trans[ti]
-            .conds
-            .iter()
-            .map(|c| c.input)
-            .filter(|&i| self.in_kind[i] == InputKind::Trigger)
-            .collect();
+        let snap = if self.layers[li].fade.is_some() { Some(self.layer_pose(li)) } else { None };
+        let consumed: Vec<usize> = self.layers[li].trans[ti].conds.iter().map(|c| c.input).filter(|&i| self.in_kind[i] == InputKind::Trigger).collect();
         for i in consumed {
             self.values[i] = 0.0;
         }
@@ -1345,29 +1148,11 @@ impl MachineRuntime {
         let l = &mut self.layers[li];
         let (to, dur, ease) = (l.trans[ti].to, l.trans[ti].dur, l.trans[ti].ease);
         let old = l.cur;
-        self.events.push(MachineEvent {
-            time,
-            layer: l.name.clone(),
-            kind: EventKind::Exited,
-            state: l.states[old.state].name.clone(),
-        });
-        self.events.push(MachineEvent {
-            time,
-            layer: l.name.clone(),
-            kind: EventKind::Entered,
-            state: l.states[to].name.clone(),
-        });
-        l.cur = Play {
-            state: to,
-            pos: 0.0,
-        };
+        self.events.push(MachineEvent { time, layer: l.name.clone(), kind: EventKind::Exited, state: l.states[old.state].name.clone() });
+        self.events.push(MachineEvent { time, layer: l.name.clone(), kind: EventKind::Entered, state: l.states[to].name.clone() });
+        l.cur = Play { state: to, pos: 0.0 };
         if dur > 0.0 {
-            l.fade = Some(Fade {
-                from: snap.map_or(FadeFrom::Live(old), FadeFrom::Snap),
-                elapsed: 0.0,
-                dur,
-                ease,
-            });
+            l.fade = Some(Fade { from: snap.map_or(FadeFrom::Live(old), FadeFrom::Snap), elapsed: 0.0, dur, ease });
             false
         } else {
             l.fade = None;
@@ -1459,19 +1244,12 @@ pub fn simulate(
     }
     let n = (duration * fps as f64).floor() as usize + 1;
     if n > MAX_SIM_TICKS {
-        return Err(format!(
-            "simulation would need more than {MAX_SIM_TICKS} ticks"
-        ));
+        return Err(format!("simulation would need more than {MAX_SIM_TICKS} ticks"));
     }
     let dt = 1.0 / fps as f64;
     let mut next = 0;
     let mut cur = 0.0f64;
-    let mut log = SimLog {
-        machine: name,
-        fps,
-        ticks: vec![],
-        events: vec![],
-    };
+    let mut log = SimLog { machine: name, fps, ticks: vec![], events: vec![] };
     for k in 0..n {
         let t_end = k as f64 * dt;
         while next < evs.len() && evs[next].t <= t_end + 1e-9 {
@@ -1488,11 +1266,7 @@ pub fn simulate(
                 let x = match v {
                     serde_json::Value::Bool(b) => *b as u8 as f64,
                     serde_json::Value::Number(x) => x.as_f64().unwrap_or(f64::NAN),
-                    _ => {
-                        return Err(format!(
-                            "script input '{n}': value must be a number or boolean"
-                        ))
-                    }
+                    _ => return Err(format!("script input '{n}': value must be a number or boolean")),
                 };
                 rt.set_input(n, x)?;
             }
@@ -1507,18 +1281,8 @@ pub fn simulate(
         rt.step((t_end - cur).max(0.0))?;
         cur = cur.max(t_end);
         log.events.extend(rt.take_events());
-        let fading = rt
-            .layers
-            .iter()
-            .filter(|l| l.fade.is_some())
-            .map(|l| l.name.clone())
-            .collect();
-        log.ticks.push(Tick {
-            tick: k,
-            time: t_end,
-            states: rt.states(),
-            fading,
-        });
+        let fading = rt.layers.iter().filter(|l| l.fade.is_some()).map(|l| l.name.clone()).collect();
+        log.ticks.push(Tick { tick: k, time: t_end, states: rt.states(), fading });
         per_tick(k, &rt)?;
     }
     Ok(log)
@@ -1544,18 +1308,9 @@ pub fn add(p: &mut Project, m: Machine) -> Result<(), String> {
 }
 
 pub fn remove(p: &mut Project, name: &str) -> Result<(), String> {
-    let i = p
-        .machines
-        .iter()
-        .position(|m| m.name == name)
-        .ok_or_else(|| format!("no machine '{name}'"))?;
-    if let Some(b) = p.bindings.iter().find(
-        |b| matches!(&b.target, crate::binding::Target::Input { machine, .. } if machine == name),
-    ) {
-        return Err(format!(
-            "binding '{}' still drives machine '{name}'",
-            b.name
-        ));
+    let i = p.machines.iter().position(|m| m.name == name).ok_or_else(|| format!("no machine '{name}'"))?;
+    if let Some(b) = p.bindings.iter().find(|b| matches!(&b.target, crate::binding::Target::Input { machine, .. } if machine == name)) {
+        return Err(format!("binding '{}' still drives machine '{name}'", b.name));
     }
     p.machines.remove(i);
     Ok(())
@@ -1580,11 +1335,7 @@ pub fn add_binding(p: &mut Project, b: crate::binding::Binding) -> Result<(), St
 }
 
 pub fn remove_binding(p: &mut Project, name: &str) -> Result<(), String> {
-    let i = p
-        .bindings
-        .iter()
-        .position(|b| b.name == name)
-        .ok_or_else(|| format!("no binding '{name}'"))?;
+    let i = p.bindings.iter().position(|b| b.name == name).ok_or_else(|| format!("no binding '{name}'"))?;
     p.bindings.remove(i);
     Ok(())
 }
@@ -1596,140 +1347,65 @@ pub fn remove_binding(p: &mut Project, name: &str) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::anim::Key;
     use crate::binding::{Binding, Remap, Target};
     use crate::clipstack::Clip;
     use crate::motionlib::{Take, TakeTrack};
+    use crate::anim::Key;
 
     fn k(f: f32, v: f32) -> Key {
-        Key {
-            frame: f,
-            value: v,
-            ease: Ease::Linear,
-        }
+        Key { frame: f, value: v, ease: Ease::Linear }
     }
 
     fn take(name: &str, len: f32, target: &str, prop: Prop, a: f32, b: f32) -> Take {
-        Take {
-            name: name.into(),
-            length: len,
-            tracks: vec![TakeTrack {
-                target: target.into(),
-                prop,
-                keys: vec![k(0.0, a), k(len, b)],
-            }],
-        }
+        Take { name: name.into(), length: len, tracks: vec![TakeTrack { target: target.into(), prop, keys: vec![k(0.0, a), k(len, b)] }] }
     }
 
     /// 24 fps project with a bone "arm", layers "body" and "eye", clips idle (angle 0), walk
     /// (angle 10..20, 24 frames), run (angle 40, 24 frames), wave (once, 12 frames, angle 90).
     fn project() -> Project {
         let mut p = Project::new("m", 100.0, 100.0, 24.0, 48);
-        p.bones.push(crate::project::Bone::new(
-            "arm",
-            None,
-            10.0,
-            crate::math::Vec2::new(0.0, 0.0),
-            0.0,
-        ));
-        p.bones.push(crate::project::Bone::new(
-            "leg",
-            None,
-            10.0,
-            crate::math::Vec2::new(0.0, 0.0),
-            0.0,
-        ));
+        p.bones.push(crate::project::Bone::new("arm", None, 10.0, crate::math::Vec2::new(0.0, 0.0), 0.0));
+        p.bones.push(crate::project::Bone::new("leg", None, 10.0, crate::math::Vec2::new(0.0, 0.0), 0.0));
         let mk = |n: &str, t: Take| Clip::new(n, t);
         p.clips = vec![
             mk("idle", take("idle", 24.0, "arm", Prop::BoneAngle, 0.0, 0.0)),
-            mk(
-                "walk",
-                take("walk", 24.0, "arm", Prop::BoneAngle, 10.0, 20.0),
-            ),
+            mk("walk", take("walk", 24.0, "arm", Prop::BoneAngle, 10.0, 20.0)),
             mk("run", take("run", 24.0, "arm", Prop::BoneAngle, 40.0, 40.0)),
-            mk(
-                "wave",
-                take("wave", 12.0, "arm", Prop::BoneAngle, 90.0, 90.0),
-            ),
-            mk(
-                "legsit",
-                take("legsit", 24.0, "leg", Prop::BoneAngle, 5.0, 5.0),
-            ),
+            mk("wave", take("wave", 12.0, "arm", Prop::BoneAngle, 90.0, 90.0)),
+            mk("legsit", take("legsit", 24.0, "leg", Prop::BoneAngle, 5.0, 5.0)),
         ];
         p
     }
 
     fn st(name: &str, clip: &str) -> State {
-        State {
-            name: name.into(),
-            source: StateSource::Clip { clip: clip.into() },
-            mode: PlayMode::Loop,
-            speed: 1.0,
-            blend_in: 0.0,
-        }
+        State { name: name.into(), source: StateSource::Clip { clip: clip.into() }, mode: PlayMode::Loop, speed: 1.0, blend_in: 0.0 }
     }
     fn tr(from: &str, to: &str, conds: Vec<Condition>) -> Transition {
-        Transition {
-            from: from.into(),
-            to: to.into(),
-            conditions: conds,
-            exit_time: None,
-            duration: Some(0.0),
-            ease: Ease::Linear,
-        }
+        Transition { from: from.into(), to: to.into(), conditions: conds, exit_time: None, duration: Some(0.0), ease: Ease::Linear }
     }
     fn cond(input: &str, op: Cmp, value: f64) -> Condition {
-        Condition {
-            input: input.into(),
-            op,
-            value,
-        }
+        Condition { input: input.into(), op, value }
     }
     fn inp(name: &str, kind: InputKind) -> Input {
-        Input {
-            name: name.into(),
-            kind,
-            default: 0.0,
-            hold: false,
-        }
+        Input { name: name.into(), kind, default: 0.0, hold: false }
     }
     fn layer(name: &str, entry: &str, states: Vec<State>, trans: Vec<Transition>) -> Layer {
-        Layer {
-            name: name.into(),
-            mask: vec![],
-            entry: entry.into(),
-            states,
-            transitions: trans,
-        }
+        Layer { name: name.into(), mask: vec![], entry: entry.into(), states, transitions: trans }
     }
 
     fn base_machine() -> Machine {
         Machine {
             name: "m".into(),
-            inputs: vec![
-                inp("moving", InputKind::Bool),
-                inp("speed", InputKind::Number),
-                inp("wave", InputKind::Trigger),
-            ],
+            inputs: vec![inp("moving", InputKind::Bool), inp("speed", InputKind::Number), inp("wave", InputKind::Trigger)],
             layers: vec![layer(
                 "body",
                 "idle",
-                vec![
-                    st("idle", "idle"),
-                    st("walk", "walk"),
-                    State {
-                        mode: PlayMode::Once,
-                        ..st("wave", "wave")
-                    },
-                ],
+                vec![st("idle", "idle"), st("walk", "walk"), State { mode: PlayMode::Once, ..st("wave", "wave") }],
                 vec![
                     tr("idle", "walk", vec![cond("moving", Cmp::Eq, 1.0)]),
                     tr("walk", "idle", vec![cond("moving", Cmp::Eq, 0.0)]),
                     tr("*", "wave", vec![cond("wave", Cmp::Eq, 1.0)]),
-                    Transition {
-                        exit_time: Some(1.0),
-                        ..tr("wave", "idle", vec![])
-                    },
+                    Transition { exit_time: Some(1.0), ..tr("wave", "idle", vec![]) },
                 ],
             )],
         }
@@ -1741,22 +1417,15 @@ mod tests {
         let good = r#"{"from":"idle","to":"walk","when":[{"input":"moving"}]}"#;
         assert!(serde_json::from_str::<Transition>(good).is_ok());
         let typo = r#"{"from":"idle","to":"walk","conditions":[{"input":"moving"}]}"#;
-        let err = serde_json::from_str::<Transition>(typo)
-            .unwrap_err()
-            .to_string();
+        let err = serde_json::from_str::<Transition>(typo).unwrap_err().to_string();
         assert!(err.contains("unknown field `conditions`"), "{err}");
         let bad_cond = r#"{"from":"idle","to":"walk","when":[{"input":"moving","vaule":1}]}"#;
-        assert!(serde_json::from_str::<Transition>(bad_cond)
-            .unwrap_err()
-            .to_string()
-            .contains("vaule"));
+        assert!(serde_json::from_str::<Transition>(bad_cond).unwrap_err().to_string().contains("vaule"));
         // and through a whole project file
         let mut p = project();
         p.machines.push(base_machine());
         let text = p.to_json_pretty().replace("\"when\"", "\"conditions\"");
-        let err = Project::from_json(&text)
-            .expect_err("must not load")
-            .to_string();
+        let err = Project::from_json(&text).expect_err("must not load").to_string();
         assert!(err.contains("conditions"), "{err}");
     }
 
@@ -1766,10 +1435,7 @@ mod tests {
     }
 
     fn angle(rt: &MachineRuntime) -> f32 {
-        rt.pose()
-            .get("arm", Prop::BoneAngle)
-            .map(|x| x.0)
-            .unwrap_or(f32::NAN)
+        rt.pose().get("arm", Prop::BoneAngle).map(|x| x.0).unwrap_or(f32::NAN)
     }
 
     #[test]
@@ -1787,20 +1453,8 @@ mod tests {
         rt.step(0.02).unwrap();
         assert_eq!(rt.state_of("body"), Some("idle"));
         let ev = rt.take_events();
-        let kinds: Vec<String> = ev
-            .iter()
-            .map(|e| format!("{:?}:{}", e.kind, e.state))
-            .collect();
-        assert_eq!(
-            kinds,
-            [
-                "Entered:idle",
-                "Exited:idle",
-                "Entered:walk",
-                "Exited:walk",
-                "Entered:idle"
-            ]
-        );
+        let kinds: Vec<String> = ev.iter().map(|e| format!("{:?}:{}", e.kind, e.state)).collect();
+        assert_eq!(kinds, ["Entered:idle", "Exited:idle", "Entered:walk", "Exited:walk", "Entered:idle"]);
         assert!(rt.take_events().is_empty());
     }
 
@@ -1865,10 +1519,7 @@ mod tests {
         let mut m = base_machine();
         m.layers[0].states.truncate(2);
         m.layers[0].entry = "walk".into();
-        m.layers[0].transitions = vec![Transition {
-            exit_time: Some(0.5),
-            ..tr("walk", "idle", vec![])
-        }];
+        m.layers[0].transitions = vec![Transition { exit_time: Some(0.5), ..tr("walk", "idle", vec![]) }];
         let mut rt = rt_of(m, project());
         rt.step(0.4).unwrap(); // 0.4 s of a 1 s clip
         assert_eq!(rt.state_of("body"), Some("walk"));
@@ -1877,10 +1528,7 @@ mod tests {
         // exit time combined with a condition needs both
         let mut m = base_machine();
         m.layers[0].states.truncate(2);
-        m.layers[0].transitions = vec![Transition {
-            exit_time: Some(0.5),
-            ..tr("idle", "walk", vec![cond("moving", Cmp::Eq, 1.0)])
-        }];
+        m.layers[0].transitions = vec![Transition { exit_time: Some(0.5), ..tr("idle", "walk", vec![cond("moving", Cmp::Eq, 1.0)]) }];
         let mut rt = rt_of(m, project());
         rt.set_bool("moving", true).unwrap();
         rt.step(0.3).unwrap();
@@ -1913,12 +1561,7 @@ mod tests {
         let before = angle(&rt);
         rt.set_bool("moving", false).unwrap();
         rt.step(0.0).unwrap();
-        assert!(
-            (angle(&rt) - before).abs() < 0.3,
-            "no jump at the interrupt: {} vs {}",
-            angle(&rt),
-            before
-        );
+        assert!((angle(&rt) - before).abs() < 0.3, "no jump at the interrupt: {} vs {}", angle(&rt), before);
         rt.step(1.1).unwrap();
         assert!(angle(&rt).abs() < 1e-3);
     }
@@ -1935,33 +1578,16 @@ mod tests {
             source: StateSource::Blend {
                 input: "speed".into(),
                 children: vec![
-                    BlendChild {
-                        threshold: 0.0,
-                        source: StateSource::Clip {
-                            clip: "idle".into(),
-                        },
-                    },
-                    BlendChild {
-                        threshold: 1.0,
-                        source: StateSource::Clip {
-                            clip: "walk".into(),
-                        },
-                    },
-                    BlendChild {
-                        threshold: 2.0,
-                        source: StateSource::Clip { clip: "run".into() },
-                    },
+                    BlendChild { threshold: 0.0, source: StateSource::Clip { clip: "idle".into() } },
+                    BlendChild { threshold: 1.0, source: StateSource::Clip { clip: "walk".into() } },
+                    BlendChild { threshold: 2.0, source: StateSource::Clip { clip: "run".into() } },
                 ],
             },
             mode: PlayMode::Loop,
             speed: 1.0,
             blend_in: 0.0,
         };
-        let m = Machine {
-            name: "m".into(),
-            inputs: vec![inp("speed", InputKind::Number)],
-            layers: vec![layer("body", "loco", vec![blend], vec![])],
-        };
+        let m = Machine { name: "m".into(), inputs: vec![inp("speed", InputKind::Number)], layers: vec![layer("body", "loco", vec![blend], vec![])] };
         p.machines.push(m);
         let mut rt = MachineRuntime::new(&p, "m").unwrap();
         rt.set_number("speed", 0.0).unwrap();
@@ -1993,27 +1619,15 @@ mod tests {
             source: StateSource::Blend {
                 input: "speed".into(),
                 children: vec![
-                    BlendChild {
-                        threshold: 0.0,
-                        source: StateSource::Clip {
-                            clip: "walk".into(),
-                        },
-                    },
-                    BlendChild {
-                        threshold: 1.0,
-                        source: StateSource::Clip { clip: "run".into() },
-                    },
+                    BlendChild { threshold: 0.0, source: StateSource::Clip { clip: "walk".into() } },
+                    BlendChild { threshold: 1.0, source: StateSource::Clip { clip: "run".into() } },
                 ],
             },
             mode: PlayMode::Loop,
             speed: 1.0,
             blend_in: 0.0,
         };
-        p.machines.push(Machine {
-            name: "m".into(),
-            inputs: vec![inp("speed", InputKind::Number)],
-            layers: vec![layer("b", "loco", vec![blend], vec![])],
-        });
+        p.machines.push(Machine { name: "m".into(), inputs: vec![inp("speed", InputKind::Number)], layers: vec![layer("b", "loco", vec![blend], vec![])] });
         let mut rt = MachineRuntime::new(&p, "m").unwrap();
         rt.set_number("speed", 1.0).unwrap();
         let (v, w) = rt.pose().get("arm", Prop::BoneAngle).unwrap();
@@ -2027,16 +1641,8 @@ mod tests {
     #[test]
     fn ping_pong_and_speed() {
         let mut p = project();
-        let s = State {
-            mode: PlayMode::PingPong,
-            speed: 2.0,
-            ..st("walk", "walk")
-        };
-        p.machines.push(Machine {
-            name: "m".into(),
-            inputs: vec![],
-            layers: vec![layer("b", "walk", vec![s], vec![])],
-        });
+        let s = State { mode: PlayMode::PingPong, speed: 2.0, ..st("walk", "walk") };
+        p.machines.push(Machine { name: "m".into(), inputs: vec![], layers: vec![layer("b", "walk", vec![s], vec![])] });
         let mut rt = MachineRuntime::new(&p, "m").unwrap();
         rt.step(0.25).unwrap(); // 0.5 loops forward
         assert!((angle(&rt) - 15.0).abs() < 0.2);
@@ -2051,8 +1657,7 @@ mod tests {
         let mut p = project();
         let mut m = base_machine();
         m.layers[0].mask = vec!["arm".into()];
-        m.layers
-            .push(layer("legs", "sit", vec![st("sit", "legsit")], vec![]));
+        m.layers.push(layer("legs", "sit", vec![st("sit", "legsit")], vec![]));
         m.layers[1].mask = vec!["leg".into()];
         p.machines.push(m);
         assert!(validate(&p).is_empty(), "{:?}", validate(&p));
@@ -2067,9 +1672,7 @@ mod tests {
         // overlapping layers are rejected
         let mut q = p.clone();
         q.machines[0].layers[1].mask.clear();
-        q.machines[0].layers[1].states[0].source = StateSource::Clip {
-            clip: "walk".into(),
-        };
+        q.machines[0].layers[1].states[0].source = StateSource::Clip { clip: "walk".into() };
         let e = validate(&q).join("\n");
         assert!(e.contains("disjoint channel groups"), "{e}");
     }
@@ -2091,24 +1694,14 @@ mod tests {
         m.layers[0].states.push(st("idle", "idle"));
         m.inputs.push(inp("moving", InputKind::Bool));
         let e = base(m);
-        assert!(
-            e.contains("duplicate state name 'idle'") && e.contains("duplicate input 'moving'"),
-            "{e}"
-        );
+        assert!(e.contains("duplicate state name 'idle'") && e.contains("duplicate input 'moving'"), "{e}");
         // missing target / source state, unknown input
         let mut m = base_machine();
         m.layers[0].transitions.push(tr("idle", "nowhere", vec![]));
         m.layers[0].transitions.push(tr("zip", "idle", vec![]));
-        m.layers[0]
-            .transitions
-            .push(tr("idle", "walk", vec![cond("ghost", Cmp::Eq, 1.0)]));
+        m.layers[0].transitions.push(tr("idle", "walk", vec![cond("ghost", Cmp::Eq, 1.0)]));
         let e = base(m);
-        assert!(
-            e.contains("transition to missing state 'nowhere'")
-                && e.contains("unknown source state 'zip'")
-                && e.contains("unknown input 'ghost'"),
-            "{e}"
-        );
+        assert!(e.contains("transition to missing state 'nowhere'") && e.contains("unknown source state 'zip'") && e.contains("unknown input 'ghost'"), "{e}");
         // unreachable state
         let mut m = base_machine();
         m.layers[0].states.push(st("lonely", "run"));
@@ -2120,10 +1713,7 @@ mod tests {
         assert!(base(m).contains("form a cycle"));
         // but a cycle that waits for an exit time is fine, and so is one with conditions
         let mut m = base_machine();
-        m.layers[0].transitions.push(Transition {
-            exit_time: Some(1.0),
-            ..tr("wave", "walk", vec![])
-        });
+        m.layers[0].transitions.push(Transition { exit_time: Some(1.0), ..tr("wave", "walk", vec![]) });
         assert_eq!(base(m), "");
         // bad entry, bad numbers, bad blend
         let mut m = base_machine();
@@ -2132,53 +1722,22 @@ mod tests {
         m.layers[0].transitions[0].exit_time = Some(2.0);
         m.layers[0].transitions[1].duration = Some(-1.0);
         let e = base(m);
-        assert!(
-            e.contains("entry state 'zzz'")
-                && e.contains("speed must")
-                && e.contains("exit_time")
-                && e.contains("duration must"),
-            "{e}"
-        );
+        assert!(e.contains("entry state 'zzz'") && e.contains("speed must") && e.contains("exit_time") && e.contains("duration must"), "{e}");
         let mut m = base_machine();
         m.layers[0].states[0].source = StateSource::Blend {
             input: "moving".into(),
-            children: vec![
-                BlendChild {
-                    threshold: 1.0,
-                    source: StateSource::Clip {
-                        clip: "idle".into(),
-                    },
-                },
-                BlendChild {
-                    threshold: 0.0,
-                    source: StateSource::Clip {
-                        clip: "idle".into(),
-                    },
-                },
-            ],
+            children: vec![BlendChild { threshold: 1.0, source: StateSource::Clip { clip: "idle".into() } }, BlendChild { threshold: 0.0, source: StateSource::Clip { clip: "idle".into() } }],
         };
         let e = base(m);
-        assert!(
-            e.contains("must be a number input") && e.contains("strictly increasing"),
-            "{e}"
-        );
+        assert!(e.contains("must be a number input") && e.contains("strictly increasing"), "{e}");
         // segments outside the project, regions that are not regions
         let mut m = base_machine();
-        m.layers[0].states[0].source = StateSource::Segment {
-            start: 10.0,
-            end: 999.0,
-        };
+        m.layers[0].states[0].source = StateSource::Segment { start: 10.0, end: 999.0 };
         assert!(base(m).contains("beyond"));
         let mut p = project();
-        p.markers.push(crate::keyops::Marker {
-            name: "pt".into(),
-            frame: 3.0,
-            end: None,
-        });
+        p.markers.push(crate::keyops::Marker { name: "pt".into(), frame: 3.0, end: None });
         let mut m = base_machine();
-        m.layers[0].states[0].source = StateSource::Region {
-            marker: "pt".into(),
-        };
+        m.layers[0].states[0].source = StateSource::Region { marker: "pt".into() };
         p.machines.push(m);
         assert!(validate(&p).join("\n").contains("not a region"));
         // a machine named like another
@@ -2226,38 +1785,14 @@ mod tests {
     #[test]
     fn segments_and_regions_play_project_channels() {
         let mut p = project();
-        p.channels.push(Channel::keys(
-            "arm",
-            Prop::BoneAngle,
-            Track::with_keys(&[(0.0, 0.0, Ease::Linear), (24.0, 48.0, Ease::Linear)]),
-        ));
-        p.markers.push(crate::keyops::Marker {
-            name: "second".into(),
-            frame: 12.0,
-            end: Some(24.0),
-        });
-        let s1 = State {
-            source: StateSource::Segment {
-                start: 0.0,
-                end: 24.0,
-            },
-            ..st("seg", "")
-        };
-        let s2 = State {
-            source: StateSource::Region {
-                marker: "second".into(),
-            },
-            ..st("reg", "")
-        };
+        p.channels.push(Channel::keys("arm", Prop::BoneAngle, Track::with_keys(&[(0.0, 0.0, Ease::Linear), (24.0, 48.0, Ease::Linear)])));
+        p.markers.push(crate::keyops::Marker { name: "second".into(), frame: 12.0, end: Some(24.0) });
+        let s1 = State { source: StateSource::Segment { start: 0.0, end: 24.0 }, ..st("seg", "") };
+        let s2 = State { source: StateSource::Region { marker: "second".into() }, ..st("reg", "") };
         p.machines.push(Machine {
             name: "m".into(),
             inputs: vec![inp("go", InputKind::Trigger)],
-            layers: vec![layer(
-                "a",
-                "seg",
-                vec![s1, s2],
-                vec![tr("seg", "reg", vec![cond("go", Cmp::Eq, 1.0)])],
-            )],
+            layers: vec![layer("a", "seg", vec![s1, s2], vec![tr("seg", "reg", vec![cond("go", Cmp::Eq, 1.0)])])],
         });
         let mut rt = MachineRuntime::new(&p, "m").unwrap();
         rt.step(0.5).unwrap();
@@ -2280,11 +1815,7 @@ mod tests {
                 rt.step(c).unwrap();
                 out.push((rt.state_of("body").unwrap().to_string(), angle(&rt)));
             }
-            (
-                rt.time(),
-                out.last().unwrap().clone(),
-                rt.take_events().len(),
-            )
+            (rt.time(), out.last().unwrap().clone(), rt.take_events().len())
         };
         let a = run(&[0.1, 0.2, 0.3, 0.4]);
         let b = run(&[0.1, 0.2, 0.3, 0.4]);
@@ -2303,18 +1834,8 @@ mod tests {
             machine: None,
             duration: Some(2.0),
             events: vec![
-                ScriptEvent {
-                    t: 0.5,
-                    set: [("moving".to_string(), serde_json::json!(true))]
-                        .into_iter()
-                        .collect(),
-                    ..Default::default()
-                },
-                ScriptEvent {
-                    t: 1.0,
-                    trigger: vec!["wave".into()],
-                    ..Default::default()
-                },
+                ScriptEvent { t: 0.5, set: [("moving".to_string(), serde_json::json!(true))].into_iter().collect(), ..Default::default() },
+                ScriptEvent { t: 1.0, trigger: vec!["wave".into()], ..Default::default() },
             ],
         };
         let mut seen = 0;
@@ -2328,94 +1849,28 @@ mod tests {
         assert_eq!(log.ticks[0].states[0].1, "idle");
         assert_eq!(log.ticks[13].states[0].1, "walk"); // t = 13/24 > 0.5
         assert_eq!(log.ticks[25].states[0].1, "wave");
-        assert!(log
-            .events
-            .iter()
-            .any(|e| e.state == "wave" && e.kind == EventKind::Entered));
+        assert!(log.events.iter().any(|e| e.state == "wave" && e.kind == EventKind::Entered));
         // causality: no state is left before the input that causes it was given
-        let left_idle = log
-            .events
-            .iter()
-            .find(|e| e.state == "idle" && e.kind == EventKind::Exited)
-            .unwrap();
-        assert!(
-            left_idle.time >= 0.5 - 1e-9,
-            "left idle at {} before the input at 0.5",
-            left_idle.time
-        );
-        let entered_wave = log
-            .events
-            .iter()
-            .find(|e| e.state == "wave" && e.kind == EventKind::Entered)
-            .unwrap();
-        assert!(
-            entered_wave.time >= 1.0 - 1e-9,
-            "entered wave at {} before the trigger at 1.0",
-            entered_wave.time
-        );
+        let left_idle = log.events.iter().find(|e| e.state == "idle" && e.kind == EventKind::Exited).unwrap();
+        assert!(left_idle.time >= 0.5 - 1e-9, "left idle at {} before the input at 0.5", left_idle.time);
+        let entered_wave = log.events.iter().find(|e| e.state == "wave" && e.kind == EventKind::Entered).unwrap();
+        assert!(entered_wave.time >= 1.0 - 1e-9, "entered wave at {} before the trigger at 1.0", entered_wave.time);
         let log2 = simulate(&p, &script, 24.0, std::path::Path::new("."), |_, _| Ok(())).unwrap();
-        assert_eq!(
-            serde_json::to_string(&log).unwrap(),
-            serde_json::to_string(&log2).unwrap()
-        );
+        assert_eq!(serde_json::to_string(&log).unwrap(), serde_json::to_string(&log2).unwrap());
         // errors
-        let bad = Script {
-            events: vec![ScriptEvent {
-                t: 0.0,
-                set: [("ghost".to_string(), serde_json::json!(1))]
-                    .into_iter()
-                    .collect(),
-                ..Default::default()
-            }],
-            ..Default::default()
-        };
+        let bad = Script { events: vec![ScriptEvent { t: 0.0, set: [("ghost".to_string(), serde_json::json!(1))].into_iter().collect(), ..Default::default() }], ..Default::default() };
         assert!(simulate(&p, &bad, 24.0, std::path::Path::new("."), |_, _| Ok(())).is_err());
-        assert!(simulate(
-            &project(),
-            &script,
-            24.0,
-            std::path::Path::new("."),
-            |_, _| Ok(())
-        )
-        .is_err());
+        assert!(simulate(&project(), &script, 24.0, std::path::Path::new("."), |_, _| Ok(())).is_err());
     }
 
     #[test]
     fn bindings_drive_properties_and_inputs() {
         let mut p = project();
         p.machines.push(base_machine());
-        let mut hp = Binding::new(
-            "hp",
-            "player.health",
-            Target::Prop {
-                target: "leg".into(),
-                prop: Prop::BoneAngle,
-            },
-        );
-        hp.remap = Some(Remap {
-            in_min: 0.0,
-            in_max: 100.0,
-            out_min: -30.0,
-            out_max: 30.0,
-            clamp: true,
-            curve: Ease::Linear,
-        });
-        let mv = Binding::new(
-            "mv",
-            "player.moving",
-            Target::Input {
-                machine: "m".into(),
-                input: "moving".into(),
-            },
-        );
-        let mut spd = Binding::new(
-            "spd",
-            "player.fire",
-            Target::Input {
-                machine: "m".into(),
-                input: "wave".into(),
-            },
-        );
+        let mut hp = Binding::new("hp", "player.health", Target::Prop { target: "leg".into(), prop: Prop::BoneAngle });
+        hp.remap = Some(Remap { in_min: 0.0, in_max: 100.0, out_min: -30.0, out_max: 30.0, clamp: true, curve: Ease::Linear });
+        let mv = Binding::new("mv", "player.moving", Target::Input { machine: "m".into(), input: "moving".into() });
+        let mut spd = Binding::new("spd", "player.fire", Target::Input { machine: "m".into(), input: "wave".into() });
         spd.expr = Some("value * 2".into());
         p.bindings = vec![hp, mv, spd];
         assert!(Engine::new(p.clone()).is_ok());
@@ -2442,53 +1897,13 @@ mod tests {
         assert_eq!(rt.state_of("body"), Some("wave"));
         // a binding to an unknown bone is rejected when the engine is built
         let mut bad = p.clone();
-        bad.bindings[0].target = Target::Prop {
-            target: "ghost".into(),
-            prop: Prop::BoneAngle,
-        };
-        assert!(Engine::new(bad)
-            .err()
-            .unwrap()
-            .join("\n")
-            .contains("machine/binding targets"));
+        bad.bindings[0].target = Target::Prop { target: "ghost".into(), prop: Prop::BoneAngle };
+        assert!(Engine::new(bad).err().unwrap().join("\n").contains("machine/binding targets"));
         // editing helpers
         let mut q = project();
-        assert!(add_binding(
-            &mut q,
-            Binding::new(
-                "x",
-                "a.b",
-                Target::Prop {
-                    target: "ghost".into(),
-                    prop: Prop::BoneAngle
-                }
-            )
-        )
-        .is_err());
-        assert!(add_binding(
-            &mut q,
-            Binding::new(
-                "x",
-                "a.b",
-                Target::Prop {
-                    target: "arm".into(),
-                    prop: Prop::BoneAngle
-                }
-            )
-        )
-        .is_ok());
-        assert!(add_binding(
-            &mut q,
-            Binding::new(
-                "x",
-                "a.c",
-                Target::Prop {
-                    target: "arm".into(),
-                    prop: Prop::BoneAngle
-                }
-            )
-        )
-        .is_err());
+        assert!(add_binding(&mut q, Binding::new("x", "a.b", Target::Prop { target: "ghost".into(), prop: Prop::BoneAngle })).is_err());
+        assert!(add_binding(&mut q, Binding::new("x", "a.b", Target::Prop { target: "arm".into(), prop: Prop::BoneAngle })).is_ok());
+        assert!(add_binding(&mut q, Binding::new("x", "a.c", Target::Prop { target: "arm".into(), prop: Prop::BoneAngle })).is_err());
         remove_binding(&mut q, "x").unwrap();
         assert!(remove_binding(&mut q, "x").is_err());
         add(&mut q, base_machine()).unwrap();

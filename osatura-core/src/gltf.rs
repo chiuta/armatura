@@ -57,29 +57,16 @@ pub fn triangulate(pts: &[Vec2]) -> Vec<[usize; 3]> {
     if !(3..=MAX_TRIANGULATE_POINTS).contains(&n) {
         return vec![];
     }
-    let area: f32 = (0..n)
-        .map(|i| pts[i].x * pts[(i + 1) % n].y - pts[(i + 1) % n].x * pts[i].y)
-        .sum::<f32>()
-        * 0.5;
-    let order: Vec<usize> = if area >= 0.0 {
-        (0..n).collect()
-    } else {
-        (0..n).rev().collect()
-    };
+    let area: f32 = (0..n).map(|i| pts[i].x * pts[(i + 1) % n].y - pts[(i + 1) % n].x * pts[i].y).sum::<f32>() * 0.5;
+    let order: Vec<usize> = if area >= 0.0 { (0..n).collect() } else { (0..n).rev().collect() };
     // f64: with f32 the cross product of neighbouring points of a fine polygon is rounding noise and half of its
     // convex corners would look reflex
-    let cross = |a: Vec2, b: Vec2, c: Vec2| {
-        (b.x as f64 - a.x as f64) * (c.y as f64 - a.y as f64)
-            - (b.y as f64 - a.y as f64) * (c.x as f64 - a.x as f64)
-    };
-    let inside = |p: Vec2, a: Vec2, b: Vec2, c: Vec2| {
-        cross(a, b, p) >= 0.0 && cross(b, c, p) >= 0.0 && cross(c, a, p) >= 0.0
-    };
+    let cross = |a: Vec2, b: Vec2, c: Vec2| (b.x as f64 - a.x as f64) * (c.y as f64 - a.y as f64) - (b.y as f64 - a.y as f64) * (c.x as f64 - a.x as f64);
+    let inside = |p: Vec2, a: Vec2, b: Vec2, c: Vec2| cross(a, b, p) >= 0.0 && cross(b, c, p) >= 0.0 && cross(c, a, p) >= 0.0;
     let at = |k: usize| pts[order[k]];
     let mut prev: Vec<usize> = (0..n).map(|k| (k + n - 1) % n).collect();
     let mut next: Vec<usize> = (0..n).map(|k| (k + 1) % n).collect();
-    let convex =
-        |k: usize, prev: &[usize], next: &[usize]| cross(at(prev[k]), at(k), at(next[k])) > 1e-12;
+    let convex = |k: usize, prev: &[usize], next: &[usize]| cross(at(prev[k]), at(k), at(next[k])) > 1e-12;
     let mut is_reflex: Vec<bool> = (0..n).map(|k| !convex(k, &prev, &next)).collect();
     // The reflex vertices sit in a uniform grid, so an ear is tested only against the few that are near it. (Even a
     // finely subdivided circle has many reflex corners in f32: coordinate rounding is larger than its sagitta.)
@@ -91,12 +78,7 @@ pub fn triangulate(pts: &[Vec2]) -> Vec<[usize; 3]> {
     }
     let g = ((nr as f32).sqrt().ceil() as usize).clamp(1, 1024);
     let (w, h) = ((hi.x - lo.x).max(1e-9), (hi.y - lo.y).max(1e-9));
-    let cell_of = |p: Vec2| -> (usize, usize) {
-        (
-            (((p.x - lo.x) / w * g as f32) as usize).min(g - 1),
-            (((p.y - lo.y) / h * g as f32) as usize).min(g - 1),
-        )
-    };
+    let cell_of = |p: Vec2| -> (usize, usize) { ((((p.x - lo.x) / w * g as f32) as usize).min(g - 1), (((p.y - lo.y) / h * g as f32) as usize).min(g - 1)) };
     let mut cells: Vec<Vec<u32>> = vec![Vec::new(); g * g];
     // the index is a coordinate/identifier used beyond one slice (parallel arrays, offsets, neighbours); an iterator would obscure it
     #[allow(clippy::needless_range_loop)]
@@ -114,14 +96,8 @@ pub fn triangulate(pts: &[Vec2]) -> Vec<[usize; 3]> {
         let (a, c) = (prev[cur], next[cur]);
         let ear = !is_reflex[cur] && {
             let (pa, pb, pc) = (at(a), at(cur), at(c));
-            let (x0, y0) = cell_of(Vec2::new(
-                pa.x.min(pb.x).min(pc.x),
-                pa.y.min(pb.y).min(pc.y),
-            ));
-            let (x1, y1) = cell_of(Vec2::new(
-                pa.x.max(pb.x).max(pc.x),
-                pa.y.max(pb.y).max(pc.y),
-            ));
+            let (x0, y0) = cell_of(Vec2::new(pa.x.min(pb.x).min(pc.x), pa.y.min(pb.y).min(pc.y)));
+            let (x1, y1) = cell_of(Vec2::new(pa.x.max(pb.x).max(pc.x), pa.y.max(pb.y).max(pc.y)));
             let mut blocked = false;
             'scan: for cy in y0..=y1 {
                 for cx in x0..=x1 {
@@ -129,13 +105,7 @@ pub fn triangulate(pts: &[Vec2]) -> Vec<[usize; 3]> {
                     work += cell.len() + 1;
                     for &j in cell {
                         let j = j as usize;
-                        if !removed[j]
-                            && is_reflex[j]
-                            && j != a
-                            && j != cur
-                            && j != c
-                            && inside(at(j), pa, pb, pc)
-                        {
+                        if !removed[j] && is_reflex[j] && j != a && j != cur && j != c && inside(at(j), pa, pb, pc) {
                             blocked = true;
                             break 'scan;
                         }
@@ -200,20 +170,11 @@ impl Bin {
         }
         let off = self.data.len();
         self.data.extend_from_slice(bytes);
-        self.views
-            .push(json!({"buffer": 0, "byteOffset": off, "byteLength": bytes.len()}));
+        self.views.push(json!({"buffer": 0, "byteOffset": off, "byteLength": bytes.len()}));
         self.views.len() - 1
     }
 
-    fn add(
-        &mut self,
-        bytes: &[u8],
-        component: u32,
-        count: usize,
-        ty: &str,
-        min_max: Option<(Vec<f32>, Vec<f32>)>,
-        target: Option<u32>,
-    ) -> usize {
+    fn add(&mut self, bytes: &[u8], component: u32, count: usize, ty: &str, min_max: Option<(Vec<f32>, Vec<f32>)>, target: Option<u32>) -> usize {
         while !self.data.len().is_multiple_of(4) {
             self.data.push(0);
         }
@@ -248,24 +209,13 @@ fn trs(m: Affine2, parent: Option<Affine2>) -> ([f32; 3], [f32; 4], [f32; 3]) {
     let sx = l.a.hypot(l.b).max(1e-6);
     let sy = (l.a * l.d - l.b * l.c) / sx;
     let half = -rot * 0.5; // y flip negates the angle
-    (
-        [l.tx, -l.ty, 0.0],
-        [0.0, 0.0, half.sin(), half.cos()],
-        [sx, sy, 1.0],
-    )
+    ([l.tx, -l.ty, 0.0], [0.0, 0.0, half.sin(), half.cos()], [sx, sy, 1.0])
 }
 
 fn collect_shapes<'a>(ls: &'a [Layer], prefix: &str, out: &mut Vec<(&'a Layer, String)>) {
     for l in ls {
-        let path = if prefix.is_empty() {
-            l.name.clone()
-        } else {
-            format!("{prefix}/{}", l.name)
-        };
-        if matches!(
-            l.kind,
-            LayerKind::Vector { .. } | LayerKind::Boolean { .. } | LayerKind::Image { .. }
-        ) {
+        let path = if prefix.is_empty() { l.name.clone() } else { format!("{prefix}/{}", l.name) };
+        if matches!(l.kind, LayerKind::Vector { .. } | LayerKind::Boolean { .. } | LayerKind::Image { .. }) {
             out.push((l, path.clone()));
         }
         if let LayerKind::Group { layers } | LayerKind::Switch { layers, .. } = &l.kind {
@@ -354,11 +304,7 @@ impl Soup {
     }
     /// Adds a triangle, wound counter-clockwise in layer space (positive cross).
     fn tri(&mut self, a: u32, b: u32, c: u32) {
-        let (pa, pb, pc) = (
-            self.pos[a as usize],
-            self.pos[b as usize],
-            self.pos[c as usize],
-        );
+        let (pa, pb, pc) = (self.pos[a as usize], self.pos[b as usize], self.pos[c as usize]);
         let z = cr(pb - pa, pc - pa);
         if z.abs() < 1e-12 {
             return;
@@ -373,14 +319,7 @@ const COS_SMOOTH: f32 = 0.906; // turns below ~25 degrees are treated as smooth 
 const MITER_LIMIT: f32 = 4.0;
 const MAX_DASHES: f32 = 20_000.0;
 
-fn dash_runs(
-    pts: &[Vec2],
-    cum: &[f32],
-    total: f32,
-    closed: bool,
-    dash: &[f32],
-    offset: f32,
-) -> Vec<(Vec<Pt>, bool)> {
+fn dash_runs(pts: &[Vec2], cum: &[f32], total: f32, closed: bool, dash: &[f32], offset: f32) -> Vec<(Vec<Pt>, bool)> {
     let n = pts.len();
     let ne = if closed { n } else { n - 1 };
     let cycle: f32 = dash.iter().sum();
@@ -413,13 +352,7 @@ fn dash_runs(
         if len < 1e-9 {
             continue;
         }
-        let at = |u: f32| -> Pt {
-            (
-                pts[a].lerp(pts[b], u / len),
-                (cum[a] + u).min(total),
-                if u < len * 0.5 { a } else { b },
-            )
-        };
+        let at = |u: f32| -> Pt { (pts[a].lerp(pts[b], u / len), (cum[a] + u).min(total), if u < len * 0.5 { a } else { b }) };
         let mut u = 0.0f32;
         while u < len - 1e-7 {
             let step = rem.min(len - u);
@@ -447,27 +380,16 @@ fn dash_runs(
 /// Triangulate a stroke of `style` along the polyline `pts` (layer space).
 fn build_stroke(pts: &[Vec2], closed: bool, style: &StrokeStyle) -> Option<Soup> {
     let n = pts.len();
-    if n < 2
-        || (style.width.partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater))
-        || !style.width.is_finite()
-    {
+    if n < 2 || (style.width.partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater)) || !style.width.is_finite() {
         return None;
     }
     let mut cum = vec![0.0f32; n];
     for i in 1..n {
         cum[i] = cum[i - 1] + pts[i].distance(pts[i - 1]);
     }
-    let total = (cum[n - 1]
-        + if closed {
-            pts[n - 1].distance(pts[0])
-        } else {
-            0.0
-        })
-    .max(1e-6);
+    let total = (cum[n - 1] + if closed { pts[n - 1].distance(pts[0]) } else { 0.0 }).max(1e-6);
     let mut soup = Soup::default();
-    let dash_ok = style.dash.len() >= 2
-        && style.dash.len().is_multiple_of(2)
-        && style.dash.iter().all(|d| *d > 0.0 && d.is_finite());
+    let dash_ok = style.dash.len() >= 2 && style.dash.len().is_multiple_of(2) && style.dash.iter().all(|d| *d > 0.0 && d.is_finite());
     let cycle: f32 = style.dash.iter().sum();
     let mut runs: Vec<(Vec<Pt>, bool)> = Vec::new();
     if dash_ok && total / cycle * (style.dash.len() / 2) as f32 <= MAX_DASHES {
@@ -500,8 +422,7 @@ fn add_run(out: &mut Soup, mut q: Vec<Pt>, mut wrap: bool, style: &StrokeStyle, 
     let dir_of = |q: &[Pt], a: usize, b: usize| (q[b].0 - q[a].0).normalized();
     if wrap {
         let m = q.len();
-        let corner =
-            |k: usize| dir_of(&q, (k + m - 1) % m, k).dot(dir_of(&q, k, (k + 1) % m)) < COS_SMOOTH;
+        let corner = |k: usize| dir_of(&q, (k + m - 1) % m, k).dot(dir_of(&q, k, (k + 1) % m)) < COS_SMOOTH;
         if let Some(k0) = (0..m).find(|&k| corner(k)) {
             q.rotate_left(k0);
         }
@@ -527,10 +448,8 @@ fn add_run(out: &mut Soup, mut q: Vec<Pt>, mut wrap: bool, style: &StrokeStyle, 
             None
         }
     };
-    let is_corner =
-        |j: usize| matches!((d_in(j), d_out(j)), (Some(a), Some(b)) if a.dot(b) < COS_SMOOTH);
-    let hw =
-        |j: usize| 0.5 * style.width * profile_at(&style.width_profile, q[j].1 / total).max(0.0);
+    let is_corner = |j: usize| matches!((d_in(j), d_out(j)), (Some(a), Some(b)) if a.dot(b) < COS_SMOOTH);
+    let hw = |j: usize| 0.5 * style.width * profile_at(&style.width_profile, q[j].1 / total).max(0.0);
     let mut splits = vec![0usize];
     splits.extend((1..last).filter(|&j| is_corner(j)));
     splits.push(last);
@@ -577,9 +496,7 @@ fn add_run(out: &mut Soup, mut q: Vec<Pt>, mut wrap: bool, style: &StrokeStyle, 
         if !is_corner(j) {
             continue;
         }
-        let (Some(di), Some(dout)) = (d_in(j), d_out(j)) else {
-            continue;
-        };
+        let (Some(di), Some(dout)) = (d_in(j), d_out(j)) else { continue };
         let (v, h, src) = (q[j].0, hw(j), q[j].2);
         let sigma = if cr(di, dout) > 0.0 { -1.0 } else { 1.0 };
         let (n0, n1) = (nrm(di) * sigma, nrm(dout) * sigma);
@@ -604,14 +521,7 @@ fn add_run(out: &mut Soup, mut q: Vec<Pt>, mut wrap: bool, style: &StrokeStyle, 
                 let steps = ((delta.abs() / (std::f32::consts::PI / 12.0)).ceil() as usize).max(1);
                 let mut prev = va;
                 for s in 1..=steps {
-                    let cur = if s == steps {
-                        vb
-                    } else {
-                        out.vert(
-                            v + Vec2::from_angle(a0 + delta * s as f32 / steps as f32) * h,
-                            src,
-                        )
-                    };
+                    let cur = if s == steps { vb } else { out.vert(v + Vec2::from_angle(a0 + delta * s as f32 / steps as f32) * h, src) };
                     out.tri(vc, prev, cur);
                     prev = cur;
                 }
@@ -628,10 +538,7 @@ fn add_run(out: &mut Soup, mut q: Vec<Pt>, mut wrap: bool, style: &StrokeStyle, 
                 Cap::Butt => {}
                 Cap::Square => {
                     let (a, b) = (out.vert(v + n * h, src), out.vert(v - n * h, src));
-                    let (c, e) = (
-                        out.vert(v + n * h + d * h, src),
-                        out.vert(v - n * h + d * h, src),
-                    );
+                    let (c, e) = (out.vert(v + n * h + d * h, src), out.vert(v - n * h + d * h, src));
                     out.tri(a, b, c);
                     out.tri(b, e, c);
                 }
@@ -641,12 +548,7 @@ fn add_run(out: &mut Soup, mut q: Vec<Pt>, mut wrap: bool, style: &StrokeStyle, 
                     let steps = 12;
                     let mut prev = out.vert(v + n * h, src);
                     for s in 1..=steps {
-                        let cur = out.vert(
-                            v + Vec2::from_angle(
-                                a0 - std::f32::consts::PI * s as f32 / steps as f32,
-                            ) * h,
-                            src,
-                        );
+                        let cur = out.vert(v + Vec2::from_angle(a0 - std::f32::consts::PI * s as f32 / steps as f32) * h, src);
                         out.tri(vc, prev, cur);
                         prev = cur;
                     }
@@ -663,21 +565,12 @@ fn add_run(out: &mut Soup, mut q: Vec<Pt>, mut wrap: bool, style: &StrokeStyle, 
 const CLIP_EPS: f32 = 1e-6;
 
 fn poly_area(p: &[Vec2]) -> f32 {
-    (0..p.len())
-        .map(|i| cr(p[i], p[(i + 1) % p.len()]))
-        .sum::<f32>()
-        * 0.5
+    (0..p.len()).map(|i| cr(p[i], p[(i + 1) % p.len()])).sum::<f32>() * 0.5
 }
 
 /// Sutherland-Hodgman against one half plane: keep the left of a->b (or the right).
 fn clip_half(poly: &[Vec2], a: Vec2, b: Vec2, keep_left: bool) -> Vec<Vec2> {
-    let s = |p: Vec2| {
-        if keep_left {
-            cr(b - a, p - a)
-        } else {
-            -cr(b - a, p - a)
-        }
-    };
+    let s = |p: Vec2| if keep_left { cr(b - a, p - a) } else { -cr(b - a, p - a) };
     let mut out = Vec::with_capacity(poly.len() + 2);
     for i in 0..poly.len() {
         let (c, n) = (poly[i], poly[(i + 1) % poly.len()]);
@@ -733,12 +626,7 @@ fn bbox(p: &[Vec2]) -> (Vec2, Vec2) {
 
 /// Clip a triangle mesh against masks (`(counter-clockwise triangles, inverted)`), exactly.
 /// `None` if the result would exceed `limit` pieces.
-fn clip_mesh(
-    pos: &[Vec2],
-    tris: &[[u32; 3]],
-    masks: &[(Vec<[Vec2; 3]>, bool)],
-    limit: usize,
-) -> Option<(Vec<Vec2>, Vec<[u32; 3]>)> {
+fn clip_mesh(pos: &[Vec2], tris: &[[u32; 3]], masks: &[(Vec<[Vec2; 3]>, bool)], limit: usize) -> Option<(Vec<Vec2>, Vec<[u32; 3]>)> {
     let mut cur: Vec<Vec<Vec2>> = tris
         .iter()
         .map(|t| {
@@ -807,20 +695,8 @@ enum GradMap {
 
 fn grad_map(p: &Paint) -> Option<GradMap> {
     match p {
-        Paint::Linear { from, to, stops } if stops.len() >= 2 && from.distance(*to) > 1e-6 => {
-            Some(GradMap::Linear {
-                from: *from,
-                to: *to,
-            })
-        }
-        Paint::Radial {
-            center,
-            radius,
-            stops,
-        } if stops.len() >= 2 && *radius > 1e-3 => Some(GradMap::Radial {
-            center: *center,
-            radius: *radius,
-        }),
+        Paint::Linear { from, to, stops } if stops.len() >= 2 && from.distance(*to) > 1e-6 => Some(GradMap::Linear { from: *from, to: *to }),
+        Paint::Radial { center, radius, stops } if stops.len() >= 2 && *radius > 1e-3 => Some(GradMap::Radial { center: *center, radius: *radius }),
         _ => None,
     }
 }
@@ -835,10 +711,7 @@ fn grad_uv(m: &GradMap, p: Vec2) -> [f32; 2] {
         }
         GradMap::Radial { center, radius } => {
             let s = (p - *center) * (1.0 / radius);
-            [
-                (0.5 + (s.x + 1.0) * 0.5 * (n - 1.0)) / n,
-                (0.5 + (s.y + 1.0) * 0.5 * (n - 1.0)) / n,
-            ]
+            [(0.5 + (s.x + 1.0) * 0.5 * (n - 1.0)) / n, (0.5 + (s.y + 1.0) * 0.5 * (n - 1.0)) / n]
         }
     }
 }
@@ -852,11 +725,7 @@ fn color_at(stops: &[crate::style::Stop], t: f32) -> Rgba {
     for w in s.windows(2) {
         if t <= w[1].offset {
             let span = w[1].offset - w[0].offset;
-            let u = if span <= 1e-9 {
-                1.0
-            } else {
-                (t - w[0].offset) / span
-            };
+            let u = if span <= 1e-9 { 1.0 } else { (t - w[0].offset) / span };
             return w[0].color.lerp(w[1].color, u);
         }
     }
@@ -891,10 +760,7 @@ fn gradient_png(p: &Paint) -> Vec<u8> {
             let mut px = Vec::with_capacity(n * n * 4);
             for j in 0..n {
                 for i in 0..n {
-                    let (sx, sy) = (
-                        -1.0 + 2.0 * i as f32 / (n - 1) as f32,
-                        -1.0 + 2.0 * j as f32 / (n - 1) as f32,
-                    );
+                    let (sx, sy) = (-1.0 + 2.0 * i as f32 / (n - 1) as f32, -1.0 + 2.0 * j as f32 / (n - 1) as f32);
                     px.extend_from_slice(&color_at(stops, sx.hypot(sy)).to_u8());
                 }
             }
@@ -907,9 +773,7 @@ fn gradient_png(p: &Paint) -> Vec<u8> {
 fn stops_translucent(p: &Paint) -> bool {
     match p {
         Paint::Solid(c) => c.a < 0.999,
-        Paint::Linear { stops, .. } | Paint::Radial { stops, .. } => {
-            stops.iter().any(|s| s.color.a < 0.999)
-        }
+        Paint::Linear { stops, .. } | Paint::Radial { stops, .. } => stops.iter().any(|s| s.color.a < 0.999),
     }
 }
 
@@ -926,28 +790,19 @@ fn seg_pts(p: &VPath, i: usize) -> [Vec2; 4] {
 fn seg_count_for(p: &VPath, i: usize, tol: f32) -> usize {
     let [p0, c1, c2, p1] = seg_pts(p, i);
     let ctrl = p0.distance(c1) + c1.distance(c2) + c2.distance(p1);
-    ((ctrl / tol.max(1e-3)).sqrt() * 0.6)
-        .ceil()
-        .clamp(1.0, 48.0) as usize
+    ((ctrl / tol.max(1e-3)).sqrt() * 0.6).ceil().clamp(1.0, 48.0) as usize
 }
 
 fn flatten_fixed(p: &VPath, ns: &[usize]) -> Vec<Vec2> {
     let mut out = Vec::new();
-    let Some(first) = p.anchors.first() else {
-        return out;
-    };
+    let Some(first) = p.anchors.first() else { return out };
     out.push(first.pos);
     for (i, &n) in ns.iter().enumerate().take(p.segment_count()) {
         let [p0, c1, c2, p1] = seg_pts(p, i);
         for k in 1..=n {
             let t = k as f32 / n as f32;
             let m = 1.0 - t;
-            out.push(
-                p0 * (m * m * m)
-                    + c1 * (3.0 * m * m * t)
-                    + c2 * (3.0 * m * t * t)
-                    + p1 * (t * t * t),
-            );
+            out.push(p0 * (m * m * m) + c1 * (3.0 * m * m * t) + c2 * (3.0 * m * t * t) + p1 * (t * t * t));
         }
     }
     if p.closed && out.len() > 1 {
@@ -969,26 +824,12 @@ type MorphCache = Option<Vec<(Frame, Vec<Vec<Vec<f32>>>)>>;
 /// Try to express `src`'s morphs as glTF targets. Ok = (base points, triangles, data).
 type Tri = [u32; 3];
 
-fn try_morph(
-    engine: &Engine,
-    cache: &mut MorphCache,
-    nid: usize,
-    pi: usize,
-    src: &VPath,
-) -> Result<(Vec<Vec2>, Vec<Tri>, MorphData), String> {
+fn try_morph(engine: &Engine, cache: &mut MorphCache, nid: usize, pi: usize, src: &VPath) -> Result<(Vec<Vec2>, Vec<Tri>, MorphData), String> {
     let nf = engine.project.frames as usize;
     if nf > 1500 || src.anchors.len() < 3 {
         return Err("too many frames (or too few anchors) to verify morph targets".into());
     }
-    let morph_paths: Vec<VPath> = src
-        .morphs
-        .iter()
-        .map(|m| VPath {
-            anchors: m.anchors.clone(),
-            morphs: vec![],
-            ..src.clone()
-        })
-        .collect();
+    let morph_paths: Vec<VPath> = src.morphs.iter().map(|m| VPath { anchors: m.anchors.clone(), morphs: vec![], ..src.clone() }).collect();
     let ns: Vec<usize> = (0..src.segment_count())
         .map(|i| {
             let mut n = seg_count_for(src, i, 0.5);
@@ -999,30 +840,13 @@ fn try_morph(
         })
         .collect();
     let base = flatten_fixed(src, &ns);
-    let deltas: Vec<Vec<Vec2>> = morph_paths
-        .iter()
-        .map(|mp| {
-            flatten_fixed(mp, &ns)
-                .iter()
-                .zip(&base)
-                .map(|(a, b)| *a - *b)
-                .collect()
-        })
-        .collect();
-    let cache = cache.get_or_insert_with(|| {
-        (0..nf)
-            .map(|f| (engine.evaluate(f as f32), engine.morph_weights(f as f32)))
-            .collect()
-    });
+    let deltas: Vec<Vec<Vec2>> = morph_paths.iter().map(|mp| flatten_fixed(mp, &ns).iter().zip(&base).map(|(a, b)| *a - *b).collect()).collect();
+    let cache = cache.get_or_insert_with(|| (0..nf).map(|f| (engine.evaluate(f as f32), engine.morph_weights(f as f32))).collect());
     let nt = src.morphs.len();
     let mut frames = Vec::with_capacity(nf * nt);
     let mut tris: Vec<[u32; 3]> = Vec::new();
     for (f, (fr, mw)) in cache.iter().enumerate() {
-        let w = mw
-            .get(nid)
-            .and_then(|x| x.get(pi))
-            .cloned()
-            .unwrap_or_default();
+        let w = mw.get(nid).and_then(|x| x.get(pi)).cloned().unwrap_or_default();
         if w.len() != nt {
             return Err("morph weights unavailable".into());
         }
@@ -1039,29 +863,18 @@ fn try_morph(
                 p
             })
             .collect();
-        let err = recon
-            .iter()
-            .zip(&actual)
-            .map(|(a, b)| a.distance(*b))
-            .fold(0.0, f32::max);
+        let err = recon.iter().zip(&actual).map(|(a, b)| a.distance(*b)).fold(0.0, f32::max);
         if err > 0.05 {
             return Err(format!("geometry at frame {f} is not base + weighted deltas (error {err:.3}); the layer is also deformed by skinning, a deformer, wobble or point offsets"));
         }
         if f == 0 {
-            tris = triangulate(&actual)
-                .into_iter()
-                .map(|t| [t[0] as u32, t[1] as u32, t[2] as u32])
-                .collect();
+            tris = triangulate(&actual).into_iter().map(|t| [t[0] as u32, t[1] as u32, t[2] as u32]).collect();
             if tris.is_empty() {
                 return Err("fill cannot be triangulated".into());
             }
         }
         for t in &tris {
-            let (a, b, c) = (
-                recon[t[0] as usize],
-                recon[t[1] as usize],
-                recon[t[2] as usize],
-            );
+            let (a, b, c) = (recon[t[0] as usize], recon[t[1] as usize], recon[t[2] as usize]);
             if cr(b - a, c - a) < -0.1 {
                 return Err(format!("the frame-0 triangulation folds over at frame {f}"));
             }
@@ -1072,16 +885,7 @@ fn try_morph(
         return Err("morph weights are zero on every frame".into());
     }
     let w0 = frames[..nt].to_vec();
-    Ok((
-        base,
-        tris,
-        MorphData {
-            names: src.morphs.iter().map(|m| m.name.clone()).collect(),
-            deltas,
-            w0,
-            frames,
-        },
-    ))
+    Ok((base, tris, MorphData { names: src.morphs.iter().map(|m| m.name.clone()).collect(), deltas, w0, frames }))
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1090,21 +894,14 @@ fn try_morph(
 
 enum PaintSrc {
     Paint(Paint),
-    Image {
-        png: Vec<u8>,
-        key: String,
-        has_alpha: bool,
-    },
+    Image { png: Vec<u8>, key: String, has_alpha: bool },
 }
 
 enum UvSrc {
     /// computed from the paint (gradients) or absent (solid)
     Paint,
     /// affine over a rectangle in layer space
-    Quad {
-        origin: Vec2,
-        size: Vec2,
-    },
+    Quad { origin: Vec2, size: Vec2 },
     Explicit(Vec<[f32; 2]>),
 }
 
@@ -1151,10 +948,8 @@ impl Out {
         }
         let bytes = png();
         let bv = self.bin.view(&bytes);
-        self.images
-            .push(json!({"bufferView": bv, "mimeType": "image/png"}));
-        self.textures
-            .push(json!({"sampler": 0, "source": self.images.len() - 1}));
+        self.images.push(json!({"bufferView": bv, "mimeType": "image/png"}));
+        self.textures.push(json!({"sampler": 0, "source": self.images.len() - 1}));
         self.tex_cache.insert(key, self.textures.len() - 1);
         self.textures.len() - 1
     }
@@ -1163,11 +958,7 @@ impl Out {
     fn emit(&mut self, pr: Prim, to_stage: Affine2, to_host: Affine2, host: Option<usize>) {
         let skinned = pr.skin.is_some();
         let place = if skinned { to_stage } else { to_host };
-        let z = if skinned {
-            self.shape_count as f32 * 0.01
-        } else {
-            0.0
-        };
+        let z = if skinned { self.shape_count as f32 * 0.01 } else { 0.0 };
         let gp = |q: Vec2| {
             let p = place.apply(q);
             [p.x, -p.y, z]
@@ -1175,19 +966,14 @@ impl Out {
         let flat: Vec<f32> = pr.pos.iter().flat_map(|q| gp(*q)).collect();
         let bounds = bounds3(&flat);
         let nv = pr.pos.len();
-        let pos = self
-            .bin
-            .add(&f32s(&flat), 5126, nv, "VEC3", Some(bounds), Some(34962));
+        let pos = self.bin.add(&f32s(&flat), 5126, nv, "VEC3", Some(bounds), Some(34962));
         let mut attrs = json!({"POSITION": pos});
         if let Some(sk) = &pr.skin {
             self.skinned_any = true;
             let joints: Vec<u8> = sk.iter().flat_map(|m| m.0).collect();
             let wts: Vec<f32> = sk.iter().flat_map(|m| m.1).collect();
             attrs["JOINTS_0"] = json!(self.bin.add(&joints, 5121, nv, "VEC4", None, Some(34962)));
-            attrs["WEIGHTS_0"] =
-                json!(self
-                    .bin
-                    .add(&f32s(&wts), 5126, nv, "VEC4", None, Some(34962)));
+            attrs["WEIGHTS_0"] = json!(self.bin.add(&f32s(&wts), 5126, nv, "VEC4", None, Some(34962)));
         }
         // material + texture coordinates
         let (mut gmap, mut tex): (Option<GradMap>, Option<usize>) = (None, None);
@@ -1197,36 +983,22 @@ impl Out {
             PaintSrc::Paint(p) => {
                 gmap = grad_map(p);
                 if gmap.is_some() {
-                    tex = Some(self.texture(
-                        format!("grad:{}", serde_json::to_string(p).unwrap_or_default()),
-                        || gradient_png(p),
-                    ));
+                    tex = Some(self.texture(format!("grad:{}", serde_json::to_string(p).unwrap_or_default()), || gradient_png(p)));
                     translucent |= stops_translucent(p);
                 } else {
                     let c = p.degenerate_color().unwrap_or_else(|| p.base_color());
-                    factor = [
-                        srgb_to_linear(c.r),
-                        srgb_to_linear(c.g),
-                        srgb_to_linear(c.b),
-                        c.a * pr.opacity,
-                    ];
+                    factor = [srgb_to_linear(c.r), srgb_to_linear(c.g), srgb_to_linear(c.b), c.a * pr.opacity];
                     translucent = factor[3] < 0.999;
                 }
             }
-            PaintSrc::Image {
-                png,
-                key,
-                has_alpha,
-            } => {
+            PaintSrc::Image { png, key, has_alpha } => {
                 tex = Some(self.texture(key.clone(), || png.clone()));
                 translucent |= *has_alpha;
             }
         }
         let uv_of = |q: Vec2| -> [f32; 2] {
             match (&pr.uv, &gmap) {
-                (UvSrc::Quad { origin, size }, _) => {
-                    [(q.x - origin.x) / size.x, (q.y - origin.y) / size.y]
-                }
+                (UvSrc::Quad { origin, size }, _) => [(q.x - origin.x) / size.x, (q.y - origin.y) / size.y],
                 (_, Some(m)) => grad_uv(m, q),
                 _ => [0.0, 0.0],
             }
@@ -1237,25 +1009,10 @@ impl Out {
                 UvSrc::Explicit(v) => v.iter().flatten().copied().collect(),
                 _ => pr.pos.iter().flat_map(|q| uv_of(*q)).collect(),
             };
-            attrs["TEXCOORD_0"] =
-                json!(self
-                    .bin
-                    .add(&f32s(&uvs), 5126, nv, "VEC2", None, Some(34962)));
+            attrs["TEXCOORD_0"] = json!(self.bin.add(&f32s(&uvs), 5126, nv, "VEC2", None, Some(34962)));
         }
-        let idx_bytes: Vec<u8> = pr
-            .tris
-            .iter()
-            .flat_map(|t| t.iter().rev())
-            .flat_map(|&i| i.to_le_bytes())
-            .collect(); // reverse: y flip flips winding
-        let ind = self.bin.add(
-            &idx_bytes,
-            5125,
-            pr.tris.len() * 3,
-            "SCALAR",
-            None,
-            Some(34963),
-        );
+        let idx_bytes: Vec<u8> = pr.tris.iter().flat_map(|t| t.iter().rev()).flat_map(|&i| i.to_le_bytes()).collect(); // reverse: y flip flips winding
+        let ind = self.bin.add(&idx_bytes, 5125, pr.tris.len() * 3, "SCALAR", None, Some(34963));
         let mut mat = json!({"pbrMetallicRoughness": {"baseColorFactor": factor, "metallicFactor": 0.0, "roughnessFactor": 1.0}, "doubleSided": true});
         if let Some(t) = tex {
             mat["pbrMetallicRoughness"]["baseColorTexture"] = json!({"index": t, "texCoord": 0});
@@ -1264,37 +1021,23 @@ impl Out {
             mat["alphaMode"] = json!("BLEND");
         }
         self.materials.push(mat);
-        let mut prim =
-            json!({"attributes": attrs, "indices": ind, "material": self.materials.len() - 1});
+        let mut prim = json!({"attributes": attrs, "indices": ind, "material": self.materials.len() - 1});
         let mut mesh = json!({"name": pr.name});
         let nt = pr.morph.as_ref().map_or(0, |m| m.names.len());
         if let Some(md) = &pr.morph {
             let mut targets = Vec::new();
             for d in &md.deltas {
-                let dflat: Vec<f32> = pr
-                    .pos
-                    .iter()
-                    .zip(d)
-                    .flat_map(|(b, dd)| {
-                        let (a, c) = (gp(*b), gp(*b + *dd));
-                        [c[0] - a[0], c[1] - a[1], 0.0]
-                    })
-                    .collect();
+                let dflat: Vec<f32> = pr.pos.iter().zip(d).flat_map(|(b, dd)| {
+                    let (a, c) = (gp(*b), gp(*b + *dd));
+                    [c[0] - a[0], c[1] - a[1], 0.0]
+                }).collect();
                 let mut t = json!({"POSITION": self.bin.add(&f32s(&dflat), 5126, nv, "VEC3", Some(bounds3(&dflat)), Some(34962))});
                 if has_uv && gmap.is_some() {
-                    let duv: Vec<f32> = pr
-                        .pos
-                        .iter()
-                        .zip(d)
-                        .flat_map(|(b, dd)| {
-                            let (a, c) = (uv_of(*b), uv_of(*b + *dd));
-                            [c[0] - a[0], c[1] - a[1]]
-                        })
-                        .collect();
-                    t["TEXCOORD_0"] =
-                        json!(self
-                            .bin
-                            .add(&f32s(&duv), 5126, nv, "VEC2", None, Some(34962)));
+                    let duv: Vec<f32> = pr.pos.iter().zip(d).flat_map(|(b, dd)| {
+                        let (a, c) = (uv_of(*b), uv_of(*b + *dd));
+                        [c[0] - a[0], c[1] - a[1]]
+                    }).collect();
+                    t["TEXCOORD_0"] = json!(self.bin.add(&f32s(&duv), 5126, nv, "VEC2", None, Some(34962)));
                 }
                 targets.push(t);
             }
@@ -1306,8 +1049,7 @@ impl Out {
         self.meshes.push(mesh);
         let mi = self.meshes.len() - 1;
         if skinned {
-            self.nodes
-                .push(json!({"name": format!("skinned {}", pr.name), "mesh": mi, "skin": 0}));
+            self.nodes.push(json!({"name": format!("skinned {}", pr.name), "mesh": mi, "skin": 0}));
             self.shape_count += 1;
             self.scene_nodes.push(self.nodes.len() - 1);
             return;
@@ -1319,10 +1061,7 @@ impl Out {
             self.morph_anims.push((ni, md.frames, nt));
         }
         match host {
-            Some(h) => match self.nodes[h]
-                .get_mut("children")
-                .and_then(Value::as_array_mut)
-            {
+            Some(h) => match self.nodes[h].get_mut("children").and_then(Value::as_array_mut) {
                 Some(a) => a.push(json!(ni)),
                 None => self.nodes[h]["children"] = json!([ni]),
             },
@@ -1342,11 +1081,7 @@ fn dropped_features(p: &crate::project::Project, notes: &mut Vec<String>) {
     use crate::project::Prop;
     fn walk(ls: &[Layer], prefix: &str, notes: &mut Vec<String>) {
         for l in ls {
-            let path = if prefix.is_empty() {
-                l.name.clone()
-            } else {
-                format!("{prefix}/{}", l.name)
-            };
+            let path = if prefix.is_empty() { l.name.clone() } else { format!("{prefix}/{}", l.name) };
             if l.blend != crate::style::Blend::Normal {
                 note(notes, format!("blend mode {:?} of '{path}' is not exported (glTF materials only alpha-blend); it is drawn as normal", l.blend));
             }
@@ -1384,9 +1119,7 @@ fn dedup_flat(mut tp: Vec<(Vec2, usize, f32)>, closed_hint: bool) -> Vec<(Vec2, 
 }
 
 fn to_u32(t: Vec<[usize; 3]>) -> Vec<[u32; 3]> {
-    t.into_iter()
-        .map(|t| [t[0] as u32, t[1] as u32, t[2] as u32])
-        .collect()
+    t.into_iter().map(|t| [t[0] as u32, t[1] as u32, t[2] as u32]).collect()
 }
 
 /// Build the .glb bytes.
@@ -1406,28 +1139,11 @@ pub fn export_glb_report(engine: &Engine) -> Result<(Vec<u8>, Vec<String>), Stri
     }
     let mut notes: Vec<String> = Vec::new();
     dropped_features(p, &mut notes);
-    let parent: Vec<Option<usize>> = p
-        .bones
-        .iter()
-        .map(|b| {
-            b.parent
-                .as_ref()
-                .and_then(|n| p.bones.iter().position(|x| &x.name == n))
-        })
-        .collect();
-    let bone_ix: HashMap<&str, usize> = p
-        .bones
-        .iter()
-        .enumerate()
-        .map(|(i, b)| (b.name.as_str(), i))
-        .collect();
+    let parent: Vec<Option<usize>> = p.bones.iter().map(|b| b.parent.as_ref().and_then(|n| p.bones.iter().position(|x| &x.name == n))).collect();
+    let bone_ix: HashMap<&str, usize> = p.bones.iter().enumerate().map(|(i, b)| (b.name.as_str(), i)).collect();
     let f0 = engine.evaluate(0.0);
     let mut out = Out {
-        bin: Bin {
-            data: Vec::new(),
-            views: vec![],
-            accessors: vec![],
-        },
+        bin: Bin { data: Vec::new(), views: vec![], accessors: vec![] },
         nodes: Vec::new(),
         scene_nodes: Vec::new(),
         meshes: Vec::new(),
@@ -1460,14 +1176,11 @@ pub fn export_glb_report(engine: &Engine) -> Result<(Vec<u8>, Vec<String>), Stri
     // shapes (frame 0)
     let mut shapes = Vec::new();
     collect_shapes(&p.layers, "", &mut shapes);
-    let node_by_name: HashMap<&str, usize> =
-        f0.nodes.iter().map(|n| (n.name.as_str(), n.id)).collect();
+    let node_by_name: HashMap<&str, usize> = f0.nodes.iter().map(|n| (n.name.as_str(), n.id)).collect();
     let cam_inv = f0.camera.inverse().unwrap_or(Affine2::IDENTITY);
     let mut morph_cache: MorphCache = None;
     for (layer, lpath) in shapes {
-        let Some(&nid) = node_by_name.get(lpath.as_str()) else {
-            continue;
-        };
+        let Some(&nid) = node_by_name.get(lpath.as_str()) else { continue };
         let node = &f0.nodes[nid];
         if node.kind == NodeKind::Switch || node.kind == NodeKind::Group {
             continue;
@@ -1499,10 +1212,7 @@ pub fn export_glb_report(engine: &Engine) -> Result<(Vec<u8>, Vec<String>), Stri
             continue;
         }
         let to_stage = cam_inv.mul(node.world);
-        let host = layer
-            .bone
-            .as_ref()
-            .and_then(|b| bone_ix.get(b.as_str()).copied());
+        let host = layer.bone.as_ref().and_then(|b| bone_ix.get(b.as_str()).copied());
         let to_host = match host.and_then(|h| f0.world[h].inverse()) {
             Some(inv) => inv.mul(to_stage),
             None => to_stage,
@@ -1522,15 +1232,9 @@ pub fn export_glb_report(engine: &Engine) -> Result<(Vec<u8>, Vec<String>), Stri
             }
             let opaque = |pt: &Paint| match pt {
                 Paint::Solid(c) => c.a >= 0.999,
-                Paint::Linear { stops, .. } | Paint::Radial { stops, .. } => {
-                    stops.iter().all(|s| s.color.a >= 0.999)
-                }
+                Paint::Linear { stops, .. } | Paint::Radial { stops, .. } => stops.iter().all(|s| s.color.a >= 0.999),
             };
-            let eligible = m.kind == NodeKind::Vector
-                && mop >= 0.999
-                && m.paths
-                    .iter()
-                    .all(|pa| pa.stroke.is_none() && pa.fill.as_ref().is_none_or(opaque));
+            let eligible = m.kind == NodeKind::Vector && mop >= 0.999 && m.paths.iter().all(|pa| pa.stroke.is_none() && pa.fill.as_ref().is_none_or(opaque));
             let Some(inv) = node.world.inverse().filter(|_| eligible) else {
                 note(&mut notes, format!("mask '{}' on '{}' was not baked (mask source must be a vector layer with opaque fills, no strokes and full opacity); the layer is exported unmasked", m.name, lpath));
                 continue;
@@ -1538,10 +1242,7 @@ pub fn export_glb_report(engine: &Engine) -> Result<(Vec<u8>, Vec<String>), Stri
             let mm = inv.mul(m.world);
             let mut tris = Vec::new();
             for pa in m.paths.iter().filter(|pa| pa.fill.is_some()) {
-                let pts: Vec<Vec2> = dedup_flat(pa.flatten_t(0.25), true)
-                    .iter()
-                    .map(|x| mm.apply(x.0))
-                    .collect();
+                let pts: Vec<Vec2> = dedup_flat(pa.flatten_t(0.25), true).iter().map(|x| mm.apply(x.0)).collect();
                 for t in triangulate(&pts) {
                     let mut tr = [pts[t[0]], pts[t[1]], pts[t[2]]];
                     if cr(tr[1] - tr[0], tr[2] - tr[0]) < 0.0 {
@@ -1559,51 +1260,27 @@ pub fn export_glb_report(engine: &Engine) -> Result<(Vec<u8>, Vec<String>), Stri
         match &layer.kind {
             LayerKind::Image { mesh: spec, .. } => {
                 let Some(img) = &node.image else { continue };
-                let (pw, ph) = (
-                    img.data.pixmap.width() as f32,
-                    img.data.pixmap.height() as f32,
-                );
+                let (pw, ph) = (img.data.pixmap.width() as f32, img.data.pixmap.height() as f32);
                 let (mut pos, mut tris, mut uv, mut skin) = match &img.mesh {
                     Some(m) => {
-                        let uv: Vec<[f32; 2]> =
-                            m.uvs.iter().map(|u| [u.x / pw, u.y / ph]).collect();
-                        let skin = spec
-                            .as_ref()
-                            .filter(|s| {
-                                nb <= 255
-                                    && s.weights.len() == m.positions.len()
-                                    && s.weights.iter().all(|w| !w.is_empty())
-                            })
-                            .map(|s| {
-                                s.weights
-                                    .iter()
-                                    .map(|ws| {
-                                        let mut mix = Vec::new();
-                                        for bw in ws {
-                                            if let Some(&bi) = bone_ix.get(bw.bone.as_str()) {
-                                                add_mix(&mut mix, bi, bw.weight);
-                                            }
-                                        }
-                                        pack_mix(mix)
-                                    })
-                                    .collect::<Vec<Mix>>()
-                            });
-                        (
-                            m.positions.clone(),
-                            m.tris.clone(),
-                            UvSrc::Explicit(uv),
-                            skin,
-                        )
+                        let uv: Vec<[f32; 2]> = m.uvs.iter().map(|u| [u.x / pw, u.y / ph]).collect();
+                        let skin = spec.as_ref().filter(|s| nb <= 255 && s.weights.len() == m.positions.len() && s.weights.iter().all(|w| !w.is_empty())).map(|s| {
+                            s.weights.iter().map(|ws| {
+                                let mut mix = Vec::new();
+                                for bw in ws {
+                                    if let Some(&bi) = bone_ix.get(bw.bone.as_str()) {
+                                        add_mix(&mut mix, bi, bw.weight);
+                                    }
+                                }
+                                pack_mix(mix)
+                            }).collect::<Vec<Mix>>()
+                        });
+                        (m.positions.clone(), m.tris.clone(), UvSrc::Explicit(uv), skin)
                     }
                     None => {
                         let (o, s) = (img.origin, img.size);
                         let pos = vec![o, o + Vec2::new(s.x, 0.0), o + s, o + Vec2::new(0.0, s.y)];
-                        (
-                            pos,
-                            vec![[0, 1, 2], [0, 2, 3]],
-                            UvSrc::Quad { origin: o, size: s },
-                            None,
-                        )
+                        (pos, vec![[0, 1, 2], [0, 2, 3]], UvSrc::Quad { origin: o, size: s }, None)
                     }
                 };
                 if !masks.is_empty() {
@@ -1614,20 +1291,10 @@ pub fn export_glb_report(engine: &Engine) -> Result<(Vec<u8>, Vec<String>), Stri
                                 tris = t2;
                                 skin = None;
                             }
-                            None => note(
-                                &mut notes,
-                                format!(
-                                    "mask on '{lpath}' produced too many pieces; exported unmasked"
-                                ),
-                            ),
+                            None => note(&mut notes, format!("mask on '{lpath}' produced too many pieces; exported unmasked")),
                         }
                     } else {
-                        note(
-                            &mut notes,
-                            format!(
-                                "mask on meshed image '{lpath}' was not baked; exported unmasked"
-                            ),
-                        );
+                        note(&mut notes, format!("mask on meshed image '{lpath}' was not baked; exported unmasked"));
                     }
                 }
                 if tris.is_empty() {
@@ -1650,30 +1317,9 @@ pub fn export_glb_report(engine: &Engine) -> Result<(Vec<u8>, Vec<String>), Stri
                 };
                 let has_alpha = img.data.pixmap.data().chunks_exact(4).any(|px| px[3] < 255);
                 if let UvSrc::Quad { .. } = uv {
-                    uv = UvSrc::Quad {
-                        origin: img.origin,
-                        size: img.size,
-                    };
+                    uv = UvSrc::Quad { origin: img.origin, size: img.size };
                 }
-                out.emit(
-                    Prim {
-                        name: node.name.clone(),
-                        pos,
-                        tris,
-                        skin,
-                        paint: PaintSrc::Image {
-                            png: img.data.png.clone(),
-                            key,
-                            has_alpha,
-                        },
-                        uv,
-                        opacity,
-                        morph: None,
-                    },
-                    to_stage,
-                    to_host,
-                    host,
-                );
+                out.emit(Prim { name: node.name.clone(), pos, tris, skin, paint: PaintSrc::Image { png: img.data.png.clone(), key, has_alpha }, uv, opacity, morph: None }, to_stage, to_host, host);
             }
             _ => {
                 let src_paths: &[VPath] = match &layer.kind {
@@ -1681,18 +1327,9 @@ pub fn export_glb_report(engine: &Engine) -> Result<(Vec<u8>, Vec<String>), Stri
                     _ => &[],
                 };
                 for (pi, path) in node.paths.iter().enumerate() {
-                    let wpath = src_paths
-                        .get(pi)
-                        .filter(|s| s.anchors.len() == path.anchors.len());
-                    let skinned_ok = masks.is_empty()
-                        && nb <= 255
-                        && !path.anchors.is_empty()
-                        && wpath.is_some_and(|s| s.anchors.iter().all(|a| !a.weights.is_empty()));
-                    let pname = if path.name.is_empty() {
-                        format!("path{pi}")
-                    } else {
-                        path.name.clone()
-                    };
+                    let wpath = src_paths.get(pi).filter(|s| s.anchors.len() == path.anchors.len());
+                    let skinned_ok = masks.is_empty() && nb <= 255 && !path.anchors.is_empty() && wpath.is_some_and(|s| s.anchors.iter().all(|a| !a.weights.is_empty()));
+                    let pname = if path.name.is_empty() { format!("path{pi}") } else { path.name.clone() };
                     // ---- fill
                     if let Some(fill) = &path.fill {
                         let mut tp = dedup_flat(path.flatten_t(1.0), true);
@@ -1702,15 +1339,9 @@ pub fn export_glb_report(engine: &Engine) -> Result<(Vec<u8>, Vec<String>), Stri
                         let mut morph = None;
                         if !tris.is_empty() {
                             if skinned_ok {
-                                skin = Some(skin_table(
-                                    wpath.expect("skinned implies weights"),
-                                    &tp,
-                                    &bone_ix,
-                                ));
+                                skin = Some(skin_table(wpath.expect("skinned implies weights"), &tp, &bone_ix));
                             } else if masks.is_empty() {
-                                if let Some(sp) =
-                                    wpath.filter(|s| !s.morphs.is_empty() && s.fill.is_some())
-                                {
+                                if let Some(sp) = wpath.filter(|s| !s.morphs.is_empty() && s.fill.is_some()) {
                                     match try_morph(engine, &mut morph_cache, nid, pi, sp) {
                                         Ok((base, t, md)) => {
                                             pts = base;
@@ -1732,21 +1363,7 @@ pub fn export_glb_report(engine: &Engine) -> Result<(Vec<u8>, Vec<String>), Stri
                             }
                             tp.clear();
                             if !tris.is_empty() {
-                                out.emit(
-                                    Prim {
-                                        name: format!("{}:{}", node.name, pname),
-                                        pos: pts,
-                                        tris,
-                                        skin,
-                                        paint: PaintSrc::Paint(fill.clone()),
-                                        uv: UvSrc::Paint,
-                                        opacity,
-                                        morph,
-                                    },
-                                    to_stage,
-                                    to_host,
-                                    host,
-                                );
+                                out.emit(Prim { name: format!("{}:{}", node.name, pname), pos: pts, tris, skin, paint: PaintSrc::Paint(fill.clone()), uv: UvSrc::Paint, opacity, morph }, to_stage, to_host, host);
                             }
                         }
                     }
@@ -1754,9 +1371,7 @@ pub fn export_glb_report(engine: &Engine) -> Result<(Vec<u8>, Vec<String>), Stri
                     if let Some(st) = &path.stroke {
                         let tp = dedup_flat(path.flatten_t(0.25), path.closed);
                         let pts: Vec<Vec2> = tp.iter().map(|x| x.0).collect();
-                        let Some(mut soup) = build_stroke(&pts, path.closed, st) else {
-                            continue;
-                        };
+                        let Some(mut soup) = build_stroke(&pts, path.closed, st) else { continue };
                         if let Some(n) = soup.note {
                             note(&mut notes, format!("'{lpath}': {n}"));
                         }
@@ -1765,14 +1380,8 @@ pub fn export_glb_report(engine: &Engine) -> Result<(Vec<u8>, Vec<String>), Stri
                         }
                         let mut skin: Option<Vec<Mix>> = None;
                         if skinned_ok {
-                            let table =
-                                skin_table(wpath.expect("skinned implies weights"), &tp, &bone_ix);
-                            skin = Some(
-                                soup.src
-                                    .iter()
-                                    .map(|&s| table[s.min(table.len() - 1)])
-                                    .collect(),
-                            );
+                            let table = skin_table(wpath.expect("skinned implies weights"), &tp, &bone_ix);
+                            skin = Some(soup.src.iter().map(|&s| table[s.min(table.len() - 1)]).collect());
                         }
                         if !masks.is_empty() {
                             match clip_mesh(&soup.pos, &soup.tris, &masks, 400_000) {
@@ -1786,21 +1395,7 @@ pub fn export_glb_report(engine: &Engine) -> Result<(Vec<u8>, Vec<String>), Stri
                         if soup.tris.is_empty() {
                             continue;
                         }
-                        out.emit(
-                            Prim {
-                                name: format!("{}:{}:stroke", node.name, pname),
-                                pos: soup.pos,
-                                tris: soup.tris,
-                                skin,
-                                paint: PaintSrc::Paint(st.paint.clone()),
-                                uv: UvSrc::Paint,
-                                opacity,
-                                morph: None,
-                            },
-                            to_stage,
-                            to_host,
-                            host,
-                        );
+                        out.emit(Prim { name: format!("{}:{}:stroke", node.name, pname), pos: soup.pos, tris: soup.tris, skin, paint: PaintSrc::Paint(st.paint.clone()), uv: UvSrc::Paint, opacity, morph: None }, to_stage, to_host, host);
                     }
                 }
             }
@@ -1822,35 +1417,19 @@ pub fn export_glb_report(engine: &Engine) -> Result<(Vec<u8>, Vec<String>), Stri
         }
     }
     let tmax = times.last().copied().unwrap_or(0.0);
-    let t_acc = out.bin.add(
-        &f32s(&times),
-        5126,
-        times.len(),
-        "SCALAR",
-        Some((vec![0.0], vec![tmax])),
-        None,
-    );
+    let t_acc = out.bin.add(&f32s(&times), 5126, times.len(), "SCALAR", Some((vec![0.0], vec![tmax])), None);
     let (mut samplers, mut channels) = (Vec::new(), Vec::new());
     for i in 0..nb {
-        for (path, data, ty) in [
-            ("translation", &tr[i], "VEC3"),
-            ("rotation", &ro[i], "VEC4"),
-            ("scale", &sc[i], "VEC3"),
-        ] {
+        for (path, data, ty) in [("translation", &tr[i], "VEC3"), ("rotation", &ro[i], "VEC4"), ("scale", &sc[i], "VEC3")] {
             let acc = out.bin.add(&f32s(data), 5126, times.len(), ty, None, None);
             samplers.push(json!({"input": t_acc, "output": acc, "interpolation": "LINEAR"}));
-            channels
-                .push(json!({"sampler": samplers.len() - 1, "target": {"node": i, "path": path}}));
+            channels.push(json!({"sampler": samplers.len() - 1, "target": {"node": i, "path": path}}));
         }
     }
     for (ni, data, nt) in std::mem::take(&mut out.morph_anims) {
-        let acc = out
-            .bin
-            .add(&f32s(&data), 5126, times.len() * nt, "SCALAR", None, None);
+        let acc = out.bin.add(&f32s(&data), 5126, times.len() * nt, "SCALAR", None, None);
         samplers.push(json!({"input": t_acc, "output": acc, "interpolation": "LINEAR"}));
-        channels.push(
-            json!({"sampler": samplers.len() - 1, "target": {"node": ni, "path": "weights"}}),
-        );
+        channels.push(json!({"sampler": samplers.len() - 1, "target": {"node": ni, "path": "weights"}}));
     }
 
     if out.skinned_any {
@@ -1868,9 +1447,7 @@ pub fn export_glb_report(engine: &Engine) -> Result<(Vec<u8>, Vec<String>), Stri
             let det = if det.abs() < 1e-9 { 1e-9 } else { det };
             let (i00, i01, i10, i11) = (c1.y / det, -c1.x / det, -c0.y / det, c0.x / det);
             let (tx, ty) = (-(i00 * o.x + i01 * o.y), -(i10 * o.x + i11 * o.y));
-            ibm.extend_from_slice(&[
-                i00, i10, 0.0, 0.0, i01, i11, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, tx, ty, 0.0, 1.0,
-            ]);
+            ibm.extend_from_slice(&[i00, i10, 0.0, 0.0, i01, i11, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, tx, ty, 0.0, 1.0]);
         }
         bin_ibm(&mut out.bin, &ibm, nb);
     }
@@ -1878,8 +1455,7 @@ pub fn export_glb_report(engine: &Engine) -> Result<(Vec<u8>, Vec<String>), Stri
     // a skin needs one common root: with several root bones, hang them under a plain node
     let mut skeleton = roots[0];
     if out.skinned_any && roots.len() > 1 {
-        out.nodes
-            .push(json!({"name": "armature", "children": roots}));
+        out.nodes.push(json!({"name": "armature", "children": roots}));
         skeleton = out.nodes.len() - 1;
         out.scene_nodes.retain(|n| !roots.contains(n));
         out.scene_nodes.insert(0, skeleton);
@@ -1904,8 +1480,7 @@ pub fn export_glb_report(engine: &Engine) -> Result<(Vec<u8>, Vec<String>), Stri
     if !out.textures.is_empty() {
         doc["textures"] = json!(out.textures);
         doc["images"] = json!(out.images);
-        doc["samplers"] =
-            json!([{"magFilter": 9729, "minFilter": 9729, "wrapS": 33071, "wrapT": 33071}]);
+        doc["samplers"] = json!([{"magFilter": 9729, "minFilter": 9729, "wrapS": 33071, "wrapT": 33071}]);
     }
     let mut json_bytes = serde_json::to_vec(&doc).map_err(|e| e.to_string())?;
     while json_bytes.len() % 4 != 0 {
@@ -1937,10 +1512,7 @@ mod tests {
     fn parse(glb: &[u8]) -> (Value, Vec<u8>) {
         assert_eq!(&glb[..4], b"glTF");
         assert_eq!(u32::from_le_bytes(glb[4..8].try_into().unwrap()), 2);
-        assert_eq!(
-            u32::from_le_bytes(glb[8..12].try_into().unwrap()) as usize,
-            glb.len()
-        );
+        assert_eq!(u32::from_le_bytes(glb[8..12].try_into().unwrap()) as usize, glb.len());
         let jl = u32::from_le_bytes(glb[12..16].try_into().unwrap()) as usize;
         assert_eq!(&glb[16..20], b"JSON");
         let json: Value = serde_json::from_slice(&glb[20..20 + jl]).unwrap();
@@ -1953,26 +1525,11 @@ mod tests {
 
     #[test]
     fn triangulates_concave_and_either_winding() {
-        let l_shape = [
-            Vec2::new(0.0, 0.0),
-            Vec2::new(4.0, 0.0),
-            Vec2::new(4.0, 1.0),
-            Vec2::new(1.0, 1.0),
-            Vec2::new(1.0, 4.0),
-            Vec2::new(0.0, 4.0),
-        ];
+        let l_shape = [Vec2::new(0.0, 0.0), Vec2::new(4.0, 0.0), Vec2::new(4.0, 1.0), Vec2::new(1.0, 1.0), Vec2::new(1.0, 4.0), Vec2::new(0.0, 4.0)];
         for pts in [l_shape.to_vec(), l_shape.iter().rev().copied().collect()] {
             let t = triangulate(&pts);
             assert_eq!(t.len(), 4);
-            let area: f32 = t
-                .iter()
-                .map(|[a, b, c]| {
-                    ((pts[*b].x - pts[*a].x) * (pts[*c].y - pts[*a].y)
-                        - (pts[*b].y - pts[*a].y) * (pts[*c].x - pts[*a].x))
-                        .abs()
-                        * 0.5
-                })
-                .sum();
+            let area: f32 = t.iter().map(|[a, b, c]| ((pts[*b].x - pts[*a].x) * (pts[*c].y - pts[*a].y) - (pts[*b].y - pts[*a].y) * (pts[*c].x - pts[*a].x)).abs() * 0.5).sum();
             assert!((area - 7.0).abs() < 1e-4, "area {area}");
         }
         assert!(triangulate(&[Vec2::ZERO, Vec2::new(1.0, 0.0)]).is_empty());
@@ -1983,12 +1540,7 @@ mod tests {
         let t0 = crate::clock::Stamp::now();
         // convex: 60000 points (the old rescanning version needed about 40 s)
         let n = 60_000;
-        let circle: Vec<Vec2> = (0..n)
-            .map(|i| {
-                let a = i as f32 * std::f32::consts::TAU / n as f32;
-                Vec2::new(300.0 * a.cos(), 300.0 * a.sin())
-            })
-            .collect();
+        let circle: Vec<Vec2> = (0..n).map(|i| { let a = i as f32 * std::f32::consts::TAU / n as f32; Vec2::new(300.0 * a.cos(), 300.0 * a.sin()) }).collect();
         let t = triangulate(&circle);
         assert_eq!(t.len(), n - 2);
         // a comb: many reflex vertices
@@ -1996,36 +1548,18 @@ mod tests {
         let mut comb = vec![Vec2::new(0.0, 0.0)];
         for i in 0..teeth {
             let x = i as f32 * 2.0;
-            comb.extend([
-                Vec2::new(x, 10.0),
-                Vec2::new(x + 1.0, 10.0),
-                Vec2::new(x + 1.0, 1.0),
-                Vec2::new(x + 2.0, 1.0),
-            ]);
+            comb.extend([Vec2::new(x, 10.0), Vec2::new(x + 1.0, 10.0), Vec2::new(x + 1.0, 1.0), Vec2::new(x + 2.0, 1.0)]);
         }
         comb.push(Vec2::new(teeth as f32 * 2.0, 0.0));
         comb.reverse();
         let tc = triangulate(&comb);
         assert_eq!(tc.len(), comb.len() - 2);
-        let area: f32 = tc
-            .iter()
-            .map(|[a, b, c]| {
-                ((comb[*b].x - comb[*a].x) * (comb[*c].y - comb[*a].y)
-                    - (comb[*b].y - comb[*a].y) * (comb[*c].x - comb[*a].x))
-                    .abs()
-                    * 0.5
-            })
-            .sum();
+        let area: f32 = tc.iter().map(|[a, b, c]| ((comb[*b].x - comb[*a].x) * (comb[*c].y - comb[*a].y) - (comb[*b].y - comb[*a].y) * (comb[*c].x - comb[*a].x)).abs() * 0.5).sum();
         let want = (0..teeth).map(|_| 1.0 * 9.0 + 1.0 * 1.0).sum::<f32>() + 1.0;
-        assert!(
-            area > 0.0 && (area - want).abs() / want < 0.2,
-            "{area} vs {want}"
-        );
+        assert!(area > 0.0 && (area - want).abs() / want < 0.2, "{area} vs {want}");
         assert!(t0.elapsed().as_secs() < 20, "took {:?}", t0.elapsed());
         // beyond the cap: refused (empty), not slow
-        let huge: Vec<Vec2> = (0..MAX_TRIANGULATE_POINTS + 1)
-            .map(|i| Vec2::new(i as f32, (i * i % 7) as f32))
-            .collect();
+        let huge: Vec<Vec2> = (0..MAX_TRIANGULATE_POINTS + 1).map(|i| Vec2::new(i as f32, (i * i % 7) as f32)).collect();
         assert!(triangulate(&huge).is_empty());
     }
 
@@ -2037,54 +1571,22 @@ mod tests {
         assert_eq!(j["asset"]["version"], "2.0");
         let nbones = e.project.bones.len();
         assert!(j["nodes"].as_array().unwrap().len() >= nbones);
-        assert_eq!(
-            j["animations"][0]["channels"].as_array().unwrap().len(),
-            nbones * 3
-        );
-        assert_eq!(
-            j["buffers"][0]["byteLength"].as_u64().unwrap() as usize,
-            bin.len()
-        );
+        assert_eq!(j["animations"][0]["channels"].as_array().unwrap().len(), nbones * 3);
+        assert_eq!(j["buffers"][0]["byteLength"].as_u64().unwrap() as usize, bin.len());
         for v in j["bufferViews"].as_array().unwrap() {
-            assert!(
-                v["byteOffset"].as_u64().unwrap() + v["byteLength"].as_u64().unwrap()
-                    <= bin.len() as u64
-            );
+            assert!(v["byteOffset"].as_u64().unwrap() + v["byteLength"].as_u64().unwrap() <= bin.len() as u64);
         }
         for a in j["accessors"].as_array().unwrap() {
-            let comps = match a["type"].as_str().unwrap() {
-                "SCALAR" => 1,
-                "VEC2" => 2,
-                "VEC3" => 3,
-                "VEC4" => 4,
-                "MAT4" => 16,
-                t => panic!("{t}"),
-            };
-            let bytes = match a["componentType"].as_u64().unwrap() {
-                5121 => 1,
-                5126 | 5125 => 4,
-                c => panic!("{c}"),
-            };
+            let comps = match a["type"].as_str().unwrap() { "SCALAR" => 1, "VEC2" => 2, "VEC3" => 3, "VEC4" => 4, "MAT4" => 16, t => panic!("{t}") };
+            let bytes = match a["componentType"].as_u64().unwrap() { 5121 => 1, 5126 | 5125 => 4, c => panic!("{c}") };
             let size = a["count"].as_u64().unwrap() * comps * bytes;
-            assert!(
-                size <= j["bufferViews"][a["bufferView"].as_u64().unwrap() as usize]["byteLength"]
-                    .as_u64()
-                    .unwrap()
-            );
+            assert!(size <= j["bufferViews"][a["bufferView"].as_u64().unwrap() as usize]["byteLength"].as_u64().unwrap());
         }
-        assert!(
-            j["meshes"].as_array().is_some_and(|m| !m.is_empty()),
-            "demo has filled shapes"
-        );
+        assert!(j["meshes"].as_array().is_some_and(|m| !m.is_empty()), "demo has filled shapes");
         // the demo's skinned limbs come out as skinned meshes
         let skin = &j["skins"][0];
         assert_eq!(skin["joints"].as_array().unwrap().len(), nbones);
-        let skinned: Vec<&Value> = j["nodes"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .filter(|n| n.get("skin").is_some())
-            .collect();
+        let skinned: Vec<&Value> = j["nodes"].as_array().unwrap().iter().filter(|n| n.get("skin").is_some()).collect();
         assert!(!skinned.is_empty());
         let mesh = &j["meshes"][skinned[0]["mesh"].as_u64().unwrap() as usize];
         let at = &mesh["primitives"][0]["attributes"];
@@ -2094,44 +1596,22 @@ mod tests {
         let wv = &j["bufferViews"][wacc["bufferView"].as_u64().unwrap() as usize];
         let off = wv["byteOffset"].as_u64().unwrap() as usize;
         for v in 0..wacc["count"].as_u64().unwrap() as usize {
-            let s: f32 = (0..4)
-                .map(|k| {
-                    f32::from_le_bytes(
-                        bin[off + (v * 4 + k) * 4..off + (v * 4 + k) * 4 + 4]
-                            .try_into()
-                            .unwrap(),
-                    )
-                })
-                .sum();
+            let s: f32 = (0..4).map(|k| f32::from_le_bytes(bin[off + (v * 4 + k) * 4..off + (v * 4 + k) * 4 + 4].try_into().unwrap())).sum();
             assert!((s - 1.0).abs() < 1e-4, "vertex {v} weights sum {s}");
         }
         let jacc = &j["accessors"][at["JOINTS_0"].as_u64().unwrap() as usize];
-        let jo = j["bufferViews"][jacc["bufferView"].as_u64().unwrap() as usize]["byteOffset"]
-            .as_u64()
-            .unwrap() as usize;
-        assert!(bin[jo..jo + jacc["count"].as_u64().unwrap() as usize * 4]
-            .iter()
-            .all(|&b| (b as usize) < nbones));
+        let jo = j["bufferViews"][jacc["bufferView"].as_u64().unwrap() as usize]["byteOffset"].as_u64().unwrap() as usize;
+        assert!(bin[jo..jo + jacc["count"].as_u64().unwrap() as usize * 4].iter().all(|&b| (b as usize) < nbones));
     }
 
     #[test]
     fn rotation_sign_and_errors() {
         let ([_, ty, _], r, _) = {
-            let m = Affine2 {
-                a: 0.0,
-                b: 1.0,
-                c: -1.0,
-                d: 0.0,
-                tx: 5.0,
-                ty: 7.0,
-            }; // +90 deg in y-down space
+            let m = Affine2 { a: 0.0, b: 1.0, c: -1.0, d: 0.0, tx: 5.0, ty: 7.0 }; // +90 deg in y-down space
             trs(m, None)
         };
         assert_eq!(ty, -7.0);
-        assert!(
-            r[2] < 0.0,
-            "clockwise on screen = negative about +z in y-up"
-        );
+        assert!(r[2] < 0.0, "clockwise on screen = negative about +z in y-up");
         let mut p = demo::project();
         p.bones.clear();
         p.ik.clear();
@@ -2162,53 +1642,29 @@ mod tests {
     fn acc_bytes<'a>(j: &Value, bin: &'a [u8], i: usize) -> (&'a [u8], usize) {
         let a = &j["accessors"][i];
         let v = &j["bufferViews"][a["bufferView"].as_u64().unwrap() as usize];
-        let off = v["byteOffset"].as_u64().unwrap() as usize
-            + a["byteOffset"].as_u64().unwrap_or(0) as usize;
+        let off = v["byteOffset"].as_u64().unwrap() as usize + a["byteOffset"].as_u64().unwrap_or(0) as usize;
         let count = a["count"].as_u64().unwrap() as usize;
-        let comps = match a["type"].as_str().unwrap() {
-            "SCALAR" => 1,
-            "VEC2" => 2,
-            "VEC3" => 3,
-            "VEC4" => 4,
-            _ => 16,
-        };
+        let comps = match a["type"].as_str().unwrap() { "SCALAR" => 1, "VEC2" => 2, "VEC3" => 3, "VEC4" => 4, _ => 16 };
         let bytes = if a["componentType"] == 5121 { 1 } else { 4 };
         (&bin[off..off + count * comps * bytes], comps)
     }
 
     fn acc_f(j: &Value, bin: &[u8], i: usize) -> Vec<f32> {
-        acc_bytes(j, bin, i)
-            .0
-            .chunks_exact(4)
-            .map(|b| f32::from_le_bytes(b.try_into().unwrap()))
-            .collect()
+        acc_bytes(j, bin, i).0.chunks_exact(4).map(|b| f32::from_le_bytes(b.try_into().unwrap())).collect()
     }
 
     fn acc_u(j: &Value, bin: &[u8], i: usize) -> Vec<u32> {
-        acc_bytes(j, bin, i)
-            .0
-            .chunks_exact(4)
-            .map(|b| u32::from_le_bytes(b.try_into().unwrap()))
-            .collect()
+        acc_bytes(j, bin, i).0.chunks_exact(4).map(|b| u32::from_le_bytes(b.try_into().unwrap())).collect()
     }
 
     fn mesh_named<'a>(j: &'a Value, suffix: &str) -> &'a Value {
-        j["meshes"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .find(|m| m["name"].as_str().unwrap().ends_with(suffix))
-            .unwrap_or_else(|| panic!("no mesh ending '{suffix}'"))
+        j["meshes"].as_array().unwrap().iter().find(|m| m["name"].as_str().unwrap().ends_with(suffix)).unwrap_or_else(|| panic!("no mesh ending '{suffix}'"))
     }
 
     fn mesh_xy(j: &Value, bin: &[u8], m: &Value) -> (Vec<[f32; 2]>, Vec<u32>) {
         let at = &m["primitives"][0]["attributes"];
         let pos = acc_f(j, bin, at["POSITION"].as_u64().unwrap() as usize);
-        let idx = acc_u(
-            j,
-            bin,
-            m["primitives"][0]["indices"].as_u64().unwrap() as usize,
-        );
+        let idx = acc_u(j, bin, m["primitives"][0]["indices"].as_u64().unwrap() as usize);
         (pos.chunks_exact(3).map(|p| [p[0], p[1]]).collect(), idx)
     }
 
@@ -2248,21 +1704,10 @@ mod tests {
 
     #[test]
     fn stroke_caps_have_the_right_area() {
-        for (cap, expect, tol) in [
-            (Cap::Butt, 1000.0, 0.5),
-            (Cap::Square, 1100.0, 0.5),
-            (Cap::Round, 1000.0 + std::f32::consts::PI * 25.0, 1.5),
-        ] {
-            let (j, bin, _) = export(vec![line(
-                "l",
-                &[(10.0, 50.0), (110.0, 50.0)],
-                style(10.0, cap, Join::Round),
-            )]);
+        for (cap, expect, tol) in [(Cap::Butt, 1000.0, 0.5), (Cap::Square, 1100.0, 0.5), (Cap::Round, 1000.0 + std::f32::consts::PI * 25.0, 1.5)] {
+            let (j, bin, _) = export(vec![line("l", &[(10.0, 50.0), (110.0, 50.0)], style(10.0, cap, Join::Round))]);
             let a = area(&j, &bin, mesh_named(&j, ":stroke"));
-            assert!(
-                (a - expect).abs() < tol,
-                "{cap:?}: area {a}, expected {expect}"
-            );
+            assert!((a - expect).abs() < tol, "{cap:?}: area {a}, expected {expect}");
         }
     }
 
@@ -2270,31 +1715,16 @@ mod tests {
     fn stroke_joins_miter_bevel_round() {
         // an L: two 50 x 10 ribbons (butt caps) plus the join piece; the inner overlap is counted twice
         let pts = [(10.0, 10.0), (60.0, 10.0), (60.0, 60.0)];
-        let want = [
-            (Join::Miter, 1025.0),
-            (Join::Bevel, 1012.5),
-            (Join::Round, 1000.0 + std::f32::consts::PI * 25.0 / 4.0),
-        ];
+        let want = [(Join::Miter, 1025.0), (Join::Bevel, 1012.5), (Join::Round, 1000.0 + std::f32::consts::PI * 25.0 / 4.0)];
         for (join, expect) in want {
             let (j, bin, _) = export(vec![line("l", &pts, style(10.0, Cap::Butt, join))]);
             let a = area(&j, &bin, mesh_named(&j, ":stroke"));
-            assert!(
-                (a - expect).abs() < 1.0,
-                "{join:?}: area {a}, expected {expect}"
-            );
+            assert!((a - expect).abs() < 1.0, "{join:?}: area {a}, expected {expect}");
         }
         // a very sharp turn exceeds the miter limit and falls back to a bevel (no long spike)
-        let (j, bin, _) = export(vec![line(
-            "l",
-            &[(10.0, 50.0), (110.0, 50.0), (10.0, 60.0)],
-            style(4.0, Cap::Butt, Join::Miter),
-        )]);
+        let (j, bin, _) = export(vec![line("l", &[(10.0, 50.0), (110.0, 50.0), (10.0, 60.0)], style(4.0, Cap::Butt, Join::Miter))]);
         let (p, _) = mesh_xy(&j, &bin, mesh_named(&j, ":stroke"));
-        assert!(
-            p.iter().all(|v| v[0] < 116.0),
-            "no miter spike: {:?}",
-            p.iter().map(|v| v[0]).fold(0.0, f32::max)
-        );
+        assert!(p.iter().all(|v| v[0] < 116.0), "no miter spike: {:?}", p.iter().map(|v| v[0]).fold(0.0, f32::max));
     }
 
     #[test]
@@ -2310,11 +1740,7 @@ mod tests {
         // taper to nothing: triangle-like area = length * width / 2
         let mut st = style(10.0, Cap::Butt, Join::Round);
         st.width_profile = vec![[0.0, 1.0], [1.0, 0.0]];
-        let (j, bin, _) = export(vec![line(
-            "l",
-            &[(10.0, 50.0), (60.0, 50.0), (110.0, 50.0)],
-            st,
-        )]);
+        let (j, bin, _) = export(vec![line("l", &[(10.0, 50.0), (60.0, 50.0), (110.0, 50.0)], st)]);
         assert!((area(&j, &bin, mesh_named(&j, ":stroke")) - 500.0).abs() < 2.0);
     }
 
@@ -2328,91 +1754,36 @@ mod tests {
         zero.width = f32::NAN;
         assert!(build_stroke(&[Vec2::ZERO, Vec2::new(5.0, 0.0)], false, &zero).is_none());
         // closed ring: every triangle has positive area, no NaN
-        let ring = VPath::circle("c", Vec2::new(50.0, 50.0), 30.0)
-            .polyline(0.25)
-            .pts;
+        let ring = VPath::circle("c", Vec2::new(50.0, 50.0), 30.0).polyline(0.25).pts;
         let s = build_stroke(&ring, true, &st).unwrap();
         assert!(s.pos.iter().all(|p| p.x.is_finite() && p.y.is_finite()));
-        let a: f32 = s
-            .tris
-            .iter()
-            .map(|t| {
-                cr(
-                    s.pos[t[1] as usize] - s.pos[t[0] as usize],
-                    s.pos[t[2] as usize] - s.pos[t[0] as usize],
-                ) * 0.5
-            })
-            .sum();
-        assert!(
-            (a - std::f32::consts::TAU * 30.0 * 4.0).abs() < 4.0,
-            "ring area {a}"
-        );
+        let a: f32 = s.tris.iter().map(|t| cr(s.pos[t[1] as usize] - s.pos[t[0] as usize], s.pos[t[2] as usize] - s.pos[t[0] as usize]) * 0.5).sum();
+        assert!((a - std::f32::consts::TAU * 30.0 * 4.0).abs() < 4.0, "ring area {a}");
     }
 
     #[test]
     fn translucent_and_inherited_opacity_become_blend() {
-        let mut g = Layer::group(
-            "g",
-            vec![Layer::vector(
-                "a",
-                vec![VPath::rect("r", 0.0, 0.0, 10.0, 10.0).with_fill("#00ff00")],
-            )],
-        );
+        let mut g = Layer::group("g", vec![Layer::vector("a", vec![VPath::rect("r", 0.0, 0.0, 10.0, 10.0).with_fill("#00ff00")])]);
         g.opacity = 0.5;
-        let (j, _, _) = export(vec![
-            g,
-            line(
-                "l",
-                &[(10.0, 50.0), (110.0, 50.0)],
-                StrokeStyle::solid("#ff000080", 4.0),
-            ),
-        ]);
+        let (j, _, _) = export(vec![g, line("l", &[(10.0, 50.0), (110.0, 50.0)], StrokeStyle::solid("#ff000080", 4.0))]);
         let mats = j["materials"].as_array().unwrap();
         assert_eq!(mats.len(), 2);
         assert!(mats.iter().all(|m| m["alphaMode"] == "BLEND"));
-        let a0 = mats[0]["pbrMetallicRoughness"]["baseColorFactor"][3]
-            .as_f64()
-            .unwrap();
+        let a0 = mats[0]["pbrMetallicRoughness"]["baseColorFactor"][3].as_f64().unwrap();
         assert!((a0 - 0.5).abs() < 1e-4, "group opacity multiplied in: {a0}");
     }
 
     #[test]
     fn dropped_features_are_reported() {
-        let mut a = Layer::vector(
-            "a",
-            vec![VPath::rect("r", 0.0, 0.0, 10.0, 10.0).with_fill("#00ff00")],
-        );
+        let mut a = Layer::vector("a", vec![VPath::rect("r", 0.0, 0.0, 10.0, 10.0).with_fill("#00ff00")]);
         a.blend = crate::style::Blend::Multiply;
-        let ch = vec![
-            Channel::keys(
-                "a",
-                Prop::LayerOpacity,
-                Track::with_keys(&[(0.0, 1.0, Ease::Linear), (1.0, 0.0, Ease::Linear)]),
-            ),
-            Channel::keys(
-                "a::r::0",
-                Prop::PointDx,
-                Track::with_keys(&[(0.0, 0.0, Ease::Linear), (1.0, 3.0, Ease::Linear)]),
-            ),
-        ];
+        let ch = vec![Channel::keys("a", Prop::LayerOpacity, Track::with_keys(&[(0.0, 1.0, Ease::Linear), (1.0, 0.0, Ease::Linear)])),
+            Channel::keys("a::r::0", Prop::PointDx, Track::with_keys(&[(0.0, 0.0, Ease::Linear), (1.0, 3.0, Ease::Linear)]))];
         let e = engine_with(vec![a], 2, ch);
         let (_, notes) = export_glb_report(&e).unwrap();
         let all = notes.join("\n");
-        assert!(
-            all.contains("blend mode")
-                && all.contains("animated opacity of 'a'")
-                && all.contains("animated path point"),
-            "{all}"
-        );
-        let (_, quiet) = export_glb_report(&engine_with(
-            vec![Layer::vector(
-                "b",
-                vec![VPath::rect("r", 0.0, 0.0, 10.0, 10.0).with_fill("#00ff00")],
-            )],
-            2,
-            vec![],
-        ))
-        .unwrap();
+        assert!(all.contains("blend mode") && all.contains("animated opacity of 'a'") && all.contains("animated path point"), "{all}");
+        let (_, quiet) = export_glb_report(&engine_with(vec![Layer::vector("b", vec![VPath::rect("r", 0.0, 0.0, 10.0, 10.0).with_fill("#00ff00")])], 2, vec![])).unwrap();
         assert!(quiet.is_empty(), "{quiet:?}");
     }
 
@@ -2446,8 +1817,7 @@ mod tests {
         // the index is a coordinate/identifier used beyond one slice (parallel arrays, offsets, neighbours); an iterator would obscure it
         #[allow(clippy::needless_range_loop)]
         for c in 0..4 {
-            o[c] = (at(x0, y0, c) * (1.0 - fx) + at(x1, y0, c) * fx) * (1.0 - fy)
-                + (at(x0, y1, c) * (1.0 - fx) + at(x1, y1, c) * fx) * fy;
+            o[c] = (at(x0, y0, c) * (1.0 - fx) + at(x1, y0, c) * fx) * (1.0 - fy) + (at(x0, y1, c) * (1.0 - fx) + at(x1, y1, c) * fx) * fy;
         }
         o
     }
@@ -2458,11 +1828,7 @@ mod tests {
                 let d = *to - *from;
                 color_at(stops, ((q - *from).dot(d) / d.dot(d)).clamp(0.0, 1.0))
             }
-            Paint::Radial {
-                center,
-                radius,
-                stops,
-            } => color_at(stops, (q.distance(*center) / radius).clamp(0.0, 1.0)),
+            Paint::Radial { center, radius, stops } => color_at(stops, (q.distance(*center) / radius).clamp(0.0, 1.0)),
             Paint::Solid(c) => *c,
         };
         [c.r, c.g, c.b, c.a]
@@ -2470,49 +1836,22 @@ mod tests {
 
     #[test]
     fn linear_and_radial_gradients_match_the_paint_on_every_vertex() {
-        let lin = Paint::linear(
-            Vec2::new(20.0, 0.0),
-            Vec2::new(120.0, 0.0),
-            &[(0.0, "#ff0000"), (0.4, "#00ff00"), (1.0, "#0000ff80")],
-        );
-        let rad = Paint::radial(
-            Vec2::new(60.0, 100.0),
-            40.0,
-            &[(0.0, "#ffffff"), (1.0, "#000000")],
-        );
-        let mut a = Layer::vector(
-            "a",
-            vec![VPath::rect("r", 10.0, 10.0, 120.0, 60.0).with_paint(lin.clone())],
-        );
+        let lin = Paint::linear(Vec2::new(20.0, 0.0), Vec2::new(120.0, 0.0), &[(0.0, "#ff0000"), (0.4, "#00ff00"), (1.0, "#0000ff80")]);
+        let rad = Paint::radial(Vec2::new(60.0, 100.0), 40.0, &[(0.0, "#ffffff"), (1.0, "#000000")]);
+        let mut a = Layer::vector("a", vec![VPath::rect("r", 10.0, 10.0, 120.0, 60.0).with_paint(lin.clone())]);
         // a transformed layer: the gradient lives in layer space, positions are placed through the transform
         a.transform.position = Vec2::new(5.0, 7.0);
         a.transform.scale = Vec2::new(1.5, 0.5);
-        let b = Layer::vector(
-            "b",
-            vec![VPath::circle("c", Vec2::new(60.0, 100.0), 50.0).with_paint(rad.clone())],
-        );
+        let b = Layer::vector("b", vec![VPath::circle("c", Vec2::new(60.0, 100.0), 50.0).with_paint(rad.clone())]);
         let (j, bin, _) = export(vec![a, b]);
         assert_eq!(j["textures"].as_array().unwrap().len(), 2);
-        for (suffix, paint, tr) in [
-            (
-                "a:r",
-                &lin,
-                Some((Vec2::new(5.0, 7.0), Vec2::new(1.5, 0.5))),
-            ),
-            ("b:c", &rad, None),
-        ] {
+        for (suffix, paint, tr) in [("a:r", &lin, Some((Vec2::new(5.0, 7.0), Vec2::new(1.5, 0.5)))), ("b:c", &rad, None)] {
             let m = mesh_named(&j, suffix);
             let at = &m["primitives"][0]["attributes"];
             let (pos, _) = mesh_xy(&j, &bin, m);
             let uv = acc_f(&j, &bin, at["TEXCOORD_0"].as_u64().unwrap() as usize);
             let mat = &j["materials"][m["primitives"][0]["material"].as_u64().unwrap() as usize];
-            let tex = texture_png(
-                &j,
-                &bin,
-                mat["pbrMetallicRoughness"]["baseColorTexture"]["index"]
-                    .as_u64()
-                    .unwrap() as usize,
-            );
+            let tex = texture_png(&j, &bin, mat["pbrMetallicRoughness"]["baseColorTexture"]["index"].as_u64().unwrap() as usize);
             let mut worst = 0.0f32;
             for (v, p) in pos.iter().enumerate() {
                 // back to layer space (stage y was negated; the layer transform was position + scale)
@@ -2532,116 +1871,58 @@ mod tests {
 
     #[test]
     fn degenerate_gradients_fall_back_to_a_flat_colour() {
-        let p = Paint::linear(
-            Vec2::new(5.0, 5.0),
-            Vec2::new(5.0, 5.0),
-            &[(0.0, "#ff0000"), (1.0, "#0000ff")],
-        );
+        let p = Paint::linear(Vec2::new(5.0, 5.0), Vec2::new(5.0, 5.0), &[(0.0, "#ff0000"), (1.0, "#0000ff")]);
         assert!(grad_map(&p).is_none());
-        let (j, _, _) = export(vec![Layer::vector(
-            "a",
-            vec![VPath::rect("r", 0.0, 0.0, 10.0, 10.0).with_paint(p)],
-        )]);
+        let (j, _, _) = export(vec![Layer::vector("a", vec![VPath::rect("r", 0.0, 0.0, 10.0, 10.0).with_paint(p)])]);
         assert!(j.get("textures").is_none());
         // a zero-length gradient paints its last stop everywhere (as in SVG and the rasteriser)
         let f = &j["materials"][0]["pbrMetallicRoughness"]["baseColorFactor"];
-        assert!(
-            f[0].as_f64().unwrap().abs() < 1e-4 && (f[2].as_f64().unwrap() - 1.0).abs() < 1e-4,
-            "{f}"
-        );
+        assert!(f[0].as_f64().unwrap().abs() < 1e-4 && (f[2].as_f64().unwrap() - 1.0).abs() < 1e-4, "{f}");
     }
 
     // ---- masks -----------------------------------------------------------------------------
 
     fn masked(mask: Layer, invert: bool, shape: Layer) -> (Value, Vec<u8>, Vec<String>) {
         let mut shape = shape;
-        shape.mask = Some(MaskRef {
-            layer: mask.name.clone(),
-            invert,
-        });
+        shape.mask = Some(MaskRef { layer: mask.name.clone(), invert });
         export(vec![mask, shape])
     }
 
     #[test]
     fn masks_are_clipped_exactly() {
         let mk = || {
-            let mut hole = Layer::vector(
-                "hole",
-                vec![VPath::rect("r", 20.0, 20.0, 40.0, 40.0).with_fill("#ffffff")],
-            );
+            let mut hole = Layer::vector("hole", vec![VPath::rect("r", 20.0, 20.0, 40.0, 40.0).with_fill("#ffffff")]);
             hole.visible = false;
             hole
         };
-        let shape = || {
-            Layer::vector(
-                "cut",
-                vec![VPath::rect("r", 0.0, 0.0, 100.0, 100.0).with_fill("#ff0000")],
-            )
-        };
+        let shape = || Layer::vector("cut", vec![VPath::rect("r", 0.0, 0.0, 100.0, 100.0).with_fill("#ff0000")]);
         let (j, bin, notes) = masked(mk(), false, shape());
         assert!((area(&j, &bin, mesh_named(&j, "cut:r")) - 1600.0).abs() < 0.1);
         assert!(notes.iter().any(|n| n.contains("baked")));
         let (j, bin, _) = masked(mk(), true, shape());
         assert!((area(&j, &bin, mesh_named(&j, "cut:r")) - 8400.0).abs() < 0.1);
         // a half-covering mask on a stroke
-        let s = line(
-            "cut",
-            &[(0.0, 50.0), (100.0, 50.0)],
-            style(10.0, Cap::Butt, Join::Round),
-        );
+        let s = line("cut", &[(0.0, 50.0), (100.0, 50.0)], style(10.0, Cap::Butt, Join::Round));
         let (j, bin, _) = masked(mk(), false, s);
-        assert!(
-            (area(&j, &bin, mesh_named(&j, ":stroke")) - 400.0).abs() < 0.1,
-            "stroke clipped to the 40 x 10 overlap"
-        );
+        assert!((area(&j, &bin, mesh_named(&j, ":stroke")) - 400.0).abs() < 0.1, "stroke clipped to the 40 x 10 overlap");
         // a circle mask
-        let mut c = Layer::vector(
-            "hole",
-            vec![VPath::circle("c", Vec2::new(50.0, 50.0), 30.0).with_fill("#fff")],
-        );
+        let mut c = Layer::vector("hole", vec![VPath::circle("c", Vec2::new(50.0, 50.0), 30.0).with_fill("#fff")]);
         c.visible = false;
         let (j, bin, _) = masked(c, false, shape());
         let a = area(&j, &bin, mesh_named(&j, "cut:r"));
-        assert!(
-            (a - std::f32::consts::PI * 900.0).abs() < 25.0,
-            "circle area {a}"
-        );
+        assert!((a - std::f32::consts::PI * 900.0).abs() < 25.0, "circle area {a}");
     }
 
     #[test]
     fn masks_that_cannot_be_baked_are_reported_not_faked() {
-        let mut m = Layer::vector(
-            "hole",
-            vec![VPath::rect("r", 20.0, 20.0, 40.0, 40.0)
-                .with_fill("#ffffff")
-                .with_stroke("#000000", 2.0)],
-        );
+        let mut m = Layer::vector("hole", vec![VPath::rect("r", 20.0, 20.0, 40.0, 40.0).with_fill("#ffffff").with_stroke("#000000", 2.0)]);
         m.visible = false;
-        let (j, bin, notes) = masked(
-            m,
-            false,
-            Layer::vector(
-                "cut",
-                vec![VPath::rect("r", 0.0, 0.0, 100.0, 100.0).with_fill("#ff0000")],
-            ),
-        );
-        assert!(
-            (area(&j, &bin, mesh_named(&j, "cut:r")) - 10000.0).abs() < 0.1,
-            "exported unmasked"
-        );
+        let (j, bin, notes) = masked(m, false, Layer::vector("cut", vec![VPath::rect("r", 0.0, 0.0, 100.0, 100.0).with_fill("#ff0000")]));
+        assert!((area(&j, &bin, mesh_named(&j, "cut:r")) - 10000.0).abs() < 0.1, "exported unmasked");
         assert!(notes.iter().any(|n| n.contains("not baked")), "{notes:?}");
         // the piece limit is honoured
         let pos = [Vec2::ZERO, Vec2::new(10.0, 0.0), Vec2::new(0.0, 10.0)];
-        let many: Vec<[Vec2; 3]> = (0..50)
-            .map(|i| {
-                let o = i as f32 * 0.1;
-                [
-                    Vec2::new(o, o),
-                    Vec2::new(o + 5.0, o),
-                    Vec2::new(o, o + 5.0),
-                ]
-            })
-            .collect();
+        let many: Vec<[Vec2; 3]> = (0..50).map(|i| { let o = i as f32 * 0.1; [Vec2::new(o, o), Vec2::new(o + 5.0, o), Vec2::new(o, o + 5.0)] }).collect();
         assert!(clip_mesh(&pos, &[[0, 1, 2]], &[(many, true)], 3).is_none());
     }
 
@@ -2670,120 +1951,52 @@ mod tests {
         // the embedded bytes are the layer's PNG, untouched
         let v = &j["bufferViews"][j["images"][0]["bufferView"].as_u64().unwrap() as usize];
         let off = v["byteOffset"].as_u64().unwrap() as usize;
-        assert_eq!(
-            &bin[off..off + v["byteLength"].as_u64().unwrap() as usize],
-            &png[..]
-        );
+        assert_eq!(&bin[off..off + v["byteLength"].as_u64().unwrap() as usize], &png[..]);
         assert_eq!(j["images"][0]["mimeType"], "image/png");
         let mat = &j["materials"][0];
-        assert_eq!(
-            mat["alphaMode"], "BLEND",
-            "the image has a transparent pixel"
-        );
+        assert_eq!(mat["alphaMode"], "BLEND", "the image has a transparent pixel");
         assert_eq!(mat["pbrMetallicRoughness"]["baseColorTexture"]["index"], 0);
     }
 
     #[test]
     fn masked_image_quads_keep_affine_uvs_and_meshed_images_are_skinned() {
         let png = tiny_png();
-        let mut hole = Layer::vector(
-            "hole",
-            vec![VPath::rect("r", 32.0, 40.0, 1.0, 2.0).with_fill("#fff")],
-        );
+        let mut hole = Layer::vector("hole", vec![VPath::rect("r", 32.0, 40.0, 1.0, 2.0).with_fill("#fff")]);
         hole.visible = false;
-        let (j, bin, _) = masked(
-            hole,
-            false,
-            Layer::image_from_png("pic", &png, Vec2::new(30.0, 40.0)),
-        );
+        let (j, bin, _) = masked(hole, false, Layer::image_from_png("pic", &png, Vec2::new(30.0, 40.0)));
         let m = mesh_named(&j, "pic");
         let (pos, _) = mesh_xy(&j, &bin, m);
-        let uv = acc_f(
-            &j,
-            &bin,
-            m["primitives"][0]["attributes"]["TEXCOORD_0"]
-                .as_u64()
-                .unwrap() as usize,
-        );
+        let uv = acc_f(&j, &bin, m["primitives"][0]["attributes"]["TEXCOORD_0"].as_u64().unwrap() as usize);
         assert!((area(&j, &bin, m) - 2.0).abs() < 1e-3);
         for (v, p) in pos.iter().enumerate() {
-            assert!(
-                (uv[v * 2] - (p[0] - 30.0) / 4.0).abs() < 1e-5
-                    && (uv[v * 2 + 1] - (-p[1] - 40.0) / 4.0).abs() < 1e-5
-            );
+            assert!((uv[v * 2] - (p[0] - 30.0) / 4.0).abs() < 1e-5 && (uv[v * 2 + 1] - (-p[1] - 40.0) / 4.0).abs() < 1e-5);
         }
         // meshed image with complete weights -> JOINTS_0/WEIGHTS_0
         let mut l = Layer::image_from_png("pic", &png, Vec2::new(0.0, 0.0));
         if let LayerKind::Image { mesh, size, .. } = &mut l.kind {
             *size = Some(Vec2::new(40.0, 40.0));
-            *mesh = Some(MeshSpec {
-                cols: 2,
-                rows: 2,
-                weights: vec![
-                    vec![BoneWeight {
-                        bone: "root".into(),
-                        weight: 1.0
-                    }];
-                    9
-                ],
-                ..Default::default()
-            });
+            *mesh = Some(MeshSpec { cols: 2, rows: 2, weights: vec![vec![BoneWeight { bone: "root".into(), weight: 1.0 }]; 9], ..Default::default() });
         }
         let (j, _, _) = export(vec![l]);
         let at = &j["meshes"][0]["primitives"][0]["attributes"];
-        assert!(
-            at.get("JOINTS_0").is_some()
-                && at.get("WEIGHTS_0").is_some()
-                && at.get("TEXCOORD_0").is_some()
-        );
-        assert_eq!(
-            j["nodes"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .filter(|n| n.get("skin").is_some())
-                .count(),
-            1
-        );
+        assert!(at.get("JOINTS_0").is_some() && at.get("WEIGHTS_0").is_some() && at.get("TEXCOORD_0").is_some());
+        assert_eq!(j["nodes"].as_array().unwrap().iter().filter(|n| n.get("skin").is_some()).count(), 1);
     }
 
     // ---- skinned strokes -------------------------------------------------------------------
 
     #[test]
     fn strokes_of_weighted_paths_are_skinned() {
-        let w = |a: Anchor| Anchor {
-            weights: vec![BoneWeight {
-                bone: "root".into(),
-                weight: 1.0,
-            }],
-            ..a
-        };
-        let mut path = VPath::new(
-            "p",
-            false,
-            vec![
-                w(Anchor::corner(Vec2::new(0.0, 0.0))),
-                w(Anchor::corner(Vec2::new(50.0, 10.0))),
-                w(Anchor::corner(Vec2::new(90.0, 0.0))),
-            ],
-        );
+        let w = |a: Anchor| Anchor { weights: vec![BoneWeight { bone: "root".into(), weight: 1.0 }], ..a };
+        let mut path = VPath::new("p", false, vec![w(Anchor::corner(Vec2::new(0.0, 0.0))), w(Anchor::corner(Vec2::new(50.0, 10.0))), w(Anchor::corner(Vec2::new(90.0, 0.0)))]);
         path.stroke = Some(StrokeStyle::solid("#00f", 6.0));
         let (j, bin, _) = export(vec![Layer::vector("s", vec![path])]);
         let m = mesh_named(&j, ":stroke");
         let at = &m["primitives"][0]["attributes"];
-        let n = j["accessors"][at["POSITION"].as_u64().unwrap() as usize]["count"]
-            .as_u64()
-            .unwrap();
-        assert_eq!(
-            j["accessors"][at["WEIGHTS_0"].as_u64().unwrap() as usize]["count"]
-                .as_u64()
-                .unwrap(),
-            n
-        );
+        let n = j["accessors"][at["POSITION"].as_u64().unwrap() as usize]["count"].as_u64().unwrap();
+        assert_eq!(j["accessors"][at["WEIGHTS_0"].as_u64().unwrap() as usize]["count"].as_u64().unwrap(), n);
         let wts = acc_f(&j, &bin, at["WEIGHTS_0"].as_u64().unwrap() as usize);
-        assert!(wts
-            .chunks_exact(4)
-            .all(|c| (c.iter().sum::<f32>() - 1.0).abs() < 1e-4));
+        assert!(wts.chunks_exact(4).all(|c| (c.iter().sum::<f32>() - 1.0).abs() < 1e-4));
     }
 
     // ---- morph targets ---------------------------------------------------------------------
@@ -2797,21 +2010,13 @@ mod tests {
     }
 
     fn morph_keys() -> Vec<Channel> {
-        vec![Channel::keys(
-            "s::p::wide",
-            Prop::PathMorph,
-            Track::with_keys(&[(0.0, 0.0, Ease::Linear), (10.0, 1.0, Ease::Linear)]),
-        )]
+        vec![Channel::keys("s::p::wide", Prop::PathMorph, Track::with_keys(&[(0.0, 0.0, Ease::Linear), (10.0, 1.0, Ease::Linear)]))]
     }
 
     #[test]
     fn path_morphs_become_targets_with_animated_weights() {
         let mut path = morph_rect();
-        path.fill = Some(Paint::linear(
-            Vec2::new(0.0, 0.0),
-            Vec2::new(30.0, 0.0),
-            &[(0.0, "#f00"), (1.0, "#00f")],
-        ));
+        path.fill = Some(Paint::linear(Vec2::new(0.0, 0.0), Vec2::new(30.0, 0.0), &[(0.0, "#f00"), (1.0, "#00f")]));
         let e = engine_with(vec![Layer::vector("s", vec![path])], 11, morph_keys());
         let (glb, notes) = export_glb_report(&e).unwrap();
         assert!(notes.is_empty(), "{notes:?}");
@@ -2822,94 +2027,43 @@ mod tests {
         assert_eq!(m["extras"]["targetNames"][0], "wide");
         assert_eq!(m["weights"][0].as_f64().unwrap(), 0.0);
         // animation channel on the mesh node: linear 0..1 over 11 frames
-        let ch = j["animations"][0]["channels"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .find(|c| c["target"]["path"] == "weights")
-            .unwrap();
-        let out = j["animations"][0]["samplers"][ch["sampler"].as_u64().unwrap() as usize]["output"]
-            .as_u64()
-            .unwrap() as usize;
+        let ch = j["animations"][0]["channels"].as_array().unwrap().iter().find(|c| c["target"]["path"] == "weights").unwrap();
+        let out = j["animations"][0]["samplers"][ch["sampler"].as_u64().unwrap() as usize]["output"].as_u64().unwrap() as usize;
         let w = acc_f(&j, &bin, out);
         assert_eq!(w.len(), 11);
-        assert!(w
-            .iter()
-            .enumerate()
-            .all(|(i, v)| (v - i as f32 / 10.0).abs() < 1e-5));
-        assert!(j["nodes"][ch["target"]["node"].as_u64().unwrap() as usize]
-            .get("mesh")
-            .is_some());
+        assert!(w.iter().enumerate().all(|(i, v)| (v - i as f32 / 10.0).abs() < 1e-5));
+        assert!(j["nodes"][ch["target"]["node"].as_u64().unwrap() as usize].get("mesh").is_some());
         // base + w * delta spans x in [0, 10 + 20 w]
-        let base = acc_f(
-            &j,
-            &bin,
-            prim["attributes"]["POSITION"].as_u64().unwrap() as usize,
-        );
-        let delta = acc_f(
-            &j,
-            &bin,
-            prim["targets"][0]["POSITION"].as_u64().unwrap() as usize,
-        );
+        let base = acc_f(&j, &bin, prim["attributes"]["POSITION"].as_u64().unwrap() as usize);
+        let delta = acc_f(&j, &bin, prim["targets"][0]["POSITION"].as_u64().unwrap() as usize);
         for (wt, want) in [(0.0f32, 10.0f32), (0.5, 20.0), (1.0, 30.0)] {
-            let mx = (0..base.len() / 3)
-                .map(|v| base[v * 3] + wt * delta[v * 3])
-                .fold(f32::MIN, f32::max);
+            let mx = (0..base.len() / 3).map(|v| base[v * 3] + wt * delta[v * 3]).fold(f32::MIN, f32::max);
             assert!((mx - want).abs() < 1e-3, "w={wt}: {mx}");
         }
         // the gradient texture coordinate morphs with the vertex
-        let uv0 = acc_f(
-            &j,
-            &bin,
-            prim["attributes"]["TEXCOORD_0"].as_u64().unwrap() as usize,
-        );
-        let duv = acc_f(
-            &j,
-            &bin,
-            prim["targets"][0]["TEXCOORD_0"].as_u64().unwrap() as usize,
-        );
-        let vmax = (0..base.len() / 3)
-            .max_by(|&a, &b| (base[a * 3] + delta[a * 3]).total_cmp(&(base[b * 3] + delta[b * 3])))
-            .unwrap();
+        let uv0 = acc_f(&j, &bin, prim["attributes"]["TEXCOORD_0"].as_u64().unwrap() as usize);
+        let duv = acc_f(&j, &bin, prim["targets"][0]["TEXCOORD_0"].as_u64().unwrap() as usize);
+        let vmax = (0..base.len() / 3).max_by(|&a, &b| (base[a * 3] + delta[a * 3]).total_cmp(&(base[b * 3] + delta[b * 3]))).unwrap();
         let u1 = uv0[vmax * 2] + duv[vmax * 2];
-        let LayerKind::Vector { paths } = &e.project.layers[0].kind else {
-            panic!()
-        };
+        let LayerKind::Vector { paths } = &e.project.layers[0].kind else { panic!() };
         let map = grad_map(paths[0].fill.as_ref().unwrap()).unwrap();
-        assert!(
-            (u1 - grad_uv(&map, Vec2::new(30.0, 0.0))[0]).abs() < 1e-4
-                || (u1 - grad_uv(&map, Vec2::new(30.0, 10.0))[0]).abs() < 1e-4
-        );
+        assert!((u1 - grad_uv(&map, Vec2::new(30.0, 0.0))[0]).abs() < 1e-4 || (u1 - grad_uv(&map, Vec2::new(30.0, 10.0))[0]).abs() < 1e-4);
     }
 
     #[test]
     fn morphs_that_are_also_deformed_stay_static_with_a_reason() {
         let path = morph_rect().with_fill("#ff0000");
         let mut ch = morph_keys();
-        ch.push(Channel::keys(
-            "s::p::0",
-            Prop::PointDy,
-            Track::with_keys(&[(0.0, 0.0, Ease::Linear), (10.0, 5.0, Ease::Linear)]),
-        ));
+        ch.push(Channel::keys("s::p::0", Prop::PointDy, Track::with_keys(&[(0.0, 0.0, Ease::Linear), (10.0, 5.0, Ease::Linear)])));
         let e = engine_with(vec![Layer::vector("s", vec![path])], 11, ch);
         let (glb, notes) = export_glb_report(&e).unwrap();
         let (j, _) = parse(&glb);
         assert!(j["meshes"][0]["primitives"][0].get("targets").is_none());
-        assert!(
-            notes.iter().any(|n| n.contains("not exported as targets")),
-            "{notes:?}"
-        );
+        assert!(notes.iter().any(|n| n.contains("not exported as targets")), "{notes:?}");
         // morph never driven: static, with a reason
-        let e = engine_with(
-            vec![Layer::vector("s", vec![morph_rect().with_fill("#ff0000")])],
-            3,
-            vec![],
-        );
+        let e = engine_with(vec![Layer::vector("s", vec![morph_rect().with_fill("#ff0000")])], 3, vec![]);
         let (_, notes) = export_glb_report(&e).unwrap();
-        assert!(
-            notes.iter().any(|n| n.contains("zero on every frame")),
-            "{notes:?}"
-        );
+        assert!(notes.iter().any(|n| n.contains("zero on every frame")), "{notes:?}");
     }
 
     #[test]
@@ -2926,19 +2080,9 @@ mod tests {
             k += 1;
         }
         for joint in j["skins"][0]["joints"].as_array().unwrap() {
-            assert!(
-                seen.contains(&(joint.as_u64().unwrap() as usize)),
-                "joint {joint} not under the skeleton root"
-            );
+            assert!(seen.contains(&(joint.as_u64().unwrap() as usize)), "joint {joint} not under the skeleton root");
         }
-        assert!(
-            !j["skins"][0]["joints"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .any(|x| x.as_u64().unwrap() as usize == skel),
-            "skeleton is not a joint"
-        );
+        assert!(!j["skins"][0]["joints"].as_array().unwrap().iter().any(|x| x.as_u64().unwrap() as usize == skel), "skeleton is not a joint");
         for m in j["meshes"].as_array().unwrap() {
             let at = &m["primitives"][0]["attributes"];
             if at.get("JOINTS_0").is_none() {

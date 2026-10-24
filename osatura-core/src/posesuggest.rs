@@ -86,10 +86,7 @@ impl PoseDb {
 
     pub fn validate(&self) -> Result<(), String> {
         if self.format != "osatura-posedb" || self.version != 1 {
-            return Err(format!(
-                "not an osatura-posedb version 1 file (format '{}', version {})",
-                self.format, self.version
-            ));
+            return Err(format!("not an osatura-posedb version 1 file (format '{}', version {})", self.format, self.version));
         }
         if self.bones.is_empty() {
             return Err("pose database has no bones".into());
@@ -123,8 +120,7 @@ impl PoseDb {
     pub fn successor(&self, i: usize) -> Option<usize> {
         let m = &self.meta[i];
         let j = i + 1;
-        (j < self.poses.len() && self.meta[j].seq == m.seq && self.meta[j].idx == m.idx + 1)
-            .then_some(j)
+        (j < self.poses.len() && self.meta[j].seq == m.seq && self.meta[j].idx == m.idx + 1).then_some(j)
     }
 }
 
@@ -133,15 +129,9 @@ type NamedTracks = Vec<(String, Track)>;
 fn project_tracks(p: &Project) -> NamedTracks {
     p.channels
         .iter()
-        .filter(|c| {
-            c.prop == Prop::BoneAngle
-                && c.mode == Mode::Replace
-                && !crate::skins::is_collapse_channel(c)
-        })
+        .filter(|c| c.prop == Prop::BoneAngle && c.mode == Mode::Replace && !crate::skins::is_collapse_channel(c))
         .filter_map(|c| match &c.source {
-            Source::Keys { track } if !track.keys.is_empty() => {
-                Some((c.target.clone(), track.clone()))
-            }
+            Source::Keys { track } if !track.keys.is_empty() => Some((c.target.clone(), track.clone())),
             _ => None,
         })
         .collect()
@@ -151,25 +141,13 @@ fn take_tracks(t: &crate::motionlib::Take) -> NamedTracks {
     t.tracks
         .iter()
         .filter(|tr| tr.prop == Prop::BoneAngle && !tr.keys.is_empty())
-        .map(|tr| {
-            (
-                tr.target.clone(),
-                Track {
-                    keys: tr.keys.clone(),
-                    extrapolate: Default::default(),
-                },
-            )
-        })
+        .map(|tr| (tr.target.clone(), Track { keys: tr.keys.clone(), extrapolate: Default::default() }))
         .collect()
 }
 
 /// Build the database from a project's keyed bone rotations and/or a motion library.
 /// `step`: sample every `step` frames instead of at the key frames. Bones a sequence does not animate are 0.
-pub fn build_db(
-    project: Option<&Project>,
-    lib: Option<&Library>,
-    step: Option<f32>,
-) -> Result<PoseDb, String> {
+pub fn build_db(project: Option<&Project>, lib: Option<&Library>, step: Option<f32>) -> Result<PoseDb, String> {
     if let Some(s) = step {
         if (s.partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater)) || !s.is_finite() {
             return Err("step must be a positive number of frames".into());
@@ -197,9 +175,7 @@ pub fn build_db(
     // project bones first, in their order, so database columns follow the rig
     if let Some(p) = project {
         for b in &p.bones {
-            if seqs.iter().any(|s| s.2.iter().any(|(t, _)| *t == b.name))
-                && !bones.contains(&b.name)
-            {
+            if seqs.iter().any(|s| s.2.iter().any(|(t, _)| *t == b.name)) && !bones.contains(&b.name) {
                 bones.push(b.name.clone());
             }
         }
@@ -211,14 +187,7 @@ pub fn build_db(
             }
         }
     }
-    let mut db = PoseDb {
-        format: db_format(),
-        version: 1,
-        bones,
-        poses: vec![],
-        meta: vec![],
-        sequences: vec![],
-    };
+    let mut db = PoseDb { format: db_format(), version: 1, bones, poses: vec![], meta: vec![], sequences: vec![] };
     for (name, source, tracks) in &seqs {
         let mut frames: Vec<f32> = Vec::new();
         match step {
@@ -230,14 +199,8 @@ pub fn build_db(
                 frames.dedup_by(|a, b| (*a - *b).abs() < 1e-3);
             }
             Some(s) => {
-                let lo = tracks
-                    .iter()
-                    .filter_map(|(_, t)| t.first_frame())
-                    .fold(f32::MAX, f32::min);
-                let hi = tracks
-                    .iter()
-                    .filter_map(|(_, t)| t.last_frame())
-                    .fold(f32::MIN, f32::max);
+                let lo = tracks.iter().filter_map(|(_, t)| t.first_frame()).fold(f32::MAX, f32::min);
+                let hi = tracks.iter().filter_map(|(_, t)| t.last_frame()).fold(f32::MIN, f32::max);
                 let mut f = lo;
                 while f < hi {
                     frames.push(f);
@@ -254,28 +217,14 @@ pub fn build_db(
         }
         let seq = db.sequences.len();
         for (idx, &f) in frames.iter().enumerate() {
-            let pose: Vec<f32> = db
-                .bones
-                .iter()
-                .map(|b| {
-                    tracks
-                        .iter()
-                        .find(|(t, _)| t == b)
-                        .and_then(|(_, tr)| tr.eval(f))
-                        .unwrap_or(0.0)
-                })
-                .collect();
+            let pose: Vec<f32> = db.bones.iter().map(|b| tracks.iter().find(|(t, _)| t == b).and_then(|(_, tr)| tr.eval(f)).unwrap_or(0.0)).collect();
             if pose.iter().any(|v| !v.is_finite()) {
                 return Err("non-finite angle in the source".into());
             }
             db.poses.push(pose);
             db.meta.push(PoseMeta { seq, idx, frame: f });
         }
-        db.sequences.push(SeqInfo {
-            name: name.clone(),
-            source: (*source).into(),
-            poses: frames.len(),
-        });
+        db.sequences.push(SeqInfo { name: name.clone(), source: (*source).into(), poses: frames.len() });
     }
     if db.poses.len() < 2 {
         return Err("a pose database needs at least two poses".into());
@@ -292,13 +241,7 @@ pub fn pose_at(project: &Project, bones: &[String], frame: f32) -> Vec<f32> {
             project
                 .channels
                 .iter()
-                .find(|c| {
-                    c.target == *b
-                        && c.prop == Prop::BoneAngle
-                        && c.mode == Mode::Replace
-                        && matches!(c.source, Source::Keys { .. })
-                        && !crate::skins::is_collapse_channel(c)
-                })
+                .find(|c| c.target == *b && c.prop == Prop::BoneAngle && c.mode == Mode::Replace && matches!(c.source, Source::Keys { .. }) && !crate::skins::is_collapse_channel(c))
                 .and_then(|c| match &c.source {
                     Source::Keys { track } => track.eval(frame),
                     _ => None,
@@ -330,10 +273,7 @@ pub fn jacobi_eigen(mut a: Vec<Vec<f64>>) -> (Vec<f64>, Vec<Vec<f64>>) {
         v[i][i] = 1.0;
     }
     for _ in 0..80 {
-        let off: f64 = (0..n)
-            .flat_map(|i| (0..n).filter(move |&j| j != i).map(move |j| (i, j)))
-            .map(|(i, j)| a[i][j] * a[i][j])
-            .sum();
+        let off: f64 = (0..n).flat_map(|i| (0..n).filter(move |&j| j != i).map(move |j| (i, j))).map(|(i, j)| a[i][j] * a[i][j]).sum();
         let diag: f64 = (0..n).map(|i| a[i][i] * a[i][i]).sum::<f64>().max(1e-300);
         if off <= 1e-24 * diag {
             break;
@@ -382,9 +322,7 @@ pub fn power_iteration(a: &[Vec<f64>], iters: usize, seed: u64) -> (f64, Vec<f64
     let mut x: Vec<f64> = (0..n).map(|_| rng.unit() as f64 + 0.1).collect();
     let mut lambda = 0.0;
     for _ in 0..iters {
-        let y: Vec<f64> = (0..n)
-            .map(|i| (0..n).map(|j| a[i][j] * x[j]).sum())
-            .collect();
+        let y: Vec<f64> = (0..n).map(|i| (0..n).map(|j| a[i][j] * x[j]).sum()).collect();
         let norm = y.iter().map(|v| v * v).sum::<f64>().sqrt();
         if norm < 1e-300 {
             return (0.0, x);
@@ -418,9 +356,7 @@ impl PoseSpace {
         }
         let d = poses[0].len();
         let n = poses.len();
-        let mean: Vec<f64> = (0..d)
-            .map(|j| poses.iter().map(|p| p[j] as f64).sum::<f64>() / n as f64)
-            .collect();
+        let mean: Vec<f64> = (0..d).map(|j| poses.iter().map(|p| p[j] as f64).sum::<f64>() / n as f64).collect();
         let mut cov = vec![vec![0.0f64; d]; d];
         for p in poses {
             for i in 0..d {
@@ -450,17 +386,12 @@ impl PoseSpace {
         let (mut comps, mut eig, mut explained) = (Vec::new(), Vec::new(), Vec::new());
         let mut acc = 0.0;
         for &c in &order {
-            if comps.len() >= max_k
-                || (!comps.is_empty() && (acc / total >= var_keep as f64 || vals[c] < 1e-9 * total))
-            {
+            if comps.len() >= max_k || (!comps.is_empty() && (acc / total >= var_keep as f64 || vals[c] < 1e-9 * total)) {
                 break;
             }
             let mut axis: Vec<f64> = (0..d).map(|r| vecs[r][c]).collect();
             // sign convention: largest-magnitude entry positive (deterministic)
-            let big = axis
-                .iter()
-                .cloned()
-                .fold(0.0f64, |m, v| if v.abs() > m.abs() { v } else { m });
+            let big = axis.iter().cloned().fold(0.0f64, |m, v| if v.abs() > m.abs() { v } else { m });
             if big < 0.0 {
                 axis.iter_mut().for_each(|v| *v = -*v);
             }
@@ -469,29 +400,14 @@ impl PoseSpace {
             eig.push(vals[c].max(1e-12) as f32);
             explained.push((acc / total) as f32);
         }
-        Ok(PoseSpace {
-            mean: mean.iter().map(|&v| v as f32).collect(),
-            comps,
-            eig,
-            total_var: total as f32,
-            explained,
-        })
+        Ok(PoseSpace { mean: mean.iter().map(|&v| v as f32).collect(), comps, eig, total_var: total as f32, explained })
     }
 
     pub fn k(&self) -> usize {
         self.comps.len()
     }
     pub fn project(&self, x: &[f32]) -> Vec<f32> {
-        self.comps
-            .iter()
-            .map(|c| {
-                c.iter()
-                    .zip(x)
-                    .zip(&self.mean)
-                    .map(|((a, v), m)| a * (v - m))
-                    .sum()
-            })
-            .collect()
+        self.comps.iter().map(|c| c.iter().zip(x).zip(&self.mean).map(|((a, v), m)| a * (v - m)).sum()).collect()
     }
     pub fn reconstruct(&self, z: &[f32]) -> Vec<f32> {
         let mut x = self.mean.clone();
@@ -579,19 +495,9 @@ pub struct Suggestions {
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Constraint {
     /// Hold a bone's rotation (degrees) at `value`.
-    Angle {
-        bone: String,
-        value: f32,
-        #[serde(default = "w1")]
-        weight: f32,
-    },
+    Angle { bone: String, value: f32, #[serde(default = "w1")] weight: f32 },
     /// Put the tip of `bone` at stage position `at`.
-    Reach {
-        bone: String,
-        at: [f32; 2],
-        #[serde(default = "w_reach")]
-        weight: f32,
-    },
+    Reach { bone: String, at: [f32; 2], #[serde(default = "w_reach")] weight: f32 },
 }
 
 fn w1() -> f32 {
@@ -653,22 +559,12 @@ impl Suggester {
             }
         }
         let step = median(&mut steps).max(1.0);
-        Ok(Suggester {
-            db,
-            space,
-            spacing,
-            step,
-            zs,
-        })
+        Ok(Suggester { db, space, spacing, step, zs })
     }
 
     fn check_pose(&self, x: &[f32], what: &str) -> Result<(), String> {
         if x.len() != self.db.dim() {
-            return Err(format!(
-                "{what}: expected {} values, got {}",
-                self.db.dim(),
-                x.len()
-            ));
+            return Err(format!("{what}: expected {} values, got {}", self.db.dim(), x.len()));
         }
         if x.iter().any(|v| !v.is_finite()) {
             return Err(format!("{what}: non-finite value"));
@@ -678,13 +574,7 @@ impl Suggester {
 
     /// Library poses nearest to `x` (RMS degrees), closest first.
     pub fn nearest(&self, x: &[f32], n: usize) -> Vec<(usize, f32)> {
-        let mut v: Vec<(usize, f32)> = self
-            .db
-            .poses
-            .iter()
-            .enumerate()
-            .map(|(i, p)| (i, rms(x, p)))
-            .collect();
+        let mut v: Vec<(usize, f32)> = self.db.poses.iter().enumerate().map(|(i, p)| (i, rms(x, p))).collect();
         v.sort_by(|a, b| a.1.total_cmp(&b.1).then(a.0.cmp(&b.0)));
         v.truncate(n);
         v
@@ -696,31 +586,14 @@ impl Suggester {
     }
 
     fn cand(&self, method: &str, label: &str, pose: Vec<f32>, score: f32, plaus: f32) -> Candidate {
-        Candidate {
-            method: method.into(),
-            label: label.into(),
-            score,
-            plausibility: plaus,
-            values: vec![],
-            constraint_error: None,
-            frame: None,
-            notes: vec![],
-            pose,
-        }
+        Candidate { method: method.into(), label: label.into(), score, plausibility: plaus, values: vec![], constraint_error: None, frame: None, notes: vec![], pose }
     }
 
     // ---- between -------------------------------------------------------------------------
 
     /// In-between poses at fraction `t` of the way from `a` to `b`. `snap` (0..1) is how far the PCA blend is
     /// pulled toward the kernel average of its `k` nearest library poses.
-    pub fn between(
-        &self,
-        a: &[f32],
-        b: &[f32],
-        t: f32,
-        snap: f32,
-        k: usize,
-    ) -> Result<Vec<Candidate>, String> {
+    pub fn between(&self, a: &[f32], b: &[f32], t: f32, snap: f32, k: usize) -> Result<Vec<Candidate>, String> {
         self.check_pose(a, "pose A")?;
         self.check_pose(b, "pose B")?;
         if !(0.0..=1.0).contains(&t) || !(0.0..=1.0).contains(&snap) || k == 0 {
@@ -732,41 +605,16 @@ impl Suggester {
             let plaus = this.plausibility(x);
             (plaus / (1.0 + detour), plaus)
         };
-        let lin: Vec<f32> = a
-            .iter()
-            .zip(b)
-            .map(|(x, y)| x * (1.0 - t) + y * t)
-            .collect();
+        let lin: Vec<f32> = a.iter().zip(b).map(|(x, y)| x * (1.0 - t) + y * t).collect();
         let (za, zb) = (self.space.project(a), self.space.project(b));
-        let zt: Vec<f32> = za
-            .iter()
-            .zip(&zb)
-            .map(|(x, y)| x * (1.0 - t) + y * t)
-            .collect();
+        let zt: Vec<f32> = za.iter().zip(&zb).map(|(x, y)| x * (1.0 - t) + y * t).collect();
         let pca = self.space.reconstruct(&zt);
         // kernel pull toward the library, neighbours measured in PCA coordinates
-        let mut nb: Vec<(usize, f32)> = self
-            .zs
-            .iter()
-            .enumerate()
-            .map(|(i, z)| {
-                (
-                    i,
-                    z.iter()
-                        .zip(&zt)
-                        .map(|(p, q)| (p - q) * (p - q))
-                        .sum::<f32>()
-                        .sqrt(),
-                )
-            })
-            .collect();
+        let mut nb: Vec<(usize, f32)> = self.zs.iter().enumerate().map(|(i, z)| (i, z.iter().zip(&zt).map(|(p, q)| (p - q) * (p - q)).sum::<f32>().sqrt())).collect();
         nb.sort_by(|x, y| x.1.total_cmp(&y.1).then(x.0.cmp(&y.0)));
         nb.truncate(k.min(self.db.poses.len()));
         let h = (nb.iter().map(|p| p.1).sum::<f32>() / nb.len() as f32).max(1e-3);
-        let ws: Vec<f32> = nb
-            .iter()
-            .map(|p| (-(p.1 / h).powi(2) * 0.5).exp())
-            .collect();
+        let ws: Vec<f32> = nb.iter().map(|p| (-(p.1 / h).powi(2) * 0.5).exp()).collect();
         let wsum: f32 = ws.iter().sum::<f32>().max(1e-12);
         let mut kernel = vec![0.0f32; a.len()];
         for ((i, _), w) in nb.iter().zip(&ws) {
@@ -774,11 +622,7 @@ impl Suggester {
                 *kj += w * pj / wsum;
             }
         }
-        let manifold: Vec<f32> = pca
-            .iter()
-            .zip(&kernel)
-            .map(|(p, q)| p * (1.0 - snap) + q * snap)
-            .collect();
+        let manifold: Vec<f32> = pca.iter().zip(&kernel).map(|(p, q)| p * (1.0 - snap) + q * snap).collect();
         // the library pose with the smallest detour near the requested fraction
         let mut best: Option<(f32, usize)> = None;
         for (i, p) in self.db.poses.iter().enumerate() {
@@ -792,29 +636,15 @@ impl Suggester {
             }
         }
         let mut out = Vec::new();
-        for (m, l, p) in [
-            ("linear", "linear blend of the angles", lin),
-            ("pca", "blend in PCA space", pca),
-            ("manifold", "PCA blend pulled toward the library", manifold),
-        ] {
+        for (m, l, p) in [("linear", "linear blend of the angles", lin), ("pca", "blend in PCA space", pca), ("manifold", "PCA blend pulled toward the library", manifold)] {
             let (s, pl) = score_of(&p, self);
             out.push(self.cand(m, l, p, s, pl));
         }
         if let Some((_, i)) = best {
             let p = self.db.poses[i].clone();
             let (s, pl) = score_of(&p, self);
-            let mut c = self.cand(
-                "library",
-                &format!(
-                    "library pose {} of '{}'",
-                    self.db.meta[i].idx, self.db.sequences[self.db.meta[i].seq].name
-                ),
-                p,
-                s,
-                pl,
-            );
-            c.notes
-                .push("an existing pose from the library, not an interpolation".into());
+            let mut c = self.cand("library", &format!("library pose {} of '{}'", self.db.meta[i].idx, self.db.sequences[self.db.meta[i].seq].name), p, s, pl);
+            c.notes.push("an existing pose from the library, not an interpolation".into());
             out.push(c);
         }
         out.sort_by(|x, y| y.score.total_cmp(&x.score));
@@ -839,12 +669,7 @@ impl Suggester {
         model: Option<&Mlp>,
     ) -> Result<Vec<Candidate>, String> {
         self.check_pose(current, "current pose")?;
-        if !matches!(
-            prior.partial_cmp(&0.0),
-            Some(std::cmp::Ordering::Greater | std::cmp::Ordering::Equal)
-        ) || !prior.is_finite()
-            || top == 0
-        {
+        if !matches!(prior.partial_cmp(&0.0), Some(std::cmp::Ordering::Greater | std::cmp::Ordering::Equal)) || !prior.is_finite() || top == 0 {
             return Err("prior must be >= 0 and top >= 1".into());
         }
         let d = self.db.dim();
@@ -871,17 +696,9 @@ impl Suggester {
         let mut reach_dep: Vec<usize> = Vec::new();
         for c in constraints {
             match c {
-                Constraint::Angle {
-                    bone,
-                    value,
-                    weight,
-                } => {
-                    let i = ix(bone)
-                        .ok_or_else(|| format!("bone '{bone}' is not in the pose database"))?;
-                    if !value.is_finite()
-                        || ((*weight).partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater))
-                        || !weight.is_finite()
-                    {
+                Constraint::Angle { bone, value, weight } => {
+                    let i = ix(bone).ok_or_else(|| format!("bone '{bone}' is not in the pose database"))?;
+                    if !value.is_finite() || ((*weight).partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater)) || !weight.is_finite() {
                         return Err("constraint values must be finite and weights positive".into());
                     }
                     if locked.contains(bone) {
@@ -891,17 +708,9 @@ impl Suggester {
                     rcs.push(Rc::A(i, *value, *weight));
                 }
                 Constraint::Reach { bone, at, weight } => {
-                    let p = project
-                        .ok_or("a reach constraint needs the project (for its bone lengths)")?;
-                    let pi = p
-                        .bones
-                        .iter()
-                        .position(|b| b.name == *bone)
-                        .ok_or_else(|| format!("unknown bone '{bone}'"))?;
-                    if at.iter().any(|v| !v.is_finite())
-                        || ((*weight).partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater))
-                        || !weight.is_finite()
-                    {
+                    let p = project.ok_or("a reach constraint needs the project (for its bone lengths)")?;
+                    let pi = p.bones.iter().position(|b| b.name == *bone).ok_or_else(|| format!("unknown bone '{bone}'"))?;
+                    if at.iter().any(|v| !v.is_finite()) || ((*weight).partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater)) || !weight.is_finite() {
                         return Err("constraint values must be finite and weights positive".into());
                     }
                     reach_dep.push(pi);
@@ -913,19 +722,11 @@ impl Suggester {
             return Err("give at least one constraint (a fixed angle or a reach target)".into());
         }
         let project_ix: Vec<Option<usize>> = match project {
-            Some(p) => self
-                .db
-                .bones
-                .iter()
-                .map(|b| p.bones.iter().position(|x| x.name == *b))
-                .collect(),
+            Some(p) => self.db.bones.iter().map(|b| p.bones.iter().position(|x| x.name == *b)).collect(),
             None => vec![None; d],
         };
         let limits: Vec<Option<[f32; 2]>> = match project {
-            Some(p) => project_ix
-                .iter()
-                .map(|i| i.and_then(|i| p.bones[i].angle_limits))
-                .collect(),
+            Some(p) => project_ix.iter().map(|i| i.and_then(|i| p.bones[i].angle_limits)).collect(),
             None => vec![None; d],
         };
         let clamp_pose = |x: &mut Vec<f32>| {
@@ -937,9 +738,7 @@ impl Suggester {
         };
         let tip_of = |x: &[f32], pi: usize| -> [f32; 2] {
             let p = project.expect("checked");
-            let mut ang: Vec<f32> = base_angles
-                .map(|b| b.to_vec())
-                .unwrap_or_else(|| vec![0.0; p.bones.len()]);
+            let mut ang: Vec<f32> = base_angles.map(|b| b.to_vec()).unwrap_or_else(|| vec![0.0; p.bones.len()]);
             ang.resize(p.bones.len(), 0.0);
             for (j, pj) in project_ix.iter().enumerate() {
                 if let Some(pj) = pj {
@@ -974,12 +773,7 @@ impl Suggester {
             }
             r
         };
-        let cost = |z: &[f32]| {
-            residuals(z)
-                .iter()
-                .map(|v| (*v as f64) * (*v as f64))
-                .sum::<f64>()
-        };
+        let cost = |z: &[f32]| residuals(z).iter().map(|v| (*v as f64) * (*v as f64)).sum::<f64>();
         let linear = reach_dep.is_empty();
         let solve = |z0: Vec<f32>| -> Vec<f32> {
             let mut z = z0;
@@ -1044,12 +838,7 @@ impl Suggester {
         };
         // starts: the mean pose and the library poses that already satisfy the constraints best
         let mut starts: Vec<Vec<f32>> = vec![vec![0.0; k]];
-        let mut ranked: Vec<(f64, usize)> = self
-            .zs
-            .iter()
-            .enumerate()
-            .map(|(i, z)| (cost(z), i))
-            .collect();
+        let mut ranked: Vec<(f64, usize)> = self.zs.iter().enumerate().map(|(i, z)| (cost(z), i)).collect();
         ranked.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.cmp(&b.1)));
         for (_, i) in ranked.iter().take(4) {
             starts.push(self.zs[*i].clone());
@@ -1086,13 +875,7 @@ impl Suggester {
         for (n, (_, x)) in sols.iter().take(top).enumerate() {
             let e = const_err(x);
             let pl = self.plausibility(x);
-            let mut c = self.cand(
-                "pca-ls",
-                &format!("regularised least squares in PCA space (start {})", n + 1),
-                x.clone(),
-                pl / (1.0 + e / 5.0),
-                pl,
-            );
+            let mut c = self.cand("pca-ls", &format!("regularised least squares in PCA space (start {})", n + 1), x.clone(), pl / (1.0 + e / 5.0), pl);
             c.constraint_error = Some(e);
             out.push(c);
         }
@@ -1111,13 +894,7 @@ impl Suggester {
             .min_by(|a, b| a.0.total_cmp(&b.0));
         if let Some((e, x)) = lib_best {
             let pl = self.plausibility(&x);
-            let mut c = self.cand(
-                "library-nn",
-                "best-fitting library pose (nearest-neighbour baseline)",
-                x,
-                pl / (1.0 + e / 5.0),
-                pl,
-            );
+            let mut c = self.cand("library-nn", "best-fitting library pose (nearest-neighbour baseline)", x, pl / (1.0 + e / 5.0), pl);
             c.constraint_error = Some(e);
             out.push(c);
         }
@@ -1125,10 +902,7 @@ impl Suggester {
             if !reach_dep.is_empty() {
                 // the network sees only angles
                 if let Some(c) = out.first_mut() {
-                    c.notes.push(
-                        "the MLP was skipped: it handles fixed angles only, not reach targets"
-                            .into(),
-                    );
+                    c.notes.push("the MLP was skipped: it handles fixed angles only, not reach targets".into());
                 }
             } else {
                 let mut obs: Vec<Option<f32>> = vec![None; d];
@@ -1146,13 +920,7 @@ impl Suggester {
                 clamp_pose(&mut x);
                 let e = const_err(&x);
                 let pl = self.plausibility(&x);
-                let mut c = self.cand(
-                    "mlp",
-                    "user-supplied small network",
-                    x,
-                    pl / (1.0 + e / 5.0),
-                    pl,
-                );
+                let mut c = self.cand("mlp", "user-supplied small network", x, pl / (1.0 + e / 5.0), pl);
                 c.constraint_error = Some(e);
                 out.push(c);
             }
@@ -1166,13 +934,7 @@ impl Suggester {
     /// Candidates for the pose that follows `current`: the motion that followed the nearest library poses, applied
     /// to `current`. `frame` is the current frame; candidates carry `frame + gap` where `gap` is the weighted
     /// frame spacing of the voting successors.
-    pub fn next(
-        &self,
-        current: &[f32],
-        frame: f32,
-        k: usize,
-        top: usize,
-    ) -> Result<Vec<Candidate>, String> {
+    pub fn next(&self, current: &[f32], frame: f32, k: usize, top: usize) -> Result<Vec<Candidate>, String> {
         self.check_pose(current, "current pose")?;
         if k == 0 || top == 0 {
             return Err("k and top must be at least 1".into());
@@ -1184,28 +946,16 @@ impl Suggester {
             }
         }
         if voters.is_empty() {
-            return Err(
-                "the library has no consecutive poses (every sequence is a single pose)".into(),
-            );
+            return Err("the library has no consecutive poses (every sequence is a single pose)".into());
         }
         voters.sort_by(|a, b| a.2.total_cmp(&b.2).then(a.0.cmp(&b.0)));
         voters.truncate(k);
-        let h =
-            (voters.iter().map(|v| v.2).sum::<f32>() / voters.len() as f32).max(self.spacing * 0.5);
-        let ws: Vec<f32> = voters
-            .iter()
-            .map(|v| (-(v.2 / h).powi(2) * 0.5).exp())
-            .collect();
+        let h = (voters.iter().map(|v| v.2).sum::<f32>() / voters.len() as f32).max(self.spacing * 0.5);
+        let ws: Vec<f32> = voters.iter().map(|v| (-(v.2 / h).powi(2) * 0.5).exp()).collect();
         let wsum: f32 = ws.iter().sum::<f32>().max(1e-12);
         let d = current.len();
-        let delta_of = |(i, j, _): &(usize, usize, f32)| -> Vec<f32> {
-            (0..d)
-                .map(|b| self.db.poses[*j][b] - self.db.poses[*i][b])
-                .collect()
-        };
-        let gap_of = |(i, j, _): &(usize, usize, f32)| {
-            (self.db.meta[*j].frame - self.db.meta[*i].frame).max(0.0)
-        };
+        let delta_of = |(i, j, _): &(usize, usize, f32)| -> Vec<f32> { (0..d).map(|b| self.db.poses[*j][b] - self.db.poses[*i][b]).collect() };
+        let gap_of = |(i, j, _): &(usize, usize, f32)| (self.db.meta[*j].frame - self.db.meta[*i].frame).max(0.0);
         let mut mean_delta = vec![0.0f32; d];
         let mut mean_gap = 0.0f32;
         for (v, w) in voters.iter().zip(&ws) {
@@ -1214,41 +964,21 @@ impl Suggester {
             }
             mean_gap += w * gap_of(v) / wsum;
         }
-        let spread = (voters
-            .iter()
-            .zip(&ws)
-            .map(|(v, w)| w * rms(&delta_of(v), &mean_delta).powi(2))
-            .sum::<f32>()
-            / wsum)
-            .sqrt();
-        let apply = |delta: &[f32]| -> Vec<f32> {
-            current.iter().zip(delta).map(|(c, dv)| c + dv).collect()
-        };
+        let spread = (voters.iter().zip(&ws).map(|(v, w)| w * rms(&delta_of(v), &mean_delta).powi(2)).sum::<f32>() / wsum).sqrt();
+        let apply = |delta: &[f32]| -> Vec<f32> { current.iter().zip(delta).map(|(c, dv)| c + dv).collect() };
         let far = voters[0].2 / self.spacing;
         let mut out = Vec::new();
         let mp = apply(&mean_delta);
         let mpl = self.plausibility(&mp);
-        let mut mc = self.cand(
-            "markov-mean",
-            "kernel-weighted mean of the following motions",
-            mp,
-            (1.0 / (1.0 + spread / self.step)) * mpl,
-            mpl,
-        );
+        let mut mc = self.cand("markov-mean", "kernel-weighted mean of the following motions", mp, (1.0 / (1.0 + spread / self.step)) * mpl, mpl);
         mc.frame = Some(frame + mean_gap);
         out.push(mc);
         // individual successors, near-duplicates merged
         let mut singles: Vec<(f32, Vec<f32>, f32, String)> = Vec::new();
         for (v, w) in voters.iter().zip(&ws) {
             let p = apply(&delta_of(v));
-            let label = format!(
-                "what followed pose {} of '{}'",
-                self.db.meta[v.0].idx, self.db.sequences[self.db.meta[v.0].seq].name
-            );
-            match singles
-                .iter_mut()
-                .find(|s| rms(&s.1, &p) < 0.5 * self.step.min(self.spacing).max(0.25))
-            {
+            let label = format!("what followed pose {} of '{}'", self.db.meta[v.0].idx, self.db.sequences[self.db.meta[v.0].seq].name);
+            match singles.iter_mut().find(|s| rms(&s.1, &p) < 0.5 * self.step.min(self.spacing).max(0.25)) {
                 Some(s) => s.0 += w / wsum,
                 None => singles.push((w / wsum, p, gap_of(v), label)),
             }
@@ -1273,19 +1003,12 @@ impl Suggester {
 
     /// Fill `values` of each candidate: project bones only, locked channels and bones outside `free` removed.
     /// Returns the names of locked channels that were left out.
-    pub fn bind(
-        &self,
-        cands: &mut [Candidate],
-        project: &Project,
-        free: Option<&[String]>,
-    ) -> Vec<String> {
+    pub fn bind(&self, cands: &mut [Candidate], project: &Project, free: Option<&[String]>) -> Vec<String> {
         let mut skipped: Vec<String> = Vec::new();
         for c in cands.iter_mut() {
             c.values.clear();
             for (b, v) in self.db.bones.iter().zip(&c.pose) {
-                if !project.bones.iter().any(|x| x.name == *b)
-                    || free.is_some_and(|f| !f.contains(b))
-                {
+                if !project.bones.iter().any(|x| x.name == *b) || free.is_some_and(|f| !f.contains(b)) {
                     continue;
                 }
                 if crate::chanmeta::is_locked(project, b, Prop::BoneAngle) {
@@ -1294,10 +1017,7 @@ impl Suggester {
                     }
                     continue;
                 }
-                c.values.push(BoneValue {
-                    bone: b.clone(),
-                    angle: *v,
-                });
+                c.values.push(BoneValue { bone: b.clone(), angle: *v });
             }
         }
         skipped
@@ -1338,12 +1058,7 @@ fn solve_linear(mut a: Vec<Vec<f64>>, mut b: Vec<f64>) -> Option<Vec<f64>> {
 
 /// One undoable batch that keys the candidate's rotations at `frame`. Locked channels are skipped (and returned);
 /// an error if nothing can be written.
-pub fn apply_op(
-    project: &Project,
-    values: &[BoneValue],
-    frame: f32,
-    ease: Ease,
-) -> Result<(Op, Vec<String>), String> {
+pub fn apply_op(project: &Project, values: &[BoneValue], frame: f32, ease: Ease) -> Result<(Op, Vec<String>), String> {
     if !frame.is_finite() || frame < 0.0 {
         return Err("frame must be a finite number >= 0".into());
     }
@@ -1364,12 +1079,7 @@ pub fn apply_op(
             skipped.push(v.bone.clone());
             continue;
         }
-        let pos = channels.iter().position(|c| {
-            c.target == v.bone
-                && c.prop == Prop::BoneAngle
-                && matches!(c.source, Source::Keys { .. })
-                && !crate::skins::is_collapse_channel(c)
-        });
+        let pos = channels.iter().position(|c| c.target == v.bone && c.prop == Prop::BoneAngle && matches!(c.source, Source::Keys { .. }) && !crate::skins::is_collapse_channel(c));
         match pos {
             Some(i) => {
                 if let Source::Keys { track } = &mut channels[i].source {
@@ -1379,11 +1089,7 @@ pub fn apply_op(
                     touched.push(i);
                 }
             }
-            None => added.push(Channel::keys(
-                &v.bone,
-                Prop::BoneAngle,
-                Track::with_keys(&[(frame, v.angle, ease)]),
-            )),
+            None => added.push(Channel::keys(&v.bone, Prop::BoneAngle, Track::with_keys(&[(frame, v.angle, ease)]))),
         }
     }
     if touched.is_empty() && added.is_empty() {
@@ -1391,22 +1097,13 @@ pub fn apply_op(
     }
     let need = frame.ceil() as u32 + 1;
     if need > project.frames {
-        ops.push(Op::Set {
-            path: "/frames".into(),
-            value: serde_json::json!(need),
-        });
+        ops.push(Op::Set { path: "/frames".into(), value: serde_json::json!(need) });
     }
     for i in touched {
-        ops.push(Op::Set {
-            path: format!("/channels/{i}"),
-            value: serde_json::to_value(&channels[i]).map_err(|e| e.to_string())?,
-        });
+        ops.push(Op::Set { path: format!("/channels/{i}"), value: serde_json::to_value(&channels[i]).map_err(|e| e.to_string())? });
     }
     for c in added {
-        ops.push(Op::Insert {
-            path: "/channels/-".into(),
-            value: serde_json::to_value(&c).map_err(|e| e.to_string())?,
-        });
+        ops.push(Op::Insert { path: "/channels/-".into(), value: serde_json::to_value(&c).map_err(|e| e.to_string())? });
     }
     Ok((Op::Batch { ops }, skipped))
 }
@@ -1447,34 +1144,13 @@ pub struct Request {
 }
 
 /// Run a request against a project. The caller builds the [`Suggester`] (from the project, a library or a saved database).
-pub fn suggest(
-    project: &Project,
-    sg: &Suggester,
-    req: &Request,
-    model: Option<&Mlp>,
-) -> Result<Suggestions, String> {
+pub fn suggest(project: &Project, sg: &Suggester, req: &Request, model: Option<&Mlp>) -> Result<Suggestions, String> {
     let bones = &sg.db.bones;
-    let locked: Vec<String> = bones
-        .iter()
-        .filter(|b| crate::chanmeta::is_locked(project, b, Prop::BoneAngle))
-        .cloned()
-        .collect();
+    let locked: Vec<String> = bones.iter().filter(|b| crate::chanmeta::is_locked(project, b, Prop::BoneAngle)).cloned().collect();
     let mut notes: Vec<String> = Vec::new();
-    let missing: Vec<&String> = bones
-        .iter()
-        .filter(|b| !project.bones.iter().any(|x| x.name == **b))
-        .collect();
+    let missing: Vec<&String> = bones.iter().filter(|b| !project.bones.iter().any(|x| x.name == **b)).collect();
     if !missing.is_empty() {
-        notes.push(format!(
-            "{} library bone(s) are not in this project and are ignored: {}",
-            missing.len(),
-            missing
-                .iter()
-                .take(6)
-                .map(|s| s.as_str())
-                .collect::<Vec<_>>()
-                .join(", ")
-        ));
+        notes.push(format!("{} library bone(s) are not in this project and are ignored: {}", missing.len(), missing.iter().take(6).map(|s| s.as_str()).collect::<Vec<_>>().join(", ")));
     }
     let frame_ok = |f: Option<f32>, what: &str| -> Result<f32, String> {
         let f = f.ok_or_else(|| format!("{what} is required"))?;
@@ -1487,51 +1163,22 @@ pub fn suggest(
         "between" => {
             let (fa, fb) = (frame_ok(req.a, "a")?, frame_ok(req.b, "b")?);
             let t = req.t.unwrap_or(0.5);
-            let c = sg.between(
-                &pose_at(project, bones, fa),
-                &pose_at(project, bones, fb),
-                t,
-                req.snap.unwrap_or(0.5),
-                req.k.unwrap_or(6),
-            )?;
+            let c = sg.between(&pose_at(project, bones, fa), &pose_at(project, bones, fb), t, req.snap.unwrap_or(0.5), req.k.unwrap_or(6))?;
             ("between", c, fa + (fb - fa) * t)
         }
         "complete" => {
             let f = frame_ok(req.frame, "frame")?;
             let cur = pose_at(project, bones, f);
-            let base: Vec<f32> = project
-                .bones
-                .iter()
-                .map(|b| pose_at(project, std::slice::from_ref(&b.name), f)[0])
-                .collect();
-            let c = sg.complete(
-                Some(project),
-                &req.constraints,
-                &cur,
-                Some(&base),
-                req.free.as_deref(),
-                &locked,
-                req.prior.unwrap_or(1.0),
-                req.top.max(1),
-                model,
-            )?;
+            let base: Vec<f32> = project.bones.iter().map(|b| pose_at(project, std::slice::from_ref(&b.name), f)[0]).collect();
+            let c = sg.complete(Some(project), &req.constraints, &cur, Some(&base), req.free.as_deref(), &locked, req.prior.unwrap_or(1.0), req.top.max(1), model)?;
             ("complete", c, f)
         }
         "next" => {
             let f = frame_ok(req.frame, "frame")?;
-            let c = sg.next(
-                &pose_at(project, bones, f),
-                f,
-                req.k.unwrap_or(8),
-                req.top.max(1),
-            )?;
+            let c = sg.next(&pose_at(project, bones, f), f, req.k.unwrap_or(8), req.top.max(1))?;
             ("next", c, f)
         }
-        k => {
-            return Err(format!(
-                "unknown suggestion kind '{k}' (between, complete, next)"
-            ))
-        }
+        k => return Err(format!("unknown suggestion kind '{k}' (between, complete, next)")),
     };
     cands.truncate(req.top.max(1));
     for c in cands.iter_mut() {
@@ -1541,10 +1188,7 @@ pub fn suggest(
     }
     let locked_skipped = sg.bind(&mut cands, project, req.free.as_deref());
     if !locked_skipped.is_empty() {
-        notes.push(format!(
-            "locked channels are left alone: {}",
-            locked_skipped.join(", ")
-        ));
+        notes.push(format!("locked channels are left alone: {}", locked_skipped.join(", ")));
     }
     Ok(Suggestions {
         kind: kind.into(),
@@ -1564,26 +1208,13 @@ pub fn suggest(
 
 /// Predict a full pose from observed bone values with a pose-completion [`Mlp`] (see `tinymlp` for the contract).
 /// The model's bone list must equal `bones`.
-pub fn predict_completion(
-    m: &Mlp,
-    bones: &[String],
-    observed: &[Option<f32>],
-) -> Result<Vec<f32>, String> {
+pub fn predict_completion(m: &Mlp, bones: &[String], observed: &[Option<f32>]) -> Result<Vec<f32>, String> {
     let d = bones.len();
     if m.bones != bones {
-        return Err(format!(
-            "the model was trained for bones [{}], the library has [{}]",
-            m.bones.join(", "),
-            bones.join(", ")
-        ));
+        return Err(format!("the model was trained for bones [{}], the library has [{}]", m.bones.join(", "), bones.join(", ")));
     }
     if m.n_in() != 2 * d || m.n_out() != d {
-        return Err(format!(
-            "the model has {} inputs / {} outputs, a completion model for {d} bones needs {} / {d}",
-            m.n_in(),
-            m.n_out(),
-            2 * d
-        ));
+        return Err(format!("the model has {} inputs / {} outputs, a completion model for {d} bones needs {} / {d}", m.n_in(), m.n_out(), 2 * d));
     }
     let mean = |j: usize| m.mean.get(j).copied().unwrap_or(0.0);
     let scale = |j: usize| m.scale.get(j).copied().unwrap_or(1.0);
@@ -1595,9 +1226,7 @@ pub fn predict_completion(
         }
     }
     let y = m.forward(&x);
-    Ok((0..d)
-        .map(|j| observed[j].unwrap_or(y[j] * scale(j) + mean(j)))
-        .collect())
+    Ok((0..d).map(|j| observed[j].unwrap_or(y[j] * scale(j) + mean(j))).collect())
 }
 
 /// Train a pose-completion network on the database: random subsets of bones are observed and the network
@@ -1612,20 +1241,8 @@ pub fn train_completion(db: &PoseDb, o: &TrainOpts) -> Result<(Mlp, Vec<f32>), S
         return Err("training needs at least 4 poses".into());
     }
     let n = db.poses.len();
-    let mean: Vec<f32> = (0..d)
-        .map(|j| db.poses.iter().map(|p| p[j]).sum::<f32>() / n as f32)
-        .collect();
-    let scale: Vec<f32> = (0..d)
-        .map(|j| {
-            (db.poses
-                .iter()
-                .map(|p| (p[j] - mean[j]).powi(2))
-                .sum::<f32>()
-                / n as f32)
-                .sqrt()
-                .max(1.0)
-        })
-        .collect();
+    let mean: Vec<f32> = (0..d).map(|j| db.poses.iter().map(|p| p[j]).sum::<f32>() / n as f32).collect();
+    let scale: Vec<f32> = (0..d).map(|j| (db.poses.iter().map(|p| (p[j] - mean[j]).powi(2)).sum::<f32>() / n as f32).sqrt().max(1.0)).collect();
     let poses = &db.poses;
     let (mean_c, scale_c) = (mean.clone(), scale.clone());
     let mut sample = move |rng: &mut Rng| {
@@ -1655,14 +1272,7 @@ pub fn train_completion(db: &PoseDb, o: &TrainOpts) -> Result<(Mlp, Vec<f32>), S
         (x, t, w)
     };
     let (layers, hist) = tinymlp::train(2 * d, d, o, n.max(32), &mut sample)?;
-    let m = Mlp {
-        format: "osatura-mlp".into(),
-        version: 1,
-        bones: db.bones.clone(),
-        mean,
-        scale,
-        layers: layers.into_iter().collect::<Vec<Dense>>(),
-    };
+    let m = Mlp { format: "osatura-mlp".into(), version: 1, bones: db.bones.clone(), mean, scale, layers: layers.into_iter().collect::<Vec<Dense>>() };
     m.validate()?;
     Ok((m, hist))
 }
@@ -1677,18 +1287,9 @@ pub fn synthetic_db(seed: u64, seqs: usize, per: usize, bones: usize) -> PoseDb 
     let mut rng = Rng::new(seed);
     let names: Vec<String> = (0..bones).map(|i| format!("b{i}")).collect();
     let amp: Vec<f32> = (0..bones).map(|_| 10.0 + 30.0 * rng.unit()).collect();
-    let psi: Vec<f32> = (0..bones)
-        .map(|_| std::f32::consts::TAU * rng.unit())
-        .collect();
+    let psi: Vec<f32> = (0..bones).map(|_| std::f32::consts::TAU * rng.unit()).collect();
     let off: Vec<f32> = (0..bones).map(|_| 10.0 * (rng.unit() - 0.5)).collect();
-    let mut db = PoseDb {
-        format: db_format(),
-        version: 1,
-        bones: names,
-        poses: vec![],
-        meta: vec![],
-        sequences: vec![],
-    };
+    let mut db = PoseDb { format: db_format(), version: 1, bones: names, poses: vec![], meta: vec![], sequences: vec![] };
     for s in 0..seqs {
         let k = 0.5 + 1.0 * rng.unit();
         let phase0 = std::f32::consts::TAU * rng.unit();
@@ -1697,38 +1298,20 @@ pub fn synthetic_db(seed: u64, seqs: usize, per: usize, bones: usize) -> PoseDb 
             let pose: Vec<f32> = (0..bones)
                 .map(|j| {
                     let noise = (rng.unit() - 0.5) * 1.0;
-                    k * amp[j] * (phi + psi[j]).sin()
-                        + off[j]
-                        + 0.15 * k * k * amp[j] * (2.0 * phi + psi[j]).sin()
-                        + noise
+                    k * amp[j] * (phi + psi[j]).sin() + off[j] + 0.15 * k * k * amp[j] * (2.0 * phi + psi[j]).sin() + noise
                 })
                 .collect();
             db.poses.push(pose);
-            db.meta.push(PoseMeta {
-                seq: s,
-                idx: i,
-                frame: (i * 4) as f32,
-            });
+            db.meta.push(PoseMeta { seq: s, idx: i, frame: (i * 4) as f32 });
         }
-        db.sequences.push(SeqInfo {
-            name: format!("cycle{s}"),
-            source: "library".into(),
-            poses: per,
-        });
+        db.sequences.push(SeqInfo { name: format!("cycle{s}"), source: "library".into(), poses: per });
     }
     db
 }
 
 /// The network configuration the CLI benchmark reports.
 pub fn default_bench_opts() -> TrainOpts {
-    TrainOpts {
-        hidden: vec![64, 64],
-        epochs: 1500,
-        lr: 0.02,
-        momentum: 0.9,
-        batch: 16,
-        seed: 1,
-    }
+    TrainOpts { hidden: vec![64, 64], epochs: 1500, lr: 0.02, momentum: 0.9, batch: 16, seed: 1 }
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -1741,14 +1324,7 @@ pub struct BenchLine {
 
 fn split_db(db: &PoseDb, hold: impl Fn(usize) -> bool) -> (PoseDb, PoseDb) {
     let mk = |keep: &dyn Fn(usize) -> bool| {
-        let mut out = PoseDb {
-            format: db_format(),
-            version: 1,
-            bones: db.bones.clone(),
-            poses: vec![],
-            meta: vec![],
-            sequences: vec![],
-        };
+        let mut out = PoseDb { format: db_format(), version: 1, bones: db.bones.clone(), poses: vec![], meta: vec![], sequences: vec![] };
         for (s, info) in db.sequences.iter().enumerate() {
             if !keep(s) {
                 continue;
@@ -1757,11 +1333,7 @@ fn split_db(db: &PoseDb, hold: impl Fn(usize) -> bool) -> (PoseDb, PoseDb) {
             out.sequences.push(info.clone());
             for (i, m) in db.meta.iter().enumerate().filter(|(_, m)| m.seq == s) {
                 out.poses.push(db.poses[i].clone());
-                out.meta.push(PoseMeta {
-                    seq: ns,
-                    idx: m.idx,
-                    frame: m.frame,
-                });
+                out.meta.push(PoseMeta { seq: ns, idx: m.idx, frame: m.frame });
             }
         }
         out
@@ -1796,18 +1368,8 @@ pub fn benchmark(seed: u64, mlp_opts: &TrainOpts) -> Result<Vec<BenchLine>, Stri
                 }
             }
             let hidden: Vec<usize> = (0..d).filter(|&j| !obs[j]).collect();
-            let err = |x: &[f32]| {
-                (hidden.iter().map(|&j| (x[j] - p[j]).powi(2)).sum::<f32>() / hidden.len() as f32)
-                    .sqrt() as f64
-            };
-            let cons: Vec<Constraint> = (0..d)
-                .filter(|&j| obs[j])
-                .map(|j| Constraint::Angle {
-                    bone: sg.db.bones[j].clone(),
-                    value: p[j],
-                    weight: 1.0,
-                })
-                .collect();
+            let err = |x: &[f32]| (hidden.iter().map(|&j| (x[j] - p[j]).powi(2)).sum::<f32>() / hidden.len() as f32).sqrt() as f64;
+            let cons: Vec<Constraint> = (0..d).filter(|&j| obs[j]).map(|j| Constraint::Angle { bone: sg.db.bones[j].clone(), value: p[j], weight: 1.0 }).collect();
             // mean pose with the observed values pasted in
             let mut m = mean_pose.clone();
             for j in 0..d {
@@ -1817,44 +1379,23 @@ pub fn benchmark(seed: u64, mlp_opts: &TrainOpts) -> Result<Vec<BenchLine>, Stri
             }
             // nearest library pose by the observed bones only
             let nn = train.poses.iter().min_by(|a, b| {
-                let da: f32 = (0..d)
-                    .filter(|&j| obs[j])
-                    .map(|j| (a[j] - p[j]).powi(2))
-                    .sum();
-                let db_: f32 = (0..d)
-                    .filter(|&j| obs[j])
-                    .map(|j| (b[j] - p[j]).powi(2))
-                    .sum();
+                let da: f32 = (0..d).filter(|&j| obs[j]).map(|j| (a[j] - p[j]).powi(2)).sum();
+                let db_: f32 = (0..d).filter(|&j| obs[j]).map(|j| (b[j] - p[j]).powi(2)).sum();
                 da.total_cmp(&db_)
             });
             let cur = vec![0.0; d];
             let cands = sg.complete(None, &cons, &cur, None, None, &[], 1.0, 1, None)?;
-            let pca = cands
-                .iter()
-                .find(|c| c.method == "pca-ls")
-                .ok_or("no PCA candidate")?;
+            let pca = cands.iter().find(|c| c.method == "pca-ls").ok_or("no PCA candidate")?;
             let observed: Vec<Option<f32>> = (0..d).map(|j| obs[j].then_some(p[j])).collect();
             let net = predict_completion(&mlp, &sg.db.bones, &observed)?;
-            let vals = [
-                err(&m),
-                err(nn.expect("non-empty")),
-                err(&pca.pose),
-                err(&net),
-            ];
+            let vals = [err(&m), err(nn.expect("non-empty")), err(&pca.pose), err(&net)];
             for (s, v) in sums.iter_mut().zip(vals) {
                 s.2 += v;
                 s.3 += 1;
             }
         }
     }
-    let mut out: Vec<BenchLine> = sums
-        .iter()
-        .map(|s| BenchLine {
-            task: s.0.into(),
-            method: s.1.into(),
-            rms_deg: (s.2 / s.3 as f64) as f32,
-        })
-        .collect();
+    let mut out: Vec<BenchLine> = sums.iter().map(|s| BenchLine { task: s.0.into(), method: s.1.into(), rms_deg: (s.2 / s.3 as f64) as f32 }).collect();
     // between: predict the middle pose of three consecutive test poses
     let mut bsum = [0.0f64; 4];
     let mut bn = 0usize;
@@ -1870,20 +1411,8 @@ pub fn benchmark(seed: u64, mlp_opts: &TrainOpts) -> Result<Vec<BenchLine>, Stri
             bn += 1;
         }
     }
-    for (slot, m) in [
-        "linear blend",
-        "PCA blend",
-        "PCA blend pulled to the library",
-        "nearest between library pose",
-    ]
-    .iter()
-    .enumerate()
-    {
-        out.push(BenchLine {
-            task: "between".into(),
-            method: (*m).into(),
-            rms_deg: (bsum[slot] / bn.max(1) as f64) as f32,
-        });
+    for (slot, m) in ["linear blend", "PCA blend", "PCA blend pulled to the library", "nearest between library pose"].iter().enumerate() {
+        out.push(BenchLine { task: "between".into(), method: (*m).into(), rms_deg: (bsum[slot] / bn.max(1) as f64) as f32 });
     }
     // next: predict the following pose
     let (mut hold, mut mean_e, mut best_e, mut nn) = (0.0f64, 0.0f64, 0.0f64, 0usize);
@@ -1892,36 +1421,15 @@ pub fn benchmark(seed: u64, mlp_opts: &TrainOpts) -> Result<Vec<BenchLine>, Stri
             let truth = &test.poses[j];
             hold += rms(&test.poses[i], truth) as f64;
             let c = sg.next(&test.poses[i], test.meta[i].frame, 8, 8)?;
-            mean_e += rms(
-                &c.iter()
-                    .find(|x| x.method == "markov-mean")
-                    .ok_or("no mean")?
-                    .pose,
-                truth,
-            ) as f64;
-            best_e += c
-                .iter()
-                .map(|x| rms(&x.pose, truth))
-                .fold(f32::MAX, f32::min) as f64;
+            mean_e += rms(&c.iter().find(|x| x.method == "markov-mean").ok_or("no mean")?.pose, truth) as f64;
+            best_e += c.iter().map(|x| rms(&x.pose, truth)).fold(f32::MAX, f32::min) as f64;
             nn += 1;
         }
     }
     let nn = nn.max(1) as f64;
-    out.push(BenchLine {
-        task: "next".into(),
-        method: "stay in place".into(),
-        rms_deg: (hold / nn) as f32,
-    });
-    out.push(BenchLine {
-        task: "next".into(),
-        method: "Markov mean".into(),
-        rms_deg: (mean_e / nn) as f32,
-    });
-    out.push(BenchLine {
-        task: "next".into(),
-        method: "best of the candidates (oracle choice)".into(),
-        rms_deg: (best_e / nn) as f32,
-    });
+    out.push(BenchLine { task: "next".into(), method: "stay in place".into(), rms_deg: (hold / nn) as f32 });
+    out.push(BenchLine { task: "next".into(), method: "Markov mean".into(), rms_deg: (mean_e / nn) as f32 });
+    out.push(BenchLine { task: "next".into(), method: "best of the candidates (oracle choice)".into(), rms_deg: (best_e / nn) as f32 });
     Ok(out)
 }
 #[cfg(test)]
@@ -1936,8 +1444,7 @@ mod tests {
         p.bones = vec![
             Bone::new("u", None, 80.0, Vec2::new(150.0, 120.0), 10.0),
             Bone::new("l", Some("u"), 70.0, Vec2::new(80.0, 0.0), -5.0),
-            Bone::new("h", Some("l"), 30.0, Vec2::new(70.0, 0.0), 0.0)
-                .with_angle_limits(-60.0, 60.0),
+            Bone::new("h", Some("l"), 30.0, Vec2::new(70.0, 0.0), 0.0).with_angle_limits(-60.0, 60.0),
         ];
         p
     }
@@ -1955,28 +1462,13 @@ mod tests {
             tl.set_key(f, 30.0 * (ph + 0.8).sin() + 20.0, Ease::Linear);
             th.set_key(f, 0.5 * 30.0 * (ph + 0.8).sin(), Ease::Linear);
         }
-        p.channels = vec![
-            Channel::keys("u", Prop::BoneAngle, tu),
-            Channel::keys("l", Prop::BoneAngle, tl),
-            Channel::keys("h", Prop::BoneAngle, th),
-        ];
+        p.channels = vec![Channel::keys("u", Prop::BoneAngle, tu), Channel::keys("l", Prop::BoneAngle, tl), Channel::keys("h", Prop::BoneAngle, th)];
         p
     }
 
     fn engine_tip(p: &Project, angles: &[f32], bone: usize) -> Vec2 {
         let mut q = p.clone();
-        q.channels = p
-            .bones
-            .iter()
-            .zip(angles)
-            .map(|(b, a)| {
-                Channel::keys(
-                    &b.name,
-                    Prop::BoneAngle,
-                    Track::with_keys(&[(0.0, *a, Ease::Linear)]),
-                )
-            })
-            .collect();
+        q.channels = p.bones.iter().zip(angles).map(|(b, a)| Channel::keys(&b.name, Prop::BoneAngle, Track::with_keys(&[(0.0, *a, Ease::Linear)]))).collect();
         let e = crate::Engine::new(q).unwrap();
         e.evaluate(0.0).world[bone].apply(Vec2::new(p.bones[bone].length, 0.0))
     }
@@ -1984,19 +1476,11 @@ mod tests {
     #[test]
     fn forward_kinematics_matches_the_engine() {
         let p = arm();
-        for angles in [
-            [0.0f32, 0.0, 0.0],
-            [30.0, -45.0, 20.0],
-            [-80.0, 100.0, 59.0],
-            [10.0, 10.0, -200.0],
-        ] {
+        for angles in [[0.0f32, 0.0, 0.0], [30.0, -45.0, 20.0], [-80.0, 100.0, 59.0], [10.0, 10.0, -200.0]] {
             for bone in 0..3 {
                 let want = engine_tip(&p, &angles, bone);
                 let got = fk_tip(&p, &angles, bone);
-                assert!(
-                    (want.x - got[0]).abs() < 1e-2 && (want.y - got[1]).abs() < 1e-2,
-                    "{angles:?} bone {bone}: {want:?} vs {got:?}"
-                );
+                assert!((want.x - got[0]).abs() < 1e-2 && (want.y - got[1]).abs() < 1e-2, "{angles:?} bone {bone}: {want:?} vs {got:?}");
             }
         }
     }
@@ -2008,18 +1492,8 @@ mod tests {
         assert_eq!(db.bones, vec!["u", "l", "h"]);
         assert_eq!(db.poses.len(), 13);
         assert_eq!(db.sequences.len(), 1);
-        assert_eq!(
-            db.meta[3],
-            PoseMeta {
-                seq: 0,
-                idx: 3,
-                frame: 9.0
-            }
-        );
-        assert!(
-            (db.poses[3][0] - 40.0).abs() < 1e-3,
-            "key value at frame 9 (a quarter cycle)"
-        );
+        assert_eq!(db.meta[3], PoseMeta { seq: 0, idx: 3, frame: 9.0 });
+        assert!((db.poses[3][0] - 40.0).abs() < 1e-3, "key value at frame 9 (a quarter cycle)");
         assert_eq!(db.successor(0), Some(1));
         assert_eq!(db.successor(12), None);
         db.validate().unwrap();
@@ -2030,11 +1504,7 @@ mod tests {
         // library takes become sequences; missing bones are 0 and extra bones are appended
         let mut lib = Library::default();
         let mut q = arm_with_cycle();
-        q.channels.push(Channel::keys(
-            "tail",
-            Prop::BoneAngle,
-            Track::with_keys(&[(0.0, 5.0, Ease::Linear), (6.0, 15.0, Ease::Linear)]),
-        ));
+        q.channels.push(Channel::keys("tail", Prop::BoneAngle, Track::with_keys(&[(0.0, 5.0, Ease::Linear), (6.0, 15.0, Ease::Linear)])));
         crate::motionlib::record(&mut lib, &q, "wag", 0.0, 6.0, &["tail".to_string()]).unwrap();
         let both = build_db(Some(&p), Some(&lib), None).unwrap();
         assert_eq!(both.bones, vec!["u", "l", "h", "tail"]);
@@ -2048,22 +1518,14 @@ mod tests {
     #[test]
     fn database_errors_are_reported() {
         let p = arm();
-        assert!(build_db(Some(&p), None, None)
-            .unwrap_err()
-            .contains("no keyed bone rotations"));
+        assert!(build_db(Some(&p), None, None).unwrap_err().contains("no keyed bone rotations"));
         assert!(build_db(None, None, None).is_err());
         let q = arm_with_cycle();
         assert!(build_db(Some(&q), None, Some(0.0)).is_err());
         assert!(build_db(Some(&q), None, Some(f32::NAN)).is_err());
         let mut one = arm();
-        one.channels = vec![Channel::keys(
-            "u",
-            Prop::BoneAngle,
-            Track::with_keys(&[(0.0, 1.0, Ease::Linear)]),
-        )];
-        assert!(build_db(Some(&one), None, None)
-            .unwrap_err()
-            .contains("at least two poses"));
+        one.channels = vec![Channel::keys("u", Prop::BoneAngle, Track::with_keys(&[(0.0, 1.0, Ease::Linear)]))];
+        assert!(build_db(Some(&one), None, None).unwrap_err().contains("at least two poses"));
         let mut db = build_db(Some(&q), None, None).unwrap();
         db.poses[0].pop();
         assert!(db.validate().is_err());
@@ -2075,20 +1537,11 @@ mod tests {
 
     #[test]
     fn jacobi_and_power_iteration_agree_with_a_known_matrix() {
-        let a = vec![
-            vec![2.0, 1.0, 0.0],
-            vec![1.0, 2.0, 0.0],
-            vec![0.0, 0.0, 5.0],
-        ];
+        let a = vec![vec![2.0, 1.0, 0.0], vec![1.0, 2.0, 0.0], vec![0.0, 0.0, 5.0]];
         let (vals, vecs) = jacobi_eigen(a.clone());
         let mut sorted = vals.clone();
         sorted.sort_by(|a, b| a.total_cmp(b));
-        assert!(
-            (sorted[0] - 1.0).abs() < 1e-9
-                && (sorted[1] - 3.0).abs() < 1e-9
-                && (sorted[2] - 5.0).abs() < 1e-9,
-            "{sorted:?}"
-        );
+        assert!((sorted[0] - 1.0).abs() < 1e-9 && (sorted[1] - 3.0).abs() < 1e-9 && (sorted[2] - 5.0).abs() < 1e-9, "{sorted:?}");
         // A v = lambda v for every pair
         for c in 0..3 {
             for r in 0..3 {
@@ -2113,29 +1566,15 @@ mod tests {
         let poses: Vec<Vec<f32>> = (0..600)
             .map(|_| {
                 let (a, b) = (10.0 * gauss(), 3.0 * gauss());
-                (0..6)
-                    .map(|j| 7.0 + a * u1[j] + b * u2[j] + 0.01 * gauss())
-                    .collect()
+                (0..6).map(|j| 7.0 + a * u1[j] + b * u2[j] + 0.01 * gauss()).collect()
             })
             .collect();
         let sp = PoseSpace::fit(&poses, 0.99, 6).unwrap();
         assert_eq!(sp.k(), 2, "two axes carry 99 % of the variance");
         let cos = |a: &[f32], b: &[f32]| a.iter().zip(b).map(|(x, y)| x * y).sum::<f32>().abs();
-        assert!(
-            cos(&sp.comps[0], &u1) > 0.999,
-            "first axis {:?}",
-            sp.comps[0]
-        );
-        assert!(
-            cos(&sp.comps[1], &u2) > 0.995,
-            "second axis {:?}",
-            sp.comps[1]
-        );
-        assert!(
-            (sp.eig[0].sqrt() - 10.0).abs() < 0.8 && (sp.eig[1].sqrt() - 3.0).abs() < 0.3,
-            "{:?}",
-            sp.eig
-        );
+        assert!(cos(&sp.comps[0], &u1) > 0.999, "first axis {:?}", sp.comps[0]);
+        assert!(cos(&sp.comps[1], &u2) > 0.995, "second axis {:?}", sp.comps[1]);
+        assert!((sp.eig[0].sqrt() - 10.0).abs() < 0.8 && (sp.eig[1].sqrt() - 3.0).abs() < 0.3, "{:?}", sp.eig);
         assert!(sp.explained[1] > 0.99 && sp.explained[0] < sp.explained[1]);
         assert!((sp.mean[0] - 7.0).abs() < 1.5);
         // projection and reconstruction round trip for points on the plane
@@ -2143,48 +1582,22 @@ mod tests {
         let back = sp.reconstruct(&sp.project(&x));
         assert!(rms(&x, &back) < 0.1, "{}", rms(&x, &back));
         // orthonormal axes
-        assert!(
-            sp.comps[0]
-                .iter()
-                .zip(&sp.comps[1])
-                .map(|(a, b)| a * b)
-                .sum::<f32>()
-                .abs()
-                < 1e-4
-        );
+        assert!(sp.comps[0].iter().zip(&sp.comps[1]).map(|(a, b)| a * b).sum::<f32>().abs() < 1e-4);
         assert!((sp.comps[0].iter().map(|v| v * v).sum::<f32>() - 1.0).abs() < 1e-4);
         // errors
         assert!(PoseSpace::fit(&poses[..1], 0.9, 3).is_err());
         assert!(PoseSpace::fit(&poses, 0.0, 3).is_err());
         assert!(PoseSpace::fit(&poses, 0.9, 0).is_err());
-        assert!(PoseSpace::fit(&vec![vec![1.0, 2.0]; 5], 0.9, 2)
-            .unwrap_err()
-            .contains("identical"));
+        assert!(PoseSpace::fit(&vec![vec![1.0, 2.0]; 5], 0.9, 2).unwrap_err().contains("identical"));
     }
 
     fn circle_db() -> PoseDb {
         // poses on a circle of radius 30 in the plane of bones b0, b1 (a curved one-dimensional manifold), 4 bones
-        let mut db = PoseDb {
-            format: db_format(),
-            version: 1,
-            bones: (0..4).map(|i| format!("b{i}")).collect(),
-            poses: vec![],
-            meta: vec![],
-            sequences: vec![SeqInfo {
-                name: "circle".into(),
-                source: "library".into(),
-                poses: 36,
-            }],
-        };
+        let mut db = PoseDb { format: db_format(), version: 1, bones: (0..4).map(|i| format!("b{i}")).collect(), poses: vec![], meta: vec![], sequences: vec![SeqInfo { name: "circle".into(), source: "library".into(), poses: 36 }] };
         for i in 0..36 {
             let t = std::f32::consts::TAU * i as f32 / 36.0;
-            db.poses
-                .push(vec![30.0 * t.cos(), 30.0 * t.sin(), 0.0, 0.0]);
-            db.meta.push(PoseMeta {
-                seq: 0,
-                idx: i,
-                frame: i as f32 * 2.0,
-            });
+            db.poses.push(vec![30.0 * t.cos(), 30.0 * t.sin(), 0.0, 0.0]);
+            db.meta.push(PoseMeta { seq: 0, idx: i, frame: i as f32 * 2.0 });
         }
         db
     }
@@ -2197,39 +1610,18 @@ mod tests {
         let c = sg.between(&a, &b, 0.5, 0.8, 6).unwrap();
         let get = |m: &str| c.iter().find(|x| x.method == m).unwrap();
         let off = |x: &Candidate| (x.pose[0].hypot(x.pose[1]) - 30.0).abs();
-        assert!(
-            (off(get("linear")) - 15.0).abs() < 0.2,
-            "linear midpoint is 15 off the circle, got {}",
-            off(get("linear"))
-        );
-        assert!(
-            (off(get("pca")) - 15.0).abs() < 0.5,
-            "a PCA blend of a curved manifold is no better"
-        );
-        assert!(
-            off(get("manifold")) < 5.0,
-            "kernel pull: {}",
-            off(get("manifold"))
-        );
-        assert!(
-            off(get("library")) < 0.1,
-            "a library pose lies on the circle"
-        );
+        assert!((off(get("linear")) - 15.0).abs() < 0.2, "linear midpoint is 15 off the circle, got {}", off(get("linear")));
+        assert!((off(get("pca")) - 15.0).abs() < 0.5, "a PCA blend of a curved manifold is no better");
+        assert!(off(get("manifold")) < 5.0, "kernel pull: {}", off(get("manifold")));
+        assert!(off(get("library")) < 0.1, "a library pose lies on the circle");
         // the ranking prefers on-manifold candidates
-        assert!(
-            c[0].method == "library" || c[0].method == "manifold",
-            "best {:?}",
-            c.iter().map(|x| (&x.method, x.score)).collect::<Vec<_>>()
-        );
+        assert!(c[0].method == "library" || c[0].method == "manifold", "best {:?}", c.iter().map(|x| (&x.method, x.score)).collect::<Vec<_>>());
         assert!(get("linear").score < get("manifold").score);
         assert!(c.windows(2).all(|w| w[0].score >= w[1].score));
         // the library pose is roughly half way: around 60 degrees, i.e. index 6
         let lp = get("library");
         let ang = lp.pose[1].atan2(lp.pose[0]).to_degrees();
-        assert!(
-            (ang - 60.0).abs() < 12.0,
-            "library between-pose at {ang} degrees"
-        );
+        assert!((ang - 60.0).abs() < 12.0, "library between-pose at {ang} degrees");
         // endpoints: t = 0 gives A back for the blends
         let c0 = sg.between(&a, &b, 0.0, 0.0, 6).unwrap();
         assert!(rms(&c0.iter().find(|x| x.method == "linear").unwrap().pose, &a) < 1e-4);
@@ -2249,11 +1641,7 @@ mod tests {
         let lin = c.iter().find(|x| x.method == "linear").unwrap();
         let man = c.iter().find(|x| x.method == "manifold").unwrap();
         assert!(rms(&lin.pose, &sg.db.poses[9]) < 1e-3);
-        assert!(
-            rms(&man.pose, &sg.db.poses[9]) < 1.5,
-            "{}",
-            rms(&man.pose, &sg.db.poses[9])
-        );
+        assert!(rms(&man.pose, &sg.db.poses[9]) < 1.5, "{}", rms(&man.pose, &sg.db.poses[9]));
         assert!(lin.plausibility > 0.9);
     }
 
@@ -2277,59 +1665,22 @@ mod tests {
         let u1 = [0.6f32, 0.8, 0.0, 0.0, 0.0];
         let u2 = [0.0f32, 0.0, 0.6, 0.8, 0.0];
         let mut rng = Rng::new(5);
-        let mut db = PoseDb {
-            format: db_format(),
-            version: 1,
-            bones: (0..5).map(|i| format!("b{i}")).collect(),
-            poses: vec![],
-            meta: vec![],
-            sequences: vec![SeqInfo {
-                name: "s".into(),
-                source: "library".into(),
-                poses: 80,
-            }],
-        };
+        let mut db = PoseDb { format: db_format(), version: 1, bones: (0..5).map(|i| format!("b{i}")).collect(), poses: vec![], meta: vec![], sequences: vec![SeqInfo { name: "s".into(), source: "library".into(), poses: 80 }] };
         for i in 0..80 {
             let (a, b) = (30.0 * (rng.unit() - 0.5), 20.0 * (rng.unit() - 0.5));
-            db.poses
-                .push((0..5).map(|j| 4.0 + a * u1[j] + b * u2[j]).collect());
-            db.meta.push(PoseMeta {
-                seq: 0,
-                idx: i,
-                frame: i as f32,
-            });
+            db.poses.push((0..5).map(|j| 4.0 + a * u1[j] + b * u2[j]).collect());
+            db.meta.push(PoseMeta { seq: 0, idx: i, frame: i as f32 });
         }
         let sg = Suggester::with_pca(db, 0.999, 5).unwrap();
         assert_eq!(sg.space.k(), 2);
-        let truth = vec![
-            4.0 + 10.0 * 0.6 + 5.0 * 0.0,
-            4.0 + 10.0 * 0.8,
-            4.0 + 5.0 * 0.6,
-            4.0 + 5.0 * 0.8,
-            4.0,
-        ];
+        let truth = vec![4.0 + 10.0 * 0.6 + 5.0 * 0.0, 4.0 + 10.0 * 0.8, 4.0 + 5.0 * 0.6, 4.0 + 5.0 * 0.8, 4.0];
         let cons = vec![
-            Constraint::Angle {
-                bone: "b0".into(),
-                value: truth[0],
-                weight: 1.0,
-            },
-            Constraint::Angle {
-                bone: "b3".into(),
-                value: truth[3],
-                weight: 1.0,
-            },
+            Constraint::Angle { bone: "b0".into(), value: truth[0], weight: 1.0 },
+            Constraint::Angle { bone: "b3".into(), value: truth[3], weight: 1.0 },
         ];
-        let c = sg
-            .complete(None, &cons, &[0.0; 5], None, None, &[], 0.001, 3, None)
-            .unwrap();
+        let c = sg.complete(None, &cons, &[0.0; 5], None, None, &[], 0.001, 3, None).unwrap();
         let best = c.iter().find(|x| x.method == "pca-ls").unwrap();
-        assert!(
-            rms(&best.pose, &truth) < 0.1,
-            "recovered {:?} vs {:?}",
-            best.pose,
-            truth
-        );
+        assert!(rms(&best.pose, &truth) < 0.1, "recovered {:?} vs {:?}", best.pose, truth);
         assert!(best.constraint_error.unwrap() < 0.1);
         // the nearest-library baseline cannot be that exact
         let nn = c.iter().find(|x| x.method == "library-nn").unwrap();
@@ -2344,109 +1695,28 @@ mod tests {
         let sg = Suggester::new(build_db(Some(&p), None, Some(1.0)).unwrap()).unwrap();
         // the tip of the hand bone in a pose that is in the library
         let truth = pose_at(&p, &sg.db.bones, 7.0);
-        let ang = |x: &[f32]| {
-            p.bones
-                .iter()
-                .map(|b| x[sg.db.bones.iter().position(|n| *n == b.name).unwrap()])
-                .collect::<Vec<f32>>()
-        };
+        let ang = |x: &[f32]| p.bones.iter().map(|b| x[sg.db.bones.iter().position(|n| *n == b.name).unwrap()]).collect::<Vec<f32>>();
         let target = engine_tip(&p, &ang(&truth), 2);
-        let cons = vec![Constraint::Reach {
-            bone: "h".into(),
-            at: [target.x, target.y],
-            weight: 1.0,
-        }];
+        let cons = vec![Constraint::Reach { bone: "h".into(), at: [target.x, target.y], weight: 1.0 }];
         let cur = pose_at(&p, &sg.db.bones, 0.0);
-        let c = sg
-            .complete(
-                Some(&p),
-                &cons,
-                &cur,
-                Some(&ang(&cur)),
-                None,
-                &[],
-                0.1,
-                5,
-                None,
-            )
-            .unwrap();
+        let c = sg.complete(Some(&p), &cons, &cur, Some(&ang(&cur)), None, &[], 0.1, 5, None).unwrap();
         let best = &c[0];
         let reached = engine_tip(&p, &ang(&best.pose), 2);
-        assert!(
-            reached.distance(target) < 3.0,
-            "reached {reached:?}, wanted {target:?} (error {:?})",
-            best.constraint_error
-        );
-        assert!(
-            best.plausibility > 0.3,
-            "the result stays near the library: {}",
-            best.plausibility
-        );
+        assert!(reached.distance(target) < 3.0, "reached {reached:?}, wanted {target:?} (error {:?})", best.constraint_error);
+        assert!(best.plausibility > 0.3, "the result stays near the library: {}", best.plausibility);
         // fixing the upper arm to its current value: the free bones still reach as well as they can
         let free = vec!["l".to_string(), "h".to_string()];
-        let c2 = sg
-            .complete(
-                Some(&p),
-                &cons,
-                &cur,
-                Some(&ang(&cur)),
-                Some(&free),
-                &[],
-                0.1,
-                3,
-                None,
-            )
-            .unwrap();
-        assert!(
-            (c2[0].pose[0] - cur[0]).abs() < 0.2,
-            "u stays at {} (got {})",
-            cur[0],
-            c2[0].pose[0]
-        );
+        let c2 = sg.complete(Some(&p), &cons, &cur, Some(&ang(&cur)), Some(&free), &[], 0.1, 3, None).unwrap();
+        assert!((c2[0].pose[0] - cur[0]).abs() < 0.2, "u stays at {} (got {})", cur[0], c2[0].pose[0]);
         // a locked bone is held too, and constraining it is refused
         let locked = vec!["l".to_string()];
-        let c3 = sg
-            .complete(
-                Some(&p),
-                &cons,
-                &cur,
-                Some(&ang(&cur)),
-                None,
-                &locked,
-                0.1,
-                3,
-                None,
-            )
-            .unwrap();
+        let c3 = sg.complete(Some(&p), &cons, &cur, Some(&ang(&cur)), None, &locked, 0.1, 3, None).unwrap();
         assert!((c3[0].pose[1] - cur[1]).abs() < 0.2);
-        let bad = vec![Constraint::Angle {
-            bone: "l".into(),
-            value: 5.0,
-            weight: 1.0,
-        }];
-        assert!(sg
-            .complete(Some(&p), &bad, &cur, None, None, &locked, 0.1, 3, None)
-            .unwrap_err()
-            .contains("locked"));
+        let bad = vec![Constraint::Angle { bone: "l".into(), value: 5.0, weight: 1.0 }];
+        assert!(sg.complete(Some(&p), &bad, &cur, None, None, &locked, 0.1, 3, None).unwrap_err().contains("locked"));
         // angle limit of the hand (+-60) is honoured
-        let far = vec![Constraint::Angle {
-            bone: "h".into(),
-            value: 170.0,
-            weight: 1.0,
-        }];
-        let c4 = sg
-            .complete(
-                Some(&p),
-                &far,
-                &cur,
-                Some(&ang(&cur)),
-                None,
-                &[],
-                0.1,
-                1,
-                None,
-            )
-            .unwrap();
+        let far = vec![Constraint::Angle { bone: "h".into(), value: 170.0, weight: 1.0 }];
+        let c4 = sg.complete(Some(&p), &far, &cur, Some(&ang(&cur)), None, &[], 0.1, 1, None).unwrap();
         assert!(c4[0].pose[2] <= 60.0 + 1e-3);
     }
 
@@ -2454,116 +1724,20 @@ mod tests {
     fn completion_validates_its_input() {
         let sg = Suggester::with_pca(circle_db(), 0.99, 4).unwrap();
         let cur = vec![0.0; 4];
-        let a = |b: &str, v: f32, w: f32| {
-            vec![Constraint::Angle {
-                bone: b.into(),
-                value: v,
-                weight: w,
-            }]
-        };
-        assert!(
-            sg.complete(None, &[], &cur, None, None, &[], 1.0, 3, None)
-                .is_err(),
-            "no constraints"
-        );
-        assert!(sg
-            .complete(
-                None,
-                &a("zzz", 1.0, 1.0),
-                &cur,
-                None,
-                None,
-                &[],
-                1.0,
-                3,
-                None
-            )
-            .unwrap_err()
-            .contains("not in the pose database"));
-        assert!(sg
-            .complete(
-                None,
-                &a("b0", f32::NAN, 1.0),
-                &cur,
-                None,
-                None,
-                &[],
-                1.0,
-                3,
-                None
-            )
-            .is_err());
-        assert!(sg
-            .complete(
-                None,
-                &a("b0", 1.0, 0.0),
-                &cur,
-                None,
-                None,
-                &[],
-                1.0,
-                3,
-                None
-            )
-            .is_err());
-        assert!(sg
-            .complete(
-                None,
-                &a("b0", 1.0, 1.0),
-                &cur[..2],
-                None,
-                None,
-                &[],
-                1.0,
-                3,
-                None
-            )
-            .is_err());
-        assert!(sg
-            .complete(
-                None,
-                &a("b0", 1.0, 1.0),
-                &cur,
-                None,
-                None,
-                &[],
-                -1.0,
-                3,
-                None
-            )
-            .is_err());
-        assert!(sg
-            .complete(
-                None,
-                &a("b0", 1.0, 1.0),
-                &cur,
-                None,
-                None,
-                &[],
-                1.0,
-                0,
-                None
-            )
-            .is_err());
-        let reach = vec![Constraint::Reach {
-            bone: "b0".into(),
-            at: [1.0, 1.0],
-            weight: 1.0,
-        }];
-        assert!(sg
-            .complete(None, &reach, &cur, None, None, &[], 1.0, 3, None)
-            .unwrap_err()
-            .contains("needs the project"));
+        let a = |b: &str, v: f32, w: f32| vec![Constraint::Angle { bone: b.into(), value: v, weight: w }];
+        assert!(sg.complete(None, &[], &cur, None, None, &[], 1.0, 3, None).is_err(), "no constraints");
+        assert!(sg.complete(None, &a("zzz", 1.0, 1.0), &cur, None, None, &[], 1.0, 3, None).unwrap_err().contains("not in the pose database"));
+        assert!(sg.complete(None, &a("b0", f32::NAN, 1.0), &cur, None, None, &[], 1.0, 3, None).is_err());
+        assert!(sg.complete(None, &a("b0", 1.0, 0.0), &cur, None, None, &[], 1.0, 3, None).is_err());
+        assert!(sg.complete(None, &a("b0", 1.0, 1.0), &cur[..2], None, None, &[], 1.0, 3, None).is_err());
+        assert!(sg.complete(None, &a("b0", 1.0, 1.0), &cur, None, None, &[], -1.0, 3, None).is_err());
+        assert!(sg.complete(None, &a("b0", 1.0, 1.0), &cur, None, None, &[], 1.0, 0, None).is_err());
+        let reach = vec![Constraint::Reach { bone: "b0".into(), at: [1.0, 1.0], weight: 1.0 }];
+        assert!(sg.complete(None, &reach, &cur, None, None, &[], 1.0, 3, None).unwrap_err().contains("needs the project"));
         let p = arm_with_cycle();
-        let bad = vec![Constraint::Reach {
-            bone: "nope".into(),
-            at: [1.0, 1.0],
-            weight: 1.0,
-        }];
+        let bad = vec![Constraint::Reach { bone: "nope".into(), at: [1.0, 1.0], weight: 1.0 }];
         let sg2 = Suggester::new(build_db(Some(&p), None, None).unwrap()).unwrap();
-        assert!(sg2
-            .complete(Some(&p), &bad, &[0.0; 3], None, None, &[], 1.0, 3, None)
-            .is_err());
+        assert!(sg2.complete(Some(&p), &bad, &[0.0; 3], None, None, &[], 1.0, 3, None).is_err());
     }
 
     #[test]
@@ -2574,85 +1748,45 @@ mod tests {
         let cur = sg.db.poses[3].clone();
         let c = sg.next(&cur, 20.0, 4, 5).unwrap();
         let truth = &sg.db.poses[4];
-        let best = c
-            .iter()
-            .map(|x| rms(&x.pose, truth))
-            .fold(f32::MAX, f32::min);
-        assert!(
-            best < 3.0,
-            "closest candidate is {best} deg from the true successor"
-        );
+        let best = c.iter().map(|x| rms(&x.pose, truth)).fold(f32::MAX, f32::min);
+        assert!(best < 3.0, "closest candidate is {best} deg from the true successor");
         let mean = c.iter().find(|x| x.method == "markov-mean").unwrap();
         assert!(rms(&mean.pose, truth) < 6.0, "{}", rms(&mean.pose, truth));
         assert!(rms(&mean.pose, &cur) > 3.0, "it moves");
-        assert!(
-            (mean.frame.unwrap() - 23.0).abs() < 0.6,
-            "gap of 3 frames: {:?}",
-            mean.frame
-        );
+        assert!((mean.frame.unwrap() - 23.0).abs() < 0.6, "gap of 3 frames: {:?}", mean.frame);
         assert!(c.windows(2).all(|w| w[0].score >= w[1].score));
         assert!(c.len() <= 5);
         // a pose far from everything gets a warning
         let far = vec![500.0, -500.0, 300.0];
         let c = sg.next(&far, 0.0, 4, 3).unwrap();
-        assert!(c[0]
-            .notes
-            .iter()
-            .any(|n| n.contains("library may not cover")));
+        assert!(c[0].notes.iter().any(|n| n.contains("library may not cover")));
         // errors
         assert!(sg.next(&cur[..2], 0.0, 4, 3).is_err());
         assert!(sg.next(&cur, 0.0, 0, 3).is_err());
         assert!(sg.next(&cur, 0.0, 4, 0).is_err());
         // a library of single poses has no successors
         let mut one = circle_db();
-        one.sequences = (0..36)
-            .map(|i| SeqInfo {
-                name: format!("s{i}"),
-                source: "library".into(),
-                poses: 1,
-            })
-            .collect();
+        one.sequences = (0..36).map(|i| SeqInfo { name: format!("s{i}"), source: "library".into(), poses: 1 }).collect();
         for (i, m) in one.meta.iter_mut().enumerate() {
             m.seq = i;
             m.idx = 0;
         }
         let sg = Suggester::with_pca(one, 0.99, 3).unwrap();
-        assert!(sg
-            .next(&[0.0; 4], 0.0, 4, 3)
-            .unwrap_err()
-            .contains("no consecutive"));
+        assert!(sg.next(&[0.0; 4], 0.0, 4, 3).unwrap_err().contains("no consecutive"));
     }
 
     #[test]
     fn applying_is_one_undo_step_and_respects_locks() {
         let mut p = arm_with_cycle();
         p.frames = 20;
-        let vals = vec![
-            BoneValue {
-                bone: "u".into(),
-                angle: 12.5,
-            },
-            BoneValue {
-                bone: "l".into(),
-                angle: -7.0,
-            },
-        ];
+        let vals = vec![BoneValue { bone: "u".into(), angle: 12.5 }, BoneValue { bone: "l".into(), angle: -7.0 }];
         let mut ed = crate::edit::Editor::new(p.clone()).unwrap();
         let before = ed.doc().clone();
         let (op, skipped) = apply_op(ed.project(), &vals, 50.0, Ease::Smooth).unwrap();
         assert!(skipped.is_empty());
         ed.apply(op).unwrap();
-        assert_eq!(
-            ed.project().frames,
-            51,
-            "the timeline grows to hold the key"
-        );
-        let u = ed
-            .project()
-            .channels
-            .iter()
-            .find(|c| c.target == "u")
-            .unwrap();
+        assert_eq!(ed.project().frames, 51, "the timeline grows to hold the key");
+        let u = ed.project().channels.iter().find(|c| c.target == "u").unwrap();
         if let Source::Keys { track } = &u.source {
             assert_eq!(track.eval(50.0), Some(12.5));
             assert_eq!(track.keys.len(), 14);
@@ -2663,93 +1797,38 @@ mod tests {
         // new channel for a bone without keys, plus a lock on another
         let mut q = arm();
         q.frames = 30;
-        q.channel_meta.push(crate::chanmeta::ChannelMeta {
-            target: "l".into(),
-            prop: Some(Prop::BoneAngle),
-            lock: true,
-            ..Default::default()
-        });
-        q.channels.push(Channel::keys(
-            "l",
-            Prop::BoneAngle,
-            Track::with_keys(&[(0.0, 1.0, Ease::Linear)]),
-        ));
+        q.channel_meta.push(crate::chanmeta::ChannelMeta { target: "l".into(), prop: Some(Prop::BoneAngle), lock: true, ..Default::default() });
+        q.channels.push(Channel::keys("l", Prop::BoneAngle, Track::with_keys(&[(0.0, 1.0, Ease::Linear)])));
         let (op, skipped) = apply_op(&q, &vals, 10.0, Ease::Linear).unwrap();
         assert_eq!(skipped, vec!["l".to_string()]);
         let mut ed = crate::edit::Editor::new(q.clone()).unwrap();
         ed.apply(op).unwrap();
-        assert_eq!(
-            ed.project().channels.len(),
-            2,
-            "u got a channel, locked l did not change"
-        );
-        let l = ed
-            .project()
-            .channels
-            .iter()
-            .find(|c| c.target == "l")
-            .unwrap();
+        assert_eq!(ed.project().channels.len(), 2, "u got a channel, locked l did not change");
+        let l = ed.project().channels.iter().find(|c| c.target == "l").unwrap();
         if let Source::Keys { track } = &l.source {
             assert_eq!(track.keys.len(), 1);
         }
         // everything locked: an error, nothing to apply
-        let only_l = vec![BoneValue {
-            bone: "l".into(),
-            angle: 3.0,
-        }];
-        assert!(apply_op(&q, &only_l, 5.0, Ease::Linear)
-            .unwrap_err()
-            .contains("locked"));
+        let only_l = vec![BoneValue { bone: "l".into(), angle: 3.0 }];
+        assert!(apply_op(&q, &only_l, 5.0, Ease::Linear).unwrap_err().contains("locked"));
         // bad input
-        assert!(apply_op(
-            &q,
-            &[BoneValue {
-                bone: "zz".into(),
-                angle: 1.0
-            }],
-            5.0,
-            Ease::Linear
-        )
-        .is_err());
+        assert!(apply_op(&q, &[BoneValue { bone: "zz".into(), angle: 1.0 }], 5.0, Ease::Linear).is_err());
         assert!(apply_op(&q, &vals, -1.0, Ease::Linear).is_err());
         assert!(apply_op(&q, &vals, f32::NAN, Ease::Linear).is_err());
-        assert!(apply_op(
-            &q,
-            &[BoneValue {
-                bone: "u".into(),
-                angle: f32::INFINITY
-            }],
-            1.0,
-            Ease::Linear
-        )
-        .is_err());
+        assert!(apply_op(&q, &[BoneValue { bone: "u".into(), angle: f32::INFINITY }], 1.0, Ease::Linear).is_err());
     }
 
     #[test]
     fn request_layer_end_to_end_with_locks() {
         let mut p = arm_with_cycle();
-        p.channel_meta.push(crate::chanmeta::ChannelMeta {
-            target: "h".into(),
-            prop: Some(Prop::BoneAngle),
-            lock: true,
-            ..Default::default()
-        });
+        p.channel_meta.push(crate::chanmeta::ChannelMeta { target: "h".into(), prop: Some(Prop::BoneAngle), lock: true, ..Default::default() });
         let sg = Suggester::new(build_db(Some(&p), None, None).unwrap()).unwrap();
         let req = |json: &str| serde_json::from_str::<Request>(json).unwrap();
-        let s = suggest(
-            &p,
-            &sg,
-            &req(r#"{"kind":"between","a":0,"b":6,"t":0.5,"top":3}"#),
-            None,
-        )
-        .unwrap();
+        let s = suggest(&p, &sg, &req(r#"{"kind":"between","a":0,"b":6,"t":0.5,"top":3}"#), None).unwrap();
         assert_eq!(s.kind, "between");
         assert!(s.candidates.len() <= 3 && !s.candidates.is_empty());
         assert_eq!(s.locked_skipped, vec!["h".to_string()]);
-        assert!(s
-            .candidates
-            .iter()
-            .all(|c| c.values.iter().all(|v| v.bone != "h")));
+        assert!(s.candidates.iter().all(|c| c.values.iter().all(|v| v.bone != "h")));
         assert!((s.candidates[0].frame.unwrap() - 3.0).abs() < 1e-5);
         assert!(s.notes.iter().any(|n| n.contains("locked")));
         let s = suggest(&p, &sg, &req(r#"{"kind":"complete","frame":3,"constraints":[{"kind":"angle","bone":"u","value":20.0}]}"#), None).unwrap();
@@ -2759,23 +1838,12 @@ mod tests {
         assert!(s.candidates[0].frame.unwrap() > 6.0);
         // a free list limits what is written
         let s = suggest(&p, &sg, &req(r#"{"kind":"complete","frame":3,"free":["u","l"],"constraints":[{"kind":"angle","bone":"u","value":20.0}]}"#), None).unwrap();
-        assert!(s.candidates[0]
-            .values
-            .iter()
-            .all(|v| v.bone == "u" || v.bone == "l"));
+        assert!(s.candidates[0].values.iter().all(|v| v.bone == "u" || v.bone == "l"));
         // errors
         assert!(suggest(&p, &sg, &req(r#"{"kind":"dance"}"#), None).is_err());
-        assert!(suggest(&p, &sg, &req(r#"{"kind":"between","a":0}"#), None)
-            .unwrap_err()
-            .contains("b is required"));
+        assert!(suggest(&p, &sg, &req(r#"{"kind":"between","a":0}"#), None).unwrap_err().contains("b is required"));
         assert!(suggest(&p, &sg, &req(r#"{"kind":"next","frame":-2}"#), None).is_err());
-        assert!(suggest(
-            &p,
-            &sg,
-            &req(r#"{"kind":"complete","frame":0,"constraints":[]}"#),
-            None
-        )
-        .is_err());
+        assert!(suggest(&p, &sg, &req(r#"{"kind":"complete","frame":0,"constraints":[]}"#), None).is_err());
         // a library bone the project lacks is reported
         let mut q = arm();
         q.bones.pop();
@@ -2788,41 +1856,14 @@ mod tests {
     fn mlp_completion_trains_deterministically_and_learns_the_toy_mapping() {
         // poses of 4 bones lying on a line: b = [t, 2t, -t, 0.5 t]; any one observed bone fixes the rest
         let mut db = circle_db();
-        db.poses = (0..60)
-            .map(|i| {
-                let t = -30.0 + i as f32;
-                vec![t, 2.0 * t, -t, 0.5 * t]
-            })
-            .collect();
-        db.meta = (0..60)
-            .map(|i| PoseMeta {
-                seq: 0,
-                idx: i,
-                frame: i as f32,
-            })
-            .collect();
-        db.sequences = vec![SeqInfo {
-            name: "line".into(),
-            source: "library".into(),
-            poses: 60,
-        }];
-        let o = TrainOpts {
-            hidden: vec![24],
-            epochs: 150,
-            lr: 0.02,
-            momentum: 0.9,
-            batch: 8,
-            seed: 2,
-        };
+        db.poses = (0..60).map(|i| { let t = -30.0 + i as f32; vec![t, 2.0 * t, -t, 0.5 * t] }).collect();
+        db.meta = (0..60).map(|i| PoseMeta { seq: 0, idx: i, frame: i as f32 }).collect();
+        db.sequences = vec![SeqInfo { name: "line".into(), source: "library".into(), poses: 60 }];
+        let o = TrainOpts { hidden: vec![24], epochs: 150, lr: 0.02, momentum: 0.9, batch: 8, seed: 2 };
         let (m, hist) = train_completion(&db, &o).unwrap();
         let (m2, _) = train_completion(&db, &o).unwrap();
         assert_eq!(m, m2, "deterministic");
-        assert!(
-            hist.last().unwrap() < &(hist[0] * 0.2),
-            "loss {} -> {}",
-            hist[0],
-            hist.last().unwrap()
-        );
+        assert!(hist.last().unwrap() < &(hist[0] * 0.2), "loss {} -> {}", hist[0], hist.last().unwrap());
         let y = predict_completion(&m, &db.bones, &[Some(12.0), None, None, None]).unwrap();
         assert_eq!(y[0], 12.0, "observed values pass through");
         let want = [12.0, 24.0, -12.0, 6.0];
@@ -2833,39 +1874,22 @@ mod tests {
         // bad models
         let mut other = m.clone();
         other.bones[0] = "zzz".into();
-        assert!(
-            predict_completion(&other, &db.bones, &[Some(1.0), None, None, None])
-                .unwrap_err()
-                .contains("trained for bones")
-        );
+        assert!(predict_completion(&other, &db.bones, &[Some(1.0), None, None, None]).unwrap_err().contains("trained for bones"));
         let mut thin = m.clone();
         thin.layers[0].n_in = 3;
         thin.layers[0].w.truncate(24 * 3);
         assert!(predict_completion(&thin, &db.bones, &[Some(1.0), None, None, None]).is_err());
         // through the suggester as a candidate
         let sg = Suggester::with_pca(db.clone(), 0.99, 4).unwrap();
-        let cons = vec![Constraint::Angle {
-            bone: "b0".into(),
-            value: 12.0,
-            weight: 1.0,
-        }];
-        let c = sg
-            .complete(None, &cons, &[0.0; 4], None, None, &[], 1.0, 2, Some(&m))
-            .unwrap();
+        let cons = vec![Constraint::Angle { bone: "b0".into(), value: 12.0, weight: 1.0 }];
+        let c = sg.complete(None, &cons, &[0.0; 4], None, None, &[], 1.0, 2, Some(&m)).unwrap();
         assert!(c.iter().any(|x| x.method == "mlp"));
         // training errors
         let mut tiny = db.clone();
         tiny.poses.truncate(3);
         tiny.meta.truncate(3);
         assert!(train_completion(&tiny, &o).is_err());
-        assert!(train_completion(
-            &db,
-            &TrainOpts {
-                epochs: 0,
-                ..o.clone()
-            }
-        )
-        .is_err());
+        assert!(train_completion(&db, &TrainOpts { epochs: 0, ..o.clone() }).is_err());
     }
 
     #[test]
@@ -2876,35 +1900,16 @@ mod tests {
         assert_eq!(a.space.comps, b.space.comps);
         assert_eq!(a.spacing, b.spacing);
         assert!(a.space.k() >= 2 && a.space.k() <= 12);
-        let c1 = a
-            .between(&a.db.poses[0], &a.db.poses[2], 0.5, 0.5, 6)
-            .unwrap();
-        let c2 = b
-            .between(&b.db.poses[0], &b.db.poses[2], 0.5, 0.5, 6)
-            .unwrap();
-        assert_eq!(
-            c1.iter().map(|c| c.pose.clone()).collect::<Vec<_>>(),
-            c2.iter().map(|c| c.pose.clone()).collect::<Vec<_>>()
-        );
+        let c1 = a.between(&a.db.poses[0], &a.db.poses[2], 0.5, 0.5, 6).unwrap();
+        let c2 = b.between(&b.db.poses[0], &b.db.poses[2], 0.5, 0.5, 6).unwrap();
+        assert_eq!(c1.iter().map(|c| c.pose.clone()).collect::<Vec<_>>(), c2.iter().map(|c| c.pose.clone()).collect::<Vec<_>>());
     }
 
     #[test]
     fn benchmark_numbers_make_sense() {
-        let quick = TrainOpts {
-            hidden: vec![16],
-            epochs: 20,
-            lr: 0.02,
-            momentum: 0.9,
-            batch: 16,
-            seed: 1,
-        };
+        let quick = TrainOpts { hidden: vec![16], epochs: 20, lr: 0.02, momentum: 0.9, batch: 16, seed: 1 };
         let b = benchmark(1, &quick).unwrap();
-        let get = |t: &str, m: &str| {
-            b.iter()
-                .find(|l| l.task == t && l.method == m)
-                .unwrap()
-                .rms_deg
-        };
+        let get = |t: &str, m: &str| b.iter().find(|l| l.task == t && l.method == m).unwrap().rms_deg;
         // any learned method must beat pasting values into the mean pose, otherwise the library taught nothing
         assert!(get("completion", "PCA least squares") < get("completion", "mean pose") * 0.5);
         assert!(get("completion", "nearest library pose") < get("completion", "mean pose"));

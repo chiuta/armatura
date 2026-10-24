@@ -112,11 +112,7 @@ fn p_of(v: Vec2) -> P {
 fn dist_pt_seg(p: P, a: P, b: P) -> f64 {
     let ab = sub(b, a);
     let l2 = dot(ab, ab);
-    let t = if l2 < 1e-300 {
-        0.0
-    } else {
-        (dot(sub(p, a), ab) / l2).clamp(0.0, 1.0)
-    };
+    let t = if l2 < 1e-300 { 0.0 } else { (dot(sub(p, a), ab) / l2).clamp(0.0, 1.0) };
     dist(p, add(a, mul(ab, t)))
 }
 
@@ -124,10 +120,7 @@ fn dist_to_poly(p: P, poly: &[P]) -> f64 {
     match poly.len() {
         0 => f64::INFINITY,
         1 => dist(p, poly[0]),
-        _ => poly
-            .windows(2)
-            .map(|w| dist_pt_seg(p, w[0], w[1]))
-            .fold(f64::INFINITY, f64::min),
+        _ => poly.windows(2).map(|w| dist_pt_seg(p, w[0], w[1])).fold(f64::INFINITY, f64::min),
     }
 }
 
@@ -216,20 +209,10 @@ impl<'a> PolyIdx<'a> {
         }
         let m = pts.len().saturating_sub(1).max(1);
         let diag = (x1 - x0).hypot(y1 - y0).max(1e-9);
-        let cell = (diag / (m as f64).sqrt().max(1.0))
-            .max(diag / 512.0)
-            .max(1e-9);
+        let cell = (diag / (m as f64).sqrt().max(1.0)).max(diag / 512.0).max(1e-9);
         let nx = (((x1 - x0) / cell).floor() as usize + 1).min(1024);
         let ny = (((y1 - y0) / cell).floor() as usize + 1).min(1024);
-        let mut idx = PolyIdx {
-            pts,
-            x0,
-            y0,
-            cell,
-            nx,
-            ny,
-            cells: vec![Vec::new(); nx * ny],
-        };
+        let mut idx = PolyIdx { pts, x0, y0, cell, nx, ny, cells: vec![Vec::new(); nx * ny] };
         for (i, w) in pts.windows(2).enumerate() {
             let (cx0, cx1) = (idx.cx(w[0][0].min(w[1][0])), idx.cx(w[0][0].max(w[1][0])));
             let (cy0, cy1) = (idx.cy(w[0][1].min(w[1][1])), idx.cy(w[0][1].max(w[1][1])));
@@ -371,10 +354,7 @@ pub fn discrete_frechet(a: &[[f64; 2]], b: &[[f64; 2]]) -> f64 {
                 (0, 0) => d,
                 (0, _) => ca[j - 1].max(d),
                 (_, 0) => ca[(i - 1) * m].max(d),
-                _ => ca[(i - 1) * m + j]
-                    .min(ca[(i - 1) * m + j - 1])
-                    .min(ca[i * m + j - 1])
-                    .max(d),
+                _ => ca[(i - 1) * m + j].min(ca[(i - 1) * m + j - 1]).min(ca[i * m + j - 1]).max(d),
             };
         }
     }
@@ -437,13 +417,7 @@ fn lsq_alpha(pts: &[P], u: &[f64], p0: P, p3: P, t1: P, t2: P) -> Option<(f64, f
         return None;
     }
     let (s, e) = ((x1 * c22 - x2 * c12) / det, (c11 * x2 - c12 * x1) / det);
-    if s.is_finite()
-        && e.is_finite()
-        && s > 1e-6 * chord
-        && e > 1e-6 * chord
-        && s < 8.0 * chord.max(1e-9) * 4.0
-        && e < 8.0 * chord.max(1e-9) * 4.0
-    {
+    if s.is_finite() && e.is_finite() && s > 1e-6 * chord && e > 1e-6 * chord && s < 8.0 * chord.max(1e-9) * 4.0 && e < 8.0 * chord.max(1e-9) * 4.0 {
         Some((s, e))
     } else {
         None
@@ -465,12 +439,7 @@ fn chord_params(pts: &[P]) -> Vec<f64> {
 }
 
 fn mk_cubic(p0: P, p3: P, t1: P, t2: P, a1: f64, a2: f64) -> Cubic {
-    [
-        p0,
-        [r32(p0[0] + t1[0] * a1), r32(p0[1] + t1[1] * a1)],
-        [r32(p3[0] + t2[0] * a2), r32(p3[1] + t2[1] * a2)],
-        p3,
-    ]
+    [p0, [r32(p0[0] + t1[0] * a1), r32(p0[1] + t1[1] * a1)], [r32(p3[0] + t2[0] * a2), r32(p3[1] + t2[1] * a2)], p3]
 }
 
 /// Candidate replacement cubics for a span (always includes the straight line).
@@ -484,16 +453,8 @@ fn candidates(segs: &[&OrigSeg]) -> Vec<Cubic> {
     if chord < 1e-12 {
         return out;
     }
-    let t1 = unit_or(&[
-        sub(first[1], first[0]),
-        sub(first[2], first[0]),
-        sub(first[3], first[0]),
-    ]);
-    let t2 = unit_or(&[
-        sub(last[2], last[3]),
-        sub(last[1], last[3]),
-        sub(last[0], last[3]),
-    ]);
+    let t1 = unit_or(&[sub(first[1], first[0]), sub(first[2], first[0]), sub(first[3], first[0])]);
+    let t2 = unit_or(&[sub(last[2], last[3]), sub(last[1], last[3]), sub(last[0], last[3])]);
     if norm(t1) == 0.0 || norm(t2) == 0.0 {
         return out;
     }
@@ -553,11 +514,7 @@ fn certify_span(segs: &[&OrigSeg], limit: f64, flat: f64, gap: f64) -> Option<(f
     let pts = span_samples(segs);
     let mut cands = candidates(segs);
     // rank by cheap sampled error (stable), certify the best two
-    let mut ranked: Vec<(f64, usize)> = cands
-        .iter()
-        .enumerate()
-        .map(|(i, c)| (sampled_error(c, &pts), i))
-        .collect();
+    let mut ranked: Vec<(f64, usize)> = cands.iter().enumerate().map(|(i, c)| (sampled_error(c, &pts), i)).collect();
     ranked.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.cmp(&b.1)));
     let mut orig_poly: Vec<P> = Vec::new();
     let mut h_o = 0.0f64;
@@ -600,16 +557,9 @@ fn path_len(p: &[P]) -> f64 {
 /// anchors of a closed path are kept. Weights, morphs and strokes are the caller's business.
 pub fn simplify_path_certified(anchors: &[Anchor], closed: bool, eps: f64) -> SimplifiedPath {
     let n = anchors.len();
-    let unchanged = || SimplifiedPath {
-        anchors: anchors.to_vec(),
-        bound: 0.0,
-        removed: 0,
-    };
+    let unchanged = || SimplifiedPath { anchors: anchors.to_vec(), bound: 0.0, removed: 0 };
     let min_keep = if closed { 3 } else { 2 };
-    if (eps.partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater))
-        || !eps.is_finite()
-        || n <= min_keep
-    {
+    if (eps.partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater)) || !eps.is_finite() || n <= min_keep {
         return unchanged();
     }
     let flat = (eps * 0.04).max(1e-9);
@@ -674,30 +624,16 @@ pub fn simplify_path_certified(anchors: &[Anchor], closed: bool, eps: f64) -> Si
         .iter()
         .map(|&i| {
             let a = &anchors[i];
-            let h = |p: P| {
-                if p == pos[i] {
-                    None
-                } else {
-                    Some(Vec2::new(p[0] as f32, p[1] as f32))
-                }
-            };
+            let h = |p: P| if p == pos[i] { None } else { Some(Vec2::new(p[0] as f32, p[1] as f32)) };
             Anchor {
                 pos: a.pos,
                 handle_in: if mod_in[i] { h(cur_in[i]) } else { a.handle_in },
-                handle_out: if mod_out[i] {
-                    h(cur_out[i])
-                } else {
-                    a.handle_out
-                },
+                handle_out: if mod_out[i] { h(cur_out[i]) } else { a.handle_out },
                 weights: Vec::new(),
             }
         })
         .collect();
-    SimplifiedPath {
-        anchors: out,
-        bound,
-        removed,
-    }
+    SimplifiedPath { anchors: out, bound, removed }
 }
 
 /// Hausdorff-distance bound by dense evaluation (used by tests and `verify`): maximum over both
@@ -712,12 +648,7 @@ pub fn outline_polyline(anchors: &[Anchor], closed: bool, tol: f64) -> Vec<[f64;
     let mut h = 0.0;
     for i in 0..ns {
         let j = (i + 1) % n;
-        let c: Cubic = [
-            p_of(anchors[i].pos),
-            p_of(anchors[i].hout()),
-            p_of(anchors[j].hin()),
-            p_of(anchors[j].pos),
-        ];
+        let c: Cubic = [p_of(anchors[i].pos), p_of(anchors[i].hout()), p_of(anchors[j].hin()), p_of(anchors[j].pos)];
         flatten_cubic(&c, tol, &mut v, &mut h, 0);
     }
     v
@@ -748,15 +679,7 @@ pub struct LodOptions {
 
 impl LodOptions {
     pub fn new(tolerance_px: f64, scale: f64, levels: usize) -> LodOptions {
-        LodOptions {
-            tolerance_px,
-            scale,
-            levels,
-            ratio: 2.0,
-            geometry_share: 0.5,
-            keys_share: 0.4,
-            cull_share: 0.5,
-        }
+        LodOptions { tolerance_px, scale, levels, ratio: 2.0, geometry_share: 0.5, keys_share: 0.4, cull_share: 0.5 }
     }
     pub fn check(&self) -> Result<(), String> {
         let ok = |x: f64| x.is_finite() && x > 0.0;
@@ -772,10 +695,7 @@ impl LodOptions {
         if !ok(self.ratio) || self.ratio < 1.0 || self.ratio > 16.0 {
             return Err("ratio must be in [1, 16]".into());
         }
-        if !ok(self.geometry_share)
-            || !ok(self.keys_share)
-            || self.geometry_share + self.keys_share > 1.0 + 1e-9
-        {
+        if !ok(self.geometry_share) || !ok(self.keys_share) || self.geometry_share + self.keys_share > 1.0 + 1e-9 {
             return Err("geometry and keys shares must be positive and sum to at most 1".into());
         }
         if !ok(self.cull_share) || self.cull_share > 1.0 {
@@ -843,9 +763,7 @@ pub fn count_stats(p: &Project) -> LodStats {
         for l in ls {
             s.layers += 1;
             match &l.kind {
-                LayerKind::Vector { paths } | LayerKind::Boolean { paths, .. } => {
-                    s.path_anchors += paths.iter().map(|x| x.anchors.len()).sum::<usize>()
-                }
+                LayerKind::Vector { paths } | LayerKind::Boolean { paths, .. } => s.path_anchors += paths.iter().map(|x| x.anchors.len()).sum::<usize>(),
                 LayerKind::Image { mesh: Some(m), .. } => s.mesh_vertices += m.vertex_count(),
                 _ => {}
             }
@@ -871,20 +789,10 @@ pub fn count_stats(p: &Project) -> LodStats {
 type A = [f64; 6];
 
 fn a_of(m: &Affine2) -> A {
-    [
-        m.a as f64,
-        m.b as f64,
-        m.c as f64,
-        m.d as f64,
-        m.tx as f64,
-        m.ty as f64,
-    ]
+    [m.a as f64, m.b as f64, m.c as f64, m.d as f64, m.tx as f64, m.ty as f64]
 }
 fn a_apply(m: &A, p: P) -> P {
-    [
-        m[0] * p[0] + m[2] * p[1] + m[4],
-        m[1] * p[0] + m[3] * p[1] + m[5],
-    ]
+    [m[0] * p[0] + m[2] * p[1] + m[4], m[1] * p[0] + m[3] * p[1] + m[5]]
 }
 fn a_mul(l: &A, r: &A) -> A {
     [
@@ -902,26 +810,13 @@ fn a_inv(m: &A) -> Option<A> {
         return None;
     }
     let (ia, ib, ic, id) = (m[3] / det, -m[1] / det, -m[2] / det, m[0] / det);
-    Some([
-        ia,
-        ib,
-        ic,
-        id,
-        -(ia * m[4] + ic * m[5]),
-        -(ib * m[4] + id * m[5]),
-    ])
+    Some([ia, ib, ic, id, -(ia * m[4] + ic * m[5]), -(ib * m[4] + id * m[5])])
 }
 /// Largest singular value of the linear part.
 fn lin_norm(m: &A) -> f64 {
-    let (p, q, r) = (
-        m[0] * m[0] + m[1] * m[1],
-        m[0] * m[2] + m[1] * m[3],
-        m[2] * m[2] + m[3] * m[3],
-    );
+    let (p, q, r) = (m[0] * m[0] + m[1] * m[1], m[0] * m[2] + m[1] * m[3], m[2] * m[2] + m[3] * m[3]);
     let h = (p + r) * 0.5;
-    (h + (((p - r) * 0.5).powi(2) + q * q).sqrt())
-        .max(0.0)
-        .sqrt()
+    (h + (((p - r) * 0.5).powi(2) + q * q).sqrt()).max(0.0).sqrt()
 }
 fn local_matrix(t: &crate::project::Transform2D) -> A {
     a_of(&t.matrix())
@@ -986,11 +881,7 @@ impl<'a> Ctx<'a> {
             }
         }
         let bi = |name: &str| p.bones.iter().position(|b| b.name == name);
-        let bone_parent: Vec<Option<usize>> = p
-            .bones
-            .iter()
-            .map(|b| b.parent.as_deref().and_then(bi))
-            .collect();
+        let bone_parent: Vec<Option<usize>> = p.bones.iter().map(|b| b.parent.as_deref().and_then(bi)).collect();
         let nb = p.bones.len();
         let mut sub = vec![vec![false; nb]; nb];
         // the index is a coordinate/identifier used beyond one slice (parallel arrays, offsets, neighbours); an iterator would obscure it
@@ -1003,10 +894,7 @@ impl<'a> Ctx<'a> {
             }
         }
         let rest = p.rest_world()?;
-        let rest_inv: Vec<A> = rest
-            .iter()
-            .map(|m| a_inv(&a_of(m)).unwrap_or(A_ID))
-            .collect();
+        let rest_inv: Vec<A> = rest.iter().map(|m| a_inv(&a_of(m)).unwrap_or(A_ID)).collect();
         let sub_targets: BTreeSet<String> = p
             .channels
             .iter()
@@ -1016,10 +904,7 @@ impl<'a> Ctx<'a> {
         let mut complex = vec![false; n];
         let mut skin_pts: Vec<Vec<SkinPt>> = vec![Vec::new(); n];
         let norm_w = |ws: &[crate::path::BoneWeight]| -> Vec<(usize, f64)> {
-            let mut out: Vec<(usize, f64)> = ws
-                .iter()
-                .filter_map(|w| bi(&w.bone).map(|b| (b, w.weight as f64)))
-                .collect();
+            let mut out: Vec<(usize, f64)> = ws.iter().filter_map(|w| bi(&w.bone).map(|b| (b, w.weight as f64))).collect();
             let sum: f64 = out.iter().map(|x| x.1).sum();
             if sum > 0.0 {
                 for x in &mut out {
@@ -1031,11 +916,8 @@ impl<'a> Ctx<'a> {
             out
         };
         for i in 0..n {
-            let Some(l) = layer_by_path(p, &paths[i]) else {
-                continue;
-            };
-            let mut c =
-                !l.deformers.is_empty() || l.wobble.is_some() || sub_targets.contains(&paths[i]);
+            let Some(l) = layer_by_path(p, &paths[i]) else { continue };
+            let mut c = !l.deformers.is_empty() || l.wobble.is_some() || sub_targets.contains(&paths[i]);
             match &l.kind {
                 LayerKind::Vector { paths: ps } => {
                     for path in ps {
@@ -1053,12 +935,7 @@ impl<'a> Ctx<'a> {
                         }
                     }
                 }
-                LayerKind::Image {
-                    mesh: Some(m),
-                    origin,
-                    size,
-                    ..
-                } => {
+                LayerKind::Image { mesh: Some(m), origin, size, .. } => {
                     // rest vertices need the displayed size: take it from the frame at sample time
                     // (stored lazily); here only the weights are recorded, positions filled by `fill_mesh_rest`.
                     let _ = (origin, size);
@@ -1070,18 +947,7 @@ impl<'a> Ctx<'a> {
             }
             complex[i] = c;
         }
-        Ok(Ctx {
-            p,
-            e,
-            paths,
-            parent,
-            children,
-            bone_parent,
-            sub,
-            rest_inv,
-            complex,
-            skin_pts,
-        })
+        Ok(Ctx { p, e, paths, parent, children, bone_parent, sub, rest_inv, complex, skin_pts })
     }
 
     fn subtree(&self, id: usize) -> Vec<usize> {
@@ -1111,8 +977,7 @@ fn touched_bones(p: &Project) -> BTreeSet<usize> {
     for c in &p.constraints {
         t.extend(bi(&c.bone));
         match &c.kind {
-            crate::project::ConstraintKind::Aim { target, .. }
-            | crate::project::ConstraintKind::Pin { target } => t.extend(bi(target)),
+            crate::project::ConstraintKind::Aim { target, .. } | crate::project::ConstraintKind::Pin { target } => t.extend(bi(target)),
             crate::project::ConstraintKind::CopyRotation { source } => t.extend(bi(source)),
         }
     }
@@ -1156,26 +1021,15 @@ fn eligible_channels(c: &Ctx) -> Vec<(usize, LKind)> {
     let referenced = |name: &str| blocked_text.contains(&format!("\"{name}\""));
     let mut out = Vec::new();
     for (i, ch) in p.channels.iter().enumerate() {
-        let Source::Keys { track } = &ch.source else {
-            continue;
-        };
-        if track.keys.len() < 3
-            || ch.mode == Mode::Multiply
-            || (ch.weight.partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater))
-            || !ch.weight.is_finite()
-            || (!ch.target.is_empty() && referenced(&ch.target))
-        {
+        let Source::Keys { track } = &ch.source else { continue };
+        if track.keys.len() < 3 || ch.mode == Mode::Multiply || (ch.weight.partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater)) || !ch.weight.is_finite() || (!ch.target.is_empty() && referenced(&ch.target)) {
             continue;
         }
         use Prop::*;
         let kind = match ch.prop {
             BoneAngle | BoneOffsetX | BoneOffsetY => {
-                let Some(b) = p.bones.iter().position(|b| b.name == ch.target) else {
-                    continue;
-                };
-                if touched.contains(&b)
-                    || (0..p.bones.len()).any(|k| c.sub[b][k] && touched.contains(&k))
-                {
+                let Some(b) = p.bones.iter().position(|b| b.name == ch.target) else { continue };
+                if touched.contains(&b) || (0..p.bones.len()).any(|k| c.sub[b][k] && touched.contains(&k)) {
                     continue;
                 }
                 if ch.prop == BoneAngle {
@@ -1185,9 +1039,7 @@ fn eligible_channels(c: &Ctx) -> Vec<(usize, LKind)> {
                 }
             }
             LayerX | LayerY | LayerRotation => {
-                let Some(id) = c.e.node_index(&ch.target) else {
-                    continue;
-                };
+                let Some(id) = c.e.node_index(&ch.target) else { continue };
                 match ch.prop {
                     LayerX => LKind::LayerX(id),
                     LayerY => LKind::LayerY(id),
@@ -1270,12 +1122,7 @@ fn node_points(nd: &crate::engine::RenderNode, w: &A) -> Vec<P> {
     v
 }
 
-fn analyze(
-    c: &Ctx,
-    samples: &[f32],
-    chans: &[(usize, LKind)],
-    mesh_nodes: &BTreeSet<usize>,
-) -> Analysis {
+fn analyze(c: &Ctx, samples: &[f32], chans: &[(usize, LKind)], mesh_nodes: &BTreeSet<usize>) -> Analysis {
     let n = c.paths.len();
     let p = c.p;
     let mut an = Analysis {
@@ -1288,14 +1135,7 @@ fn analyze(
         ..Default::default()
     };
     for &id in mesh_nodes {
-        an.mesh.insert(
-            id,
-            MeshTraj {
-                y: Vec::with_capacity(samples.len()),
-                rest: Vec::new(),
-                tris: Vec::new(),
-            },
-        );
+        an.mesh.insert(id, MeshTraj { y: Vec::with_capacity(samples.len()), rest: Vec::new(), tris: Vec::new() });
     }
     let subtrees: Vec<Vec<usize>> = (0..n).map(|i| c.subtree(i)).collect();
     let need_levers = !chans.is_empty();
@@ -1304,12 +1144,7 @@ fn analyze(
     for (si, &t) in samples.iter().enumerate() {
         let fr = c.e.evaluate(t);
         let worlds: Vec<A> = fr.nodes.iter().map(|nd| a_of(&nd.world)).collect();
-        let pts: Vec<Vec<P>> = fr
-            .nodes
-            .iter()
-            .enumerate()
-            .map(|(id, nd)| node_points(nd, &worlds[id]))
-            .collect();
+        let pts: Vec<Vec<P>> = fr.nodes.iter().enumerate().map(|(id, nd)| node_points(nd, &worlds[id])).collect();
         for id in 0..n {
             let s = lin_norm(&worlds[id]);
             an.s[id][si] = s;
@@ -1324,12 +1159,7 @@ fn analyze(
                     x1 = x1.max(q[0]);
                     y1 = y1.max(q[1]);
                 }
-                let hw = nd
-                    .paths
-                    .iter()
-                    .filter_map(|pp| pp.stroke.as_ref().map(|s| s.width as f64 * 0.5))
-                    .fold(0.0, f64::max)
-                    * s;
+                let hw = nd.paths.iter().filter_map(|pp| pp.stroke.as_ref().map(|s| s.width as f64 * 0.5)).fold(0.0, f64::max) * s;
                 let d = ((x1 - x0) + 2.0 * hw).hypot((y1 - y0) + 2.0 * hw);
                 if d > an.diam_max[id] {
                     an.diam_max[id] = d;
@@ -1338,23 +1168,10 @@ fn analyze(
             if let Some(mt) = an.mesh.get_mut(&id) {
                 if let Some(m) = nd.image.as_ref().and_then(|i| i.mesh.as_ref()) {
                     if si == 0 {
-                        mt.tris = m
-                            .tris
-                            .iter()
-                            .map(|t| [t[0] as usize, t[1] as usize, t[2] as usize])
-                            .collect();
+                        mt.tris = m.tris.iter().map(|t| [t[0] as usize, t[1] as usize, t[2] as usize]).collect();
                         if let (Some(l), Some(img)) = (c.layer(id), nd.image.as_ref()) {
-                            if let LayerKind::Image {
-                                mesh: Some(ms),
-                                origin,
-                                ..
-                            } = &l.kind
-                            {
-                                mt.rest = ms
-                                    .rest_vertices(*origin, img.size)
-                                    .iter()
-                                    .map(|v| p_of(*v))
-                                    .collect();
+                            if let LayerKind::Image { mesh: Some(ms), origin, .. } = &l.kind {
+                                mt.rest = ms.rest_vertices(*origin, img.size).iter().map(|v| p_of(*v)).collect();
                             }
                         }
                     }
@@ -1371,28 +1188,13 @@ fn analyze(
         for id in 0..n {
             if skin_rest[id].is_none() {
                 if let (Some(l), Some(img)) = (c.layer(id), fr.nodes[id].image.as_ref()) {
-                    if let LayerKind::Image {
-                        mesh: Some(m),
-                        origin,
-                        ..
-                    } = &l.kind
-                    {
-                        skin_rest[id] = Some(
-                            m.rest_vertices(*origin, img.size)
-                                .iter()
-                                .map(|v| p_of(*v))
-                                .collect(),
-                        );
+                    if let LayerKind::Image { mesh: Some(m), origin, .. } = &l.kind {
+                        skin_rest[id] = Some(m.rest_vertices(*origin, img.size).iter().map(|v| p_of(*v)).collect());
                     }
                 }
             }
         }
-        let skin: Vec<A> = fr
-            .world
-            .iter()
-            .zip(&c.rest_inv)
-            .map(|(w, ri)| a_mul(&a_of(w), ri))
-            .collect();
+        let skin: Vec<A> = fr.world.iter().zip(&c.rest_inv).map(|(w, ri)| a_mul(&a_of(w), ri)).collect();
         let mut locals: Vec<Option<A>> = vec![None; n];
         let local_of = |id: usize, locals: &mut Vec<Option<A>>| -> A {
             if locals[id].is_none() {
@@ -1411,10 +1213,7 @@ fn analyze(
                 LKind::CamXY => {
                     let z = lin_norm(&a_of(&fr.camera));
                     for id in 0..n {
-                        let par = p
-                            .layers
-                            .get(c.e.node_idx_path(id)[0])
-                            .map_or(1.0, |l| l.parallax as f64);
+                        let par = p.layers.get(c.e.node_idx_path(id)[0]).map_or(1.0, |l| l.parallax as f64);
                         let ze = (1.0 + (z - 1.0) * par).max(0.01);
                         upd(&mut an.lever[ci], id, par.abs() * ze);
                     }
@@ -1436,10 +1235,7 @@ fn analyze(
                     for &m in &subtrees[nid] {
                         let v = match *kind {
                             LKind::LayerRot(_) => {
-                                let r = pts[m]
-                                    .iter()
-                                    .map(|q| dist(a_apply(&pinv, *q), posv))
-                                    .fold(0.0, f64::max);
+                                let r = pts[m].iter().map(|q| dist(a_apply(&pinv, *q), posv)).fold(0.0, f64::max);
                                 ln * pi180 * r
                             }
                             _ => ln,
@@ -1450,8 +1246,7 @@ fn analyze(
                 LKind::BoneAngle(b) | LKind::BoneOff(b) => {
                     let is_angle = matches!(kind, LKind::BoneAngle(_));
                     let ob = a_apply(&a_of(&fr.world[b]), [0.0, 0.0]);
-                    let parent_lin =
-                        c.bone_parent[b].map_or(1.0, |pb| lin_norm(&a_of(&fr.world[pb])));
+                    let parent_lin = c.bone_parent[b].map_or(1.0, |pb| lin_norm(&a_of(&fr.world[pb])));
                     for id in 0..n {
                         // skinned geometry
                         let mut skin_part = 0.0f64;
@@ -1461,8 +1256,7 @@ fn analyze(
                             let mut lev = 0.0f64;
                             let mut hit = false;
                             for (k, (rp, ws)) in sp.iter().enumerate() {
-                                let wsub: f64 =
-                                    ws.iter().filter(|(bk, _)| c.sub[b][*bk]).map(|x| x.1).sum();
+                                let wsub: f64 = ws.iter().filter(|(bk, _)| c.sub[b][*bk]).map(|x| x.1).sum();
                                 if wsub <= 0.0 {
                                     continue;
                                 }
@@ -1471,19 +1265,9 @@ fn analyze(
                                     an.blocked[ci] = true;
                                     continue;
                                 }
-                                let rp = if rp[0].is_nan() {
-                                    rest_mesh
-                                        .and_then(|r| r.get(k).copied())
-                                        .unwrap_or([0.0, 0.0])
-                                } else {
-                                    *rp
-                                };
+                                let rp = if rp[0].is_nan() { rest_mesh.and_then(|r| r.get(k).copied()).unwrap_or([0.0, 0.0]) } else { *rp };
                                 let v = if is_angle {
-                                    ws.iter()
-                                        .filter(|(bk, _)| c.sub[b][*bk])
-                                        .map(|(bk, w)| w * dist(a_apply(&skin[*bk], rp), ob))
-                                        .sum::<f64>()
-                                        * pi180
+                                    ws.iter().filter(|(bk, _)| c.sub[b][*bk]).map(|(bk, w)| w * dist(a_apply(&skin[*bk], rp), ob)).sum::<f64>() * pi180
                                 } else {
                                     wsub * parent_lin
                                 };
@@ -1502,19 +1286,12 @@ fn analyze(
                                     if c.sub[b][k] {
                                         let loc = local_of(nn, &mut locals);
                                         let att = skin[k];
-                                        let q = a_inv(&loc).and_then(|li| {
-                                            a_inv(&att)
-                                                .map(|ai| a_mul(&a_mul(&worlds[nn], &li), &ai))
-                                        });
+                                        let q = a_inv(&loc).and_then(|li| a_inv(&att).map(|ai| a_mul(&a_mul(&worlds[nn], &li), &ai)));
                                         match q.and_then(|q| a_inv(&q).map(|qi| (q, qi))) {
                                             Some((q, qi)) => {
                                                 let lq = lin_norm(&q);
                                                 total += if is_angle {
-                                                    lq * pi180
-                                                        * pts[id]
-                                                            .iter()
-                                                            .map(|s| dist(a_apply(&qi, *s), ob))
-                                                            .fold(0.0, f64::max)
+                                                    lq * pi180 * pts[id].iter().map(|s| dist(a_apply(&qi, *s), ob)).fold(0.0, f64::max)
                                                 } else {
                                                     lq * parent_lin
                                                 };
@@ -1565,23 +1342,14 @@ pub fn track_deviation_at(orig: &Track, red: &Track, samples: &[f32]) -> f64 {
 /// repair loop re-inserts keys until the bound holds for the whole sample set.
 pub fn reduce_track_bounded(t: &Track, tol: f64, grid: &[f32]) -> Track {
     let n = t.keys.len();
-    if n < 3
-        || !matches!(
-            tol.partial_cmp(&0.0),
-            Some(std::cmp::Ordering::Greater | std::cmp::Ordering::Equal)
-        )
-        || !tol.is_finite()
-    {
+    if n < 3 || !matches!(tol.partial_cmp(&0.0), Some(std::cmp::Ordering::Greater | std::cmp::Ordering::Equal)) || !tol.is_finite() {
         return t.clone();
     }
     let samples = merged_samples(t, grid);
     let mut keep = vec![false; n];
     keep[0] = true;
     keep[n - 1] = true;
-    let sub = |lo: usize, hi: usize| Track {
-        keys: vec![t.keys[lo], t.keys[hi]],
-        extrapolate: t.extrapolate,
-    };
+    let sub = |lo: usize, hi: usize| Track { keys: vec![t.keys[lo], t.keys[hi]], extrapolate: t.extrapolate };
     let mut stack = vec![(0usize, n - 1)];
     while let Some((lo, hi)) = stack.pop() {
         if hi - lo < 2 {
@@ -1599,27 +1367,12 @@ pub fn reduce_track_bounded(t: &Track, tol: f64, grid: &[f32]) -> Track {
         if worst.0 <= tol {
             continue;
         }
-        let split = (lo + 1..hi)
-            .min_by(|&a, &b| {
-                (t.keys[a].frame - worst.1)
-                    .abs()
-                    .total_cmp(&(t.keys[b].frame - worst.1).abs())
-            })
-            .unwrap();
+        let split = (lo + 1..hi).min_by(|&a, &b| (t.keys[a].frame - worst.1).abs().total_cmp(&(t.keys[b].frame - worst.1).abs())).unwrap();
         keep[split] = true;
         stack.push((lo, split));
         stack.push((split, hi));
     }
-    let build = |keep: &[bool]| Track {
-        keys: t
-            .keys
-            .iter()
-            .zip(keep)
-            .filter(|(_, &k)| k)
-            .map(|(k, _)| *k)
-            .collect(),
-        extrapolate: t.extrapolate,
-    };
+    let build = |keep: &[bool]| Track { keys: t.keys.iter().zip(keep).filter(|(_, &k)| k).map(|(k, _)| *k).collect(), extrapolate: t.extrapolate };
     let mut red = build(&keep);
     loop {
         let mut worst = (0.0f64, 0.0f32);
@@ -1632,11 +1385,7 @@ pub fn reduce_track_bounded(t: &Track, tol: f64, grid: &[f32]) -> Track {
         if worst.0 <= tol {
             return red;
         }
-        let Some(add) = (0..n).filter(|&i| !keep[i]).min_by(|&a, &b| {
-            (t.keys[a].frame - worst.1)
-                .abs()
-                .total_cmp(&(t.keys[b].frame - worst.1).abs())
-        }) else {
+        let Some(add) = (0..n).filter(|&i| !keep[i]).min_by(|&a, &b| (t.keys[a].frame - worst.1).abs().total_cmp(&(t.keys[b].frame - worst.1).abs())) else {
             return red;
         };
         keep[add] = true;
@@ -1652,29 +1401,17 @@ struct KeyOutcome {
 }
 
 /// Reduce the eligible channels so that the summed pixel error at any layer stays within `budget_px`.
-fn reduce_keys(
-    c: &Ctx,
-    an: &Analysis,
-    chans: &[(usize, LKind)],
-    scale: f64,
-    budget_px: f64,
-    grid: &[f32],
-) -> KeyOutcome {
+fn reduce_keys(c: &Ctx, an: &Analysis, chans: &[(usize, LKind)], scale: f64, budget_px: f64, grid: &[f32]) -> KeyOutcome {
     let p = c.p;
     let mut out = p.channels.clone();
     let mut notes = Vec::new();
     // co-influence count K: how many reducible channels can move the same layer
-    let usable: Vec<usize> = (0..chans.len())
-        .filter(|&i| !an.blocked[i] && an.lever[i].values().any(|&v| v > 0.0))
-        .collect();
+    let usable: Vec<usize> = (0..chans.len()).filter(|&i| !an.blocked[i] && an.lever[i].values().any(|&v| v > 0.0)).collect();
     // the index is a coordinate/identifier used beyond one slice (parallel arrays, offsets, neighbours); an iterator would obscure it
     #[allow(clippy::needless_range_loop)]
     for i in 0..chans.len() {
         if an.blocked[i] {
-            notes.push(format!(
-                "channel {} {:?} skipped: lever not bounded",
-                p.channels[chans[i].0].target, p.channels[chans[i].0].prop
-            ));
+            notes.push(format!("channel {} {:?} skipped: lever not bounded", p.channels[chans[i].0].target, p.channels[chans[i].0].prop));
         }
     }
     let mut count: BTreeMap<usize, usize> = BTreeMap::new();
@@ -1691,9 +1428,7 @@ fn reduce_keys(
     for &i in &usable {
         let ch_i = chans[i].0;
         let ch = &p.channels[ch_i];
-        let Source::Keys { track } = &ch.source else {
-            continue;
-        };
+        let Source::Keys { track } = &ch.source else { continue };
         let lmax = an.lever[i].values().copied().fold(0.0, f64::max) * scale;
         let w = ch.weight as f64;
         let eps_value = budget_px / (k * lmax * w);
@@ -1714,12 +1449,7 @@ fn reduce_keys(
         }
     }
     let keys_px = per_node.values().copied().fold(0.0, f64::max) * MARGIN;
-    KeyOutcome {
-        channels: out,
-        keys_px,
-        reduced,
-        notes,
-    }
+    KeyOutcome { channels: out, keys_px, reduced, notes }
 }
 
 // ------------------------------------------------------------------------------------------
@@ -1759,11 +1489,7 @@ struct Quadric {
 
 impl Quadric {
     fn zero(d: usize) -> Quadric {
-        Quadric {
-            a: vec![0.0; d * d],
-            b: vec![0.0; d],
-            c: 0.0,
-        }
+        Quadric { a: vec![0.0; d * d], b: vec![0.0; d], c: 0.0 }
     }
     fn add(&mut self, o: &Quadric) {
         for (x, y) in self.a.iter_mut().zip(&o.a) {
@@ -1844,10 +1570,7 @@ impl PartialOrd for Cand {
 impl Ord for Cand {
     fn cmp(&self, o: &Self) -> std::cmp::Ordering {
         // smaller cost = greater priority; ties by (u, v) ascending
-        o.cost
-            .total_cmp(&self.cost)
-            .then(o.u.cmp(&self.u))
-            .then(o.v.cmp(&self.v))
+        o.cost.total_cmp(&self.cost).then(o.u.cmp(&self.u)).then(o.v.cmp(&self.v))
     }
 }
 
@@ -1857,11 +1580,7 @@ fn area2(a: P, b: P, c: P) -> f64 {
 
 /// Clip the triangle `t` (a convex polygon) against triangle `o`; returns the polygon corners.
 fn clip_tri(t: [P; 3], o: [P; 3], tol: f64) -> Vec<P> {
-    let sgn = if area2(o[0], o[1], o[2]) >= 0.0 {
-        1.0
-    } else {
-        -1.0
-    };
+    let sgn = if area2(o[0], o[1], o[2]) >= 0.0 { 1.0 } else { -1.0 };
     let mut poly: Vec<P> = t.to_vec();
     for k in 0..3 {
         let (a, b) = (o[k], o[(k + 1) % 3]);
@@ -1902,19 +1621,8 @@ fn bary(p: P, t: [P; 3]) -> [f64; 3] {
 pub fn qem_simplify(inp: &QemInput, eps_px: f64) -> QemOutput {
     let n = inp.rest.len();
     let nt = inp.tris.len();
-    let identity = || QemOutput {
-        keep: (0..n).collect(),
-        tris: inp.tris.to_vec(),
-        bound_px: 0.0,
-        collapses: 0,
-    };
-    if n == 0
-        || nt == 0
-        || (eps_px.partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater))
-        || inp.y.is_empty()
-        || inp.y.iter().any(|f| f.len() != n)
-        || inp.s.len() != inp.y.len()
-    {
+    let identity = || QemOutput { keep: (0..n).collect(), tris: inp.tris.to_vec(), bound_px: 0.0, collapses: 0 };
+    if n == 0 || nt == 0 || (eps_px.partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater)) || inp.y.is_empty() || inp.y.iter().any(|f| f.len() != n) || inp.s.len() != inp.y.len() {
         return identity();
     }
     let (mut x0, mut y0, mut x1, mut y1) = (f64::MAX, f64::MAX, f64::MIN, f64::MIN);
@@ -1943,8 +1651,7 @@ pub fn qem_simplify(inp: &QemInput, eps_px: f64) -> QemOutput {
     let mut quad: Vec<Quadric> = vec![Quadric::zero(d); n];
     for tr in &tris {
         let (a, b, c) = (xv(tr[0]), xv(tr[1]), xv(tr[2]));
-        let w =
-            area2(inp.rest[tr[0]], inp.rest[tr[1]], inp.rest[tr[2]]).abs() * 0.5 / (diag * diag);
+        let w = area2(inp.rest[tr[0]], inp.rest[tr[1]], inp.rest[tr[2]]).abs() * 0.5 / (diag * diag);
         if let Some(q) = tri_quadric(&a, &b, &c, w) {
             for &v in tr {
                 quad[v].add(&q);
@@ -1956,22 +1663,12 @@ pub fn qem_simplify(inp: &QemInput, eps_px: f64) -> QemOutput {
     let mut ver = vec![0u32; n];
 
     let neighbours = |adj: &Vec<Vec<usize>>, tris: &Vec<[usize; 3]>, v: usize| -> Vec<usize> {
-        let mut s: Vec<usize> = adj[v]
-            .iter()
-            .flat_map(|&t| tris[t].iter().copied())
-            .filter(|&x| x != v)
-            .collect();
+        let mut s: Vec<usize> = adj[v].iter().flat_map(|&t| tris[t].iter().copied()).filter(|&x| x != v).collect();
         s.sort_unstable();
         s.dedup();
         s
     };
-    let common_tris = |adj: &Vec<Vec<usize>>, u: usize, v: usize| -> Vec<usize> {
-        adj[u]
-            .iter()
-            .copied()
-            .filter(|t| adj[v].contains(t))
-            .collect()
-    };
+    let common_tris = |adj: &Vec<Vec<usize>>, u: usize, v: usize| -> Vec<usize> { adj[u].iter().copied().filter(|t| adj[v].contains(t)).collect() };
 
     // validity of the collapse of u into v (topology, domain, orientation)
     let valid = |adj: &Vec<Vec<usize>>, tris: &Vec<[usize; 3]>, u: usize, v: usize| -> bool {
@@ -1999,11 +1696,7 @@ pub fn qem_simplify(inp: &QemInput, eps_px: f64) -> QemOutput {
         // link condition
         let nv = neighbours(adj, tris, v);
         let common: BTreeSet<usize> = nu.iter().copied().filter(|x| nv.contains(x)).collect();
-        let apex: BTreeSet<usize> = tuv
-            .iter()
-            .flat_map(|&t| tris[t].iter().copied())
-            .filter(|&x| x != u && x != v)
-            .collect();
+        let apex: BTreeSet<usize> = tuv.iter().flat_map(|&t| tris[t].iter().copied()).filter(|&x| x != u && x != v).collect();
         if common != apex {
             return false;
         }
@@ -2035,13 +1728,7 @@ pub fn qem_simplify(inp: &QemInput, eps_px: f64) -> QemOutput {
     for u in 0..n {
         for v in neighbours(&adj, &tris, u) {
             if valid(&adj, &tris, u, v) {
-                heap.push(Cand {
-                    cost: qcost(&quad, u, v),
-                    u,
-                    v,
-                    vu: 0,
-                    vv: 0,
-                });
+                heap.push(Cand { cost: qcost(&quad, u, v), u, v, vu: 0, vv: 0 });
             }
         }
     }
@@ -2111,10 +1798,7 @@ pub fn qem_simplify(inp: &QemInput, eps_px: f64) -> QemOutput {
         }
         // certify
         let tuv = common_tris(&adj, u, v);
-        let mut union: Vec<usize> = adj[u]
-            .iter()
-            .flat_map(|&t| cover[t].iter().copied())
-            .collect();
+        let mut union: Vec<usize> = adj[u].iter().flat_map(|&t| cover[t].iter().copied()).collect();
         union.sort_unstable();
         union.dedup();
         let mut news: Vec<(usize, [usize; 3], f64)> = Vec::new();
@@ -2167,22 +1851,10 @@ pub fn qem_simplify(inp: &QemInput, eps_px: f64) -> QemOutput {
         for &x in &aff {
             for y in neighbours(&adj, &tris, x) {
                 if valid(&adj, &tris, x, y) {
-                    heap.push(Cand {
-                        cost: qcost(&quad, x, y),
-                        u: x,
-                        v: y,
-                        vu: ver[x],
-                        vv: ver[y],
-                    });
+                    heap.push(Cand { cost: qcost(&quad, x, y), u: x, v: y, vu: ver[x], vv: ver[y] });
                 }
                 if !aff.contains(&y) && valid(&adj, &tris, y, x) {
-                    heap.push(Cand {
-                        cost: qcost(&quad, y, x),
-                        u: y,
-                        v: x,
-                        vu: ver[y],
-                        vv: ver[x],
-                    });
+                    heap.push(Cand { cost: qcost(&quad, y, x), u: y, v: x, vu: ver[y], vv: ver[x] });
                 }
             }
         }
@@ -2209,12 +1881,7 @@ pub fn qem_simplify(inp: &QemInput, eps_px: f64) -> QemOutput {
         }
     }
     let keep: Vec<usize> = (0..n).filter(|&v| used[v] || !referenced[v]).collect();
-    QemOutput {
-        keep,
-        tris: out_tris,
-        bound_px: bound,
-        collapses,
-    }
+    QemOutput { keep, tris: out_tris, bound_px: bound, collapses }
 }
 
 // ------------------------------------------------------------------------------------------
@@ -2222,10 +1889,7 @@ pub fn qem_simplify(inp: &QemInput, eps_px: f64) -> QemOutput {
 // ------------------------------------------------------------------------------------------
 
 fn path_eligible(l: &Layer, path: &VPath) -> bool {
-    if path.anchors.len() < 4
-        || !path.morphs.is_empty()
-        || path.anchors.iter().any(|a| !a.weights.is_empty())
-    {
+    if path.anchors.len() < 4 || !path.morphs.is_empty() || path.anchors.iter().any(|a| !a.weights.is_empty()) {
         return false;
     }
     if !l.deformers.is_empty() || l.wobble.is_some() {
@@ -2233,9 +1897,7 @@ fn path_eligible(l: &Layer, path: &VPath) -> bool {
     }
     match &path.stroke {
         None => true,
-        Some(s) => {
-            s.join == crate::style::Join::Round && s.dash.is_empty() && s.width_profile.is_empty()
-        }
+        Some(s) => s.join == crate::style::Join::Round && s.dash.is_empty() && s.width_profile.is_empty(),
     }
 }
 
@@ -2252,9 +1914,7 @@ fn mask_targets(ls: &[Layer], out: &mut BTreeSet<String>) {
 /// point offsets, whose texture coordinates are an affine function of the position.
 fn mesh_eligible(c: &Ctx, id: usize) -> bool {
     let Some(l) = c.layer(id) else { return false };
-    let LayerKind::Image { mesh: Some(m), .. } = &l.kind else {
-        return false;
-    };
+    let LayerKind::Image { mesh: Some(m), .. } = &l.kind else { return false };
     if !l.deformers.is_empty() || l.wobble.is_some() || c.complex[id] {
         return false;
     }
@@ -2278,12 +1938,7 @@ fn mesh_eligible(c: &Ctx, id: usize) -> bool {
             }
             let Some((i, j, _)) = base else { return false };
             let tri = [p_of(v[0]), p_of(v[i]), p_of(v[j])];
-            let size = v
-                .iter()
-                .fold(0.0f64, |a, q| {
-                    a.max((q.x as f64).abs()).max((q.y as f64).abs())
-                })
-                .max(1.0);
+            let size = v.iter().fold(0.0f64, |a, q| a.max((q.x as f64).abs()).max((q.y as f64).abs())).max(1.0);
             for k in 0..v.len() {
                 let lam = bary(p_of(v[k]), tri);
                 for ax in 0..2 {
@@ -2322,10 +1977,7 @@ fn referenced_strings(p: &Project) -> BTreeSet<String> {
         serde_json::to_value(&p.bindings),
         serde_json::to_value(&p.shots),
         serde_json::to_value(&p.clips),
-    ]
-    .into_iter()
-    .flatten()
-    {
+    ].into_iter().flatten() {
         collect(&v, &mut out);
     }
     out
@@ -2355,9 +2007,7 @@ fn layout_members(p: &Project) -> BTreeSet<String> {
 
 /// `path` is a layout member or lies below one.
 fn is_layout_dependent(members: &BTreeSet<String>, path: &str) -> bool {
-    members.iter().any(|m| {
-        path == m || (path.starts_with(m.as_str()) && path.as_bytes().get(m.len()) == Some(&b'/'))
-    })
+    members.iter().any(|m| path == m || (path.starts_with(m.as_str()) && path.as_bytes().get(m.len()) == Some(&b'/')))
 }
 
 fn is_boundary_layer_kind(k: &LayerKind) -> bool {
@@ -2381,10 +2031,7 @@ pub fn build(p: &Project, o: &LodOptions) -> Result<Vec<Lod>, String> {
         stats: count_stats(p),
         notes: vec![],
     };
-    let mut out = vec![Lod {
-        project: p.clone(),
-        record: base_rec.clone(),
-    }];
+    let mut out = vec![Lod { project: p.clone(), record: base_rec.clone() }];
     base_rec.level = 0;
     let finish = |mut q: Project, mut rec: LodRecord| -> Lod {
         q.lods.clear();
@@ -2396,18 +2043,14 @@ pub fn build(p: &Project, o: &LodOptions) -> Result<Vec<Lod>, String> {
         rec.cull_px = ceil6(rec.cull_px);
         rec.bound_stage = ceil6(rec.declared_px / rec.scale);
         q.lods = vec![rec.clone()];
-        Lod {
-            project: q,
-            record: rec,
-        }
+        Lod { project: q, record: rec }
     };
     if links_present(p) {
         for k in 1..=o.levels {
             let mut rec = base_rec.clone();
             rec.level = k;
             rec.tolerance_px = o.level_tolerance(k);
-            rec.notes
-                .push("mesh locks / glues present: no reduction applied".into());
+            rec.notes.push("mesh locks / glues present: no reduction applied".into());
             out.push(finish(p.clone(), rec));
         }
         return Ok(out);
@@ -2433,18 +2076,10 @@ pub fn build(p: &Project, o: &LodOptions) -> Result<Vec<Lod>, String> {
     let mut prev_paths: BTreeMap<(String, usize), (Vec<Anchor>, f64)> = BTreeMap::new();
     for k in 1..=o.levels {
         let tol = o.level_tolerance(k);
-        let (geo_b, key_b, cull_b) = (
-            tol * o.geometry_share,
-            tol * o.keys_share,
-            tol * o.cull_share,
-        );
+        let (geo_b, key_b, cull_b) = (tol * o.geometry_share, tol * o.keys_share, tol * o.cull_share);
         let mut notes: Vec<String> = Vec::new();
         if !dead.is_empty() {
-            notes.push(format!(
-                "dropped {} dead layer(s): {}",
-                dead.len(),
-                dead.join(", ")
-            ));
+            notes.push(format!("dropped {} dead layer(s): {}", dead.len(), dead.join(", ")));
         }
         // 1. keys
         let mut ko = reduce_keys(&cb, &an0, &chans, o.scale, key_b, &samples);
@@ -2453,9 +2088,7 @@ pub fn build(p: &Project, o: &LodOptions) -> Result<Vec<Lod>, String> {
             let mut per_node: BTreeMap<usize, f64> = BTreeMap::new();
             let mut changed = false;
             for (ci, (chi, _)) in chans.iter().enumerate() {
-                if let (Source::Keys { track: nt }, Source::Keys { track: pt }) =
-                    (&ko.channels[*chi].source, &prev[*chi].source)
-                {
+                if let (Source::Keys { track: nt }, Source::Keys { track: pt }) = (&ko.channels[*chi].source, &prev[*chi].source) {
                     if pt.keys.len() < nt.keys.len() {
                         ko.channels[*chi].source = prev[*chi].source.clone();
                         changed = true;
@@ -2468,13 +2101,8 @@ pub fn build(p: &Project, o: &LodOptions) -> Result<Vec<Lod>, String> {
                     if an0.blocked[ci] {
                         continue;
                     }
-                    let (Source::Keys { track: orig }, Source::Keys { track: red }) =
-                        (&pb.channels[*chi].source, &ko.channels[*chi].source)
-                    else {
-                        continue;
-                    };
-                    let dev = track_deviation_at(orig, red, &merged_samples(orig, &samples))
-                        * pb.channels[*chi].weight as f64;
+                    let (Source::Keys { track: orig }, Source::Keys { track: red }) = (&pb.channels[*chi].source, &ko.channels[*chi].source) else { continue };
+                    let dev = track_deviation_at(orig, red, &merged_samples(orig, &samples)) * pb.channels[*chi].weight as f64;
                     for (&node, &v) in &an0.lever[ci] {
                         *per_node.entry(node).or_insert(0.0) += dev * v * o.scale;
                     }
@@ -2487,37 +2115,16 @@ pub fn build(p: &Project, o: &LodOptions) -> Result<Vec<Lod>, String> {
         pk.channels = ko.channels.clone();
         let ek = match Engine::new(pk.clone()) {
             Ok(e) => e,
-            Err(e) => {
-                return Err(format!(
-                    "internal: reduced keys do not validate: {}",
-                    e.join("; ")
-                ))
-            }
+            Err(e) => return Err(format!("internal: reduced keys do not validate: {}", e.join("; "))),
         };
         notes.extend(ko.notes.iter().cloned());
-        let keyed = pb
-            .channels
-            .iter()
-            .filter(|c| matches!(c.source, Source::Keys { .. }))
-            .count();
-        notes.push(format!(
-            "keys: {} of {} keyed channels have a documented lever, {} reduced",
-            chans.len() - an0.blocked.iter().filter(|b| **b).count(),
-            keyed,
-            ko.reduced
-        ));
+        let keyed = pb.channels.iter().filter(|c| matches!(c.source, Source::Keys { .. })).count();
+        notes.push(format!("keys: {} of {} keyed channels have a documented lever, {} reduced", chans.len() - an0.blocked.iter().filter(|b| **b).count(), keyed, ko.reduced));
         // 2. geometry on the reduced animation
         let ck = Ctx::new(&pk, &ek)?;
-        let mesh_nodes: BTreeSet<usize> = (0..ck.paths.len())
-            .filter(|&i| mesh_eligible(&ck, i))
-            .collect();
+        let mesh_nodes: BTreeSet<usize> = (0..ck.paths.len()).filter(|&i| mesh_eligible(&ck, i)).collect();
         let an1 = analyze(&ck, &samples, &[], &mesh_nodes);
-        let (paths_v, complex_v, children_v, parent_v) = (
-            ck.paths.clone(),
-            ck.complex.clone(),
-            ck.children.clone(),
-            ck.parent.clone(),
-        );
+        let (paths_v, complex_v, children_v, parent_v) = (ck.paths.clone(), ck.complex.clone(), ck.children.clone(), ck.parent.clone());
         drop(ck);
         let mut path_px = 0.0f64;
         let mut mesh_px = 0.0f64;
@@ -2526,20 +2133,13 @@ pub fn build(p: &Project, o: &LodOptions) -> Result<Vec<Lod>, String> {
         let mut new_paths: BTreeMap<(String, usize), (Vec<Anchor>, f64)> = BTreeMap::new();
         let mut skipped_layout: Vec<String> = Vec::new();
         for id in 0..paths_v.len() {
-            let Some(l) = pk.find_layer(&paths_v[id]) else {
-                continue;
-            };
-            let LayerKind::Vector { paths } = &l.kind else {
-                continue;
-            };
+            let Some(l) = pk.find_layer(&paths_v[id]) else { continue };
+            let LayerKind::Vector { paths } = &l.kind else { continue };
             if complex_v[id] {
                 continue;
             }
             if is_layout_dependent(&layout_dep, &paths_v[id]) {
-                if paths
-                    .iter()
-                    .any(|path| path_eligible(l, path) && path.anchors.len() > 2)
-                {
+                if paths.iter().any(|path| path_eligible(l, path) && path.anchors.len() > 2) {
                     skipped_layout.push(paths_v[id].clone());
                 }
                 continue;
@@ -2579,36 +2179,22 @@ pub fn build(p: &Project, o: &LodOptions) -> Result<Vec<Lod>, String> {
         }
         // 3. meshes
         for &id in &mesh_nodes {
-            let Some(mt) = an1.mesh.get(&id) else {
-                continue;
-            };
+            let Some(mt) = an1.mesh.get(&id) else { continue };
             let nv = mt.rest.len();
-            if nv < 4
-                || mt.y.len() != samples.len()
-                || mt.y.iter().any(|f| f.len() != nv)
-                || mt.tris.is_empty()
-            {
+            if nv < 4 || mt.y.len() != samples.len() || mt.y.iter().any(|f| f.len() != nv) || mt.tris.is_empty() {
                 continue;
             }
             let layer_path = paths_v[id].clone();
-            let Some(l) = pk.find_layer(&layer_path) else {
-                continue;
-            };
-            let LayerKind::Image { mesh: Some(m), .. } = &l.kind else {
-                continue;
-            };
+            let Some(l) = pk.find_layer(&layer_path) else { continue };
+            let LayerKind::Image { mesh: Some(m), .. } = &l.kind else { continue };
             // attributes: weights of the (at most 16 most used) bones times the displacement scale
-            let lever =
-                mt.y.iter()
-                    .flat_map(|f| {
-                        f.iter()
-                            .zip(&mt.rest)
-                            .map(|(y, r)| (y[0] as f64 - r[0]).hypot(y[1] as f64 - r[1]))
-                    })
-                    .fold(0.0, f64::max)
-                    .max(1e-9);
-            let mut bones: Vec<String> =
-                m.weights.iter().flatten().map(|w| w.bone.clone()).collect();
+            let lever = mt
+                .y
+                .iter()
+                .flat_map(|f| f.iter().zip(&mt.rest).map(|(y, r)| (y[0] as f64 - r[0]).hypot(y[1] as f64 - r[1])))
+                .fold(0.0, f64::max)
+                .max(1e-9);
+            let mut bones: Vec<String> = m.weights.iter().flatten().map(|w| w.bone.clone()).collect();
             bones.sort();
             bones.dedup();
             bones.truncate(16);
@@ -2619,30 +2205,14 @@ pub fn build(p: &Project, o: &LodOptions) -> Result<Vec<Lod>, String> {
                     bones
                         .iter()
                         .map(|b| match ws {
-                            Some(w) if sum > 0.0 => {
-                                w.iter()
-                                    .filter(|x| &x.bone == b)
-                                    .map(|x| x.weight as f64)
-                                    .sum::<f64>()
-                                    / sum
-                                    * lever
-                            }
+                            Some(w) if sum > 0.0 => w.iter().filter(|x| &x.bone == b).map(|x| x.weight as f64).sum::<f64>() / sum * lever,
                             _ => 0.0,
                         })
                         .collect()
                 })
                 .collect();
             let s: Vec<f64> = an1.s[id].iter().map(|v| v * o.scale * MARGIN).collect();
-            let q = qem_simplify(
-                &QemInput {
-                    rest: &mt.rest,
-                    tris: &mt.tris,
-                    attr: &attr,
-                    y: &mt.y,
-                    s: &s,
-                },
-                geo_b,
-            );
+            let q = qem_simplify(&QemInput { rest: &mt.rest, tris: &mt.tris, attr: &attr, y: &mt.y, s: &s }, geo_b);
             if q.collapses == 0 {
                 continue;
             }
@@ -2650,34 +2220,14 @@ pub fn build(p: &Project, o: &LodOptions) -> Result<Vec<Lod>, String> {
             for (ni, &oi) in q.keep.iter().enumerate() {
                 remap[oi] = ni;
             }
-            let Some(l) = pk.find_layer_mut(&layer_path) else {
-                continue;
-            };
-            let LayerKind::Image { mesh: Some(m), .. } = &mut l.kind else {
-                continue;
-            };
+            let Some(l) = pk.find_layer_mut(&layer_path) else { continue };
+            let LayerKind::Image { mesh: Some(m), .. } = &mut l.kind else { continue };
             let old_uvs: Vec<Vec2> = m.free.as_ref().map(|f| f.uvs.clone()).unwrap_or_default();
-            let weights: Vec<Vec<crate::path::BoneWeight>> = if m.weights.is_empty() {
-                vec![]
-            } else {
-                q.keep.iter().map(|&i| m.weights[i].clone()).collect()
-            };
+            let weights: Vec<Vec<crate::path::BoneWeight>> = if m.weights.is_empty() { vec![] } else { q.keep.iter().map(|&i| m.weights[i].clone()).collect() };
             m.free = Some(crate::project::FreeMesh {
-                vertices: q
-                    .keep
-                    .iter()
-                    .map(|&i| Vec2::new(mt.rest[i][0] as f32, mt.rest[i][1] as f32))
-                    .collect(),
-                triangles: q
-                    .tris
-                    .iter()
-                    .map(|t| [remap[t[0]] as u32, remap[t[1]] as u32, remap[t[2]] as u32])
-                    .collect(),
-                uvs: if old_uvs.len() == nv {
-                    q.keep.iter().map(|&i| old_uvs[i]).collect()
-                } else {
-                    vec![]
-                },
+                vertices: q.keep.iter().map(|&i| Vec2::new(mt.rest[i][0] as f32, mt.rest[i][1] as f32)).collect(),
+                triangles: q.tris.iter().map(|t| [remap[t[0]] as u32, remap[t[1]] as u32, remap[t[2]] as u32]).collect(),
+                uvs: if old_uvs.len() == nv { q.keep.iter().map(|&i| old_uvs[i]).collect() } else { vec![] },
             });
             m.weights = weights;
             m.cols = 0;
@@ -2691,15 +2241,8 @@ pub fn build(p: &Project, o: &LodOptions) -> Result<Vec<Lod>, String> {
         let mut skipped_ref: Vec<String> = Vec::new();
         for id in 0..paths_v.len() {
             let path = &paths_v[id];
-            let Some(l) = pk.find_layer(path) else {
-                continue;
-            };
-            if !children_v[id].is_empty()
-                || !is_boundary_layer_kind(&l.kind)
-                || l.blend != crate::style::Blend::Normal
-                || l.mask.is_some()
-                || l.reference
-            {
+            let Some(l) = pk.find_layer(path) else { continue };
+            if !children_v[id].is_empty() || !is_boundary_layer_kind(&l.kind) || l.blend != crate::style::Blend::Normal || l.mask.is_some() || l.reference {
                 continue;
             }
             if masks.contains(path) || !an1.has_geo[id] {
@@ -2709,10 +2252,7 @@ pub fn build(p: &Project, o: &LodOptions) -> Result<Vec<Lod>, String> {
                 continue; // removing it would change the bounds the layout is solved from
             }
             if let Some(pa) = parent_v[id] {
-                if matches!(
-                    pk.find_layer(&paths_v[pa]).map(|x| &x.kind),
-                    Some(LayerKind::Switch { .. })
-                ) {
+                if matches!(pk.find_layer(&paths_v[pa]).map(|x| &x.kind), Some(LayerKind::Switch { .. })) {
                     continue;
                 }
             }
@@ -2742,11 +2282,7 @@ pub fn build(p: &Project, o: &LodOptions) -> Result<Vec<Lod>, String> {
             notes.push(format!("collapsed {collapses} mesh edge(s)"));
         }
         if !culled.is_empty() {
-            notes.push(format!(
-                "culled {} layer(s): {}",
-                culled.len(),
-                culled.join(", ")
-            ));
+            notes.push(format!("culled {} layer(s): {}", culled.len(), culled.join(", ")));
         }
         if !skipped_ref.is_empty() {
             notes.push(format!("skipped: referenced - {} small layer(s) kept because a container, scroll, link, glue, machine or binding names them: {}", skipped_ref.len(), skipped_ref.join(", ")));
@@ -2755,9 +2291,7 @@ pub fn build(p: &Project, o: &LodOptions) -> Result<Vec<Lod>, String> {
             level: k,
             tolerance_px: tol,
             scale: o.scale,
-            declared_px: cull_px
-                .max(path_px.max(mesh_px) + ko.keys_px)
-                .max(prev_declared),
+            declared_px: cull_px.max(path_px.max(mesh_px) + ko.keys_px).max(prev_declared),
             bound_stage: 0.0,
             path_px,
             mesh_px,
@@ -2777,11 +2311,7 @@ pub fn build(p: &Project, o: &LodOptions) -> Result<Vec<Lod>, String> {
                 rec.keys_px = prev.record.keys_px;
                 rec.cull_px = prev.record.cull_px;
                 rec.declared_px = prev.record.declared_px;
-                rec.notes = vec![format!(
-                    "level {k} did not validate ({}); it repeats level {} (no further reduction)",
-                    e.join("; "),
-                    k - 1
-                )];
+                rec.notes = vec![format!("level {k} did not validate ({}); it repeats level {} (no further reduction)", e.join("; "), k - 1)];
             }
         }
         prev_declared = rec.declared_px.max(prev_declared);
@@ -2794,12 +2324,7 @@ pub fn build(p: &Project, o: &LodOptions) -> Result<Vec<Lod>, String> {
 /// within `max_px`. Level 0 (bound 0) is always acceptable.
 pub fn pick_level(records: &[LodRecord], screen_scale: f64, max_px: f64) -> usize {
     let mut best = 0;
-    if (screen_scale.partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater))
-        || !matches!(
-            max_px.partial_cmp(&0.0),
-            Some(std::cmp::Ordering::Greater | std::cmp::Ordering::Equal)
-        )
-    {
+    if (screen_scale.partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater)) || !matches!(max_px.partial_cmp(&0.0), Some(std::cmp::Ordering::Greater | std::cmp::Ordering::Equal)) {
         return 0;
     }
     for r in records {
@@ -2834,12 +2359,7 @@ pub struct VerifyOptions {
 
 impl VerifyOptions {
     pub fn new(scale: f64) -> VerifyOptions {
-        VerifyOptions {
-            scale,
-            frames: 24,
-            pixels: true,
-            pixel_frames: 6,
-        }
+        VerifyOptions { scale, frames: 24, pixels: true, pixel_frames: 6 }
     }
 }
 
@@ -2881,13 +2401,7 @@ fn verify_frames(orig: &Project, lod: &Project, n: usize) -> Vec<f32> {
     for p in [orig, lod] {
         for c in &p.channels {
             if let Source::Keys { track } = &c.source {
-                v.extend(
-                    track
-                        .keys
-                        .iter()
-                        .map(|k| k.frame)
-                        .filter(|f| *f >= 0.0 && *f < total),
-                );
+                v.extend(track.keys.iter().map(|k| k.frame).filter(|f| *f >= 0.0 && *f < total));
             }
         }
     }
@@ -2960,20 +2474,14 @@ pub fn verify(orig: &Project, lod: &Lod, o: &VerifyOptions) -> Result<VerifyRepo
                 if nd.visible && nd.opacity > 0.0 {
                     let pts = node_points(nd, &w0);
                     if !pts.is_empty() {
-                        let (mut x0, mut y0, mut x1, mut y1) =
-                            (f64::MAX, f64::MAX, f64::MIN, f64::MIN);
+                        let (mut x0, mut y0, mut x1, mut y1) = (f64::MAX, f64::MAX, f64::MIN, f64::MIN);
                         for q in &pts {
                             x0 = x0.min(q[0]);
                             y0 = y0.min(q[1]);
                             x1 = x1.max(q[0]);
                             y1 = y1.max(q[1]);
                         }
-                        let hw = nd
-                            .paths
-                            .iter()
-                            .filter_map(|pp| pp.stroke.as_ref().map(|s| s.width as f64 * 0.5))
-                            .fold(0.0, f64::max)
-                            * lin_norm(&w0);
+                        let hw = nd.paths.iter().filter_map(|pp| pp.stroke.as_ref().map(|s| s.width as f64 * 0.5)).fold(0.0, f64::max) * lin_norm(&w0);
                         let d = ((x1 - x0) + 2.0 * hw).hypot((y1 - y0) + 2.0 * hw) * o.scale;
                         m_cull = m_cull.max(d);
                         if d > worst.0 {
@@ -2987,10 +2495,7 @@ pub fn verify(orig: &Project, lod: &Lod, o: &VerifyOptions) -> Result<VerifyRepo
             let w1 = a_of(&n1.world);
             if nd.paths.len() == n1.paths.len() {
                 for (pa, pb) in nd.paths.iter().zip(&n1.paths) {
-                    let (a, b) = (
-                        screen_outline(pa, &w0, o.scale),
-                        screen_outline(pb, &w1, o.scale),
-                    );
+                    let (a, b) = (screen_outline(pa, &w0, o.scale), screen_outline(pb, &w1, o.scale));
                     let d = hausdorff_upper(&a, &b, 0.002);
                     local_worst = local_worst.max(d);
                     m_paths = m_paths.max(d);
@@ -3009,24 +2514,12 @@ pub fn verify(orig: &Project, lod: &Lod, o: &VerifyOptions) -> Result<VerifyRepo
                     let probe = probes.entry(nd.name.clone()).or_insert_with(|| {
                         let rest_of = |p: &Project, img: &crate::engine::ImageDraw| -> Vec<P> {
                             match p.find_layer(&nd.name).map(|l| &l.kind) {
-                                Some(LayerKind::Image {
-                                    mesh: Some(m),
-                                    origin,
-                                    ..
-                                }) => m
-                                    .rest_vertices(*origin, img.size)
-                                    .iter()
-                                    .map(|v| p_of(*v))
-                                    .collect(),
+                                Some(LayerKind::Image { mesh: Some(m), origin, .. }) => m.rest_vertices(*origin, img.size).iter().map(|v| p_of(*v)).collect(),
                                 _ => vec![],
                             }
                         };
                         let (ra, rb) = (rest_of(orig, a), rest_of(&lod.project, b));
-                        let tb: Vec<[usize; 3]> = mb
-                            .tris
-                            .iter()
-                            .map(|t| [t[0] as usize, t[1] as usize, t[2] as usize])
-                            .collect();
+                        let tb: Vec<[usize; 3]> = mb.tris.iter().map(|t| [t[0] as usize, t[1] as usize, t[2] as usize]).collect();
                         let mut pts = Vec::new();
                         if ra.len() == ma.positions.len() && rb.len() == mb.positions.len() {
                             for t in &ma.tris {
@@ -3041,10 +2534,7 @@ pub fn verify(orig: &Project, lod: &Lod, o: &VerifyOptions) -> Result<VerifyRepo
                                     [1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0],
                                 ];
                                 for l in cs {
-                                    let p = add(
-                                        add(mul(ra[t[0]], l[0]), mul(ra[t[1]], l[1])),
-                                        mul(ra[t[2]], l[2]),
-                                    );
+                                    let p = add(add(mul(ra[t[0]], l[0]), mul(ra[t[1]], l[1])), mul(ra[t[2]], l[2]));
                                     if let Some((tt, ll)) = locate(&rb, &tb, p) {
                                         pts.push((t, l, tt, ll));
                                     }
@@ -3054,12 +2544,8 @@ pub fn verify(orig: &Project, lod: &Lod, o: &VerifyOptions) -> Result<VerifyRepo
                         MeshProbe { pts }
                     });
                     for (ta, la, tb_, lb) in &probe.pts {
-                        let ya = (0..3).fold([0.0, 0.0], |acc, j| {
-                            add(acc, mul(p_of(ma.positions[ta[j]]), la[j]))
-                        });
-                        let yb = (0..3).fold([0.0, 0.0], |acc, j| {
-                            add(acc, mul(p_of(mb.positions[tb_[j]]), lb[j]))
-                        });
+                        let ya = (0..3).fold([0.0, 0.0], |acc, j| add(acc, mul(p_of(ma.positions[ta[j]]), la[j])));
+                        let yb = (0..3).fold([0.0, 0.0], |acc, j| add(acc, mul(p_of(mb.positions[tb_[j]]), lb[j])));
                         let d = dist(a_apply(&w0, ya), a_apply(&w1, yb)) * o.scale;
                         m_mesh = m_mesh.max(d);
                         local_worst = local_worst.max(d);
@@ -3074,14 +2560,8 @@ pub fn verify(orig: &Project, lod: &Lod, o: &VerifyOptions) -> Result<VerifyRepo
     let measured = m_paths.max(m_mesh).max(m_cull).max(worst.0);
     let (mut pmax, mut pde, mut pshift, mut pframes) = (0u32, 0.0f64, 0.0f64, 0usize);
     if o.pixels {
-        let ro = crate::raster::RasterOptions {
-            scale: o.scale as f32,
-            show_bones: false,
-            transparent: false,
-        };
-        let mut pf: Vec<f32> = (0..o.pixel_frames.max(1))
-            .map(|i| (i as f32 * orig.frames.max(1) as f32 / o.pixel_frames.max(1) as f32).floor())
-            .collect();
+        let ro = crate::raster::RasterOptions { scale: o.scale as f32, show_bones: false, transparent: false };
+        let mut pf: Vec<f32> = (0..o.pixel_frames.max(1)).map(|i| (i as f32 * orig.frames.max(1) as f32 / o.pixel_frames.max(1) as f32).floor()).collect();
         pf.push(worst.1);
         pf.sort_by(|a, b| a.total_cmp(b));
         pf.dedup();
@@ -3091,17 +2571,10 @@ pub fn verify(orig: &Project, lod: &Lod, o: &VerifyOptions) -> Result<VerifyRepo
             let (w, h) = (w as usize, h as usize);
             pframes += 1;
             for (pa, pb) in a.chunks_exact(4).zip(b.chunks_exact(4)) {
-                let d = (0..4)
-                    .map(|k| (pa[k] as i32 - pb[k] as i32).unsigned_abs())
-                    .max()
-                    .unwrap_or(0);
+                let d = (0..4).map(|k| (pa[k] as i32 - pb[k] as i32).unsigned_abs()).max().unwrap_or(0);
                 if d > 0 {
                     pmax = pmax.max(d);
-                    pde = pde.max(crate::percep::pixel_de(
-                        [pa[0], pa[1], pa[2], pa[3]],
-                        [pb[0], pb[1], pb[2], pb[3]],
-                        crate::percep::DeMetric::De2000,
-                    ));
+                    pde = pde.max(crate::percep::pixel_de([pa[0], pa[1], pa[2], pa[3]], [pb[0], pb[1], pb[2], pb[3]], crate::percep::DeMetric::De2000));
                 }
             }
             pshift = pshift.max(shift_estimate(&a, &b, w, h));
@@ -3118,11 +2591,7 @@ pub fn verify(orig: &Project, lod: &Lod, o: &VerifyOptions) -> Result<VerifyRepo
         worst_layer: worst.2,
         frames_checked: frames.len(),
         holds: measured <= lod.record.declared_px + 1e-6,
-        conservatism: if measured > 1e-9 {
-            Some(lod.record.declared_px / measured)
-        } else {
-            None
-        },
+        conservatism: if measured > 1e-9 { Some(lod.record.declared_px / measured) } else { None },
         pixel_frames: pframes,
         pixel_max_abs: pmax,
         pixel_max_de2000: pde,
@@ -3135,26 +2604,15 @@ fn shift_estimate(a: &[u8], b: &[u8], w: usize, h: usize) -> f64 {
     if w < 3 || h < 3 {
         return 0.0;
     }
-    let lum = |im: &[u8], i: usize| {
-        (0.299 * im[i * 4] as f64 + 0.587 * im[i * 4 + 1] as f64 + 0.114 * im[i * 4 + 2] as f64)
-            / 255.0
-    };
+    let lum = |im: &[u8], i: usize| (0.299 * im[i * 4] as f64 + 0.587 * im[i * 4 + 1] as f64 + 0.114 * im[i * 4 + 2] as f64) / 255.0;
     let mut diff = vec![0.0f64; w * h];
     let mut tv = vec![0.0f64; w * h];
     for y in 0..h {
         for x in 0..w {
             let i = y * w + x;
             diff[i] = (lum(a, i) - lum(b, i)).abs();
-            let dx = if x + 1 < w {
-                lum(a, i + 1) - lum(a, i)
-            } else {
-                0.0
-            };
-            let dy = if y + 1 < h {
-                lum(a, i + w) - lum(a, i)
-            } else {
-                0.0
-            };
+            let dx = if x + 1 < w { lum(a, i + 1) - lum(a, i) } else { 0.0 };
+            let dy = if y + 1 < h { lum(a, i + w) - lum(a, i) } else { 0.0 };
             tv[i] = dx.hypot(dy);
         }
     }
@@ -3170,19 +2628,12 @@ fn shift_estimate(a: &[u8], b: &[u8], w: usize, h: usize) -> f64 {
         s
     };
     let (sd, st) = (integral(&diff), integral(&tv));
-    let rect = |s: &[f64], x0: usize, y0: usize, x1: usize, y1: usize| {
-        s[y1 * (w + 1) + x1] - s[y0 * (w + 1) + x1] - s[y1 * (w + 1) + x0] + s[y0 * (w + 1) + x0]
-    };
+    let rect = |s: &[f64], x0: usize, y0: usize, x1: usize, y1: usize| s[y1 * (w + 1) + x1] - s[y0 * (w + 1) + x1] - s[y1 * (w + 1) + x0] + s[y0 * (w + 1) + x0];
     let r = 4usize;
     let mut best = 0.0f64;
     for y in 0..h {
         for x in 0..w {
-            let (x0, y0, x1, y1) = (
-                x.saturating_sub(r),
-                y.saturating_sub(r),
-                (x + r + 1).min(w),
-                (y + r + 1).min(h),
-            );
+            let (x0, y0, x1, y1) = (x.saturating_sub(r), y.saturating_sub(r), (x + r + 1).min(w), (y + r + 1).min(h));
             let t = rect(&st, x0, y0, x1, y1);
             if t >= 1.0 {
                 best = best.max(rect(&sd, x0, y0, x1, y1) / t);
@@ -3245,18 +2696,13 @@ mod tests {
         let dir = |x: &[P], y: &[P]| {
             let idx = PolyIdx::new(y);
             let n = ((path_len(x) / 0.01) as usize).clamp(2, 400_000);
-            resample(x, n)
-                .iter()
-                .map(|&q| idx.nearest(q).0)
-                .fold(0.0, f64::max)
+            resample(x, n).iter().map(|&q| idx.nearest(q).0).fold(0.0, f64::max)
         };
         dir(&pa, &pb).max(dir(&pb, &pa))
     }
 
     fn lcg(seed: &mut u64) -> f64 {
-        *seed = seed
-            .wrapping_mul(6364136223846793005)
-            .wrapping_add(1442695040888963407);
+        *seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
         ((*seed >> 33) as f64) / ((1u64 << 31) as f64)
     }
 
@@ -3279,31 +2725,14 @@ mod tests {
 
     #[test]
     fn simplified_beziers_declare_a_bound_at_least_the_true_hausdorff_distance() {
-        for (n, wob, eps) in [
-            (48usize, 0.2f32, 0.15f64),
-            (64, 0.0, 0.05),
-            (40, 1.0, 0.5),
-            (90, 0.05, 0.3),
-            (24, 0.0, 2.0),
-        ] {
+        for (n, wob, eps) in [(48usize, 0.2f32, 0.15f64), (64, 0.0, 0.05), (40, 1.0, 0.5), (90, 0.05, 0.3), (24, 0.0, 2.0)] {
             let path = VPath::smooth_through("c", &circle_pts(n, 60.0, wob, n as u64), true, 1.0);
             let sp = simplify_path_certified(&path.anchors, true, eps);
             assert!(sp.removed > 0, "n={n} eps={eps}: nothing removed");
-            assert!(
-                sp.bound <= eps + 1e-9,
-                "declared {} above eps {eps}",
-                sp.bound
-            );
+            assert!(sp.bound <= eps + 1e-9, "declared {} above eps {eps}", sp.bound);
             let truth = true_hausdorff(&path.anchors, true, &sp.anchors, true);
-            assert!(
-                sp.bound + 1e-3 >= truth,
-                "n={n} eps={eps}: declared {} < true {truth}",
-                sp.bound
-            );
-            assert!(
-                truth <= eps + 1e-3,
-                "true {truth} exceeds the tolerance {eps}"
-            );
+            assert!(sp.bound + 1e-3 >= truth, "n={n} eps={eps}: declared {} < true {truth}", sp.bound);
+            assert!(truth <= eps + 1e-3, "true {truth} exceeds the tolerance {eps}");
         }
     }
 
@@ -3313,52 +2742,27 @@ mod tests {
         for case in 0..12 {
             let n = 20 + case * 3;
             let pts: Vec<Vec2> = (0..n)
-                .map(|i| {
-                    Vec2::new(
-                        i as f32 * 4.0,
-                        50.0 * ((i as f32) * 0.2).sin() + 0.4 * (lcg(&mut s) as f32 - 0.5),
-                    )
-                })
+                .map(|i| Vec2::new(i as f32 * 4.0, 50.0 * ((i as f32) * 0.2).sin() + 0.4 * (lcg(&mut s) as f32 - 0.5)))
                 .collect();
             let anchors: Vec<Anchor> = pts.iter().map(|&p| Anchor::corner(p)).collect();
             let eps = 0.3 + case as f64 * 0.1;
             let sp = simplify_path_certified(&anchors, false, eps);
             assert!(sp.removed > 0);
-            assert_eq!(
-                sp.anchors.first().unwrap().pos,
-                anchors.first().unwrap().pos
-            );
+            assert_eq!(sp.anchors.first().unwrap().pos, anchors.first().unwrap().pos);
             assert_eq!(sp.anchors.last().unwrap().pos, anchors.last().unwrap().pos);
             let truth = true_hausdorff(&anchors, false, &sp.anchors, false);
-            assert!(
-                sp.bound + 1e-3 >= truth && sp.bound <= eps + 1e-9,
-                "case {case}: declared {} true {truth} eps {eps}",
-                sp.bound
-            );
+            assert!(sp.bound + 1e-3 >= truth && sp.bound <= eps + 1e-9, "case {case}: declared {} true {truth} eps {eps}", sp.bound);
         }
     }
 
     #[test]
     fn hausdorff_bound_helpers_agree_with_brute_force() {
-        let a: Vec<P> = (0..200)
-            .map(|i| [i as f64 * 0.5, (i as f64 * 0.1).sin() * 10.0])
-            .collect();
-        let b: Vec<P> = (0..120)
-            .map(|i| [i as f64 * 0.83, (i as f64 * 0.17).sin() * 10.0 + 0.5])
-            .collect();
+        let a: Vec<P> = (0..200).map(|i| [i as f64 * 0.5, (i as f64 * 0.1).sin() * 10.0]).collect();
+        let b: Vec<P> = (0..120).map(|i| [i as f64 * 0.83, (i as f64 * 0.17).sin() * 10.0 + 0.5]).collect();
         let up = directed_hausdorff_upper(&a, &b, 0.01);
-        let exact_samples = resample(&a, 20000)
-            .iter()
-            .map(|&p| dist_to_poly(p, &b))
-            .fold(0.0, f64::max);
-        assert!(
-            up + 1e-9 >= exact_samples,
-            "upper {up} < sampled {exact_samples}"
-        );
-        assert!(
-            up <= exact_samples + 0.05,
-            "upper {up} much above sampled {exact_samples}"
-        );
+        let exact_samples = resample(&a, 20000).iter().map(|&p| dist_to_poly(p, &b)).fold(0.0, f64::max);
+        assert!(up + 1e-9 >= exact_samples, "upper {up} < sampled {exact_samples}");
+        assert!(up <= exact_samples + 0.05, "upper {up} much above sampled {exact_samples}");
         assert!(directed_hausdorff_upper(&a, &a, 0.01) < 1e-9);
         assert!(discrete_frechet(&a, &a) < 1e-12);
     }
@@ -3369,26 +2773,14 @@ mod tests {
         for tol in [1.0, 0.1, 0.01] {
             let (poly, h) = flatten_poly(&c, tol);
             assert!(h <= tol + 1e-12);
-            let worst = (0..=4000)
-                .map(|i| dist_to_poly(cubic_at(&c, i as f64 / 4000.0), &poly))
-                .fold(0.0, f64::max);
-            assert!(
-                worst <= h + 1e-9,
-                "curve is {worst} from its polyline, bound {h}"
-            );
+            let worst = (0..=4000).map(|i| dist_to_poly(cubic_at(&c, i as f64 / 4000.0), &poly)).fold(0.0, f64::max);
+            assert!(worst <= h + 1e-9, "curve is {worst} from its polyline, bound {h}");
         }
     }
 
     #[test]
     fn unsuitable_inputs_are_left_alone() {
-        let tri = VPath::polygon(
-            "t",
-            &[
-                Vec2::new(0.0, 0.0),
-                Vec2::new(10.0, 0.0),
-                Vec2::new(5.0, 8.0),
-            ],
-        );
+        let tri = VPath::polygon("t", &[Vec2::new(0.0, 0.0), Vec2::new(10.0, 0.0), Vec2::new(5.0, 8.0)]);
         let r = simplify_path_certified(&tri.anchors, true, 100.0);
         assert_eq!(r.removed, 0);
         assert_eq!(r.anchors, tri.anchors);
@@ -3402,18 +2794,8 @@ mod tests {
     }
 
     fn blob_scene(scale: f32) -> Project {
-        let mut layer = Layer::vector(
-            "blob",
-            vec![
-                VPath::smooth_through("c", &circle_pts(80, 40.0, 0.3, 3), true, 1.0)
-                    .with_fill("#336699"),
-            ],
-        );
-        layer.transform = Transform2D {
-            position: Vec2::new(0.0, 0.0),
-            scale: Vec2::new(scale, scale),
-            ..Default::default()
-        };
+        let mut layer = Layer::vector("blob", vec![VPath::smooth_through("c", &circle_pts(80, 40.0, 0.3, 3), true, 1.0).with_fill("#336699")]);
+        layer.transform = Transform2D { position: Vec2::new(0.0, 0.0), scale: Vec2::new(scale, scale), ..Default::default() };
         scene_with(vec![layer])
     }
 
@@ -3430,15 +2812,9 @@ mod tests {
         let o = LodOptions::new(1.0, 1.0, 1);
         let small = build(&blob_scene(1.0), &o).unwrap();
         let big = build(&blob_scene(3.0), &o).unwrap();
-        let (ks, kb) = (
-            anchors_of(&small[1].project, "blob"),
-            anchors_of(&big[1].project, "blob"),
-        );
+        let (ks, kb) = (anchors_of(&small[1].project, "blob"), anchors_of(&big[1].project, "blob"));
         assert!(ks < 80, "small version should lose anchors, has {ks}");
-        assert!(
-            kb >= ks,
-            "3x version must keep at least as many anchors ({kb} vs {ks})"
-        );
+        assert!(kb >= ks, "3x version must keep at least as many anchors ({kb} vs {ks})");
         // and a doubled render scale (output pixels per unit) is stricter as well
         let o2 = LodOptions::new(1.0, 2.0, 1);
         let fine = build(&blob_scene(1.0), &o2).unwrap();
@@ -3454,49 +2830,20 @@ mod tests {
     fn rig_scene(dense: bool) -> Project {
         let mut p = Project::new("rig", 200.0, 200.0, 24.0, 48);
         p.bones = vec![Bone::new("arm", None, 100.0, Vec2::new(50.0, 100.0), 0.0)];
-        let pts: Vec<Vec2> = (0..16)
-            .map(|i| {
-                Vec2::new(
-                    50.0 + i as f32 * 100.0 / 15.0,
-                    100.0 + if i % 2 == 0 { 4.0 } else { -4.0 },
-                )
-            })
-            .collect();
+        let pts: Vec<Vec2> = (0..16).map(|i| Vec2::new(50.0 + i as f32 * 100.0 / 15.0, 100.0 + if i % 2 == 0 { 4.0 } else { -4.0 })).collect();
         let mut sk = VPath::polygon("skin", &pts).with_fill("#cc3300");
         for a in &mut sk.anchors {
-            a.weights = vec![BoneWeight {
-                bone: "arm".into(),
-                weight: 1.0,
-            }];
+            a.weights = vec![BoneWeight { bone: "arm".into(), weight: 1.0 }];
         }
-        let mut ride = Layer::vector(
-            "ride",
-            vec![VPath::rect("r", 140.0, 90.0, 20.0, 20.0).with_fill("#006600")],
-        );
+        let mut ride = Layer::vector("ride", vec![VPath::rect("r", 140.0, 90.0, 20.0, 20.0).with_fill("#006600")]);
         ride.bone = Some("arm".into());
         p.layers = vec![Layer::vector("skinned", vec![sk]), ride];
         let keys: Vec<(f32, f32, Ease)> = if dense {
-            (0..48)
-                .map(|f| {
-                    (
-                        f as f32,
-                        30.0 * (f as f32 / 48.0 * std::f32::consts::TAU).sin(),
-                        Ease::Linear,
-                    )
-                })
-                .collect()
+            (0..48).map(|f| (f as f32, 30.0 * (f as f32 / 48.0 * std::f32::consts::TAU).sin(), Ease::Linear)).collect()
         } else {
-            vec![
-                (0.0, 0.0, Ease::Linear),
-                (24.0, 30.0, Ease::Linear),
-                (47.0, 0.0, Ease::Linear),
-            ]
+            vec![(0.0, 0.0, Ease::Linear), (24.0, 30.0, Ease::Linear), (47.0, 0.0, Ease::Linear)]
         };
-        p.channels = vec![Channel::keys(
-            "arm",
-            Prop::BoneAngle,
-            Track::with_keys(&keys),
-        )];
+        p.channels = vec![Channel::keys("arm", Prop::BoneAngle, Track::with_keys(&keys))];
         p
     }
 
@@ -3507,67 +2854,25 @@ mod tests {
         let levels = build(&p, &o).unwrap();
         let mut prev = levels[0].record.stats.keys;
         for l in &levels[1..] {
-            assert!(
-                l.record.stats.keys <= prev,
-                "keys grew: {} -> {}",
-                prev,
-                l.record.stats.keys
-            );
+            assert!(l.record.stats.keys <= prev, "keys grew: {} -> {}", prev, l.record.stats.keys);
             prev = l.record.stats.keys;
             assert!(l.record.declared_px <= l.record.tolerance_px + 1e-9);
         }
-        assert!(
-            levels[3].record.stats.keys < 30,
-            "coarsest level still has {} keys",
-            levels[3].record.stats.keys
-        );
+        assert!(levels[3].record.stats.keys < 30, "coarsest level still has {} keys", levels[3].record.stats.keys);
         assert!(levels[3].record.keys_px > 0.0);
         for l in &levels[1..] {
-            let r = verify(
-                &p,
-                l,
-                &VerifyOptions {
-                    scale: 1.0,
-                    frames: 48,
-                    pixels: false,
-                    pixel_frames: 1,
-                },
-            )
-            .unwrap();
-            assert!(
-                r.holds,
-                "level {}: measured {} > declared {}",
-                l.record.level, r.measured_px, r.declared_px
-            );
+            let r = verify(&p, l, &VerifyOptions { scale: 1.0, frames: 48, pixels: false, pixel_frames: 1 }).unwrap();
+            assert!(r.holds, "level {}: measured {} > declared {}", l.record.level, r.measured_px, r.declared_px);
             assert!(r.measured_px <= l.record.keys_px + l.record.path_px + 1e-6);
         }
     }
 
     #[test]
     fn key_reduction_honours_the_value_bound_for_every_ease() {
-        let eases = [
-            Ease::Linear,
-            Ease::EaseInOut,
-            Ease::Smooth,
-            Ease::Back { overshoot: 1.2 },
-            Ease::CubicBezier {
-                x1: 0.3,
-                y1: 0.0,
-                x2: 0.7,
-                y2: 1.0,
-            },
-        ];
+        let eases = [Ease::Linear, Ease::EaseInOut, Ease::Smooth, Ease::Back { overshoot: 1.2 }, Ease::CubicBezier { x1: 0.3, y1: 0.0, x2: 0.7, y2: 1.0 }];
         let grid: Vec<f32> = (0..96).map(|i| i as f32 / 2.0).collect();
         for e in eases {
-            let keys: Vec<(f32, f32, Ease)> = (0..48)
-                .map(|f| {
-                    (
-                        f as f32,
-                        20.0 * (f as f32 * 0.3).sin() + 3.0 * (f as f32 * 1.7).cos(),
-                        e,
-                    )
-                })
-                .collect();
+            let keys: Vec<(f32, f32, Ease)> = (0..48).map(|f| (f as f32, 20.0 * (f as f32 * 0.3).sin() + 3.0 * (f as f32 * 1.7).cos(), e)).collect();
             let t = Track::with_keys(&keys);
             for tol in [0.05, 0.5, 3.0] {
                 let r = reduce_track_bounded(&t, tol, &grid);
@@ -3581,65 +2886,32 @@ mod tests {
         // tiny and degenerate input is returned unchanged
         let two = Track::with_keys(&[(0.0, 1.0, Ease::Linear), (5.0, 2.0, Ease::Linear)]);
         assert_eq!(reduce_track_bounded(&two, 1.0, &grid), two);
-        let t = Track::with_keys(&[
-            (0.0, 1.0, Ease::Linear),
-            (5.0, 2.0, Ease::Linear),
-            (9.0, 0.0, Ease::Linear),
-        ]);
+        let t = Track::with_keys(&[(0.0, 1.0, Ease::Linear), (5.0, 2.0, Ease::Linear), (9.0, 0.0, Ease::Linear)]);
         assert_eq!(reduce_track_bounded(&t, f64::NAN, &grid), t);
         assert_eq!(reduce_track_bounded(&t, -1.0, &grid), t);
     }
 
     fn mesh_png() -> Vec<u8> {
-        crate::percep::Img::solid(16, 16, [200, 30, 30, 255])
-            .to_png()
-            .unwrap()
+        crate::percep::Img::solid(16, 16, [200, 30, 30, 255]).to_png().unwrap()
     }
 
     fn mesh_scene(cols: usize, rows: usize, animate: bool) -> Project {
         let mut p = Project::new("mesh", 200.0, 200.0, 24.0, 24);
-        p.bones = vec![
-            Bone::new("a", None, 60.0, Vec2::new(40.0, 100.0), 0.0),
-            Bone::new("b", None, 60.0, Vec2::new(100.0, 100.0), 0.0),
-        ];
+        p.bones = vec![Bone::new("a", None, 60.0, Vec2::new(40.0, 100.0), 0.0), Bone::new("b", None, 60.0, Vec2::new(100.0, 100.0), 0.0)];
         let mut img = Layer::image_from_png("img", &mesh_png(), Vec2::new(40.0, 60.0));
         let weights: Vec<Vec<BoneWeight>> = (0..=rows)
-            .flat_map(|_r| {
-                (0..=cols).map(move |c| {
-                    let t = c as f32 / cols as f32;
-                    vec![
-                        BoneWeight {
-                            bone: "a".into(),
-                            weight: 1.0 - t,
-                        },
-                        BoneWeight {
-                            bone: "b".into(),
-                            weight: t,
-                        },
-                    ]
-                })
-            })
+            .flat_map(|_r| (0..=cols).map(move |c| {
+                let t = c as f32 / cols as f32;
+                vec![BoneWeight { bone: "a".into(), weight: 1.0 - t }, BoneWeight { bone: "b".into(), weight: t }]
+            }))
             .collect();
         if let LayerKind::Image { size, mesh, .. } = &mut img.kind {
             *size = Some(Vec2::new(120.0, 80.0));
-            *mesh = Some(MeshSpec {
-                cols,
-                rows,
-                weights,
-                free: None,
-            });
+            *mesh = Some(MeshSpec { cols, rows, weights, free: None });
         }
         p.layers = vec![img];
         if animate {
-            p.channels = vec![Channel::keys(
-                "b",
-                Prop::BoneAngle,
-                Track::with_keys(&[
-                    (0.0, 0.0, Ease::Linear),
-                    (12.0, 25.0, Ease::Linear),
-                    (23.0, 0.0, Ease::Linear),
-                ]),
-            )];
+            p.channels = vec![Channel::keys("b", Prop::BoneAngle, Track::with_keys(&[(0.0, 0.0, Ease::Linear), (12.0, 25.0, Ease::Linear), (23.0, 0.0, Ease::Linear)]))];
         }
         p
     }
@@ -3668,37 +2940,16 @@ mod tests {
         }
         assert!(prev < 99, "no vertex was collapsed at 6 px");
         for l in &levels[1..] {
-            let r = verify(
-                &p,
-                l,
-                &VerifyOptions {
-                    scale: 1.0,
-                    frames: 24,
-                    pixels: true,
-                    pixel_frames: 3,
-                },
-            )
-            .unwrap();
-            assert!(
-                r.holds,
-                "level {}: measured {} declared {}",
-                l.record.level, r.measured_px, r.declared_px
-            );
-            assert!(
-                r.measured_mesh_px <= l.record.mesh_px + 1e-6,
-                "mesh measured {} > certified {}",
-                r.measured_mesh_px,
-                l.record.mesh_px
-            );
+            let r = verify(&p, l, &VerifyOptions { scale: 1.0, frames: 24, pixels: true, pixel_frames: 3 }).unwrap();
+            assert!(r.holds, "level {}: measured {} declared {}", l.record.level, r.measured_px, r.declared_px);
+            assert!(r.measured_mesh_px <= l.record.mesh_px + 1e-6, "mesh measured {} > certified {}", r.measured_mesh_px, l.record.mesh_px);
         }
     }
 
     #[test]
     fn unskinned_grid_collapses_to_its_corners_and_keeps_the_outline() {
         let n = 9usize;
-        let rest: Vec<P> = (0..=n)
-            .flat_map(|r| (0..=n).map(move |c| [c as f64 * 10.0, r as f64 * 10.0]))
-            .collect();
+        let rest: Vec<P> = (0..=n).flat_map(|r| (0..=n).map(move |c| [c as f64 * 10.0, r as f64 * 10.0])).collect();
         let mut tris = Vec::new();
         for r in 0..n {
             for c in 0..n {
@@ -3708,37 +2959,14 @@ mod tests {
             }
         }
         let attr: Vec<Vec<f64>> = vec![vec![]; rest.len()];
-        let y: Vec<Vec<[f32; 2]>> =
-            vec![rest.iter().map(|p| [p[0] as f32, p[1] as f32]).collect(); 3];
+        let y: Vec<Vec<[f32; 2]>> = vec![rest.iter().map(|p| [p[0] as f32, p[1] as f32]).collect(); 3];
         let s = vec![1.0; 3];
-        let q = qem_simplify(
-            &QemInput {
-                rest: &rest,
-                tris: &tris,
-                attr: &attr,
-                y: &y,
-                s: &s,
-            },
-            0.5,
-        );
-        assert_eq!(
-            q.keep,
-            vec![0, n, n * (n + 1), (n + 1) * (n + 1) - 1],
-            "only the four corners can remain"
-        );
+        let q = qem_simplify(&QemInput { rest: &rest, tris: &tris, attr: &attr, y: &y, s: &s }, 0.5);
+        assert_eq!(q.keep, vec![0, n, n * (n + 1), (n + 1) * (n + 1) - 1], "only the four corners can remain");
         assert_eq!(q.tris.len(), 2);
         assert!(q.bound_px < 1e-9);
         // zero tolerance leaves the mesh alone
-        let z = qem_simplify(
-            &QemInput {
-                rest: &rest,
-                tris: &tris,
-                attr: &attr,
-                y: &y,
-                s: &s,
-            },
-            0.0,
-        );
+        let z = qem_simplify(&QemInput { rest: &rest, tris: &tris, attr: &attr, y: &y, s: &s }, 0.0);
         assert_eq!(z.collapses, 0);
         assert_eq!(z.keep.len(), rest.len());
     }
@@ -3747,9 +2975,7 @@ mod tests {
     fn qem_bound_covers_the_true_surface_difference() {
         // deformed positions: a bend that makes interior vertices matter
         let (cols, rows) = (12usize, 6usize);
-        let rest: Vec<P> = (0..=rows)
-            .flat_map(|r| (0..=cols).map(move |c| [c as f64 * 8.0, r as f64 * 8.0]))
-            .collect();
+        let rest: Vec<P> = (0..=rows).flat_map(|r| (0..=cols).map(move |c| [c as f64 * 8.0, r as f64 * 8.0])).collect();
         let mut tris = Vec::new();
         for r in 0..rows {
             for c in 0..cols {
@@ -3763,10 +2989,7 @@ mod tests {
                 rest.iter()
                     .map(|p| {
                         let a = (p[0] / 96.0) * 0.9 * (f as f64 + 1.0);
-                        [
-                            (p[0] + 6.0 * (a).sin() * p[1] / 48.0) as f32,
-                            (p[1] + 14.0 * (1.0 - a.cos()) + 3.0 * (p[0] * 0.2).sin()) as f32,
-                        ]
+                        [(p[0] + 6.0 * (a).sin() * p[1] / 48.0) as f32, (p[1] + 14.0 * (1.0 - a.cos()) + 3.0 * (p[0] * 0.2).sin()) as f32]
                     })
                     .collect()
             })
@@ -3774,16 +2997,7 @@ mod tests {
         let attr: Vec<Vec<f64>> = rest.iter().map(|p| vec![p[0] / 96.0 * 10.0]).collect();
         let s = vec![1.5, 1.0, 1.2, 1.0];
         let eps = 2.0;
-        let q = qem_simplify(
-            &QemInput {
-                rest: &rest,
-                tris: &tris,
-                attr: &attr,
-                y: &y,
-                s: &s,
-            },
-            eps,
-        );
+        let q = qem_simplify(&QemInput { rest: &rest, tris: &tris, attr: &attr, y: &y, s: &s }, eps);
         assert!(q.collapses > 0 && q.bound_px <= eps + 1e-9);
         // brute force: evaluate both piecewise-linear surfaces on a lattice of rest points
         let loc_all = |tr: &[[usize; 3]], p: P| locate(&rest, tr, p).unwrap();
@@ -3794,20 +3008,12 @@ mod tests {
                 let (t0, l0) = loc_all(&tris, pt);
                 let (t1, l1) = loc_all(&q.tris, pt);
                 for (f, yf) in y.iter().enumerate() {
-                    let ev = |t: [usize; 3], l: [f64; 3]| {
-                        (0..3).fold([0.0, 0.0], |a, k| {
-                            add(a, mul([yf[t[k]][0] as f64, yf[t[k]][1] as f64], l[k]))
-                        })
-                    };
+                    let ev = |t: [usize; 3], l: [f64; 3]| (0..3).fold([0.0, 0.0], |a, k| add(a, mul([yf[t[k]][0] as f64, yf[t[k]][1] as f64], l[k])));
                     worst = worst.max(dist(ev(t0, l0), ev(t1, l1)) * s[f]);
                 }
             }
         }
-        assert!(
-            worst <= q.bound_px + 1e-6,
-            "true max {worst} above certified {}",
-            q.bound_px
-        );
+        assert!(worst <= q.bound_px + 1e-6, "true max {worst} above certified {}", q.bound_px);
         assert!(worst > 0.0);
         // outline preserved: kept vertices include all four corners, every kept vertex is an original one
         for corner in [0, cols, rows * (cols + 1), (rows + 1) * (cols + 1) - 1] {
@@ -3818,44 +3024,17 @@ mod tests {
     #[test]
     fn tiny_container_members_are_kept_not_a_fatal_error() {
         use crate::containers::{Container, Dir, Member};
-        let big = Layer::vector(
-            "big",
-            vec![VPath::rect("r", 0.0, 0.0, 60.0, 40.0).with_fill("#336699")],
-        );
-        let dot = Layer::vector(
-            "dot",
-            vec![VPath::circle("d", Vec2::new(20.0, 20.0), 0.1).with_fill("#000000")],
-        );
-        let free = Layer::vector(
-            "free",
-            vec![VPath::circle("d", Vec2::new(90.0, 20.0), 0.1).with_fill("#000000")],
-        );
+        let big = Layer::vector("big", vec![VPath::rect("r", 0.0, 0.0, 60.0, 40.0).with_fill("#336699")]);
+        let dot = Layer::vector("dot", vec![VPath::circle("d", Vec2::new(20.0, 20.0), 0.1).with_fill("#000000")]);
+        let free = Layer::vector("free", vec![VPath::circle("d", Vec2::new(90.0, 20.0), 0.1).with_fill("#000000")]);
         let mut p = scene_with(vec![big, dot, free]);
-        p.containers.push(Container::new(
-            "row",
-            Dir::Row,
-            vec![Member::layer("big"), Member::layer("dot")],
-        ));
+        p.containers.push(Container::new("row", Dir::Row, vec![Member::layer("big"), Member::layer("dot")]));
         Engine::new(p.clone()).unwrap();
-        let levels = build(&p, &LodOptions::new(1.0, 1.0, 2))
-            .expect("lod must not abort on a container member");
+        let levels = build(&p, &LodOptions::new(1.0, 1.0, 2)).expect("lod must not abort on a container member");
         for l in &levels[1..] {
-            assert!(
-                l.project.find_layer("dot").is_some(),
-                "container member kept"
-            );
-            assert!(
-                l.project.find_layer("free").is_none(),
-                "unreferenced speck still culled"
-            );
-            assert!(
-                l.record
-                    .notes
-                    .iter()
-                    .any(|n| n.starts_with("skipped:") && n.contains("dot")),
-                "{:?}",
-                l.record.notes
-            );
+            assert!(l.project.find_layer("dot").is_some(), "container member kept");
+            assert!(l.project.find_layer("free").is_none(), "unreferenced speck still culled");
+            assert!(l.record.notes.iter().any(|n| n.starts_with("skipped:") && n.contains("dot")), "{:?}", l.record.notes);
             Engine::new(l.project.clone()).unwrap();
         }
     }
@@ -3867,60 +3046,25 @@ mod tests {
     fn declared_bound_holds_on_a_project_with_a_layout_container() {
         use crate::containers::{Container, Dir, Member, RectRule};
         let wob = |seed: u64, r: f32| circle_pts(60, r, 6.0, seed);
-        let sun = Layer::vector(
-            "sun",
-            vec![VPath::smooth_through("c", &wob(3, 40.0), true, 1.0).with_fill("#ffcc00")],
-        );
-        let hills = Layer::vector(
-            "hills",
-            vec![VPath::smooth_through("c", &wob(5, 55.0), true, 1.0).with_fill("#336644")],
-        );
+        let sun = Layer::vector("sun", vec![VPath::smooth_through("c", &wob(3, 40.0), true, 1.0).with_fill("#ffcc00")]);
+        let hills = Layer::vector("hills", vec![VPath::smooth_through("c", &wob(5, 55.0), true, 1.0).with_fill("#336644")]);
         // not a member: still reduced, so the level has a real, non-zero declared bound
-        let free = Layer::vector(
-            "free",
-            vec![VPath::smooth_through("c", &wob(9, 30.0), true, 1.0).with_fill("#aa3333")],
-        );
+        let free = Layer::vector("free", vec![VPath::smooth_through("c", &wob(9, 30.0), true, 1.0).with_fill("#aa3333")]);
         let mut p = scene_with(vec![sun, hills, free]);
-        let mut c = Container::new(
-            "row",
-            Dir::Row,
-            vec![Member::layer("sun"), Member::layer("hills")],
-        );
+        let mut c = Container::new("row", Dir::Row, vec![Member::layer("sun"), Member::layer("hills")]);
         c.members[0].grow = 1.0;
         c.gap = 10.0;
-        c.rect = RectRule::Aspect {
-            ratio: 1.5,
-            mode: Default::default(),
-            margin: 0.0,
-            ax: 0.5,
-            ay: 0.5,
-        };
+        c.rect = RectRule::Aspect { ratio: 1.5, mode: Default::default(), margin: 0.0, ax: 0.5, ay: 0.5 };
         p.containers.push(c);
         Engine::new(p.clone()).unwrap();
         for tol in [3.0, 4.0, 6.0] {
             let levels = build(&p, &LodOptions::new(tol, 1.0, 3)).unwrap();
             for l in &levels[1..] {
-                assert!(
-                    l.record
-                        .notes
-                        .iter()
-                        .any(|n| n.contains("skipped: layout member")
-                            && n.contains("sun")
-                            && n.contains("hills")),
-                    "{:?}",
-                    l.record.notes
-                );
+                assert!(l.record.notes.iter().any(|n| n.contains("skipped: layout member") && n.contains("sun") && n.contains("hills")), "{:?}", l.record.notes);
                 for m in ["sun", "hills"] {
-                    assert_eq!(
-                        l.project.find_layer(m),
-                        p.find_layer(m),
-                        "member {m} must be untouched"
-                    );
+                    assert_eq!(l.project.find_layer(m), p.find_layer(m), "member {m} must be untouched");
                 }
-                assert!(
-                    l.record.path_px > 0.0,
-                    "the non-member path is still reduced"
-                );
+                assert!(l.record.path_px > 0.0, "the non-member path is still reduced");
                 for (size, scale) in [(None, 1.0), (Some((300.0f32, 200.0f32)), 1.0)] {
                     // the same canvas for original and level (the CLI's --size re-solves both)
                     let (o, q) = match size {
@@ -3931,23 +3075,8 @@ mod tests {
                             (crate::containers::responsive(&p, w, h).unwrap(), q)
                         }
                     };
-                    let r = verify(
-                        &o,
-                        &q,
-                        &VerifyOptions {
-                            scale,
-                            frames: 12,
-                            pixels: true,
-                            pixel_frames: 3,
-                        },
-                    )
-                    .unwrap();
-                    assert!(
-                        r.holds && r.measured_px <= r.declared_px + 1e-6,
-                        "tol {tol} size {size:?}: measured {} declared {}",
-                        r.measured_px,
-                        r.declared_px
-                    );
+                    let r = verify(&o, &q, &VerifyOptions { scale, frames: 12, pixels: true, pixel_frames: 3 }).unwrap();
+                    assert!(r.holds && r.measured_px <= r.declared_px + 1e-6, "tol {tol} size {size:?}: measured {} declared {}", r.measured_px, r.declared_px);
                 }
             }
         }
@@ -3955,52 +3084,19 @@ mod tests {
 
     #[test]
     fn culling_is_conservative() {
-        let mut dot = Layer::vector(
-            "dot",
-            vec![VPath::circle("d", Vec2::new(20.0, 20.0), 0.12).with_fill("#000000")],
-        );
+        let mut dot = Layer::vector("dot", vec![VPath::circle("d", Vec2::new(20.0, 20.0), 0.12).with_fill("#000000")]);
         dot.opacity = 1.0;
-        let big = Layer::vector(
-            "big",
-            vec![VPath::rect("r", 50.0, 50.0, 60.0, 40.0).with_fill("#336699")],
-        );
-        let tiny_mask = Layer::vector(
-            "maskdot",
-            vec![VPath::circle("m", Vec2::new(30.0, 30.0), 0.1).with_fill("#ffffff")],
-        );
-        let mut masked = Layer::vector(
-            "masked",
-            vec![VPath::rect("r", 0.0, 0.0, 100.0, 100.0).with_fill("#990000")],
-        );
-        masked.mask = Some(MaskRef {
-            layer: "maskdot".into(),
-            invert: false,
-        });
-        let sw = Layer::switch(
-            "sw",
-            vec![
-                Layer::vector(
-                    "a",
-                    vec![VPath::circle("d", Vec2::new(70.0, 20.0), 0.1).with_fill("#000000")],
-                ),
-                Layer::vector(
-                    "b",
-                    vec![VPath::circle("d", Vec2::new(70.0, 20.0), 0.1).with_fill("#000000")],
-                ),
-            ],
-        );
-        let mut blended = Layer::vector(
-            "blended",
-            vec![VPath::circle("d", Vec2::new(90.0, 20.0), 0.1).with_fill("#000000")],
-        );
+        let big = Layer::vector("big", vec![VPath::rect("r", 50.0, 50.0, 60.0, 40.0).with_fill("#336699")]);
+        let tiny_mask = Layer::vector("maskdot", vec![VPath::circle("m", Vec2::new(30.0, 30.0), 0.1).with_fill("#ffffff")]);
+        let mut masked = Layer::vector("masked", vec![VPath::rect("r", 0.0, 0.0, 100.0, 100.0).with_fill("#990000")]);
+        masked.mask = Some(MaskRef { layer: "maskdot".into(), invert: false });
+        let sw = Layer::switch("sw", vec![Layer::vector("a", vec![VPath::circle("d", Vec2::new(70.0, 20.0), 0.1).with_fill("#000000")]), Layer::vector("b", vec![VPath::circle("d", Vec2::new(70.0, 20.0), 0.1).with_fill("#000000")])]);
+        let mut blended = Layer::vector("blended", vec![VPath::circle("d", Vec2::new(90.0, 20.0), 0.1).with_fill("#000000")]);
         blended.blend = crate::style::Blend::Difference;
         let p = scene_with(vec![dot, big, tiny_mask, masked, sw, blended]);
         let levels = build(&p, &LodOptions::new(1.0, 1.0, 1)).unwrap();
         let q = &levels[1].project;
-        assert!(
-            q.find_layer("dot").is_none(),
-            "sub-pixel dot should be culled"
-        );
+        assert!(q.find_layer("dot").is_none(), "sub-pixel dot should be culled");
         for keep in ["big", "maskdot", "masked", "sw/a", "sw/b", "blended"] {
             assert!(q.find_layer(keep).is_some(), "{keep} must not be culled");
         }
@@ -4009,17 +3105,7 @@ mod tests {
         let hi = build(&p, &LodOptions::new(1.0, 8.0, 1)).unwrap();
         assert!(hi[1].project.find_layer("dot").is_some());
         // verify charges the culled layer with its diameter and holds
-        let r = verify(
-            &p,
-            &levels[1],
-            &VerifyOptions {
-                scale: 1.0,
-                frames: 4,
-                pixels: true,
-                pixel_frames: 2,
-            },
-        )
-        .unwrap();
+        let r = verify(&p, &levels[1], &VerifyOptions { scale: 1.0, frames: 4, pixels: true, pixel_frames: 2 }).unwrap();
         assert!(r.holds && r.measured_cull_px > 0.0, "{r:?}");
         // the culled dot changes at most a few grey levels of one pixel
         assert!(r.pixel_max_abs <= 64, "{}", r.pixel_max_abs);
@@ -4035,14 +3121,8 @@ mod tests {
         assert_eq!(p, before, "input project was modified");
         assert_eq!(a.len(), b.len());
         for (x, y) in a.iter().zip(&b) {
-            assert_eq!(
-                x.project.to_json_pretty().into_bytes(),
-                y.project.to_json_pretty().into_bytes()
-            );
-            assert_eq!(
-                serde_json::to_string(&x.record).unwrap(),
-                serde_json::to_string(&y.record).unwrap()
-            );
+            assert_eq!(x.project.to_json_pretty().into_bytes(), y.project.to_json_pretty().into_bytes());
+            assert_eq!(serde_json::to_string(&x.record).unwrap(), serde_json::to_string(&y.record).unwrap());
         }
         let m = mesh_scene(8, 6, true);
         let m1 = build(&m, &o).unwrap();
@@ -4053,41 +3133,21 @@ mod tests {
         let blob = blob_scene(1.0);
         let b1 = build(&blob, &o).unwrap();
         let b2 = build(&blob, &o).unwrap();
-        assert_eq!(
-            b1[2].project.to_json_pretty(),
-            b2[2].project.to_json_pretty()
-        );
+        assert_eq!(b1[2].project.to_json_pretty(), b2[2].project.to_json_pretty());
     }
 
     #[test]
     fn levels_are_monotone() {
-        for p in [
-            blob_scene(1.0),
-            rig_scene(true),
-            mesh_scene(10, 8, true),
-            crate::demo::project(),
-        ] {
+        for p in [blob_scene(1.0), rig_scene(true), mesh_scene(10, 8, true), crate::demo::project()] {
             let levels = build(&p, &LodOptions::new(0.5, 1.0, 5)).unwrap();
             assert_eq!(levels.len(), 6);
             for w in levels.windows(2) {
                 let (a, b) = (&w[0].record, &w[1].record);
-                assert!(
-                    b.stats.path_anchors <= a.stats.path_anchors,
-                    "anchors grew at L{}",
-                    b.level
-                );
+                assert!(b.stats.path_anchors <= a.stats.path_anchors, "anchors grew at L{}", b.level);
                 assert!(b.stats.keys <= a.stats.keys, "keys grew at L{}", b.level);
-                assert!(
-                    b.stats.mesh_vertices <= a.stats.mesh_vertices,
-                    "mesh vertices grew at L{}",
-                    b.level
-                );
+                assert!(b.stats.mesh_vertices <= a.stats.mesh_vertices, "mesh vertices grew at L{}", b.level);
                 assert!(b.stats.layers <= a.stats.layers);
-                assert!(
-                    b.declared_px + 1e-12 >= a.declared_px,
-                    "bound shrank at L{}",
-                    b.level
-                );
+                assert!(b.declared_px + 1e-12 >= a.declared_px, "bound shrank at L{}", b.level);
                 assert!(b.tolerance_px > a.tolerance_px || a.level == 0);
             }
             assert_eq!(levels[0].project, p);
@@ -4096,23 +3156,8 @@ mod tests {
 
     #[test]
     fn minimal_input_passes_through_unchanged() {
-        let mut p = scene_with(vec![Layer::vector(
-            "tri",
-            vec![VPath::polygon(
-                "t",
-                &[
-                    Vec2::new(10.0, 10.0),
-                    Vec2::new(90.0, 10.0),
-                    Vec2::new(50.0, 80.0),
-                ],
-            )
-            .with_fill("#112233")],
-        )]);
-        p.channels = vec![Channel::keys(
-            "tri",
-            Prop::LayerRotation,
-            Track::with_keys(&[(0.0, 0.0, Ease::Linear), (11.0, 5.0, Ease::Linear)]),
-        )];
+        let mut p = scene_with(vec![Layer::vector("tri", vec![VPath::polygon("t", &[Vec2::new(10.0, 10.0), Vec2::new(90.0, 10.0), Vec2::new(50.0, 80.0)]).with_fill("#112233")])]);
+        p.channels = vec![Channel::keys("tri", Prop::LayerRotation, Track::with_keys(&[(0.0, 0.0, Ease::Linear), (11.0, 5.0, Ease::Linear)]))];
         let levels = build(&p, &LodOptions::new(0.5, 1.0, 3)).unwrap();
         for l in &levels[1..] {
             let mut q = l.project.clone();
@@ -4122,12 +3167,8 @@ mod tests {
         }
         // a second pass over an already reduced level changes nothing more at the same tolerance
         let blob = blob_scene(1.0);
-        let l1 = build(&blob, &LodOptions::new(1.0, 1.0, 1))
-            .unwrap()
-            .remove(1);
-        let mut again = build(&l1.project, &LodOptions::new(1.0, 1.0, 1))
-            .unwrap()
-            .remove(1);
+        let l1 = build(&blob, &LodOptions::new(1.0, 1.0, 1)).unwrap().remove(1);
+        let mut again = build(&l1.project, &LodOptions::new(1.0, 1.0, 1)).unwrap().remove(1);
         again.project.lods.clear();
         let mut once = l1.project.clone();
         once.lods.clear();
@@ -4155,22 +3196,8 @@ mod tests {
         let o = LodOptions::new(0.5, 1.0, 4);
         let levels = build(&p, &o).unwrap();
         for l in &levels[1..] {
-            let r = verify(
-                &p,
-                l,
-                &VerifyOptions {
-                    scale: 1.0,
-                    frames: 6,
-                    pixels: false,
-                    pixel_frames: 1,
-                },
-            )
-            .unwrap();
-            assert!(
-                r.holds,
-                "level {}: measured {} > declared {} ({} at frame {})",
-                r.level, r.measured_px, r.declared_px, r.worst_layer, r.worst_frame
-            );
+            let r = verify(&p, l, &VerifyOptions { scale: 1.0, frames: 6, pixels: false, pixel_frames: 1 }).unwrap();
+            assert!(r.holds, "level {}: measured {} > declared {} ({} at frame {})", r.level, r.measured_px, r.declared_px, r.worst_layer, r.worst_frame);
         }
         // negative control: displace a point of the coarsest level by 5 px -> must be reported
         let mut bad = levels[4].clone();
@@ -4179,44 +3206,18 @@ mod tests {
                 paths[0].anchors[2].pos.y += 5.0;
             }
         }
-        let r = verify(
-            &p,
-            &bad,
-            &VerifyOptions {
-                scale: 1.0,
-                frames: 4,
-                pixels: false,
-                pixel_frames: 1,
-            },
-        )
-        .unwrap();
-        assert!(
-            !r.holds && r.measured_px > 1.0,
-            "planted violation not detected: {r:?}"
-        );
+        let r = verify(&p, &bad, &VerifyOptions { scale: 1.0, frames: 4, pixels: false, pixel_frames: 1 }).unwrap();
+        assert!(!r.holds && r.measured_px > 1.0, "planted violation not detected: {r:?}");
     }
 
     #[test]
     fn dead_layers_are_dropped_losslessly_and_reported() {
-        let mut hidden = Layer::vector(
-            "hidden",
-            vec![VPath::rect("r", 0.0, 0.0, 50.0, 50.0).with_fill("#ff0000")],
-        );
+        let mut hidden = Layer::vector("hidden", vec![VPath::rect("r", 0.0, 0.0, 50.0, 50.0).with_fill("#ff0000")]);
         hidden.visible = false;
-        let p = scene_with(vec![
-            hidden,
-            Layer::vector(
-                "shown",
-                vec![VPath::rect("r", 60.0, 60.0, 50.0, 50.0).with_fill("#00ff00")],
-            ),
-        ]);
+        let p = scene_with(vec![hidden, Layer::vector("shown", vec![VPath::rect("r", 60.0, 60.0, 50.0, 50.0).with_fill("#00ff00")])]);
         let levels = build(&p, &LodOptions::new(0.5, 1.0, 1)).unwrap();
         assert!(levels[1].project.find_layer("hidden").is_none());
-        assert!(levels[1]
-            .record
-            .notes
-            .iter()
-            .any(|n| n.contains("dead layer")));
+        assert!(levels[1].record.notes.iter().any(|n| n.contains("dead layer")));
         assert_eq!(levels[1].record.declared_px, 0.0);
     }
 
@@ -4224,32 +3225,15 @@ mod tests {
     fn expression_referenced_and_ik_bones_are_not_reduced() {
         let mut p = rig_scene(true);
         // an expression reads the arm: its error would be amplified, so the channel must stay as it is
-        p.layers.push(Layer::vector(
-            "follower",
-            vec![VPath::rect("r", 10.0, 10.0, 10.0, 10.0).with_fill("#000000")],
-        ));
-        p.channels.push(Channel::expr(
-            "follower",
-            Prop::LayerX,
-            "get(\"arm\", \"bone_angle\") * 2",
-            Mode::Replace,
-        ));
+        p.layers.push(Layer::vector("follower", vec![VPath::rect("r", 10.0, 10.0, 10.0, 10.0).with_fill("#000000")]));
+        p.channels.push(Channel::expr("follower", Prop::LayerX, "get(\"arm\", \"bone_angle\") * 2", Mode::Replace));
         let levels = build(&p, &LodOptions::new(2.0, 1.0, 2)).unwrap();
         assert_eq!(levels[2].record.stats.keys, levels[0].record.stats.keys);
         // IK: bones in a chain are never touched
         let mut q = rig_scene(true);
-        q.bones.push(Bone::new(
-            "hand",
-            Some("arm"),
-            30.0,
-            Vec2::new(100.0, 0.0),
-            0.0,
-        ));
-        q.bones
-            .push(Bone::new("goal", None, 5.0, Vec2::new(150.0, 100.0), 0.0));
-        q.ik = vec![crate::project::IkChain::two_bone(
-            "ik", "arm", "hand", "goal", 1.0,
-        )];
+        q.bones.push(Bone::new("hand", Some("arm"), 30.0, Vec2::new(100.0, 0.0), 0.0));
+        q.bones.push(Bone::new("goal", None, 5.0, Vec2::new(150.0, 100.0), 0.0));
+        q.ik = vec![crate::project::IkChain::two_bone("ik", "arm", "hand", "goal", 1.0)];
         let lq = build(&q, &LodOptions::new(2.0, 1.0, 2)).unwrap();
         assert_eq!(lq[2].record.stats.keys, lq[0].record.stats.keys);
     }
@@ -4257,61 +3241,22 @@ mod tests {
     #[test]
     fn layer_channels_and_camera_are_reduced_with_levers() {
         let mut p = scene_with(vec![
-            Layer::vector(
-                "box",
-                vec![VPath::rect("r", 20.0, 20.0, 60.0, 40.0).with_fill("#336699")],
-            ),
-            Layer::vector(
-                "spinner",
-                vec![VPath::rect("r", 100.0, 100.0, 40.0, 4.0).with_fill("#993366")],
-            ),
+            Layer::vector("box", vec![VPath::rect("r", 20.0, 20.0, 60.0, 40.0).with_fill("#336699")]),
+            Layer::vector("spinner", vec![VPath::rect("r", 100.0, 100.0, 40.0, 4.0).with_fill("#993366")]),
         ]);
         p.frames = 60;
         p.layers[1].transform.position = Vec2::new(0.0, 0.0);
-        let dense = |f: &dyn Fn(f32) -> f32| {
-            Track::with_keys(
-                &(0..60)
-                    .map(|i| (i as f32, f(i as f32), Ease::Linear))
-                    .collect::<Vec<_>>(),
-            )
-        };
+        let dense = |f: &dyn Fn(f32) -> f32| Track::with_keys(&(0..60).map(|i| (i as f32, f(i as f32), Ease::Linear)).collect::<Vec<_>>());
         p.channels = vec![
             Channel::keys("box", Prop::LayerX, dense(&|t| 20.0 * (t * 0.1).sin())),
-            Channel::keys(
-                "spinner",
-                Prop::LayerRotation,
-                dense(&|t| 10.0 * (t * 0.07).sin()),
-            ),
-            Channel::keys(
-                "",
-                Prop::CameraX,
-                dense(&|t| 3.0 * (t * 0.05).sin() + 100.0),
-            ),
+            Channel::keys("spinner", Prop::LayerRotation, dense(&|t| 10.0 * (t * 0.07).sin())),
+            Channel::keys("", Prop::CameraX, dense(&|t| 3.0 * (t * 0.05).sin() + 100.0)),
         ];
         let levels = build(&p, &LodOptions::new(2.0, 1.0, 3)).unwrap();
-        assert!(
-            levels[3].record.stats.keys < levels[0].record.stats.keys / 2,
-            "{} keys left of {}",
-            levels[3].record.stats.keys,
-            levels[0].record.stats.keys
-        );
+        assert!(levels[3].record.stats.keys < levels[0].record.stats.keys / 2, "{} keys left of {}", levels[3].record.stats.keys, levels[0].record.stats.keys);
         for l in &levels[1..] {
-            let r = verify(
-                &p,
-                l,
-                &VerifyOptions {
-                    scale: 1.0,
-                    frames: 60,
-                    pixels: false,
-                    pixel_frames: 1,
-                },
-            )
-            .unwrap();
-            assert!(
-                r.holds,
-                "level {}: measured {} > declared {} ({})",
-                r.level, r.measured_px, r.declared_px, r.worst_layer
-            );
+            let r = verify(&p, l, &VerifyOptions { scale: 1.0, frames: 60, pixels: false, pixel_frames: 1 }).unwrap();
+            assert!(r.holds, "level {}: measured {} > declared {} ({})", r.level, r.measured_px, r.declared_px, r.worst_layer);
         }
     }
 
@@ -4326,27 +3271,15 @@ mod tests {
             LodOptions::new(1.0, 100.0, 2),
             LodOptions::new(1.0, 1.0, 0),
             LodOptions::new(1.0, 1.0, 50),
-            LodOptions {
-                ratio: 0.5,
-                ..LodOptions::new(1.0, 1.0, 2)
-            },
-            LodOptions {
-                geometry_share: 0.8,
-                keys_share: 0.5,
-                ..LodOptions::new(1.0, 1.0, 2)
-            },
-            LodOptions {
-                cull_share: 2.0,
-                ..LodOptions::new(1.0, 1.0, 2)
-            },
+            LodOptions { ratio: 0.5, ..LodOptions::new(1.0, 1.0, 2) },
+            LodOptions { geometry_share: 0.8, keys_share: 0.5, ..LodOptions::new(1.0, 1.0, 2) },
+            LodOptions { cull_share: 2.0, ..LodOptions::new(1.0, 1.0, 2) },
         ] {
             assert!(build(&p, &bad).is_err(), "{bad:?} accepted");
         }
         let mut broken = blob_scene(1.0);
         broken.channels = vec![Channel::keys("nope", Prop::LayerX, Track::new())];
-        assert!(build(&broken, &LodOptions::new(1.0, 1.0, 1))
-            .unwrap_err()
-            .contains("does not validate"));
+        assert!(build(&broken, &LodOptions::new(1.0, 1.0, 1)).unwrap_err().contains("does not validate"));
         let l = build(&p, &LodOptions::new(1.0, 1.0, 1)).unwrap();
         assert!(verify(&p, &l[1], &VerifyOptions::new(0.0)).is_err());
     }
@@ -4369,11 +3302,7 @@ mod tests {
                 assert!(recs[k].bound_stage * s <= 0.5 + 1e-12);
             }
             if k < 4 {
-                assert!(
-                    recs[k + 1].bound_stage * s > 0.5,
-                    "level {} would also have fit at scale {s}",
-                    k + 1
-                );
+                assert!(recs[k + 1].bound_stage * s > 0.5, "level {} would also have fit at scale {s}", k + 1);
             }
         }
         assert_eq!(pick_level(&recs, 0.0, 1.0), 0);
@@ -4385,22 +3314,7 @@ mod tests {
     fn report_and_table_list_every_level() {
         let p = rig_scene(true);
         let levels = build(&p, &LodOptions::new(1.0, 1.0, 2)).unwrap();
-        let v: Vec<VerifyReport> = levels[1..]
-            .iter()
-            .map(|l| {
-                verify(
-                    &p,
-                    l,
-                    &VerifyOptions {
-                        scale: 1.0,
-                        frames: 6,
-                        pixels: false,
-                        pixel_frames: 1,
-                    },
-                )
-                .unwrap()
-            })
-            .collect();
+        let v: Vec<VerifyReport> = levels[1..].iter().map(|l| verify(&p, l, &VerifyOptions { scale: 1.0, frames: 6, pixels: false, pixel_frames: 1 }).unwrap()).collect();
         let t = table(&levels, &v);
         assert_eq!(t.lines().count(), 4);
         let j = report_json(&levels, &v);
@@ -4415,29 +3329,11 @@ mod tests {
         // explicit uvs that are not an affine function of the position: not collapsed
         let mut p = mesh_scene(6, 6, false);
         if let Some(l) = p.find_layer_mut("img") {
-            if let LayerKind::Image {
-                mesh: Some(m),
-                origin,
-                size,
-                ..
-            } = &mut l.kind
-            {
+            if let LayerKind::Image { mesh: Some(m), origin, size, .. } = &mut l.kind {
                 let v = crate::project::mesh_vertices(*origin, size.unwrap(), 6, 6);
-                let tris: Vec<[u32; 3]> = crate::weights::grid_triangles(6, 6)
-                    .iter()
-                    .map(|t| [t[0] as u32, t[1] as u32, t[2] as u32])
-                    .collect();
-                let uvs: Vec<Vec2> = v
-                    .iter()
-                    .map(|q| {
-                        Vec2::new((q.x - 40.0) * 0.1 + ((q.y) * 0.3).sin(), (q.y - 60.0) * 0.2)
-                    })
-                    .collect();
-                m.free = Some(crate::project::FreeMesh {
-                    vertices: v,
-                    triangles: tris,
-                    uvs,
-                });
+                let tris: Vec<[u32; 3]> = crate::weights::grid_triangles(6, 6).iter().map(|t| [t[0] as u32, t[1] as u32, t[2] as u32]).collect();
+                let uvs: Vec<Vec2> = v.iter().map(|q| Vec2::new((q.x - 40.0) * 0.1 + ((q.y) * 0.3).sin(), (q.y - 60.0) * 0.2)).collect();
+                m.free = Some(crate::project::FreeMesh { vertices: v, triangles: tris, uvs });
             }
         }
         let l = build(&p, &LodOptions::new(100.0, 1.0, 1)).unwrap();
@@ -4449,10 +3345,7 @@ mod tests {
         let mut p = mesh_scene(6, 6, false);
         if let Some(l) = p.find_layer_mut("img") {
             if let LayerKind::Image { source, .. } = &mut l.kind {
-                *source = ImageSource {
-                    file: Some("missing.png".into()),
-                    png_base64: None,
-                };
+                *source = ImageSource { file: Some("missing.png".into()), png_base64: None };
             }
         }
         // the engine cannot load the file, so the project does not even validate: reported, not guessed
@@ -4462,16 +3355,10 @@ mod tests {
     #[test]
     fn projects_with_links_get_identical_levels() {
         let mut p = blob_scene(1.0);
-        p.glues = vec![crate::links::Glue {
-            name: "g".into(),
-            mode: Default::default(),
-            pairs: vec![],
-            strength: 1.0,
-        }];
+        p.glues = vec![crate::links::Glue { name: "g".into(), mode: Default::default(), pairs: vec![], strength: 1.0 }];
         match build(&p, &LodOptions::new(5.0, 1.0, 2)) {
             Ok(levels) => {
-                assert!(levels[1..].iter().all(|l| l.record.declared_px == 0.0
-                    && l.record.notes.iter().any(|n| n.contains("glues"))));
+                assert!(levels[1..].iter().all(|l| l.record.declared_px == 0.0 && l.record.notes.iter().any(|n| n.contains("glues"))));
                 assert_eq!(anchors_of(&levels[2].project, "blob"), 80);
             }
             // an empty glue may be rejected by validation; then the guard itself is checked directly

@@ -18,41 +18,30 @@ macro_rules! eprintln {
 macro_rules! eprint {
     ($($t:tt)*) => {{ use std::io::Write as _; let _ = write!(std::io::stderr().lock(), $($t)*); }};
 }
-mod ci_cmd;
+mod http;
 mod collab_srv;
+mod soundio;
+mod vcs_cmd;
+mod fuzz_cmd;
+mod ci_cmd;
 mod face_cmd;
 mod fit_cmd;
-mod fuzz_cmd;
-mod http;
 mod lod_cmd;
-mod soundio;
 mod studio;
 mod uiconfig;
-mod vcs_cmd;
 
 use osatura_core::anim_tools::{mirror, walk_cycle, WalkRig, WalkStyle};
 use osatura_core::audio::read_wav_file;
 use osatura_core::edit::Editor;
 use osatura_core::export;
-use osatura_core::math::Vec2;
+use osatura_core::{autotrace, posesuggest, tinymlp, speech, links, warp, cage, clipstack, cloth, soundtrack, looper, bonevis, parentswitch, skins, audiomap, lottie_import, hdr, seqimport, chanmeta, depth, eyeclip, physics, magnet, footlock, motionlib, camshots, pathfollow, layout, autorig, drivers, comps, explain, rigedit, snapshots, springfit, vocab, agent, overlays, postfx, importers, inspect, keyops, lint, procgen, open_formats, perf, posematch, safety, statemachine, trace, meshtrace, weights};
 use osatura_core::project::{Prop, Source};
+use osatura_core::math::Vec2;
 use osatura_core::raster::{render_png, RasterOptions};
 use osatura_core::svg::{render_frame, RenderOptions};
-use osatura_core::{
-    agent, audiomap, autorig, autotrace, bonevis, cage, camshots, chanmeta, clipstack, cloth,
-    comps, depth, drivers, explain, eyeclip, footlock, hdr, importers, inspect, keyops, layout,
-    links, lint, looper, lottie_import, magnet, meshtrace, motionlib, open_formats, overlays,
-    parentswitch, pathfollow, perf, physics, posematch, posesuggest, postfx, procgen, rigedit,
-    safety, seqimport, skins, snapshots, soundtrack, speech, springfit, statemachine, tinymlp,
-    trace, vocab, warp, weights,
-};
 use osatura_core::{demo, Engine, Project};
 use std::collections::HashMap;
-use std::{
-    env, fs,
-    path::Path,
-    process::{Command, ExitCode},
-};
+use std::{env, fs, path::Path, process::{Command, ExitCode}};
 
 const USAGE: &str = "\
 osatura — 2D rigging & animation tools (independently implemented; see CLEANROOM.md)
@@ -281,80 +270,35 @@ GEOMETRY / RIG / ANIMATION HELPERS
 ";
 
 /// Landmark stream plus face config for the `face-*` commands (config from the `face` section of a map file).
-fn face_inputs(
-    a: &Args,
-    marks: &str,
-    map: Option<&str>,
-    default_fps: f32,
-) -> Result<
-    (
-        osatura_core::faceparam::LandmarkStream,
-        osatura_core::faceparam::FaceConfig,
-    ),
-    String,
-> {
+fn face_inputs(a: &Args, marks: &str, map: Option<&str>, default_fps: f32) -> Result<(osatura_core::faceparam::LandmarkStream, osatura_core::faceparam::FaceConfig), String> {
     let fps = num(a, "--fps", default_fps)?;
-    let layout = a
-        .opts
-        .get("--layout")
-        .map(|l| osatura_core::faceparam::Layout::parse(l))
-        .transpose()?;
-    let stream = osatura_core::faceparam::parse_ndjson(
-        &fs::read_to_string(marks).map_err(|e| format!("cannot read {marks}: {e}"))?,
-        fps,
-        layout,
-    )?;
-    for w in &stream.warnings {
-        println!("warning: {w}");
-    }
+    let layout = a.opts.get("--layout").map(|l| osatura_core::faceparam::Layout::parse(l)).transpose()?;
+    let stream = osatura_core::faceparam::parse_ndjson(&fs::read_to_string(marks).map_err(|e| format!("cannot read {marks}: {e}"))?, fps, layout)?;
+    for w in &stream.warnings { println!("warning: {w}"); }
     let mf = map.or(a.opts.get("--map").map(String::as_str));
     let cfg = match mf {
-        Some(m) => {
-            osatura_core::faceparam::parse_mapfile(
-                &fs::read_to_string(m).map_err(|e| format!("cannot read {m}: {e}"))?,
-            )?
-            .1
-        }
+        Some(m) => osatura_core::faceparam::parse_mapfile(&fs::read_to_string(m).map_err(|e| format!("cannot read {m}: {e}"))?)?.1,
         None => Default::default(),
     };
     Ok((stream, cfg))
 }
 
 fn mocap_map(a: &Args) -> Result<Option<osatura_core::mocap::ManualMap>, String> {
-    a.opts
-        .get("--map")
-        .map(|f| {
-            osatura_core::mocap::parse_map(
-                &fs::read_to_string(f).map_err(|e| format!("cannot read {f}: {e}"))?,
-            )
-        })
-        .transpose()
+    a.opts.get("--map").map(|f| osatura_core::mocap::parse_map(&fs::read_to_string(f).map_err(|e| format!("cannot read {f}: {e}"))?)).transpose()
 }
+
 
 fn pick_opts(a: &Args) -> Result<osatura_core::pick::PickOptions, String> {
     let mut o = osatura_core::pick::PickOptions::default();
     o.tolerance = num(a, "--tol", o.tolerance)?;
     if !o.tolerance.is_finite() || o.tolerance < 0.0 {
-        return Err(format!(
-            "--tol needs a number >= 0 (stage units), got '{}'",
-            a.opts.get("--tol").map(String::as_str).unwrap_or("")
-        ));
+        return Err(format!("--tol needs a number >= 0 (stage units), got '{}'", a.opts.get("--tol").map(String::as_str).unwrap_or("")));
     }
     o.bones = a.flags.iter().any(|f| f == "--bones");
     if a.flags.iter().any(|f| f == "--root") {
         o.group_mode = osatura_core::pick::GroupMode::Root;
     }
-    let list = |k: &str| {
-        a.opts
-            .get(k)
-            .map(|v| {
-                v.split(',')
-                    .filter(|s| !s.is_empty())
-                    .map(String::from)
-                    .collect::<Vec<_>>()
-            })
-            .unwrap_or_default()
-    };
+    let list = |k: &str| a.opts.get(k).map(|v| v.split(',').filter(|s| !s.is_empty()).map(String::from).collect::<Vec<_>>()).unwrap_or_default();
     o.point_layers = list("--points");
     o.locked = list("--locked");
     Ok(o)
@@ -365,62 +309,30 @@ fn describe_target(t: &osatura_core::pick::Target) -> String {
     match t {
         Target::Layer { path } => format!("layer {path}"),
         Target::Bone { name } => format!("bone {name}"),
-        Target::Point { layer, point } => format!(
-            "point {} of {layer}",
-            serde_json::to_string(point).unwrap_or_default()
-        ),
+        Target::Point { layer, point } => format!("point {} of {layer}", serde_json::to_string(point).unwrap_or_default()),
     }
 }
 
 fn timeline_text(m: &osatura_core::timeline::TimelineModel) -> String {
     use osatura_core::timeline::Row;
-    let mut s = format!(
-        "timeline: {} frames at {} fps, {} channels\n",
-        m.frames,
-        m.fps,
-        m.tracks.len()
-    );
+    let mut s = format!("timeline: {} frames at {} fps, {} channels\n", m.frames, m.fps, m.tracks.len());
     for r in &m.rows {
         match *r {
             Row::Group(g) => {
                 let g = &m.groups[g];
-                s.push_str(&format!(
-                    "{}{}{}\n",
-                    "  ".repeat(g.depth),
-                    g.label,
-                    if g.locked { " [locked]" } else { "" }
-                ));
+                s.push_str(&format!("{}{}{}\n", "  ".repeat(g.depth), g.label, if g.locked { " [locked]" } else { "" }));
             }
             Row::Track(t) => {
                 let t = &m.tracks[t];
                 let depth = m.groups[t.group].depth + 1;
                 let keys: Vec<String> = t.keys.iter().map(|k| format!("{}", k.frame)).collect();
                 let mut flags = String::new();
-                if t.locked {
-                    flags.push_str(" [locked]");
-                }
-                if t.shy {
-                    flags.push_str(" [shy]");
-                }
-                if t.solo {
-                    flags.push_str(" [solo]");
-                }
-                if let Some(c) = &t.color {
-                    flags.push_str(&format!(" {c}"));
-                }
-                let body = if t.source == "keys" {
-                    format!("keys @ {}", keys.join(" "))
-                } else {
-                    t.source.to_string()
-                };
-                s.push_str(&format!(
-                    "{}#{} {} ({}){}\n",
-                    "  ".repeat(depth),
-                    t.ch,
-                    t.label,
-                    body,
-                    flags
-                ));
+                if t.locked { flags.push_str(" [locked]"); }
+                if t.shy { flags.push_str(" [shy]"); }
+                if t.solo { flags.push_str(" [solo]"); }
+                if let Some(c) = &t.color { flags.push_str(&format!(" {c}")); }
+                let body = if t.source == "keys" { format!("keys @ {}", keys.join(" ")) } else { t.source.to_string() };
+                s.push_str(&format!("{}#{} {} ({}){}\n", "  ".repeat(depth), t.ch, t.label, body, flags));
             }
         }
     }
@@ -428,10 +340,7 @@ fn timeline_text(m: &osatura_core::timeline::TimelineModel) -> String {
 }
 
 /// `TARGET:PROP[@F0..F1]` items joined by `;`, `#CH[@F0..F1]`, or `all`.
-fn parse_key_sel(
-    m: &osatura_core::timeline::TimelineModel,
-    spec: &str,
-) -> Result<Vec<osatura_core::timeline::KeyRef>, String> {
+fn parse_key_sel(m: &osatura_core::timeline::TimelineModel, spec: &str) -> Result<Vec<osatura_core::timeline::KeyRef>, String> {
     use osatura_core::timeline::{normalize, KeyRef};
     let mut out: Vec<KeyRef> = Vec::new();
     if spec == "all" {
@@ -441,31 +350,17 @@ fn parse_key_sel(
         let (head, range) = match item.split_once('@') {
             None => (item, None),
             Some((h, r)) => {
-                let (a, b) = r
-                    .split_once("..")
-                    .ok_or_else(|| format!("bad range '{r}' (use F0..F1)"))?;
-                let f = |x: &str| {
-                    x.trim()
-                        .parse::<f32>()
-                        .map_err(|_| format!("bad frame '{x}' in range"))
-                };
+                let (a, b) = r.split_once("..").ok_or_else(|| format!("bad range '{r}' (use F0..F1)"))?;
+                let f = |x: &str| x.trim().parse::<f32>().map_err(|_| format!("bad frame '{x}' in range"));
                 (h, Some((f(a)?, f(b)?)))
             }
         };
         let chans: Vec<usize> = if let Some(n) = head.strip_prefix('#') {
-            vec![n
-                .parse::<usize>()
-                .map_err(|_| format!("bad channel '{n}'"))?]
+            vec![n.parse::<usize>().map_err(|_| format!("bad channel '{n}'"))?]
         } else {
-            let (target, prop) = head
-                .rsplit_once(':')
-                .ok_or_else(|| format!("selector '{head}' needs TARGET:PROP"))?;
+            let (target, prop) = head.rsplit_once(':').ok_or_else(|| format!("selector '{head}' needs TARGET:PROP"))?;
             let prop = Prop::parse(prop).ok_or_else(|| format!("unknown property '{prop}'"))?;
-            m.tracks
-                .iter()
-                .filter(|t| t.target == target && t.prop == prop && t.editable)
-                .map(|t| t.ch)
-                .collect()
+            m.tracks.iter().filter(|t| t.target == target && t.prop == prop && t.editable).map(|t| t.ch).collect()
         };
         if chans.is_empty() {
             return Err(format!("nothing matches '{head}'"));
@@ -474,15 +369,8 @@ fn parse_key_sel(
         let mut any = false;
         for c in chans {
             let t = m.tracks.get(c).ok_or_else(|| format!("no channel {c}"))?;
-            for k in t
-                .keys
-                .iter()
-                .filter(|k| k.frame >= lo.min(hi) && k.frame <= lo.max(hi))
-            {
-                out.push(KeyRef {
-                    ch: c,
-                    frame: k.frame,
-                });
+            for k in t.keys.iter().filter(|k| k.frame >= lo.min(hi) && k.frame <= lo.max(hi)) {
+                out.push(KeyRef { ch: c, frame: k.frame });
                 any = true;
             }
         }
@@ -503,37 +391,17 @@ fn parse_ease_arg(s: &str) -> Result<osatura_core::anim::Ease, String> {
         return serde_json::from_str(s).map_err(|e| format!("bad ease JSON: {e}"));
     }
     if let Some(r) = s.strip_prefix("bezier:") {
-        let n: Vec<f32> = r
-            .split(',')
-            .map(|x| {
-                x.trim()
-                    .parse::<f32>()
-                    .map_err(|_| format!("bad number '{x}'"))
-            })
-            .collect::<Result<_, _>>()?;
+        let n: Vec<f32> = r.split(',').map(|x| x.trim().parse::<f32>().map_err(|_| format!("bad number '{x}'"))).collect::<Result<_, _>>()?;
         if n.len() != 4 {
             return Err("bezier needs x1,y1,x2,y2".into());
         }
-        return Ok(Ease::CubicBezier {
-            x1: n[0],
-            y1: n[1],
-            x2: n[2],
-            y2: n[3],
-        });
+        return Ok(Ease::CubicBezier { x1: n[0], y1: n[1], x2: n[2], y2: n[3] });
     }
-    serde_json::from_value(serde_json::json!({"type": s}))
-        .map_err(|_| format!("unknown ease '{s}'"))
+    serde_json::from_value(serde_json::json!({"type": s})).map_err(|_| format!("unknown ease '{s}'"))
 }
 
 fn parse_list_usize(s: &str) -> Result<Vec<usize>, String> {
-    s.split(',')
-        .filter(|x| !x.is_empty())
-        .map(|x| {
-            x.trim()
-                .parse::<usize>()
-                .map_err(|_| format!("bad channel index '{x}'"))
-        })
-        .collect()
+    s.split(',').filter(|x| !x.is_empty()).map(|x| x.trim().parse::<usize>().map_err(|_| format!("bad channel index '{x}'"))).collect()
 }
 
 fn keyedit_cmd(a: &Args, path: &str, out: &str, sub: &str) -> Result<(), String> {
@@ -541,25 +409,16 @@ fn keyedit_cmd(a: &Args, path: &str, out: &str, sub: &str) -> Result<(), String>
     use osatura_core::timeline_graph::{HandleMode, Side, TangentKind};
     let p = load_project(path)?;
     let m = tl::build(&p);
-    let mut ed = Editor::with_asset_dir(p, asset_dir(path)).map_err(|errs| {
-        format!(
-            "{path} is not a valid project:\n  - {}",
-            errs.join("\n  - ")
-        )
-    })?;
+    let mut ed = Editor::with_asset_dir(p, asset_dir(path)).map_err(|errs| format!("{path} is not a valid project:\n  - {}", errs.join("\n  - ")))?;
     let flag = |f: &str| a.flags.iter().any(|x| x == f);
     let opt = |k: &str| a.opts.get(k).map(String::as_str);
     let need = |k: &str| opt(k).ok_or_else(|| format!("keyedit {sub} needs {k}"));
-    let mut opts = EditOpts {
-        snap: !flag("--no-snap"),
-        ..EditOpts::default()
-    };
+    let mut opts = EditOpts { snap: !flag("--no-snap"), ..EditOpts::default() };
     if flag("--free") {
         opts.bounds = tl::Bounds::Free;
     }
     if let Some(c) = opt("--collision") {
-        opts.collision = Collision::parse(c)
-            .ok_or_else(|| format!("--collision must be replace, merge or refuse, got '{c}'"))?;
+        opts.collision = Collision::parse(c).ok_or_else(|| format!("--collision must be replace, merge or refuse, got '{c}'"))?;
     }
     let sel = || -> Result<Vec<tl::KeyRef>, String> { parse_key_sel(&m, need("--sel")?) };
     let n = |k: &str, d: f32| num(a, k, d);
@@ -648,39 +507,17 @@ fn keyedit_cmd(a: &Args, path: &str, out: &str, sub: &str) -> Result<(), String>
     };
     let plan = tl::plan(ed.project(), &op)?;
     if let (Some(clip), Some(f)) = (&plan.clip, opt("--clip")) {
-        fwrite(
-            f,
-            serde_json::to_string_pretty(clip).map_err(|e| e.to_string())?,
-        )?;
+        fwrite(f, serde_json::to_string_pretty(clip).map_err(|e| e.to_string())?)?;
     }
     if out == "-" {
-        println!(
-            "{}",
-            serde_json::to_string_pretty(&plan).map_err(|e| e.to_string())?
-        );
+        println!("{}", serde_json::to_string_pretty(&plan).map_err(|e| e.to_string())?);
         return Ok(());
     }
     if let Some(o) = &plan.op {
         ed.apply(o.clone()).map_err(|e| e.join("; "))?;
-        fwrite(
-            out,
-            serde_json::to_string_pretty(ed.doc()).map_err(|e| e.to_string())?,
-        )?;
+        fwrite(out, serde_json::to_string_pretty(ed.doc()).map_err(|e| e.to_string())?)?;
     }
-    println!(
-        "{sub}: {} keys changed{}{}",
-        plan.changed,
-        if plan.op.is_some() {
-            format!(", wrote {out}")
-        } else {
-            ", project unchanged".into()
-        },
-        if plan.clip.is_some() {
-            ", clip saved"
-        } else {
-            ""
-        }
-    );
+    println!("{sub}: {} keys changed{}{}", plan.changed, if plan.op.is_some() { format!(", wrote {out}") } else { ", project unchanged".into() }, if plan.clip.is_some() { ", clip saved" } else { "" });
     for note in &plan.notes {
         println!("  note: {note}");
     }
@@ -690,11 +527,7 @@ fn keyedit_cmd(a: &Args, path: &str, out: &str, sub: &str) -> Result<(), String>
 /// `unknown field <path>` lines for keys of the project file that the model ignores (typos, newer versions).
 fn unknown_field_warnings(path: &str) -> Vec<String> {
     match read_text_capped(path) {
-        Ok(t) => osatura_core::unknownfields::unknown_fields(&t)
-            .unwrap_or_default()
-            .into_iter()
-            .map(|f| format!("unknown field {f}"))
-            .collect(),
+        Ok(t) => osatura_core::unknownfields::unknown_fields(&t).unwrap_or_default().into_iter().map(|f| format!("unknown field {f}")).collect(),
         Err(_) => Vec::new(),
     }
 }
@@ -709,23 +542,18 @@ fn read_text_capped(path: &str) -> Result<String, String> {
     let max = MAX_INPUT_BYTES.load(std::sync::atomic::Ordering::SeqCst);
     let md = fs::metadata(path).map_err(|e| format!("cannot read {path}: {e}"))?;
     if !md.is_file() {
-        return Err(format!(
-            "cannot read {path}: not a regular file (devices, pipes and directories are refused)"
-        ));
+        return Err(format!("cannot read {path}: not a regular file (devices, pipes and directories are refused)"));
     }
     if md.len() > max {
         return Err(format!("cannot read {path}: {} bytes exceed the input limit of {max} bytes (raise it with --max-input-bytes N)", md.len()));
     }
     let f = fs::File::open(path).map_err(|e| format!("cannot read {path}: {e}"))?;
     let mut buf = Vec::new();
-    f.take(max + 1)
-        .read_to_end(&mut buf)
-        .map_err(|e| format!("cannot read {path}: {e}"))?;
+    f.take(max + 1).read_to_end(&mut buf).map_err(|e| format!("cannot read {path}: {e}"))?;
     if buf.len() as u64 > max {
         return Err(format!("cannot read {path}: larger than the input limit of {max} bytes (raise it with --max-input-bytes N)"));
     }
-    String::from_utf8(buf)
-        .map_err(|_| format!("cannot read {path}: stream did not contain valid UTF-8"))
+    String::from_utf8(buf).map_err(|_| format!("cannot read {path}: stream did not contain valid UTF-8"))
 }
 
 fn load_project(path: &str) -> Result<Project, String> {
@@ -754,18 +582,7 @@ fn collab_sim(a: &Args, path: &str) -> Result<(), String> {
         }
         Ok(v as usize)
     };
-    let mut cfg = SimConfig::new(
-        whole("--clients", 3, 1, 64)?,
-        whole("--ops", 100, 1, 200_000)?,
-        a.opts
-            .get("--seed")
-            .map(|s| {
-                s.parse::<u64>()
-                    .map_err(|_| "--seed needs a whole number".to_string())
-            })
-            .transpose()?
-            .unwrap_or(1),
-    );
+    let mut cfg = SimConfig::new(whole("--clients", 3, 1, 64)?, whole("--ops", 100, 1, 200_000)?, a.opts.get("--seed").map(|s| s.parse::<u64>().map_err(|_| "--seed needs a whole number".to_string())).transpose()?.unwrap_or(1));
     cfg.undo_pct = whole("--undo-pct", 12, 0, 90)?;
     let raw = a.flags.iter().any(|f| f == "--raw");
     cfg.project_aware = !raw;
@@ -792,52 +609,31 @@ fn collab_sim(a: &Args, path: &str) -> Result<(), String> {
         }
     }
     // informative only: does the merged result still compile as a project? (random edits are arbitrary)
-    let valid = serde_json::from_value::<Project>(rep.final_doc.clone())
-        .ok()
-        .map(|pr| Engine::new(pr).is_ok())
-        .unwrap_or(false);
-    let converged_ok = rep.converged
-        && rep.state_identical
-        && rep.clocks_identical
-        && rep.pending_left == 0
-        && replay_ok == replays;
+    let valid = serde_json::from_value::<Project>(rep.final_doc.clone()).ok().map(|pr| Engine::new(pr).is_ok()).unwrap_or(false);
+    let converged_ok = rep.converged && rep.state_identical && rep.clocks_identical && rep.pending_left == 0 && replay_ok == replays;
     let ok = collab_ok(converged_ok, valid);
     let strict = a.flags.iter().any(|f| f == "--require-valid");
     if a.flags.iter().any(|f| f == "--json") {
-        println!(
-            "{}",
-            serde_json::json!({
-                "ok": ok, "converged_ok": converged_ok, "clients": rep.clients, "seed": cfg.seed, "edits": rep.edits, "envelopes": rep.envelopes, "noops": rep.noops, "rejected_local": rep.rejected_local,
-                "undo_redo_steps": rep.undos, "deliveries": rep.deliveries, "duplicates_dropped": rep.duplicates, "buffered": rep.buffered, "dropped_prims": rep.dropped_prims,
-                "converged": rep.converged, "state_identical": rep.state_identical, "clocks_identical": rep.clocks_identical, "pending_left": rep.pending_left,
-                "replays": replays, "replays_identical": replay_ok, "tombstones": rep.tombstones, "final_json_bytes": rep.doc_bytes, "merged_project_compiles": valid,
-            })
-        );
+        println!("{}", serde_json::json!({
+            "ok": ok, "converged_ok": converged_ok, "clients": rep.clients, "seed": cfg.seed, "edits": rep.edits, "envelopes": rep.envelopes, "noops": rep.noops, "rejected_local": rep.rejected_local,
+            "undo_redo_steps": rep.undos, "deliveries": rep.deliveries, "duplicates_dropped": rep.duplicates, "buffered": rep.buffered, "dropped_prims": rep.dropped_prims,
+            "converged": rep.converged, "state_identical": rep.state_identical, "clocks_identical": rep.clocks_identical, "pending_left": rep.pending_left,
+            "replays": replays, "replays_identical": replay_ok, "tombstones": rep.tombstones, "final_json_bytes": rep.doc_bytes, "merged_project_compiles": valid,
+        }));
     } else {
         println!("{} replicas, {} edits ({} envelopes, {} no-ops, {} rejected locally, {} undo/redo steps), seed {}", rep.clients, rep.edits, rep.envelopes, rep.noops, rep.rejected_local, rep.undos, cfg.seed);
         println!("deliveries {} (duplicates ignored {}, held back by the causal buffer {}), primitives dropped {}", rep.deliveries, rep.duplicates, rep.buffered, rep.dropped_prims);
         println!("visible documents identical: {}; internal states identical: {}; vector clocks identical: {}; envelopes still waiting: {}", rep.converged, rep.state_identical, rep.clocks_identical, rep.pending_left);
-        println!(
-            "replays of the same envelopes in other random orders: {replay_ok}/{replays} identical"
-        );
+        println!("replays of the same envelopes in other random orders: {replay_ok}/{replays} identical");
         println!("merged document: {} bytes, {} tombstones; compiles as a project: {} (informative with --raw: those edits are arbitrary JSON)", rep.doc_bytes, rep.tombstones, valid);
-        println!(
-            "{}",
-            if converged_ok {
-                "CONVERGED"
-            } else {
-                "DIVERGED"
-            }
-        );
+        println!("{}", if converged_ok { "CONVERGED" } else { "DIVERGED" });
     }
     if converged_ok && (ok || !strict) {
         Ok(())
     } else if converged_ok {
         Err("replicas converged, but the merged document does not compile as a project".into())
     } else {
-        Err(rep
-            .divergence
-            .unwrap_or_else(|| format!("replay {} differs", first_bad.unwrap_or(0))))
+        Err(rep.divergence.unwrap_or_else(|| format!("replay {} differs", first_bad.unwrap_or(0))))
     }
 }
 
@@ -846,40 +642,27 @@ fn parse_pattern_prop(s: &str) -> Result<(String, Option<osatura_core::project::
     match s.split_once(':') {
         None => Ok((s.to_string(), None)),
         Some((pat, pr)) => {
-            let prop = serde_json::from_value(serde_json::Value::String(pr.to_string()))
-                .map_err(|_| format!("unknown property '{pr}'"))?;
+            let prop = serde_json::from_value(serde_json::Value::String(pr.to_string())).map_err(|_| format!("unknown property '{pr}'"))?;
             Ok((pat.to_string(), Some(prop)))
         }
     }
 }
 
 fn asset_dir(path: &str) -> std::path::PathBuf {
-    Path::new(path)
-        .parent()
-        .filter(|p| !p.as_os_str().is_empty())
-        .map(|p| p.to_path_buf())
-        .unwrap_or_else(|| ".".into())
+    Path::new(path).parent().filter(|p| !p.as_os_str().is_empty()).map(|p| p.to_path_buf()).unwrap_or_else(|| ".".into())
 }
 
 fn write_words(a: &Args, al: &speech::Alignment) -> Result<(), String> {
     if let Some(f) = a.opts.get("--words-out") {
-        let body = if f.to_ascii_lowercase().ends_with(".srt") {
-            speech::words_srt(al)
-        } else {
-            speech::words_json(al)?
-        };
+        let body = if f.to_ascii_lowercase().ends_with(".srt") { speech::words_srt(al) } else { speech::words_json(al)? };
         fwrite(f, body)?;
     }
     Ok(())
 }
 
 fn compile(project: Project, path: &str) -> Result<Engine, String> {
-    Engine::with_asset_dir(project, &asset_dir(path)).map_err(|errs| {
-        format!(
-            "{path} is not a valid project:\n  - {}",
-            errs.join("\n  - ")
-        )
-    })
+    Engine::with_asset_dir(project, &asset_dir(path))
+        .map_err(|errs| format!("{path} is not a valid project:\n  - {}", errs.join("\n  - ")))
 }
 
 fn load(path: &str) -> Result<Engine, String> {
@@ -905,237 +688,16 @@ struct Args {
 }
 
 const VALUE_OPTS: &[&str] = &[
-    "--map",
-    "--thigh-l",
-    "--thigh-r",
-    "--shin-l",
-    "--shin-r",
-    "--arm-l",
-    "--arm-r",
-    "--hips",
-    "--period",
-    "--stride",
-    "--knee",
-    "--bob",
-    "--swing",
-    "--port",
-    "--scale",
-    "--columns",
-    "--threshold",
-    "--tolerance",
-    "--min-area",
-    "--fill",
-    "--factor",
-    "--influences",
-    "--codec",
-    "--pairs",
-    "--tol",
-    "--fps",
-    "--frames",
-    "--generations",
-    "--seed",
-    "--from",
-    "--to",
-    "--by",
-    "--pivot",
-    "--ease",
-    "--target",
-    "--prop",
-    "--end",
-    "--axis",
-    "--window",
-    "--interval",
-    "--amp",
-    "--period",
-    "--freq",
-    "--decay",
-    "--delay",
-    "--closed",
-    "--jitter",
-    "--chain",
-    "--joint-map",
-    "--trim-in",
-    "--trim-out",
-    "--fade-in",
-    "--fade-out",
-    "--blend",
-    "--focus",
-    "--strength",
-    "--fit",
-    "--max-radius",
-    "--samples",
-    "--start",
-    "--keep",
-    "--number",
-    "--gain",
-    "--data",
-    "--takes",
-    "--precision",
-    "--at",
-    "--speed",
-    "--loops",
-    "--mode",
-    "--weight",
-    "--include",
-    "--exclude",
-    "--track-weight",
-    "--rename",
-    "--keys",
-    "--track",
-    "--lang",
-    "--words-out",
-    "--head",
-    "--brow",
-    "--nod",
-    "--fall",
-    "--tilt",
-    "--brow-px",
-    "--calibrate-frames",
-    "--calib",
-    "--layout",
-    "--view",
-    "--smooth",
-    "--rest-frame",
-    "--footlock",
-    "--ground",
-    "--min-conf",
-    "--expr",
-    "--remap",
-    "--svg-frames",
-    "--frame",
-    "--x",
-    "--y",
-    "--rect",
-    "--lasso",
-    "--points",
-    "--locked",
-    "--size",
-    "--offset",
-    "--velocity",
-    "--time",
-    "--scroll",
-    "--sel",
-    "--dt",
-    "--dv",
-    "--value",
-    "--collision",
-    "--clip",
-    "--side",
-    "--t",
-    "--v",
-    "--kind",
-    "--channels",
-    "--extrapolate",
-    "--scope",
-    "--ui-config",
-    "--before",
-    "--after",
-    "--step",
-    "--proxy",
-    "--tint-before",
-    "--tint-after",
-    "--opacity",
-    "--falloff",
-    "--layers",
-    "--adapter",
-    "--bench",
-    "--clients",
-    "--ops",
-    "--bind",
-    "--allow-host",
-    "--public-origin",
-    "--source-url",
-    "--collab-token",
-    "--collab-log",
-    "--replays",
-    "--undo-pct",
-    "--a",
-    "--b",
-    "--snap",
-    "--top",
-    "--fix",
-    "--reach",
-    "--free",
-    "--hidden",
-    "--epochs",
-    "--lr",
-    "--library",
-    "--project",
-    "--model",
-    "--prior",
-    "--out",
-    "--apply",
-    "--k",
-    "--strategy",
-    "--report",
-    "--heatmap",
-    "--db",
-    "--res",
-    "--max-fail-rate",
-    "--props",
-    "--margin",
-    "--only",
-    "--ignore",
-    "--max-size",
-    "--max-seconds",
-    "--format",
-    "--tolerance-px",
-    "--levels",
-    "--out-dir",
-    "--screen-px",
-    "--max-px",
-    "--ratio",
-    "--measure",
-    "--min-ssim",
-    "--pareto",
-    "--search",
-    "--colors",
-    "--corner",
-    "-m",
-    "--message",
-    "--collab-secret-file",
-    "--collab-revoke",
-    "--collab-rate",
-    "--secret-file",
-    "--ttl",
-    "--author",
-    "--repo",
-    "--limit",
-    "-d",
-    "--prune",
-    "--max-input-bytes",
-    "--junit",
-    "--html",
-    "--artifacts",
-    "--metric",
-    "--overlay",
-    "--flicker",
-    "--pixel-de",
-    "--aa",
-    "--denoise",
-    "--fit",
-    "--quant",
-    "--zorder",
-    "--into",
-    "--name",
-    "--scene",
-    "--min-side",
-    "--max-side",
-    "--max-faces",
-    "--max-dim",
-    "--eval-n",
-    "--mine-rounds",
-    "--overlay",
-    "--reg-win",
-    "--reg-cell",
-    "--det-win",
-    "--det-cell",
-    "--ridge-lambda",
-    "--stages",
-    "--refine-win",
-    "--stage-patch",
-    "--stage-cell",
-    "--stage-lambda",
+    "--map", "--thigh-l", "--thigh-r", "--shin-l", "--shin-r", "--arm-l", "--arm-r", "--hips", "--period", "--stride",
+    "--knee", "--bob", "--swing", "--port", "--scale", "--columns", "--threshold", "--tolerance", "--min-area", "--fill",
+    "--factor", "--influences", "--codec", "--pairs", "--tol", "--fps", "--frames", "--generations", "--seed",
+    "--from", "--to", "--by", "--pivot", "--ease", "--target", "--prop", "--end", "--axis", "--window", "--interval",
+    "--amp", "--period", "--freq", "--decay", "--delay", "--closed", "--jitter", "--chain", "--joint-map",
+    "--trim-in", "--trim-out", "--fade-in", "--fade-out", "--blend", "--focus", "--strength", "--fit", "--max-radius", "--samples", "--start", "--keep", "--number", "--gain", "--data", "--takes", "--precision", "--at", "--speed", "--loops", "--mode", "--weight", "--include", "--exclude", "--track-weight", "--rename", "--keys", "--track", "--lang", "--words-out", "--head", "--brow", "--nod", "--fall", "--tilt", "--brow-px", "--calibrate-frames", "--calib", "--layout", "--view", "--smooth", "--rest-frame", "--footlock", "--ground", "--min-conf", "--expr", "--remap", "--svg-frames", "--frame", "--x", "--y", "--rect", "--lasso", "--points", "--locked", "--size", "--offset", "--velocity", "--time", "--scroll", "--sel", "--dt", "--dv", "--value", "--collision", "--clip", "--side", "--t", "--v", "--kind", "--channels", "--extrapolate", "--scope", "--ui-config", "--before", "--after", "--step", "--proxy", "--tint-before", "--tint-after", "--opacity", "--falloff", "--layers", "--adapter", "--bench", "--clients", "--ops", "--bind", "--allow-host", "--public-origin", "--source-url", "--collab-token", "--collab-log", "--replays", "--undo-pct",
+    "--a", "--b", "--snap", "--top", "--fix", "--reach", "--free", "--hidden", "--epochs", "--lr", "--library", "--project", "--model", "--prior", "--out", "--apply", "--k",
+    "--strategy", "--report", "--heatmap", "--db", "--res", "--max-fail-rate", "--props", "--margin", "--only", "--ignore",
+    "--max-size", "--max-seconds", "--format", "--tolerance-px", "--levels", "--out-dir", "--screen-px", "--max-px", "--ratio", "--measure", "--min-ssim", "--pareto", "--search", "--colors", "--corner", "-m", "--message", "--collab-secret-file", "--collab-revoke", "--collab-rate", "--secret-file", "--ttl", "--author", "--repo", "--limit", "-d", "--prune", "--max-input-bytes", "--junit", "--html", "--artifacts", "--metric", "--overlay", "--flicker", "--pixel-de", "--aa", "--denoise", "--fit", "--quant", "--zorder", "--into", "--name", "--scene",
+    "--min-side", "--max-side", "--max-faces", "--max-dim", "--eval-n", "--mine-rounds", "--overlay", "--reg-win", "--reg-cell", "--det-win", "--det-cell", "--ridge-lambda", "--stages", "--refine-win", "--stage-patch", "--stage-cell", "--stage-lambda",
 ];
 
 /// Options whose kind differs from the global table for ONE command: `(command, option, takes_value)`.
@@ -1163,11 +725,7 @@ fn takes_value(cmd: &str, opt: &str) -> bool {
 /// Rewrites `--key=value` to `--key value` for value options of the command; a `--flag=x` for a boolean flag is
 /// refused with the right hint. Unknown `--x=y` words are left alone (they may be positional data).
 fn expand_eq(raw: &[String]) -> Result<Vec<String>, String> {
-    let cmd = raw
-        .first()
-        .filter(|c| !c.starts_with('-'))
-        .map(String::as_str)
-        .unwrap_or("");
+    let cmd = raw.first().filter(|c| !c.starts_with('-')).map(String::as_str).unwrap_or("");
     let known = documented_options(cmd);
     let mut out = Vec::with_capacity(raw.len());
     let mut skip_value = false;
@@ -1184,13 +742,8 @@ fn expand_eq(raw: &[String]) -> Result<Vec<String>, String> {
                     out.push(v.to_string());
                     continue;
                 }
-                if known.iter().any(|o| o == k)
-                    || GLOBAL_FLAGS.contains(&k)
-                    || (cmd == "ci" && ci_cmd::is_flag(k))
-                {
-                    return Err(format!(
-                        "{k} is a flag and takes no value: write {k} (without =), got '{a}'"
-                    ));
+                if known.iter().any(|o| o == k) || GLOBAL_FLAGS.contains(&k) || (cmd == "ci" && ci_cmd::is_flag(k)) {
+                    return Err(format!("{k} is a flag and takes no value: write {k} (without =), got '{a}'"));
                 }
             } else if takes_value(cmd, a) {
                 skip_value = true; // the next word is this option's value, even if it contains '='
@@ -1202,24 +755,16 @@ fn expand_eq(raw: &[String]) -> Result<Vec<String>, String> {
 }
 
 fn parse_args(args: &[String]) -> Result<Args, String> {
-    let (mut pos, mut flags, mut opts, mut scale) =
-        (Vec::new(), Vec::new(), HashMap::new(), 1.0f32);
+    let (mut pos, mut flags, mut opts, mut scale) = (Vec::new(), Vec::new(), HashMap::new(), 1.0f32);
     let cmd = args.first().map(String::as_str).unwrap_or("");
     let mut i = 0;
     while i < args.len() {
         let a = args[i].as_str();
         if takes_value(cmd, a) {
             i += 1;
-            let v = args
-                .get(i)
-                .ok_or_else(|| format!("{a} needs a value"))?
-                .clone();
+            let v = args.get(i).ok_or_else(|| format!("{a} needs a value"))?.clone();
             if a == "--scale" && !args.iter().any(|x| x == "mocap-retarget") {
-                scale = v
-                    .parse()
-                    .ok()
-                    .filter(|s: &f32| *s > 0.0 && *s <= 16.0)
-                    .ok_or("--scale needs a number in (0, 16]")?;
+                scale = v.parse().ok().filter(|s: &f32| *s > 0.0 && *s <= 16.0).ok_or("--scale needs a number in (0, 16]")?;
             }
             opts.insert(a.to_string(), v);
         } else if a.starts_with("--") {
@@ -1229,22 +774,13 @@ fn parse_args(args: &[String]) -> Result<Args, String> {
         }
         i += 1;
     }
-    Ok(Args {
-        pos,
-        flags,
-        opts,
-        scale,
-    })
+    Ok(Args { pos, flags, opts, scale })
 }
 
 /// Flags every command accepts.
 /// (`--json`, `--quiet` and `--allow-empty` are per-command options: a command that does not list them in its usage refuses them.)
-const GLOBAL_FLAGS: &[&str] = &[
-    "--version",
-    "--help",
-    "--follow-symlinks",
-    "--allow-external-assets",
-];
+const GLOBAL_FLAGS: &[&str] = &["--version", "--help", "--follow-symlinks", "--allow-external-assets"];
+
 
 /// The USAGE text of one command (its line and continuation lines), for `osatura <command> --help`.
 fn usage_for(cmd: &str) -> Option<String> {
@@ -1261,11 +797,7 @@ fn usage_for(cmd: &str) -> Option<String> {
             out.push('\n');
         }
     }
-    if out.is_empty() {
-        None
-    } else {
-        Some(format!("USAGE:\n{out}"))
-    }
+    if out.is_empty() { None } else { Some(format!("USAGE:\n{out}")) }
 }
 
 /// One synopsis form of a command: a USAGE line, or one `|`-separated alternative of a line
@@ -1286,15 +818,9 @@ struct UsageForm {
 /// The extensions named by `out.<ext>` words of a synopsis (`<out.json|out.lottie>` gives `json`, `lottie`).
 fn form_exts(text: &str) -> Vec<String> {
     let mut v: Vec<String> = Vec::new();
-    for w in text.split(|c: char| {
-        c.is_whitespace() || c == '<' || c == '>' || c == '|' || c == '[' || c == ']'
-    }) {
+    for w in text.split(|c: char| c.is_whitespace() || c == '<' || c == '>' || c == '|' || c == '[' || c == ']') {
         if let Some(e) = w.strip_prefix("out.") {
-            if !e.is_empty()
-                && e.chars()
-                    .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
-                && !v.iter().any(|x| x == e)
-            {
+            if !e.is_empty() && e.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit()) && !v.iter().any(|x| x == e) {
                 v.push(e.to_string());
             }
         }
@@ -1311,11 +837,7 @@ fn option_names(text: &str, top_only: bool) -> Vec<String> {
         match b[i] {
             '[' => depth += 1,
             ']' => depth = (depth - 1).max(0),
-            '-' if i + 1 < b.len()
-                && b[i + 1] == '-'
-                && (i == 0 || !(b[i - 1].is_ascii_alphanumeric() || b[i - 1] == '-'))
-                && (!top_only || depth == 0) =>
-            {
+            '-' if i + 1 < b.len() && b[i + 1] == '-' && (i == 0 || !(b[i - 1].is_ascii_alphanumeric() || b[i - 1] == '-')) && (!top_only || depth == 0) => {
                 let mut j = i + 2;
                 while j < b.len() && (b[j].is_ascii_alphanumeric() || b[j] == '-') {
                     j += 1;
@@ -1344,22 +866,14 @@ fn split_alternatives(s: &str) -> Vec<String> {
             ']' | '>' | ')' => depth = (depth - 1).max(0),
             _ => {}
         }
-        if c == '|'
-            && depth == 0
-            && i > 0
-            && b[i - 1].is_whitespace()
-            && b.get(i + 1).is_some_and(|n| n.is_whitespace())
-        {
+        if c == '|' && depth == 0 && i > 0 && b[i - 1].is_whitespace() && b.get(i + 1).is_some_and(|n| n.is_whitespace()) {
             out.push(std::mem::take(&mut cur));
         } else {
             cur.push(c);
         }
     }
     out.push(cur);
-    out.into_iter()
-        .map(|x| x.trim().to_string())
-        .filter(|x| !x.is_empty())
-        .collect()
+    out.into_iter().map(|x| x.trim().to_string()).filter(|x| !x.is_empty()).collect()
 }
 
 /// The sub-command word(s) a synopsis starts with: the first bare lower-case word before the first option or `[...]`
@@ -1372,12 +886,7 @@ fn form_keys(text: &str) -> Vec<String> {
         if t.starts_with('<') {
             continue;
         }
-        let ok = t.split('|').all(|w| {
-            !w.is_empty()
-                && w.starts_with(|c: char| c.is_ascii_lowercase())
-                && w.chars()
-                    .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
-        });
+        let ok = t.split('|').all(|w| !w.is_empty() && w.starts_with(|c: char| c.is_ascii_lowercase()) && w.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-'));
         if ok {
             return t.split('|').map(String::from).collect();
         }
@@ -1431,27 +940,15 @@ fn usage_forms() -> &'static Vec<UsageForm> {
             let _ = desc;
             // continuation lines belong to the alternatives that name them ("trim/fade options"), else to the last one
             let cont = cont.join(" ");
-            let shared: Vec<usize> = (0..segs.len())
-                .filter(|&i| segs[i].1.contains("trim/fade options"))
-                .collect();
+            let shared: Vec<usize> = (0..segs.len()).filter(|&i| segs[i].1.contains("trim/fade options")).collect();
             let last = segs.len() - 1;
             let mut tails = vec![String::new(); segs.len()];
-            for i in if shared.is_empty() {
-                vec![last]
-            } else {
-                shared
-            } {
+            for i in if shared.is_empty() { vec![last] } else { shared } {
                 tails[i].push(' ');
                 tails[i].push_str(&cont);
             }
             for ((c, text), tail) in segs.into_iter().zip(tails) {
-                forms.push(UsageForm {
-                    cmd: c,
-                    keys: form_keys(&text),
-                    required: option_names(&text, true),
-                    opts: option_names(&format!("{text} {tail}"), false),
-                    exts: form_exts(&text),
-                });
+                forms.push(UsageForm { cmd: c, keys: form_keys(&text), required: option_names(&text, true), opts: option_names(&format!("{text} {tail}"), false), exts: form_exts(&text) });
             }
         }
         forms
@@ -1480,42 +977,21 @@ fn select_forms<'a>(cmd: &str, pos: &[String], present: &[String]) -> Vec<&'a Us
     }
     // forms that differ by the output extension (`export`): the form for the extension of the output file
     if all.iter().all(|f| !f.exts.is_empty() && f.keys.is_empty()) {
-        let ext = pos
-            .get(2)
-            .and_then(|o| Path::new(o).extension())
-            .and_then(|e| e.to_str())
-            .map(str::to_ascii_lowercase)
-            .unwrap_or_default();
-        let by_ext: Vec<&UsageForm> = all
-            .iter()
-            .copied()
-            .filter(|f| f.exts.contains(&ext))
-            .collect();
+        let ext = pos.get(2).and_then(|o| Path::new(o).extension()).and_then(|e| e.to_str()).map(str::to_ascii_lowercase).unwrap_or_default();
+        let by_ext: Vec<&UsageForm> = all.iter().copied().filter(|f| f.exts.contains(&ext)).collect();
         if !by_ext.is_empty() && by_ext.len() < all.len() {
             return by_ext;
         }
     }
-    let keyed: Vec<&UsageForm> = all
-        .iter()
-        .copied()
-        .filter(|f| f.keys.iter().any(|k| pos.iter().skip(1).any(|p| p == k)))
-        .collect();
+    let keyed: Vec<&UsageForm> = all.iter().copied().filter(|f| f.keys.iter().any(|k| pos.iter().skip(1).any(|p| p == k))).collect();
     let mut cand = if !keyed.is_empty() {
         keyed
     } else {
         let keyless: Vec<&UsageForm> = all.iter().copied().filter(|f| f.keys.is_empty()).collect();
-        if keyless.is_empty() {
-            all
-        } else {
-            keyless
-        }
+        if keyless.is_empty() { all } else { keyless }
     };
     if cand.len() > 1 {
-        let ok: Vec<&UsageForm> = cand
-            .iter()
-            .copied()
-            .filter(|f| f.required.iter().all(|r| present.contains(r)))
-            .collect();
+        let ok: Vec<&UsageForm> = cand.iter().copied().filter(|f| f.required.iter().all(|r| present.contains(r))).collect();
         if let Some(m) = ok.iter().map(|f| f.required.len()).max() {
             cand = ok.into_iter().filter(|f| f.required.len() == m).collect();
         }
@@ -1525,11 +1001,7 @@ fn select_forms<'a>(cmd: &str, pos: &[String], present: &[String]) -> Vec<&'a Us
 
 /// Lower-case extension of the output file (third positional) of a command whose forms differ by it.
 fn pos_ext(pos: &[String]) -> String {
-    pos.get(2)
-        .and_then(|o| Path::new(o).extension())
-        .and_then(|e| e.to_str())
-        .map(str::to_ascii_lowercase)
-        .unwrap_or_default()
+    pos.get(2).and_then(|o| Path::new(o).extension()).and_then(|e| e.to_str()).map(str::to_ascii_lowercase).unwrap_or_default()
 }
 
 /// Options every command accepts besides [`GLOBAL_FLAGS`].
@@ -1541,11 +1013,7 @@ fn edit_distance(a: &str, b: &str) -> usize {
     for i in 1..=a.len() {
         let mut cur = vec![i];
         for j in 1..=b.len() {
-            cur.push(
-                (prev[j] + 1)
-                    .min(cur[j - 1] + 1)
-                    .min(prev[j - 1] + usize::from(a[i - 1] != b[j - 1])),
-            );
+            cur.push((prev[j] + 1).min(cur[j - 1] + 1).min(prev[j - 1] + usize::from(a[i - 1] != b[j - 1])));
         }
         prev = cur;
     }
@@ -1556,9 +1024,7 @@ fn edit_distance(a: &str, b: &str) -> usize {
 /// instead of silently ignoring it. Validation is per synopsis form: `ci diff a.png b.png --quiet` is refused although
 /// `ci run` documents `--quiet`.
 fn check_flags(a: &Args, raw: &[String]) -> Result<(), String> {
-    let Some(cmd) = raw.first().filter(|c| !c.starts_with('-')) else {
-        return Ok(());
-    };
+    let Some(cmd) = raw.first().filter(|c| !c.starts_with('-')) else { return Ok(()) };
     let pooled = documented_options(cmd);
     if pooled.is_empty() && usage_for(cmd).is_none() {
         return Ok(()); // not a command with a USAGE block (the dispatcher reports it)
@@ -1570,18 +1036,10 @@ fn check_flags(a: &Args, raw: &[String]) -> Result<(), String> {
     for f in &forms {
         known.extend(f.opts.iter().map(String::as_str));
     }
-    let label = if forms.len() == 1
-        && !forms[0].exts.is_empty()
-        && usage_forms().iter().filter(|u| u.cmd == *cmd).count() > 1
-        && forms[0].keys.is_empty()
-    {
+    let label = if forms.len() == 1 && !forms[0].exts.is_empty() && usage_forms().iter().filter(|u| u.cmd == *cmd).count() > 1 && forms[0].keys.is_empty() {
         format!("{cmd} .{}", pos_ext(&a.pos))
     } else {
-        let key = forms.first().filter(|_| forms.len() == 1).and_then(|f| {
-            f.keys
-                .iter()
-                .find(|k| a.pos.iter().skip(1).any(|p| p == *k))
-        });
+        let key = forms.first().filter(|_| forms.len() == 1).and_then(|f| f.keys.iter().find(|k| a.pos.iter().skip(1).any(|p| p == *k)));
         match key {
             Some(k) => format!("{cmd} {k}"),
             None => cmd.clone(),
@@ -1591,62 +1049,30 @@ fn check_flags(a: &Args, raw: &[String]) -> Result<(), String> {
     given.extend(a.opts.keys().filter(|k| k.starts_with("--")));
     given.sort();
     for f in given {
-        if known.contains(&f.as_str())
-            || GLOBAL_FLAGS.contains(&f.as_str())
-            || GLOBAL_OPTS.contains(&f.as_str())
-        {
+        if known.contains(&f.as_str()) || GLOBAL_FLAGS.contains(&f.as_str()) || GLOBAL_OPTS.contains(&f.as_str()) {
             continue;
         }
-        let best = known
-            .iter()
-            .copied()
-            .chain(GLOBAL_FLAGS.iter().copied())
-            .map(|k| (edit_distance(f, k), k))
-            .min();
+        let best = known.iter().copied().chain(GLOBAL_FLAGS.iter().copied()).map(|k| (edit_distance(f, k), k)).min();
         let mut hint = match best {
             Some((d, k)) if d <= 3 || k.starts_with(f.as_str()) => format!(" (did you mean {k}?)"),
             _ => String::new(),
         };
         let owners: Vec<String> = usage_forms()
             .iter()
-            .filter(|u| {
-                u.cmd == *cmd && u.opts.contains(f) && !forms.iter().any(|x| std::ptr::eq(*x, *u))
-            })
-            .map(|u| {
-                if u.keys.is_empty() && !u.exts.is_empty() {
-                    format!("{cmd} .{}", u.exts.join("/."))
-                } else if u.keys.is_empty() {
-                    cmd.clone()
-                } else {
-                    format!("{cmd} {}", u.keys.join("|"))
-                }
-            })
+            .filter(|u| u.cmd == *cmd && u.opts.contains(f) && !forms.iter().any(|x| std::ptr::eq(*x, *u)))
+            .map(|u| if u.keys.is_empty() && !u.exts.is_empty() { format!("{cmd} .{}", u.exts.join("/.")) } else if u.keys.is_empty() { cmd.clone() } else { format!("{cmd} {}", u.keys.join("|")) })
             .collect();
         if !owners.is_empty() {
             hint = format!("{hint} ({f} applies to: {})", owners.join(", "));
         }
-        return Err(format!(
-            "unknown option {f} for '{label}'{hint}; see: osatura {cmd} --help"
-        ));
+        return Err(format!("unknown option {f} for '{label}'{hint}; see: osatura {cmd} --help"));
     }
     Ok(())
 }
 
 /// A bake that read events but produced nothing (typo'd ids, wrong source, every key skipped) is a failure, not a success.
-fn check_bake_not_empty(
-    a: &Args,
-    inputs: usize,
-    r: &osatura_core::liveinput::BakeReport,
-    cmd: &str,
-    what: &str,
-) -> Result<(), String> {
-    if inputs > 0
-        && r.channels == 0
-        && r.keys_set == 0
-        && r.takes == 0
-        && r.events == 0
-        && !a.flags.iter().any(|f| f == "--allow-empty")
-    {
+fn check_bake_not_empty(a: &Args, inputs: usize, r: &osatura_core::liveinput::BakeReport, cmd: &str, what: &str) -> Result<(), String> {
+    if inputs > 0 && r.channels == 0 && r.keys_set == 0 && r.takes == 0 && r.events == 0 && !a.flags.iter().any(|f| f == "--allow-empty") {
         return Err(format!("{cmd}: {inputs} input(s) were read but nothing was produced (0 channels, 0 keys, 0 takes, 0 events); check the ids in {what}; nothing was written (use --allow-empty to accept an empty result)"));
     }
     Ok(())
@@ -1655,17 +1081,12 @@ fn check_bake_not_empty(
 fn num(a: &Args, key: &str, default: f32) -> Result<f32, String> {
     match a.opts.get(key) {
         None => Ok(default),
-        Some(v) => v
-            .parse()
-            .map_err(|_| format!("{key} needs a number, got '{v}'")),
+        Some(v) => v.parse().map_err(|_| format!("{key} needs a number, got '{v}'")),
     }
 }
 
 fn onion_spec_from(a: &Args) -> Result<overlays::OnionSpec, String> {
-    let d = overlays::OnionSpec {
-        enabled: true,
-        ..Default::default()
-    };
+    let d = overlays::OnionSpec { enabled: true, ..Default::default() };
     let whole = |k: &str, def: u32| -> Result<u32, String> {
         let v = num(a, k, def as f32)?;
         if v < 0.0 || v.fract() != 0.0 {
@@ -1677,35 +1098,14 @@ fn onion_spec_from(a: &Args) -> Result<overlays::OnionSpec, String> {
         before: whole("--before", d.before)?,
         after: whole("--after", d.after)?,
         step: whole("--step", d.step)?,
-        mode: if a.flags.iter().any(|f| f == "--keyed") {
-            overlays::OnionMode::Keyed
-        } else {
-            overlays::OnionMode::Relative
-        },
-        tint_before: a
-            .opts
-            .get("--tint-before")
-            .cloned()
-            .unwrap_or(d.tint_before.clone()),
-        tint_after: a
-            .opts
-            .get("--tint-after")
-            .cloned()
-            .unwrap_or(d.tint_after.clone()),
+        mode: if a.flags.iter().any(|f| f == "--keyed") { overlays::OnionMode::Keyed } else { overlays::OnionMode::Relative },
+        tint_before: a.opts.get("--tint-before").cloned().unwrap_or(d.tint_before.clone()),
+        tint_after: a.opts.get("--tint-after").cloned().unwrap_or(d.tint_after.clone()),
         opacity: num(a, "--opacity", d.opacity)?,
         falloff: num(a, "--falloff", d.falloff)?,
         outline: a.flags.iter().any(|f| f == "--outline"),
         moving_only: !a.flags.iter().any(|f| f == "--all-parts"),
-        layers: a
-            .opts
-            .get("--layers")
-            .map(|l| {
-                l.split(',')
-                    .filter(|x| !x.is_empty())
-                    .map(String::from)
-                    .collect()
-            })
-            .unwrap_or_default(),
+        layers: a.opts.get("--layers").map(|l| l.split(',').filter(|x| !x.is_empty()).map(String::from).collect()).unwrap_or_default(),
         ..d
     };
     spec.validate()?;
@@ -1714,28 +1114,14 @@ fn onion_spec_from(a: &Args) -> Result<overlays::OnionSpec, String> {
 
 fn write_frame(e: &Engine, frame: f32, out: &Path, a: &Args) -> Result<(), String> {
     let bones = a.flags.iter().any(|f| f == "--bones");
-    let png = out
-        .extension()
-        .map(|x| x.eq_ignore_ascii_case("png"))
-        .unwrap_or(false);
-    let svg = out
-        .extension()
-        .map(|x| x.eq_ignore_ascii_case("svg"))
-        .unwrap_or(false);
+    let png = out.extension().map(|x| x.eq_ignore_ascii_case("png")).unwrap_or(false);
+    let svg = out.extension().map(|x| x.eq_ignore_ascii_case("svg")).unwrap_or(false);
     if !png && !svg {
-        return Err(format!(
-            "render writes .png or .svg; '{}' has another extension (nothing was written)",
-            out.display()
-        ));
+        return Err(format!("render writes .png or .svg; '{}' has another extension (nothing was written)", out.display()));
     }
     let proxy = match a.opts.get("--proxy") {
         None => 0u8,
-        Some(v) => v.parse::<u8>().map_err(|_| {
-            format!(
-                "--proxy needs a level 0..={}, got '{v}'",
-                osatura_core::scrub::MAX_LEVEL
-            )
-        })?,
+        Some(v) => v.parse::<u8>().map_err(|_| format!("--proxy needs a level 0..={}, got '{v}'", osatura_core::scrub::MAX_LEVEL))?,
     };
     osatura_core::scrub::check_level(proxy)?;
     e.evaluate_checked(frame)?;
@@ -1744,15 +1130,7 @@ fn write_frame(e: &Engine, frame: f32, out: &Path, a: &Args) -> Result<(), Strin
     } else if proxy > 0 {
         osatura_core::scrub::proxy_svg_vector(e, frame, proxy, bones)?.into_bytes()
     } else if png {
-        render_png(
-            e,
-            frame,
-            &RasterOptions {
-                scale: a.scale,
-                show_bones: bones,
-                transparent: false,
-            },
-        )?
+        render_png(e, frame, &RasterOptions { scale: a.scale, show_bones: bones, transparent: false })?
     } else {
         render_frame(e, frame, &RenderOptions { show_bones: bones }).into_bytes()
     };
@@ -1768,44 +1146,24 @@ fn render_gpu_cmd(a: &Args, path: &str, out: &str) -> Result<(), String> {
         None => 0.0,
         Some(v) => v.parse().map_err(|_| format!("bad frame number '{v}'"))?,
     };
-    let choice: AdapterChoice = a
-        .opts
-        .get("--adapter")
-        .map(|s| s.parse())
-        .transpose()?
-        .unwrap_or(AdapterChoice::Auto);
+    let choice: AdapterChoice = a.opts.get("--adapter").map(|s| s.parse()).transpose()?.unwrap_or(AdapterChoice::Auto);
     let ctx = GpuContext::new(choice).map_err(|e| e.to_string())?;
-    let opts = GpuOptions {
-        scale: a.scale,
-        show_bones: a.flags.iter().any(|f| f == "--bones"),
-        ..Default::default()
-    };
+    let opts = GpuOptions { scale: a.scale, show_bones: a.flags.iter().any(|f| f == "--bones"), ..Default::default() };
     let img = osatura_gpu::render(&ctx, &e, frame, &opts).map_err(|e| e.to_string())?;
     fwrite(out, img.encode_png()?)?;
-    println!(
-        "wrote {out} ({}x{}) on {}",
-        img.width, img.height, ctx.adapter
-    );
+    println!("wrote {out} ({}x{}) on {}", img.width, img.height, ctx.adapter);
     if ctx.adapter.is_software {
         println!("note: software adapter (CPU implementation of the GPU API); timings below say nothing about real GPUs");
     }
     if let Some(n) = a.opts.get("--bench") {
-        let n: usize = n
-            .parse()
-            .ok()
-            .filter(|n| *n > 0 && *n <= 10_000)
-            .ok_or("--bench needs a count in 1..=10000")?;
+        let n: usize = n.parse().ok().filter(|n| *n > 0 && *n <= 10_000).ok_or("--bench needs a count in 1..=10000")?;
         let f = e.evaluate(frame);
         let t = std::time::Instant::now();
         for _ in 0..n {
             osatura_gpu::render_frame(&ctx, &e, &f, &opts).map_err(|e| e.to_string())?;
         }
         let gpu_ms = t.elapsed().as_secs_f64() * 1e3 / n as f64;
-        let ro = RasterOptions {
-            scale: a.scale,
-            show_bones: false,
-            transparent: false,
-        };
+        let ro = RasterOptions { scale: a.scale, show_bones: false, transparent: false };
         let t = std::time::Instant::now();
         for _ in 0..n {
             osatura_core::raster::pixmap_from_frame(&e, &f, frame, &ro);
@@ -1841,9 +1199,7 @@ fn write_json(p: &Project, out: &str) -> Result<(), String> {
 /// `output would be invalid: <cause>` unless `text` is a project that parses and passes `Engine::new`.
 fn validate_project_text(text: &str) -> Result<(), String> {
     let back = Project::from_json(text).map_err(|e| format!("output would be invalid: {e}"))?;
-    Engine::new(back)
-        .map(|_| ())
-        .map_err(|errs| format!("output would be invalid: {}", errs.join("; ")))
+    Engine::new(back).map(|_| ()).map_err(|errs| format!("output would be invalid: {}", errs.join("; ")))
 }
 
 /// Atomic file write used for every output of the CLI (see `osatura_core::fsutil::write_atomic`).
@@ -1854,14 +1210,12 @@ fn fwrite(out: impl AsRef<Path>, data: impl AsRef<[u8]>) -> Result<(), String> {
         // /dev/stdout, a FIFO, ...: nothing to rename over
         return fs::write(out, data).map_err(|e| format!("cannot write {}: {e}", out.display()));
     }
-    osatura_core::fsutil::write_atomic(out, data.as_ref())
-        .map_err(|e| format!("cannot write {}: {e}", out.display()))
+    osatura_core::fsutil::write_atomic(out, data.as_ref()).map_err(|e| format!("cannot write {}: {e}", out.display()))
 }
 
 /// Read a motion library (`take-record` file): every error names the file.
 fn load_library(path: &str) -> Result<motionlib::Library, String> {
-    let text = fs::read_to_string(path)
-        .map_err(|e| format!("cannot read the take library {path}: {e}"))?;
+    let text = fs::read_to_string(path).map_err(|e| format!("cannot read the take library {path}: {e}"))?;
     motionlib::Library::from_json(&text).map_err(|e| format!("{path}: {e}"))
 }
 
@@ -1870,10 +1224,7 @@ fn load_library(path: &str) -> Result<motionlib::Library, String> {
 fn parse_take_rename(s: &str, take: &motionlib::Take) -> Result<Vec<(String, String)>, String> {
     let mut out = Vec::new();
     for item in s.split(',').filter(|x| !x.is_empty()) {
-        let Some((from, to)) = item
-            .split_once('=')
-            .filter(|(f, t)| !f.is_empty() && !t.is_empty())
-        else {
+        let Some((from, to)) = item.split_once('=').filter(|(f, t)| !f.is_empty() && !t.is_empty()) else {
             return Err(format!("'{item}' is not a rename: write from=to (take target = project target), or '-' for none; the speed is a plain number after it (nothing was written)"));
         };
         if !take.tracks.iter().any(|t| t.target == from) {
@@ -1892,9 +1243,7 @@ fn parse_take_rename(s: &str, take: &motionlib::Take) -> Result<Vec<(String, Str
 fn check_frame_in_range(frame: f32, frames: u32, clamp: bool) -> Result<f32, String> {
     let last = frames.saturating_sub(1) as f32;
     if !frame.is_finite() {
-        return Err(format!(
-            "frame {frame} is not a number the animation has (valid frames are 0..{last})"
-        ));
+        return Err(format!("frame {frame} is not a number the animation has (valid frames are 0..{last})"));
     }
     if (0.0..=last).contains(&frame) {
         return Ok(frame);
@@ -1914,9 +1263,7 @@ fn guard_out(input: &str, out: &str) -> Result<(), String> {
         _ => Path::new(input) == Path::new(out),
     };
     if same {
-        Err(format!(
-            "refusing to overwrite the input project {input} with output of the same name"
-        ))
+        Err(format!("refusing to overwrite the input project {input} with output of the same name"))
     } else {
         Ok(())
     }
@@ -1926,20 +1273,7 @@ fn guard_out(input: &str, out: &str) -> Result<(), String> {
 /// Inputs must come before the output; the filter/map/codec go after the video options.
 fn audio_inputs(e: &Engine, base: &Path) -> Result<(Vec<String>, Vec<String>, bool), String> {
     Ok(match soundtrack::mux_args(&e.project, base, 1, None)? {
-        Some(m) => (
-            m.inputs,
-            vec![
-                "-filter_complex".into(),
-                m.filter,
-                "-map".into(),
-                "0:v".into(),
-                "-map".into(),
-                "[aout]".into(),
-                "-t".into(),
-                format!("{}", e.project.frames as f32 / e.project.fps),
-            ],
-            true,
-        ),
+        Some(m) => (m.inputs, vec!["-filter_complex".into(), m.filter, "-map".into(), "0:v".into(), "-map".into(), "[aout]".into(), "-t".into(), format!("{}", e.project.frames as f32 / e.project.fps)], true),
         None => (vec![], vec![], false),
     })
 }
@@ -1950,40 +1284,22 @@ fn parse_time(s: &str, fps: f32, what: &str) -> Result<f32, String> {
         Some(n) => (n, 1.0 / fps),
         None => (s.strip_suffix('s').unwrap_or(s), 1.0),
     };
-    num.parse::<f32>()
-        .ok()
-        .filter(|v| v.is_finite())
-        .map(|v| v * scale)
-        .ok_or_else(|| format!("{what} needs seconds (1.5) or frames (36f), got '{s}'"))
+    num.parse::<f32>().ok().filter(|v| v.is_finite()).map(|v| v * scale).ok_or_else(|| format!("{what} needs seconds (1.5) or frames (36f), got '{s}'"))
 }
 
 /// Apply --trim-in/--trim-out/--fade-in/--fade-out to a track (a trim-out of 0 means "to the end").
 fn apply_sound_opts(t: &mut soundtrack::SoundTrack, a: &Args, fps: f32) -> Result<(), String> {
-    if let Some(v) = a.opts.get("--trim-in") {
-        t.trim_in = parse_time(v, fps, "--trim-in")?;
-    }
-    if let Some(v) = a.opts.get("--trim-out") {
-        let o = parse_time(v, fps, "--trim-out")?;
-        t.trim_out = if o == 0.0 { None } else { Some(o) };
-    }
-    if let Some(v) = a.opts.get("--fade-in") {
-        t.fade_in = parse_time(v, fps, "--fade-in")?;
-    }
-    if let Some(v) = a.opts.get("--fade-out") {
-        t.fade_out = parse_time(v, fps, "--fade-out")?;
-    }
+    if let Some(v) = a.opts.get("--trim-in") { t.trim_in = parse_time(v, fps, "--trim-in")?; }
+    if let Some(v) = a.opts.get("--trim-out") { let o = parse_time(v, fps, "--trim-out")?; t.trim_out = if o == 0.0 { None } else { Some(o) }; }
+    if let Some(v) = a.opts.get("--fade-in") { t.fade_in = parse_time(v, fps, "--fade-in")?; }
+    if let Some(v) = a.opts.get("--fade-out") { t.fade_out = parse_time(v, fps, "--fade-out")?; }
     Ok(())
 }
 
 /// GIF and APNG have no audio track: say so instead of silently dropping the sounds.
 /// Prints every export warning on stderr and, with `--report FILE`, writes them as JSON
 /// (`{"format","count","warnings":[{"code","layer","message"}]}`). The file may not be the input project.
-fn report_warnings(
-    a: &Args,
-    project: &str,
-    format: &str,
-    warns: Vec<(&'static str, String, String)>,
-) -> Result<(), String> {
+fn report_warnings(a: &Args, project: &str, format: &str, warns: Vec<(&'static str, String, String)>) -> Result<(), String> {
     for (code, layer, msg) in &warns {
         if layer.is_empty() {
             eprintln!("warning: [{code}] {msg}");
@@ -2040,55 +1356,21 @@ fn export_mp4(e: &Engine, out: &str, scale: f32, base: &Path) -> Result<(), Stri
     let (ain, aargs, has_audio) = audio_inputs(e, base)?;
     let result = (|| {
         for f in 0..e.project.frames {
-            let png = render_png(
-                e,
-                f as f32,
-                &RasterOptions {
-                    scale,
-                    show_bones: false,
-                    transparent: false,
-                },
-            )?;
+            let png = render_png(e, f as f32, &RasterOptions { scale, show_bones: false, transparent: false })?;
             fwrite(dir.join(format!("f_{f:05}.png")), png).map_err(|e| e.to_string())?;
         }
         let status = Command::new("ffmpeg")
-            .args([
-                "-y",
-                "-loglevel",
-                "error",
-                "-protocol_whitelist",
-                "file",
-                "-framerate",
-                &e.project.fps.to_string(),
-                "-i",
-            ])
+            .args(["-y", "-loglevel", "error", "-protocol_whitelist", "file", "-framerate", &e.project.fps.to_string(), "-i"])
             .arg(dir.join("f_%05d.png"))
             .args(&ain)
-            .args([
-                "-vf",
-                "scale=trunc(iw/2)*2:trunc(ih/2)*2",
-                "-pix_fmt",
-                "yuv420p",
-                "-c:v",
-                "libx264",
-            ])
+            .args(["-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2", "-pix_fmt", "yuv420p", "-c:v", "libx264"])
             .args(&aargs)
-            .args(if has_audio {
-                &["-c:a", "aac"][..]
-            } else {
-                &[][..]
-            })
+            .args(if has_audio { &["-c:a", "aac"][..] } else { &[][..] })
             .args(["-protocol_whitelist", "file"])
             .arg(osatura_core::fsutil::file_arg(out))
             .status()
-            .map_err(|e| {
-                format!("cannot run ffmpeg ({e}); install it or export a GIF/HTML instead")
-            })?;
-        if status.success() {
-            Ok(())
-        } else {
-            Err("ffmpeg failed".to_string())
-        }
+            .map_err(|e| format!("cannot run ffmpeg ({e}); install it or export a GIF/HTML instead"))?;
+        if status.success() { Ok(()) } else { Err("ffmpeg failed".to_string()) }
     })();
     drop(guard);
     result
@@ -2097,30 +1379,8 @@ fn export_mp4(e: &Engine, out: &str, scale: f32, base: &Path) -> Result<(), Stri
 /// WebM with alpha. VP9 (default) or AV1, encoded by the user's own ffmpeg (external process, never bundled); patent/licensing status of the codecs is not assessed here (docs/PATENT_NOTES.md). Needs ffmpeg on PATH.
 fn export_webm(e: &Engine, out: &str, scale: f32, codec: &str, base: &Path) -> Result<(), String> {
     let enc: &[&str] = match codec {
-        "vp9" => &[
-            "-c:v",
-            "libvpx-vp9",
-            "-pix_fmt",
-            "yuva420p",
-            "-b:v",
-            "0",
-            "-crf",
-            "30",
-            "-auto-alt-ref",
-            "0",
-        ],
-        "av1" => &[
-            "-c:v",
-            "libaom-av1",
-            "-pix_fmt",
-            "yuva420p",
-            "-b:v",
-            "0",
-            "-crf",
-            "35",
-            "-cpu-used",
-            "6",
-        ],
+        "vp9" => &["-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-b:v", "0", "-crf", "30", "-auto-alt-ref", "0"],
+        "av1" => &["-c:v", "libaom-av1", "-pix_fmt", "yuva420p", "-b:v", "0", "-crf", "35", "-cpu-used", "6"],
         other => return Err(format!("unknown --codec '{other}' (vp9 or av1)")),
     };
     osatura_core::fsutil::refuse_symlink(Path::new(out))?;
@@ -2129,48 +1389,21 @@ fn export_webm(e: &Engine, out: &str, scale: f32, codec: &str, base: &Path) -> R
     let (ain, aargs, has_audio) = audio_inputs(e, base)?;
     let result = (|| {
         for f in 0..e.project.frames {
-            let png = render_png(
-                e,
-                f as f32,
-                &RasterOptions {
-                    scale,
-                    show_bones: false,
-                    transparent: false,
-                },
-            )?;
+            let png = render_png(e, f as f32, &RasterOptions { scale, show_bones: false, transparent: false })?;
             fwrite(dir.join(format!("f_{f:05}.png")), png).map_err(|e| e.to_string())?;
         }
         let status = Command::new("ffmpeg")
-            .args([
-                "-y",
-                "-loglevel",
-                "error",
-                "-protocol_whitelist",
-                "file",
-                "-framerate",
-                &e.project.fps.to_string(),
-                "-i",
-            ])
+            .args(["-y", "-loglevel", "error", "-protocol_whitelist", "file", "-framerate", &e.project.fps.to_string(), "-i"])
             .arg(dir.join("f_%05d.png"))
             .args(&ain)
             .args(enc)
             .args(&aargs)
-            .args(if has_audio {
-                &["-c:a", "libopus"][..]
-            } else {
-                &[][..]
-            })
+            .args(if has_audio { &["-c:a", "libopus"][..] } else { &[][..] })
             .args(["-protocol_whitelist", "file"])
             .arg(osatura_core::fsutil::file_arg(out))
             .status()
-            .map_err(|e| {
-                format!("cannot run ffmpeg ({e}); install it or export an APNG instead")
-            })?;
-        if status.success() {
-            Ok(())
-        } else {
-            Err("ffmpeg failed (does your build include the chosen codec?)".to_string())
-        }
+            .map_err(|e| format!("cannot run ffmpeg ({e}); install it or export an APNG instead"))?;
+        if status.success() { Ok(()) } else { Err("ffmpeg failed (does your build include the chosen codec?)".to_string()) }
     })();
     drop(guard);
     result
@@ -2202,60 +1435,22 @@ fn dof_export_preflight(out: &str, a: &Args) -> Result<(), String> {
             "libx264"
         };
         let listing = Command::new("ffmpeg").args(["-hide_banner", "-loglevel", "error", "-encoders"]).output().map_err(|e| format!("dof-export: cannot run ffmpeg ({e}); install it or export a GIF/APNG instead (nothing was rendered)"))?;
-        if !String::from_utf8_lossy(&listing.stdout)
-            .split_whitespace()
-            .any(|w| w == encoder)
-        {
+        if !String::from_utf8_lossy(&listing.stdout).split_whitespace().any(|w| w == encoder) {
             return Err(format!("dof-export: this ffmpeg has no {encoder} encoder, needed for {} (nothing was rendered); use another format or codec", if webm { "WebM" } else { "MP4" }));
         }
     }
     Ok(())
 }
 
-fn encode_png_video(
-    pngs: &[Vec<u8>],
-    fps: f32,
-    out: &str,
-    webm: bool,
-    codec: &str,
-) -> Result<(), String> {
+fn encode_png_video(pngs: &[Vec<u8>], fps: f32, out: &str, webm: bool, codec: &str) -> Result<(), String> {
     let enc: Vec<&str> = if webm {
         match codec {
-            "vp9" => vec![
-                "-c:v",
-                "libvpx-vp9",
-                "-pix_fmt",
-                "yuva420p",
-                "-b:v",
-                "0",
-                "-crf",
-                "30",
-                "-auto-alt-ref",
-                "0",
-            ],
-            "av1" => vec![
-                "-c:v",
-                "libaom-av1",
-                "-pix_fmt",
-                "yuva420p",
-                "-b:v",
-                "0",
-                "-crf",
-                "35",
-                "-cpu-used",
-                "6",
-            ],
+            "vp9" => vec!["-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-b:v", "0", "-crf", "30", "-auto-alt-ref", "0"],
+            "av1" => vec!["-c:v", "libaom-av1", "-pix_fmt", "yuva420p", "-b:v", "0", "-crf", "35", "-cpu-used", "6"],
             other => return Err(format!("unknown --codec '{other}' (vp9 or av1)")),
         }
     } else {
-        vec![
-            "-vf",
-            "scale=trunc(iw/2)*2:trunc(ih/2)*2",
-            "-pix_fmt",
-            "yuv420p",
-            "-c:v",
-            "libx264",
-        ]
+        vec!["-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2", "-pix_fmt", "yuv420p", "-c:v", "libx264"]
     };
     osatura_core::fsutil::refuse_symlink(Path::new(out))?;
     let guard = osatura_core::fsutil::private_temp_dir("osatura-dofvid")?;
@@ -2265,29 +1460,14 @@ fn encode_png_video(
             fwrite(dir.join(format!("f_{i:05}.png")), b).map_err(|e| e.to_string())?;
         }
         let status = Command::new("ffmpeg")
-            .args([
-                "-y",
-                "-loglevel",
-                "error",
-                "-protocol_whitelist",
-                "file",
-                "-framerate",
-                &fps.to_string(),
-                "-i",
-            ])
+            .args(["-y", "-loglevel", "error", "-protocol_whitelist", "file", "-framerate", &fps.to_string(), "-i"])
             .arg(dir.join("f_%05d.png"))
             .args(&enc)
             .args(["-protocol_whitelist", "file"])
             .arg(osatura_core::fsutil::file_arg(out))
             .status()
-            .map_err(|e| {
-                format!("cannot run ffmpeg ({e}); install it or export a GIF/APNG instead")
-            })?;
-        if status.success() {
-            Ok(())
-        } else {
-            Err("ffmpeg failed (does your build include the chosen codec?)".to_string())
-        }
+            .map_err(|e| format!("cannot run ffmpeg ({e}); install it or export a GIF/APNG instead"))?;
+        if status.success() { Ok(()) } else { Err("ffmpeg failed (does your build include the chosen codec?)".to_string()) }
     })();
     drop(guard);
     result
@@ -2296,15 +1476,10 @@ fn encode_png_video(
 /// Read a user-authored config file; unknown keys (typos) are an error, not silently ignored.
 fn read_json<T: serde::Serialize + serde::de::DeserializeOwned>(path: &str) -> Result<T, String> {
     let text = read_text_capped(path)?;
-    osatura_core::unknownfields::parse_strict(&text)
-        .map_err(|e| format!("invalid JSON in {path}: {e}"))
+    osatura_core::unknownfields::parse_strict(&text).map_err(|e| format!("invalid JSON in {path}: {e}"))
 }
 
-fn pose_suggester(
-    a: &Args,
-    project: &Project,
-    db_path: &str,
-) -> Result<posesuggest::Suggester, String> {
+fn pose_suggester(a: &Args, project: &Project, db_path: &str) -> Result<posesuggest::Suggester, String> {
     let db = if db_path == "-" {
         let lib = match a.opts.get("--library") {
             Some(p) => Some(read_json::<osatura_core::motionlib::Library>(p)?),
@@ -2312,53 +1487,26 @@ fn pose_suggester(
         };
         posesuggest::build_db(Some(project), lib.as_ref(), None)?
     } else {
-        posesuggest::PoseDb::from_json(
-            &fs::read_to_string(db_path).map_err(|e| format!("cannot read {db_path}: {e}"))?,
-        )?
+        posesuggest::PoseDb::from_json(&fs::read_to_string(db_path).map_err(|e| format!("cannot read {db_path}: {e}"))?)?
     };
     posesuggest::Suggester::new(db)
 }
 
 fn print_suggestions(s: &posesuggest::Suggestions) {
-    println!(
-        "{}: {} library poses, {} PCA axes ({:.0}% of the variance)",
-        s.kind,
-        s.poses_in_library,
-        s.pca_axes,
-        s.pca_explained * 100.0
-    );
+    println!("{}: {} library poses, {} PCA axes ({:.0}% of the variance)", s.kind, s.poses_in_library, s.pca_axes, s.pca_explained * 100.0);
     for n in &s.notes {
         println!("  note: {n}");
     }
     for (i, c) in s.candidates.iter().enumerate() {
-        let err = c
-            .constraint_error
-            .map(|e| format!("  constraint error {e:.2}"))
-            .unwrap_or_default();
-        println!(
-            "{:>2}. {:<11} score {:.2}  plausibility {:.2}{err}  key at frame {:.1}",
-            i + 1,
-            c.method,
-            c.score,
-            c.plausibility,
-            c.frame.unwrap_or(0.0)
-        );
+        let err = c.constraint_error.map(|e| format!("  constraint error {e:.2}")).unwrap_or_default();
+        println!("{:>2}. {:<11} score {:.2}  plausibility {:.2}{err}  key at frame {:.1}", i + 1, c.method, c.score, c.plausibility, c.frame.unwrap_or(0.0));
         println!("      {}", c.label);
-        println!(
-            "      {}",
-            c.values
-                .iter()
-                .map(|v| format!("{}={:.1}", v.bone, v.angle))
-                .collect::<Vec<_>>()
-                .join(" ")
-        );
+        println!("      {}", c.values.iter().map(|v| format!("{}={:.1}", v.bone, v.angle)).collect::<Vec<_>>().join(" "));
         for n in &c.notes {
             println!("      note: {n}");
         }
     }
-    println!(
-        "(scores rank candidates against this library; they are heuristics, not probabilities)"
-    );
+    println!("(scores rank candidates against this library; they are heuristics, not probabilities)");
 }
 
 fn run(raw: &[String]) -> Result<(), String> {
@@ -2366,19 +1514,13 @@ fn run(raw: &[String]) -> Result<(), String> {
     let raw = expanded.as_slice();
     if let Some(n) = raw.iter().position(|x| x == "--max-input-bytes") {
         let v = raw.get(n + 1).ok_or("--max-input-bytes needs a value")?;
-        let n: u64 =
-            v.parse().ok().filter(|n| *n > 0).ok_or_else(|| {
-                format!("--max-input-bytes needs a positive whole number, got '{v}'")
-            })?;
+        let n: u64 = v.parse().ok().filter(|n| *n > 0).ok_or_else(|| format!("--max-input-bytes needs a positive whole number, got '{v}'"))?;
         MAX_INPUT_BYTES.store(n, std::sync::atomic::Ordering::SeqCst);
     }
     let a = parse_args(raw)?;
     check_flags(&a, raw)?;
     let pos: Vec<&str> = a.pos.iter().map(String::as_str).collect();
-    if let Some(c) = pos
-        .first()
-        .filter(|_| a.flags.iter().any(|f| f == "--help"))
-    {
+    if let Some(c) = pos.first().filter(|_| a.flags.iter().any(|f| f == "--help")) {
         if let Some(u) = usage_for(c) {
             println!("{u}");
             return Ok(());
@@ -2389,29 +1531,14 @@ fn run(raw: &[String]) -> Result<(), String> {
         return Ok(());
     }
     if pos.is_empty() && a.flags.iter().any(|f| f == "--version") {
-        println!(
-            "osatura {} (osatura-cli, AGPL-3.0-or-later; engine libraries MPL-2.0)\n{}",
-            env!("CARGO_PKG_VERSION"),
-            studio::source_offer_text(studio::default_source_url())
-        );
+        println!("osatura {} (osatura-cli, AGPL-3.0-or-later; engine libraries MPL-2.0)\n{}", env!("CARGO_PKG_VERSION"), studio::source_offer_text(studio::default_source_url()));
         return Ok(());
     }
     // commands that read a project and write a different kind of file: never over the project itself
     match pos.as_slice() {
-        ["render", p, _, o]
-        | ["render-hdr", p, _, o]
-        | ["render-hdr", p, _, o, _]
-        | ["dof", p, _, o]
-        | ["dof-export", p, o]
-        | ["export", p, o]
-        | ["layout-preview", p, o]
-        | ["render-gpu", p, o]
-        | ["export-fit", p, o]
-        | ["fuzz-grid", p, o]
-        | ["onion", p, o]
-        | ["onion", p, _, o]
-        | ["trail", p, _, o]
-        | ["golden", _, p, o] => guard_out(p, o)?,
+        ["render", p, _, o] | ["render-hdr", p, _, o] | ["render-hdr", p, _, o, _] | ["dof", p, _, o] | ["dof-export", p, o]
+        | ["export", p, o] | ["layout-preview", p, o] | ["render-gpu", p, o] | ["export-fit", p, o] | ["fuzz-grid", p, o]
+        | ["onion", p, o] | ["onion", p, _, o] | ["trail", p, _, o] | ["golden", _, p, o] => guard_out(p, o)?,
         // the Lottie file is the source of the import: never overwrite it with the project (or the effects file)
         ["import-lottie", inp, o, rest @ ..] => {
             guard_out(inp, o)?;
@@ -5129,12 +4256,7 @@ fn ui_cmd(a: &Args, rest: &[&str]) -> Result<(), String> {
     use uiconfig::*;
     let json = a.flags.iter().any(|f| f == "--json");
     let store = || -> UiStore {
-        let p = a
-            .opts
-            .get("--ui-config")
-            .map(std::path::PathBuf::from)
-            .or_else(default_config_path)
-            .filter(|p| p.exists());
+        let p = a.opts.get("--ui-config").map(std::path::PathBuf::from).or_else(default_config_path).filter(|p| p.exists());
         UiStore::open(p)
     };
     match rest {
@@ -5224,10 +4346,7 @@ fn ui_cmd(a: &Args, rest: &[&str]) -> Result<(), String> {
 fn main() -> ExitCode {
     // Windows gives the main thread a 1 MiB stack (Linux/macOS: 8 MiB); deep recursion in the evaluator
     // and the renderers overflowed it (found by the Windows CI run). Run everything on a big-stack thread.
-    match std::thread::Builder::new()
-        .stack_size(256 << 20)
-        .spawn(real_main)
-    {
+    match std::thread::Builder::new().stack_size(256 << 20).spawn(real_main) {
         Ok(h) => h.join().unwrap_or(ExitCode::FAILURE),
         Err(_) => real_main(),
     }
@@ -5258,20 +4377,12 @@ fn wait_for_enter(msg: &str) {
 /// and keep running until the window is closed.
 #[cfg(windows)]
 fn double_click_launcher() -> ExitCode {
-    println!(
-        "OSATURA {}  -  command-line tool and browser studio",
-        env!("CARGO_PKG_VERSION")
-    );
+    println!("OSATURA {}  -  command-line tool and browser studio", env!("CARGO_PKG_VERSION"));
     println!("This window runs the studio. Close it (or press Ctrl+C) to stop. For the commands, open a terminal: osatura --help\n");
     let home = env::var("USERPROFILE").unwrap_or_else(|_| ".".into());
-    let dir = std::path::Path::new(&home)
-        .join("Documents")
-        .join("OSATURA");
+    let dir = std::path::Path::new(&home).join("Documents").join("OSATURA");
     if let Err(e) = std::fs::create_dir_all(&dir) {
-        wait_for_enter(&format!(
-            "cannot create {}: {e}\nPress Enter to close.",
-            dir.display()
-        ));
+        wait_for_enter(&format!("cannot create {}: {e}\nPress Enter to close.", dir.display()));
         return ExitCode::FAILURE;
     }
     let project = dir.join("first-rig.json").to_string_lossy().into_owned();
@@ -5284,16 +4395,9 @@ fn double_click_launcher() -> ExitCode {
     println!("Project: {project} (edits are saved there)");
     std::thread::spawn(|| {
         std::thread::sleep(std::time::Duration::from_millis(1500));
-        let _ = Command::new("cmd")
-            .args(["/C", "start", "", "http://127.0.0.1:8080"])
-            .spawn();
+        let _ = Command::new("cmd").args(["/C", "start", "", "http://127.0.0.1:8080"]).spawn();
     });
-    let r = run(&[
-        "studio".to_string(),
-        project,
-        "--port".to_string(),
-        "8080".to_string(),
-    ]);
+    let r = run(&["studio".to_string(), project, "--port".to_string(), "8080".to_string()]);
     if let Err(e) = r {
         wait_for_enter(&format!("{e}\n(If another program uses port 8080, close it, or run: osatura studio <project.json> --port 8090)\nPress Enter to close."));
         return ExitCode::FAILURE;
@@ -5337,28 +4441,14 @@ mod usage_tests {
     /// H3 (wave 4): the same word is a flag in one command and a value option in another.
     #[test]
     fn option_table_is_per_command() {
-        assert!(
-            !takes_value("ci", "--prune")
-                && !takes_value("export-oca", "--layers")
-                && !takes_value("keyedit", "--free")
-        );
-        assert!(
-            takes_value("autotrace", "--png")
-                && takes_value("render", "--scale")
-                && takes_value("lod", "--tolerance-px")
-        );
+        assert!(!takes_value("ci", "--prune") && !takes_value("export-oca", "--layers") && !takes_value("keyedit", "--free"));
+        assert!(takes_value("autotrace", "--png") && takes_value("render", "--scale") && takes_value("lod", "--tolerance-px"));
         let s = |v: &[&str]| v.iter().map(|x| x.to_string()).collect::<Vec<_>>();
         let a = parse_args(&s(&["ci", "run", "--prune"])).unwrap();
         assert!(a.flags.iter().any(|f| f == "--prune") && a.opts.is_empty());
-        assert_eq!(
-            expand_eq(&s(&["lod", "d.json", "--levels=3"])).unwrap(),
-            s(&["lod", "d.json", "--levels", "3"])
-        );
+        assert_eq!(expand_eq(&s(&["lod", "d.json", "--levels=3"])).unwrap(), s(&["lod", "d.json", "--levels", "3"]));
         assert!(expand_eq(&s(&["ci", "run", "--prune=1"])).is_err());
-        assert_eq!(
-            expand_eq(&s(&["render", "--scale", "a=b"])).unwrap(),
-            s(&["render", "--scale", "a=b"])
-        );
+        assert_eq!(expand_eq(&s(&["render", "--scale", "a=b"])).unwrap(), s(&["render", "--scale", "a=b"]));
     }
 
     #[test]
@@ -5368,10 +4458,7 @@ mod usage_tests {
             check_flags(&parse_args(&raw).unwrap(), &raw)
         };
         let e = go(&["render", "p.json", "0", "o.png", "--bone"]).unwrap_err();
-        assert!(
-            e.contains("--bone") && e.contains("did you mean --bones"),
-            "{e}"
-        );
+        assert!(e.contains("--bone") && e.contains("did you mean --bones"), "{e}");
         let e = go(&["export-fit", "p.json", "o.json", "--audi"]).unwrap_err();
         assert!(e.contains("--audit"), "{e}");
         assert!(go(&["render", "p.json", "0", "o.png", "--bones"]).is_ok());
@@ -5380,14 +4467,7 @@ mod usage_tests {
         assert!(e.contains("unknown option --json for 'render'"), "{e}");
         assert!(go(&["timeline", "p.json", "--json"]).is_ok());
         // commands whose usage line lists no option at all refuse stray flags too
-        for c in [
-            vec!["check", "p.json"],
-            vec!["stats", "p.json"],
-            vec!["lint", "p.json"],
-            vec!["coach", "p.json"],
-            vec!["contracts", "p.json", "c.json"],
-            vec!["machine", "list", "p.json"],
-        ] {
+        for c in [vec!["check", "p.json"], vec!["stats", "p.json"], vec!["lint", "p.json"], vec!["coach", "p.json"], vec!["contracts", "p.json", "c.json"], vec!["machine", "list", "p.json"]] {
             let mut v = c.clone();
             v.push("--foo");
             let e = go(&v).unwrap_err();
@@ -5403,10 +4483,7 @@ mod usage_tests {
         let strip = |body: &str| -> String {
             let body = body.split("mod usage_tests").next().unwrap().to_string();
             // the option tables (VALUE_OPTS, CMD_OPTS) list names for the parser, they are not reads
-            let body = match (
-                body.find("const VALUE_OPTS"),
-                body.find("const GLOBAL_FLAGS"),
-            ) {
+            let body = match (body.find("const VALUE_OPTS"), body.find("const GLOBAL_FLAGS")) {
                 (Some(a), Some(b)) if a < b => format!("{}{}", &body[..a], &body[b..]),
                 _ => body,
             };
@@ -5419,41 +4496,13 @@ mod usage_tests {
             }
         };
         let cmds = |names: &[&str]| Some(names.iter().map(|s| s.to_string()).collect::<Vec<_>>());
-        let face: Vec<&str> = vec![
-            "face-synth",
-            "face-train",
-            "face-eval",
-            "face-detect",
-            "face-track",
-            "face-calibrate",
-            "face-bake",
-        ];
+        let face: Vec<&str> = vec!["face-synth", "face-train", "face-eval", "face-detect", "face-track", "face-calibrate", "face-bake"];
         let mut out = vec![
-            (
-                "lod_cmd.rs".to_string(),
-                cmds(&["lod", "lod-pick"]),
-                strip(include_str!("lod_cmd.rs")),
-            ),
-            (
-                "fit_cmd.rs".to_string(),
-                cmds(&["export-fit", "size-report"]),
-                strip(include_str!("fit_cmd.rs")),
-            ),
-            (
-                "fuzz_cmd.rs".to_string(),
-                cmds(&["fuzz", "fuzz-grid"]),
-                strip(include_str!("fuzz_cmd.rs")),
-            ),
-            (
-                "vcs_cmd.rs".to_string(),
-                cmds(&["vcs"]),
-                strip(include_str!("vcs_cmd.rs")),
-            ),
-            (
-                "face_cmd.rs".to_string(),
-                cmds(&face),
-                strip(include_str!("face_cmd.rs")),
-            ),
+            ("lod_cmd.rs".to_string(), cmds(&["lod", "lod-pick"]), strip(include_str!("lod_cmd.rs"))),
+            ("fit_cmd.rs".to_string(), cmds(&["export-fit", "size-report"]), strip(include_str!("fit_cmd.rs"))),
+            ("fuzz_cmd.rs".to_string(), cmds(&["fuzz", "fuzz-grid"]), strip(include_str!("fuzz_cmd.rs"))),
+            ("vcs_cmd.rs".to_string(), cmds(&["vcs"]), strip(include_str!("vcs_cmd.rs"))),
+            ("face_cmd.rs".to_string(), cmds(&face), strip(include_str!("face_cmd.rs"))),
         ];
         // main.rs: chunk per dispatcher arm
         let main = strip(include_str!("main.rs"));
@@ -5464,11 +4513,7 @@ mod usage_tests {
             let top = !l.is_empty() && !l.starts_with(' ');
             if is_arm || top {
                 if !cur.1.is_empty() {
-                    out.push((
-                        "main.rs".to_string(),
-                        cur.0.take(),
-                        std::mem::take(&mut cur.1),
-                    ));
+                    out.push(("main.rs".to_string(), cur.0.take(), std::mem::take(&mut cur.1)));
                 }
                 cur.0 = None;
                 in_header = is_arm;
@@ -5505,39 +4550,27 @@ mod usage_tests {
         let all: Vec<String> = usage_forms().iter().flat_map(|f| f.opts.clone()).collect();
         let mut missing: Vec<String> = Vec::new();
         for (file, cmds, body) in option_read_sites() {
-            let allowed: Option<Vec<String>> = cmds
-                .filter(|c| !c.is_empty())
-                .map(|c| c.iter().flat_map(|c| documented_options(c)).collect());
+            let allowed: Option<Vec<String>> = cmds.filter(|c| !c.is_empty()).map(|c| c.iter().flat_map(|c| documented_options(c)).collect());
             let mut rest = body.as_str();
             while let Some(i) = rest.find("\"--") {
                 let tail = &rest[i + 1..];
                 let name = &tail[..tail.find('"').unwrap_or(0)];
                 rest = &tail[name.len().max(1)..];
-                if name.len() <= 2
-                    || !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')
-                    || GLOBAL_FLAGS.contains(&name)
-                    || GLOBAL_OPTS.contains(&name)
-                {
+                if name.len() <= 2 || !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') || GLOBAL_FLAGS.contains(&name) || GLOBAL_OPTS.contains(&name) {
                     continue;
                 }
                 let ok = match &allowed {
                     Some(a) => a.iter().any(|o| o == name),
                     None => all.iter().any(|o| o == name),
                 };
-                let label = match &allowed {
-                    Some(_) => file.clone(),
-                    None => format!("{file} (shared code)"),
-                };
+                let label = match &allowed { Some(_) => file.clone(), None => format!("{file} (shared code)") };
                 let entry = format!("{label}: {name}");
                 if !ok && !missing.contains(&entry) {
                     missing.push(entry);
                 }
             }
         }
-        assert!(
-            missing.is_empty(),
-            "flags read by a command but not in that command's USAGE: {missing:?}"
-        );
+        assert!(missing.is_empty(), "flags read by a command but not in that command's USAGE: {missing:?}");
     }
 
     fn args(v: &[&str]) -> Vec<String> {
@@ -5555,52 +4588,24 @@ mod usage_tests {
     fn options_are_validated_per_sub_command() {
         // ci: --quiet only for `run`, --out/--no-goldens only for `init`, --metric only for `diff`
         assert!(refused(&["ci", "run", "--quiet"]).is_none());
-        assert!(refused(&["ci", "diff", "a.png", "b.png", "--quiet"])
-            .unwrap()
-            .contains("unknown option --quiet for 'ci diff'"));
-        assert!(refused(&["ci", "init", "s.json", "--quiet"])
-            .unwrap()
-            .contains("--quiet"));
+        assert!(refused(&["ci", "diff", "a.png", "b.png", "--quiet"]).unwrap().contains("unknown option --quiet for 'ci diff'"));
+        assert!(refused(&["ci", "init", "s.json", "--quiet"]).unwrap().contains("--quiet"));
         assert!(refused(&["ci", "init", "s.json", "--no-goldens"]).is_none());
         assert!(refused(&["ci", "run", "--no-goldens"]).is_some());
-        assert!(
-            refused(&["ci", "diff", "a.png", "b.png", "--metric", "mse", "--tol", "3"]).is_none()
-        );
+        assert!(refused(&["ci", "diff", "a.png", "b.png", "--metric", "mse", "--tol", "3"]).is_none());
         // trail: --json only on the --target form
-        assert!(refused(&["trail", "s.json", "hand", "t.svg", "--json"])
-            .unwrap()
-            .contains("--json"));
-        assert!(refused(&[
-            "trail",
-            "s.json",
-            "t.svg",
-            "--target",
-            "bone:hand",
-            "--json"
-        ])
-        .is_none());
-        assert!(
-            refused(&["trail", "s.json", "hand", "t.svg", "--from", "1", "--to", "5"]).is_none()
-        );
+        assert!(refused(&["trail", "s.json", "hand", "t.svg", "--json"]).unwrap().contains("--json"));
+        assert!(refused(&["trail", "s.json", "t.svg", "--target", "bone:hand", "--json"]).is_none());
+        assert!(refused(&["trail", "s.json", "hand", "t.svg", "--from", "1", "--to", "5"]).is_none());
         // ui: --json for commands|shortcuts only
-        assert!(refused(&["ui", "layout", "presets", "--json"])
-            .unwrap()
-            .contains("--json"));
+        assert!(refused(&["ui", "layout", "presets", "--json"]).unwrap().contains("--json"));
         assert!(refused(&["ui", "search", "x", "--json"]).is_some());
         assert!(refused(&["ui", "commands", "--json"]).is_none());
         assert!(refused(&["ui", "shortcuts", "--json", "--ui-config", "f.json"]).is_none());
         assert!(refused(&["ui", "layout", "show", "rig", "--ui-config", "f.json"]).is_some());
         // golden: --scale only for write, --tol only for check (value options are validated too)
-        assert!(
-            refused(&["golden", "write", "p.json", "g.json", "--tol", "0.1"])
-                .unwrap()
-                .contains("--tol")
-        );
-        assert!(
-            refused(&["golden", "check", "p.json", "g.json", "--scale", "0.25"])
-                .unwrap()
-                .contains("--scale")
-        );
+        assert!(refused(&["golden", "write", "p.json", "g.json", "--tol", "0.1"]).unwrap().contains("--tol"));
+        assert!(refused(&["golden", "check", "p.json", "g.json", "--scale", "0.25"]).unwrap().contains("--scale"));
         assert!(refused(&["golden", "write", "p.json", "g.json", "--scale", "0.25"]).is_none());
         assert!(refused(&["golden", "check", "p.json", "g.json", "--tol", "0.1"]).is_none());
         // vcs: --json only where the sub-command prints JSON; --force only for checkout
@@ -5612,62 +4617,17 @@ mod usage_tests {
         assert!(refused(&["vcs", "merge", "dev", "--no-ff", "--repo", "r"]).is_none());
         assert!(refused(&["vcs", "revert", "abc", "--ours"]).is_some());
         // keyedit: each edit lists its own options
-        assert!(refused(&[
-            "keyedit", "p.json", "o.json", "move", "--sel", "a:b", "--dt", "2", "--free"
-        ])
-        .is_none());
-        assert!(
-            refused(&["keyedit", "p.json", "o.json", "delete", "--sel", "a:b", "--dt", "2"])
-                .unwrap()
-                .contains("--dt")
-        );
-        assert!(refused(&[
-            "keyedit", "p.json", "o.json", "smooth", "--sel", "a:b", "--kind", "monotone"
-        ])
-        .is_none());
-        assert!(refused(&[
-            "keyedit", "p.json", "o.json", "ease", "--sel", "a:b", "--ease", "linear", "--kind",
-            "x"
-        ])
-        .is_some());
+        assert!(refused(&["keyedit", "p.json", "o.json", "move", "--sel", "a:b", "--dt", "2", "--free"]).is_none());
+        assert!(refused(&["keyedit", "p.json", "o.json", "delete", "--sel", "a:b", "--dt", "2"]).unwrap().contains("--dt"));
+        assert!(refused(&["keyedit", "p.json", "o.json", "smooth", "--sel", "a:b", "--kind", "monotone"]).is_none());
+        assert!(refused(&["keyedit", "p.json", "o.json", "ease", "--sel", "a:b", "--ease", "linear", "--kind", "x"]).is_some());
         // pose-suggest / pose-db / clip / sound / bind / container / scroll sub-forms
-        assert!(refused(&[
-            "pose-suggest",
-            "next",
-            "p.json",
-            "-",
-            "--frame",
-            "1",
-            "--json"
-        ])
-        .is_some());
-        assert!(refused(&[
-            "pose-suggest",
-            "between",
-            "p.json",
-            "-",
-            "--a",
-            "1",
-            "--b",
-            "2",
-            "--json"
-        ])
-        .is_none());
+        assert!(refused(&["pose-suggest", "next", "p.json", "-", "--frame", "1", "--json"]).is_some());
+        assert!(refused(&["pose-suggest", "between", "p.json", "-", "--a", "1", "--b", "2", "--json"]).is_none());
         assert!(refused(&["pose-db", "info", "d.json", "--step", "2"]).is_some());
         assert!(refused(&["clip", "list", "p.json", "--at", "2"]).is_some());
         assert!(refused(&["sound", "remove", "p.json", "o.json", "n", "--gain", "2"]).is_some());
-        assert!(refused(&[
-            "sound",
-            "edit",
-            "p.json",
-            "o.json",
-            "n",
-            "--gain",
-            "2",
-            "--fade-in",
-            "1"
-        ])
-        .is_none());
+        assert!(refused(&["sound", "edit", "p.json", "o.json", "n", "--gain", "2", "--fade-in", "1"]).is_none());
         assert!(refused(&["container", "list", "p.json", "--size", "10x10"]).is_some());
         assert!(refused(&["container", "solve", "p.json", "--size", "10x10"]).is_none());
         assert!(refused(&["scroll", "list", "p.json", "--offset", "1,1"]).is_some());
@@ -5677,142 +4637,38 @@ mod usage_tests {
         assert!(refused(&["onion", "p.json", "0", "o.png", "--keyed"]).is_some());
         assert!(refused(&["onion", "p.json", "o.svg", "--frame", "1", "--keyed"]).is_none());
         // keys / idle / comp / snapshot: one option set per sub-command
-        assert!(refused(&[
-            "keys",
-            "shift",
-            "p.json",
-            "o.json",
-            "--by",
-            "2",
-            "--target",
-            "a",
-            "--prop",
-            "bone_angle",
-            "--from",
-            "1",
-            "--to",
-            "5"
-        ])
-        .is_none());
-        assert!(
-            refused(&["keys", "shift", "p.json", "o.json", "--by", "2", "--factor", "2"])
-                .unwrap()
-                .contains("unknown option --factor for 'keys shift'")
-        );
-        assert!(
-            refused(&["keys", "scale", "p.json", "o.json", "--factor", "2", "--pivot", "0"])
-                .is_none()
-        );
-        assert!(refused(&[
-            "keys", "scale", "p.json", "o.json", "--factor", "2", "--ease", "linear"
-        ])
-        .unwrap()
-        .contains("applies to: keys ease"));
-        assert!(
-            refused(&["keys", "ease", "p.json", "o.json", "--ease", "smooth", "--by", "1"])
-                .unwrap()
-                .contains("--by")
-        );
-        assert!(
-            refused(&["keys", "reverse", "p.json", "o.json", "--from", "1", "--pivot", "3"])
-                .unwrap()
-                .contains("--pivot")
-        );
-        assert!(refused(&[
-            "idle",
-            "blink",
-            "p.json",
-            "o.json",
-            "--target",
-            "a",
-            "--prop",
-            "layer_switch",
-            "--interval",
-            "2",
-            "--seed",
-            "3"
-        ])
-        .is_none());
-        assert!(refused(&[
-            "idle", "blink", "p.json", "o.json", "--target", "a", "--prop", "p", "--amp", "2"
-        ])
-        .unwrap()
-        .contains("unknown option --amp for 'idle blink'"));
-        assert!(refused(&[
-            "idle", "breath", "p.json", "o.json", "--target", "a", "--prop", "p", "--seed", "2"
-        ])
-        .unwrap()
-        .contains("--seed"));
-        assert!(refused(&[
-            "idle", "breath", "p.json", "o.json", "--target", "a", "--prop", "p", "--period", "40"
-        ])
-        .is_none());
-        assert!(refused(&[
-            "idle", "sway", "p.json", "o.json", "--target", "a", "--prop", "p", "--period", "40"
-        ])
-        .unwrap()
-        .contains("applies to: idle breath"));
-        assert!(refused(&[
-            "idle", "sway", "p.json", "o.json", "--target", "a", "--prop", "p", "--freq", "1",
-            "--seed", "4"
-        ])
-        .is_none());
+        assert!(refused(&["keys", "shift", "p.json", "o.json", "--by", "2", "--target", "a", "--prop", "bone_angle", "--from", "1", "--to", "5"]).is_none());
+        assert!(refused(&["keys", "shift", "p.json", "o.json", "--by", "2", "--factor", "2"]).unwrap().contains("unknown option --factor for 'keys shift'"));
+        assert!(refused(&["keys", "scale", "p.json", "o.json", "--factor", "2", "--pivot", "0"]).is_none());
+        assert!(refused(&["keys", "scale", "p.json", "o.json", "--factor", "2", "--ease", "linear"]).unwrap().contains("applies to: keys ease"));
+        assert!(refused(&["keys", "ease", "p.json", "o.json", "--ease", "smooth", "--by", "1"]).unwrap().contains("--by"));
+        assert!(refused(&["keys", "reverse", "p.json", "o.json", "--from", "1", "--pivot", "3"]).unwrap().contains("--pivot"));
+        assert!(refused(&["idle", "blink", "p.json", "o.json", "--target", "a", "--prop", "layer_switch", "--interval", "2", "--seed", "3"]).is_none());
+        assert!(refused(&["idle", "blink", "p.json", "o.json", "--target", "a", "--prop", "p", "--amp", "2"]).unwrap().contains("unknown option --amp for 'idle blink'"));
+        assert!(refused(&["idle", "breath", "p.json", "o.json", "--target", "a", "--prop", "p", "--seed", "2"]).unwrap().contains("--seed"));
+        assert!(refused(&["idle", "breath", "p.json", "o.json", "--target", "a", "--prop", "p", "--period", "40"]).is_none());
+        assert!(refused(&["idle", "sway", "p.json", "o.json", "--target", "a", "--prop", "p", "--period", "40"]).unwrap().contains("applies to: idle breath"));
+        assert!(refused(&["idle", "sway", "p.json", "o.json", "--target", "a", "--prop", "p", "--freq", "1", "--seed", "4"]).is_none());
         assert!(refused(&["comp", "list", "p.json", "--name", "x"]).is_some());
         assert!(refused(&["comp", "capture", "p.json", "o.json", "n"]).is_none());
         assert!(refused(&["snapshot", "save", "p.json", "d", "--keep", "3"]).is_none());
-        assert!(refused(&["snapshot", "list", "p.json", "d", "--keep", "3"])
-            .unwrap()
-            .contains("applies to: snapshot save"));
-        assert!(
-            refused(&["snapshot", "restore", "p.json", "d", "o.json", "--number", "2"]).is_none()
-        );
-        assert!(
-            refused(&["snapshot", "save", "p.json", "d", "--number", "2"])
-                .unwrap()
-                .contains("applies to: snapshot restore")
-        );
-        assert!(
-            refused(&["snapshot", "recover", "p.json", "d", "o.json", "--number", "2"]).is_some()
-        );
+        assert!(refused(&["snapshot", "list", "p.json", "d", "--keep", "3"]).unwrap().contains("applies to: snapshot save"));
+        assert!(refused(&["snapshot", "restore", "p.json", "d", "o.json", "--number", "2"]).is_none());
+        assert!(refused(&["snapshot", "save", "p.json", "d", "--number", "2"]).unwrap().contains("applies to: snapshot restore"));
+        assert!(refused(&["snapshot", "recover", "p.json", "d", "o.json", "--number", "2"]).is_some());
         // export: the output extension picks the form, and an option that the format does not use is refused
-        assert!(
-            refused(&["export", "p.json", "o.gif", "--scale", "0.5", "--report", "r.json"])
-                .is_none()
-        );
+        assert!(refused(&["export", "p.json", "o.gif", "--scale", "0.5", "--report", "r.json"]).is_none());
         assert!(refused(&["export", "p.json", "O.GIF", "--scale", "0.5"]).is_none());
         let e = refused(&["export", "p.json", "o.json", "--scale", "0.5"]).unwrap();
-        assert!(
-            e.contains("unknown option --scale for 'export .json'")
-                && e.contains("applies to: export .gif"),
-            "{e}"
-        );
+        assert!(e.contains("unknown option --scale for 'export .json'") && e.contains("applies to: export .gif"), "{e}");
         assert!(refused(&["export", "p.json", "o.lottie", "--report", "r.json"]).is_none());
-        assert!(
-            refused(&["export", "p.json", "o.html", "--report", "r.json"])
-                .unwrap()
-                .contains("--report")
-        );
+        assert!(refused(&["export", "p.json", "o.html", "--report", "r.json"]).unwrap().contains("--report"));
         assert!(refused(&["export", "p.json", "o.htm", "--scale", "2"]).is_some());
         assert!(refused(&["export", "p.json", "o.mp4", "--scale", "2"]).is_none());
-        assert!(refused(&["export", "p.json", "o.mp4", "--codec", "av1"])
-            .unwrap()
-            .contains("applies to: export .webm"));
-        assert!(
-            refused(&["export", "p.json", "o.webm", "--codec", "av1", "--scale", "2"]).is_none()
-        );
-        assert!(refused(&["export", "p.json", "o.apng", "--columns", "2"])
-            .unwrap()
-            .contains("--columns"));
-        assert!(refused(&[
-            "export",
-            "p.json",
-            "o.png",
-            "--columns",
-            "2",
-            "--scale",
-            "0.5"
-        ])
-        .is_none());
+        assert!(refused(&["export", "p.json", "o.mp4", "--codec", "av1"]).unwrap().contains("applies to: export .webm"));
+        assert!(refused(&["export", "p.json", "o.webm", "--codec", "av1", "--scale", "2"]).is_none());
+        assert!(refused(&["export", "p.json", "o.apng", "--columns", "2"]).unwrap().contains("--columns"));
+        assert!(refused(&["export", "p.json", "o.png", "--columns", "2", "--scale", "0.5"]).is_none());
         assert!(refused(&["export", "p.json", "o.glb", "--scale", "2"]).is_some());
         assert!(refused(&["export", "p.json", "o.glb", "--report", "r.json"]).is_none());
         // an unknown or missing extension: every export option is let through, the command reports the format error
@@ -5827,35 +4683,18 @@ mod usage_tests {
     fn usage_forms_split_alternatives() {
         let f: Vec<&UsageForm> = usage_forms().iter().filter(|f| f.cmd == "ci").collect();
         assert_eq!(f.len(), 4, "{f:?}");
-        assert_eq!(
-            f.iter().map(|x| x.keys[0].as_str()).collect::<Vec<_>>(),
-            ["init", "run", "bless", "diff"]
-        );
-        assert!(select_forms("golden", &args(&["golden", "write"]), &[])
-            .iter()
-            .all(|f| f.keys == ["write"]));
-        assert_eq!(
-            usage_forms().iter().filter(|f| f.cmd == "keyedit").count(),
-            16
-        );
+        assert_eq!(f.iter().map(|x| x.keys[0].as_str()).collect::<Vec<_>>(), ["init", "run", "bless", "diff"]);
+        assert!(select_forms("golden", &args(&["golden", "write"]), &[]).iter().all(|f| f.keys == ["write"]));
+        assert_eq!(usage_forms().iter().filter(|f| f.cmd == "keyedit").count(), 16);
         assert_eq!(usage_forms().iter().filter(|f| f.cmd == "keys").count(), 4);
         assert_eq!(usage_forms().iter().filter(|f| f.cmd == "idle").count(), 3);
-        assert_eq!(
-            usage_forms().iter().filter(|f| f.cmd == "snapshot").count(),
-            4
-        );
+        assert_eq!(usage_forms().iter().filter(|f| f.cmd == "snapshot").count(), 4);
         assert_eq!(usage_forms().iter().filter(|f| f.cmd == "comp").count(), 2);
         let ex: Vec<&UsageForm> = usage_forms().iter().filter(|f| f.cmd == "export").collect();
         assert_eq!(ex.len(), 8);
         // every extension the dispatcher accepts has exactly one export form
-        for e in [
-            "gif", "html", "htm", "json", "lottie", "mp4", "apng", "webm", "png", "glb",
-        ] {
-            assert_eq!(
-                ex.iter().filter(|f| f.exts.iter().any(|x| x == e)).count(),
-                1,
-                "{e}"
-            );
+        for e in ["gif", "html", "htm", "json", "lottie", "mp4", "apng", "webm", "png", "glb"] {
+            assert_eq!(ex.iter().filter(|f| f.exts.iter().any(|x| x == e)).count(), 1, "{e}");
         }
         assert!(usage_forms().iter().any(|f| f.cmd == "bind-eval"));
     }
@@ -5867,8 +4706,7 @@ mod usage_tests {
         let doc = include_str!("../../docs/CLI_REFERENCE.md");
         // synopsis lines: bold-label lines (`**Synopsis:** `...``) and table cells with a backticked `osatura <cmd> ...`, and
         // bare `osatura <cmd> ...` lines inside code fences with their indented continuation lines (never `$ ` examples)
-        let mut syn: std::collections::BTreeMap<String, Vec<String>> =
-            std::collections::BTreeMap::new();
+        let mut syn: std::collections::BTreeMap<String, Vec<String>> = std::collections::BTreeMap::new();
         let mut fence = false;
         let mut last: Option<(String, usize)> = None; // the fence piece an indented continuation line extends
         for l in doc.lines() {
@@ -5905,11 +4743,7 @@ mod usage_tests {
                 if let Some(cmd) = p.split_whitespace().nth(1) {
                     let v = syn.entry(cmd.to_string()).or_default();
                     v.push(p.to_string());
-                    last = if fence {
-                        Some((cmd.to_string(), v.len() - 1))
-                    } else {
-                        None
-                    };
+                    last = if fence { Some((cmd.to_string(), v.len() - 1)) } else { None };
                 }
             }
         }
@@ -5930,39 +4764,22 @@ mod usage_tests {
             let doc_opts = option_names(&text, false);
             for o in &usage_opts {
                 if !doc_opts.contains(o) {
-                    problems.push(format!(
-                        "{cmd}: {o} is in USAGE but not in the CLI_REFERENCE.md synopsis"
-                    ));
+                    problems.push(format!("{cmd}: {o} is in USAGE but not in the CLI_REFERENCE.md synopsis"));
                 }
             }
             for o in &doc_opts {
-                if !usage_opts.contains(o)
-                    && !GLOBAL_FLAGS.contains(&o.as_str())
-                    && !GLOBAL_OPTS.contains(&o.as_str())
-                {
-                    problems.push(format!(
-                        "{cmd}: {o} is in the CLI_REFERENCE.md synopsis but not in USAGE"
-                    ));
+                if !usage_opts.contains(o) && !GLOBAL_FLAGS.contains(&o.as_str()) && !GLOBAL_OPTS.contains(&o.as_str()) {
+                    problems.push(format!("{cmd}: {o} is in the CLI_REFERENCE.md synopsis but not in USAGE"));
                 }
             }
         }
-        assert!(
-            problems.is_empty(),
-            "{} problem(s):\n{}",
-            problems.len(),
-            problems.join("\n")
-        );
+        assert!(problems.is_empty(), "{} problem(s):\n{}", problems.len(), problems.join("\n"));
     }
 
     /// Every USAGE line that has no alternatives appears word for word (white space aside) in CLI_REFERENCE.md.
     #[test]
     fn cli_reference_repeats_usage_lines_verbatim() {
-        let norm = |t: &str| {
-            t.split_whitespace()
-                .collect::<Vec<_>>()
-                .join(" ")
-                .replace("\\|", "|")
-        };
+        let norm = |t: &str| t.split_whitespace().collect::<Vec<_>>().join(" ").replace("\\|", "|");
         let doc = norm(include_str!("../../docs/CLI_REFERENCE.md"));
         let mut missing = Vec::new();
         for l in USAGE.lines().filter(|l| l.starts_with("  osatura ")) {
@@ -5974,11 +4791,7 @@ mod usage_tests {
                 missing.push(body.to_string());
             }
         }
-        assert!(
-            missing.is_empty(),
-            "USAGE lines missing from CLI_REFERENCE.md:\n{}",
-            missing.join("\n")
-        );
+        assert!(missing.is_empty(), "USAGE lines missing from CLI_REFERENCE.md:\n{}", missing.join("\n"));
     }
 
     /// `golden write --scale` above 1 is refused (it used to be clamped silently); `golden check --scale` is refused.
@@ -6021,35 +4834,18 @@ mod usage_tests {
             for (i, t) in toks.iter().enumerate() {
                 let name = t.trim_start_matches('[').trim_end_matches([']', ',']);
                 let name = name.split('|').next().unwrap();
-                if !name.starts_with("--")
-                    || name.len() < 3
-                    || name.contains('<')
-                    || name.contains('=')
-                {
+                if !name.starts_with("--") || name.len() < 3 || name.contains('<') || name.contains('=') {
                     continue;
                 }
                 // value if the next token exists and is a placeholder (not a closing/another option)
                 let closes = t.ends_with(']');
                 let next = toks.get(i + 1).copied().unwrap_or("");
-                let takes_value = !closes
-                    && !next.is_empty()
-                    && !next.starts_with('[')
-                    && !next.starts_with("--")
-                    && !next.starts_with('(')
-                    && !next.starts_with('<')
-                    || (!closes && next.starts_with('<'));
-                let args: Vec<String> = [cmd, name, "2", "after"]
-                    .iter()
-                    .map(|s| s.to_string())
-                    .collect();
-                let Ok(a) = parse_args(&args) else {
-                    panic!("{cmd} {name}: parse failed")
-                };
+                let takes_value = !closes && !next.is_empty() && !next.starts_with('[') && !next.starts_with("--") && !next.starts_with('(') && !next.starts_with('<') || (!closes && next.starts_with('<'));
+                let args: Vec<String> = [cmd, name, "2", "after"].iter().map(|s| s.to_string()).collect();
+                let Ok(a) = parse_args(&args) else { panic!("{cmd} {name}: parse failed") };
                 if takes_value {
                     if a.opts.get(name).map(String::as_str) != Some("2") {
-                        bad.push(format!(
-                            "{cmd} {name}: documented with a value but parsed as a flag"
-                        ));
+                        bad.push(format!("{cmd} {name}: documented with a value but parsed as a flag"));
                     }
                 } else {
                     if !(a.flags.iter().any(|f| f == name) && a.pos.iter().any(|p| p == "2")) {

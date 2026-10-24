@@ -122,13 +122,9 @@ impl Measure {
 /// Parse "500KB", "1.5MB", "64000", "200 kib" (K = 1000, KiB = 1024).
 pub fn parse_size(s: &str) -> Result<usize, String> {
     let t = s.trim().to_ascii_lowercase().replace(' ', "");
-    let split = t
-        .find(|c: char| !(c.is_ascii_digit() || c == '.'))
-        .unwrap_or(t.len());
+    let split = t.find(|c: char| !(c.is_ascii_digit() || c == '.')).unwrap_or(t.len());
     let (num, unit) = t.split_at(split);
-    let n: f64 = num
-        .parse()
-        .map_err(|_| format!("cannot read a size from '{s}' (try 500KB)"))?;
+    let n: f64 = num.parse().map_err(|_| format!("cannot read a size from '{s}' (try 500KB)"))?;
     let mult = match unit {
         "" | "b" => 1.0,
         "k" | "kb" => 1000.0,
@@ -171,18 +167,7 @@ pub struct Settings {
 
 impl Settings {
     pub fn full() -> Settings {
-        Settings {
-            decimals: 6,
-            path_eps: 0.0,
-            key_tol: 0.0,
-            drop_dead: true,
-            frame_step: 1,
-            scale: 1.0,
-            colors: 256,
-            dither: false,
-            delta_tol: 0,
-            crf: 24,
-        }
+        Settings { decimals: 6, path_eps: 0.0, key_tol: 0.0, drop_dead: true, frame_step: 1, scale: 1.0, colors: 256, dither: false, delta_tol: 0, crf: 24 }
     }
     pub fn to_json(&self) -> Value {
         json!({"decimals": self.decimals, "path_eps": self.path_eps, "key_tol": self.key_tol, "drop_dead": self.drop_dead,
@@ -202,21 +187,11 @@ pub struct Axis {
 }
 
 fn ax(name: &'static str, values: &[f64], set: fn(&mut Settings, f64)) -> Axis {
-    Axis {
-        name,
-        values: values.to_vec(),
-        set,
-        in_chain: true,
-    }
+    Axis { name, values: values.to_vec(), set, in_chain: true }
 }
 
 fn ax_free(name: &'static str, values: &[f64], set: fn(&mut Settings, f64)) -> Axis {
-    Axis {
-        name,
-        values: values.to_vec(),
-        set,
-        in_chain: false,
-    }
+    Axis { name, values: values.to_vec(), set, in_chain: false }
 }
 
 const SCALES: [f64; 8] = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3];
@@ -224,9 +199,7 @@ const SCALES: [f64; 8] = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3];
 /// The knobs of a format, in tie-break order (least visible first).
 pub fn axes(f: Format) -> Vec<Axis> {
     let dec = |v: &[f64]| ax("decimals", v, |s, x| s.decimals = x as u8);
-    let eps = ax("path_eps", &[0.0, 0.05, 0.1, 0.2, 0.4, 0.8, 1.5], |s, x| {
-        s.path_eps = x as f32
-    });
+    let eps = ax("path_eps", &[0.0, 0.05, 0.1, 0.2, 0.4, 0.8, 1.5], |s, x| s.path_eps = x as f32);
     let kt = |v: &[f64]| ax("key_tol", v, |s, x| s.key_tol = x as f32);
     let step = |v: &[f64]| ax("frame_step", v, |s, x| s.frame_step = x as u32);
     let scale = ax("scale", &SCALES, |s, x| s.scale = x as f32);
@@ -237,42 +210,22 @@ pub fn axes(f: Format) -> Vec<Axis> {
             kt(&[0.0, 0.02, 0.05, 0.1, 0.2, 0.4, 0.8, 1.5, 3.0]),
             step(&[1.0, 2.0, 3.0, 4.0, 6.0]),
         ],
-        Format::Html => vec![
-            dec(&[2.0, 1.0, 0.0]),
-            eps,
-            step(&[1.0, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0]),
-        ],
+        Format::Html => vec![dec(&[2.0, 1.0, 0.0]), eps, step(&[1.0, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0])],
         Format::Gif => vec![
-            ax(
-                "colors",
-                &[256.0, 192.0, 128.0, 96.0, 64.0, 48.0, 32.0, 24.0, 16.0, 8.0],
-                |s, x| s.colors = x as u16,
-            ),
+            ax("colors", &[256.0, 192.0, 128.0, 96.0, 64.0, 48.0, 32.0, 24.0, 16.0, 8.0], |s, x| s.colors = x as u16),
             ax_free("dither", &[0.0, 1.0], |s, x| s.dither = x > 0.5),
-            ax("delta_tol", &[0.0, 2.0, 4.0, 8.0, 16.0], |s, x| {
-                s.delta_tol = x as u8
-            }),
+            ax("delta_tol", &[0.0, 2.0, 4.0, 8.0, 16.0], |s, x| s.delta_tol = x as u8),
             step(&[1.0, 2.0, 3.0, 4.0, 6.0]),
             scale,
         ],
         Format::Apng => vec![
-            ax(
-                "colors",
-                &[0.0, 256.0, 128.0, 64.0, 32.0, 16.0, 8.0],
-                |s, x| s.colors = x as u16,
-            ),
+            ax("colors", &[0.0, 256.0, 128.0, 64.0, 32.0, 16.0, 8.0], |s, x| s.colors = x as u16),
             ax_free("dither", &[0.0, 1.0], |s, x| s.dither = x > 0.5),
             step(&[1.0, 2.0, 3.0, 4.0, 6.0]),
             scale,
         ],
         Format::Webm => vec![
-            ax(
-                "crf",
-                &[
-                    24.0, 28.0, 32.0, 36.0, 40.0, 44.0, 48.0, 52.0, 56.0, 60.0, 63.0,
-                ],
-                |s, x| s.crf = x as u8,
-            ),
+            ax("crf", &[24.0, 28.0, 32.0, 36.0, 40.0, 44.0, 48.0, 52.0, 56.0, 60.0, 63.0], |s, x| s.crf = x as u8),
             step(&[1.0, 2.0, 3.0, 4.0, 6.0]),
             scale,
         ],
@@ -468,18 +421,12 @@ fn seg_ctrl(a: &PNode, b: &PNode) -> [[f64; 2]; 4] {
 fn dist_pt_seg(p: [f64; 2], a: [f64; 2], b: [f64; 2]) -> f64 {
     let ab = sub2(b, a);
     let l2 = dot2(ab, ab);
-    let t = if l2 < 1e-18 {
-        0.0
-    } else {
-        (dot2(sub2(p, a), ab) / l2).clamp(0.0, 1.0)
-    };
+    let t = if l2 < 1e-18 { 0.0 } else { (dot2(sub2(p, a), ab) / l2).clamp(0.0, 1.0) };
     len2(sub2(p, [a[0] + ab[0] * t, a[1] + ab[1] * t]))
 }
 
 fn dist_pt_poly(p: [f64; 2], poly: &[[f64; 2]]) -> f64 {
-    poly.windows(2)
-        .map(|w| dist_pt_seg(p, w[0], w[1]))
-        .fold(f64::INFINITY, f64::min)
+    poly.windows(2).map(|w| dist_pt_seg(p, w[0], w[1])).fold(f64::INFINITY, f64::min)
 }
 
 fn unit_or(v: [f64; 2], fallbacks: &[[f64; 2]]) -> [f64; 2] {
@@ -522,14 +469,8 @@ fn merge_fit(a: &PNode, k: &PNode, b: &PNode) -> ([f64; 2], [f64; 2], f64) {
         if total < 1e-12 || chord < 1e-12 {
             (zero, zero)
         } else {
-            let t1 = unit_or(
-                sub2(s1[1], s1[0]),
-                &[sub2(s1[2], s1[0]), sub2(s1[3], s1[0])],
-            );
-            let t2 = unit_or(
-                sub2(s2[2], s2[3]),
-                &[sub2(s2[1], s2[3]), sub2(s2[0], s2[3])],
-            );
+            let t1 = unit_or(sub2(s1[1], s1[0]), &[sub2(s1[2], s1[0]), sub2(s1[3], s1[0])]);
+            let t2 = unit_or(sub2(s2[2], s2[3]), &[sub2(s2[1], s2[3]), sub2(s2[0], s2[3])]);
             let (mut c11, mut c12, mut c22, mut x1, mut x2) = (0.0, 0.0, 0.0, 0.0, 0.0);
             for j in 0..pts.len() {
                 let t = u[j] / total;
@@ -552,13 +493,7 @@ fn merge_fit(a: &PNode, k: &PNode, b: &PNode) -> ([f64; 2], [f64; 2], f64) {
             let (mut al1, mut al2) = (chord / 3.0, chord / 3.0);
             if det.abs() > 1e-12 * (c11 * c22).abs().max(1e-30) {
                 let (s, e) = ((x1 * c22 - x2 * c12) / det, (c11 * x2 - c12 * x1) / det);
-                if s.is_finite()
-                    && e.is_finite()
-                    && s > 1e-6 * chord
-                    && e > 1e-6 * chord
-                    && s < 4.0 * total
-                    && e < 4.0 * total
-                {
+                if s.is_finite() && e.is_finite() && s > 1e-6 * chord && e > 1e-6 * chord && s < 4.0 * total && e < 4.0 * total {
                     al1 = s;
                     al2 = e;
                 }
@@ -569,17 +504,9 @@ fn merge_fit(a: &PNode, k: &PNode, b: &PNode) -> ([f64; 2], [f64; 2], f64) {
     let na = PNode { o: o_new, ..*a };
     let nb = PNode { i: i_new, ..*b };
     let merged = seg_ctrl(&na, &nb);
-    let mp: Vec<[f64; 2]> = (0..=24)
-        .map(|j| cubic_at(&merged, j as f64 / 24.0))
-        .collect();
-    let e1 = pts
-        .iter()
-        .map(|&p| dist_pt_poly(p, &mp))
-        .fold(0.0, f64::max);
-    let e2 = mp
-        .iter()
-        .map(|&p| dist_pt_poly(p, &pts))
-        .fold(0.0, f64::max);
+    let mp: Vec<[f64; 2]> = (0..=24).map(|j| cubic_at(&merged, j as f64 / 24.0)).collect();
+    let e1 = pts.iter().map(|&p| dist_pt_poly(p, &mp)).fold(0.0, f64::max);
+    let e2 = mp.iter().map(|&p| dist_pt_poly(p, &pts)).fold(0.0, f64::max);
     (o_new, i_new, e1.max(e2))
 }
 
@@ -587,9 +514,7 @@ fn merge_fit(a: &PNode, k: &PNode, b: &PNode) -> ([f64; 2], [f64; 2], f64) {
 /// while the sampled geometric deviation stays within `eps` in *every* frame. All frames lose the same
 /// vertices, so the topology stays consistent over time. Returns the number of removed vertices.
 pub fn simplify_paths(frames: &mut [Vec<PNode>], closed: bool, eps: f64) -> usize {
-    let Some(n) = frames.first().map(|f| f.len()) else {
-        return 0;
-    };
+    let Some(n) = frames.first().map(|f| f.len()) else { return 0 };
     if eps <= 0.0 || frames.iter().any(|f| f.len() != n) {
         return 0;
     }
@@ -605,10 +530,7 @@ pub fn simplify_paths(frames: &mut [Vec<PNode>], closed: bool, eps: f64) -> usiz
             let id = alive[j];
             let c = *cost.entry(id).or_insert_with(|| {
                 let (pi, ni) = (alive[(j + m - 1) % m], alive[(j + 1) % m]);
-                frames
-                    .iter()
-                    .map(|f| merge_fit(&f[pi], &f[id], &f[ni]).2)
-                    .fold(0.0, f64::max)
+                frames.iter().map(|f| merge_fit(&f[pi], &f[id], &f[ni]).2).fold(0.0, f64::max)
             });
             if best.is_none_or(|(bc, _)| c < bc) {
                 best = Some((c, j));
@@ -664,32 +586,15 @@ pub fn anchors_of(nodes: &[PNode]) -> Vec<Anchor> {
         .iter()
         .map(|n| {
             let pos = Vec2::new(n.p[0] as f32, n.p[1] as f32);
-            let h = |r: [f64; 2]| {
-                if r == [0.0, 0.0] {
-                    None
-                } else {
-                    Some(Vec2::new((n.p[0] + r[0]) as f32, (n.p[1] + r[1]) as f32))
-                }
-            };
-            Anchor {
-                pos,
-                handle_in: h(n.i),
-                handle_out: h(n.o),
-                weights: Vec::new(),
-            }
+            let h = |r: [f64; 2]| if r == [0.0, 0.0] { None } else { Some(Vec2::new((n.p[0] + r[0]) as f32, (n.p[1] + r[1]) as f32)) };
+            Anchor { pos, handle_in: h(n.i), handle_out: h(n.o), weights: Vec::new() }
         })
         .collect()
 }
 
 /// Simplify one evaluated path with tolerance `eps` (path units). Paths with a width profile are left alone.
 pub fn simplify_vpath(path: &mut VPath, eps: f64) -> usize {
-    if eps <= 0.0
-        || path.anchors.len() < 3
-        || path
-            .stroke
-            .as_ref()
-            .is_some_and(|s| !s.width_profile.is_empty())
-    {
+    if eps <= 0.0 || path.anchors.len() < 3 || path.stroke.as_ref().is_some_and(|s| !s.width_profile.is_empty()) {
         return 0;
     }
     let mut fr = vec![pnodes_of(path)];
@@ -738,10 +643,7 @@ pub fn reduce_track(t: &Track, tol: f32, frames: u32) -> Track {
     let mut keep = vec![false; n];
     keep[0] = true;
     keep[n - 1] = true;
-    let sub = |lo: usize, hi: usize| Track {
-        keys: vec![t.keys[lo], t.keys[hi]],
-        extrapolate: t.extrapolate,
-    };
+    let sub = |lo: usize, hi: usize| Track { keys: vec![t.keys[lo], t.keys[hi]], extrapolate: t.extrapolate };
     let mut stack = vec![(0usize, n - 1)];
     while let Some((lo, hi)) = stack.pop() {
         if hi - lo < 2 {
@@ -760,27 +662,12 @@ pub fn reduce_track(t: &Track, tol: f32, frames: u32) -> Track {
         if worst.0 <= tol {
             continue;
         }
-        let split = (lo + 1..hi)
-            .min_by(|&a, &b| {
-                (t.keys[a].frame - worst.1)
-                    .abs()
-                    .total_cmp(&(t.keys[b].frame - worst.1).abs())
-            })
-            .unwrap();
+        let split = (lo + 1..hi).min_by(|&a, &b| (t.keys[a].frame - worst.1).abs().total_cmp(&(t.keys[b].frame - worst.1).abs())).unwrap();
         keep[split] = true;
         stack.push((lo, split));
         stack.push((split, hi));
     }
-    let build = |keep: &[bool]| Track {
-        keys: t
-            .keys
-            .iter()
-            .zip(keep)
-            .filter(|(_, &k)| k)
-            .map(|(k, _)| *k)
-            .collect(),
-        extrapolate: t.extrapolate,
-    };
+    let build = |keep: &[bool]| Track { keys: t.keys.iter().zip(keep).filter(|(_, &k)| k).map(|(k, _)| *k).collect(), extrapolate: t.extrapolate };
     let mut red = build(&keep);
     loop {
         // find the worst sample of the whole reduced track
@@ -794,11 +681,7 @@ pub fn reduce_track(t: &Track, tol: f32, frames: u32) -> Track {
         if worst.0 <= tol {
             return red;
         }
-        let Some(add) = (0..n).filter(|&i| !keep[i]).min_by(|&a, &b| {
-            (t.keys[a].frame - worst.1)
-                .abs()
-                .total_cmp(&(t.keys[b].frame - worst.1).abs())
-        }) else {
+        let Some(add) = (0..n).filter(|&i| !keep[i]).min_by(|&a, &b| (t.keys[a].frame - worst.1).abs().total_cmp(&(t.keys[b].frame - worst.1).abs())) else {
             return red;
         };
         keep[add] = true;
@@ -850,9 +733,7 @@ fn mask_targets(ls: &[crate::project::Layer], out: &mut std::collections::HashSe
 /// frames at quarter resolution on up to 12 sample frames - otherwise nothing is removed.
 pub fn drop_dead_layers(p: &Project) -> (Project, Vec<String>) {
     let unchanged = || (p.clone(), Vec::new());
-    let Ok(e0) = Engine::new(p.clone()) else {
-        return unchanged();
-    };
+    let Ok(e0) = Engine::new(p.clone()) else { return unchanged() };
     let frames: Vec<Frame> = (0..p.frames).map(|f| e0.evaluate(f as f32)).collect();
     let n = frames.first().map_or(0, |f| f.nodes.len());
     let mut alive = vec![false; n];
@@ -923,14 +804,8 @@ pub fn drop_dead_layers(p: &Project) -> (Project, Vec<String>) {
     if dropped.is_empty() {
         return unchanged();
     }
-    let Ok(e1) = Engine::new(q.clone()) else {
-        return unchanged();
-    };
-    let opts = RasterOptions {
-        scale: 0.25,
-        show_bones: false,
-        transparent: false,
-    };
+    let Ok(e1) = Engine::new(q.clone()) else { return unchanged() };
+    let opts = RasterOptions { scale: 0.25, show_bones: false, transparent: false };
     let m = p.frames.max(1);
     let k = 12.min(m);
     for j in 0..k {
@@ -987,10 +862,7 @@ pub fn median_cut(frames: &[&[u8]], max: usize) -> Vec<[u8; 3]> {
     let mut items: Vec<(u32, u32)> = hist.into_iter().collect();
     items.sort_unstable();
     if items.len() <= max {
-        return items
-            .iter()
-            .map(|&(c, _)| [(c >> 16) as u8, (c >> 8) as u8, c as u8])
-            .collect();
+        return items.iter().map(|&(c, _)| [(c >> 16) as u8, (c >> 8) as u8, c as u8]).collect();
     }
     let ch = |c: u32, a: usize| ((c >> (16 - 8 * a)) & 255) as f64;
     // boxes are ranges of `items`
@@ -1012,25 +884,11 @@ pub fn median_cut(frames: &[&[u8]], max: usize) -> Vec<[u8; 3]> {
             return 0.0;
         }
         let mean = [m[0] / w, m[1] / w, m[2] / w];
-        items
-            .iter()
-            .map(|&(c, n)| (0..3).map(|a| (ch(c, a) - mean[a]).powi(2)).sum::<f64>() * n as f64)
-            .sum()
+        items.iter().map(|&(c, n)| (0..3).map(|a| (ch(c, a) - mean[a]).powi(2)).sum::<f64>() * n as f64).sum()
     };
-    let mut boxes = vec![B {
-        lo: 0,
-        hi: items.len(),
-        sse: sse_of(&items),
-    }];
+    let mut boxes = vec![B { lo: 0, hi: items.len(), sse: sse_of(&items) }];
     while boxes.len() < max {
-        let Some((bi, _)) = boxes
-            .iter()
-            .enumerate()
-            .filter(|(_, b)| b.hi - b.lo > 1)
-            .max_by(|a, b| a.1.sse.total_cmp(&b.1.sse).then(b.0.cmp(&a.0)))
-        else {
-            break;
-        };
+        let Some((bi, _)) = boxes.iter().enumerate().filter(|(_, b)| b.hi - b.lo > 1).max_by(|a, b| a.1.sse.total_cmp(&b.1.sse).then(b.0.cmp(&a.0))) else { break };
         let (lo, hi) = (boxes[bi].lo, boxes[bi].hi);
         // longest axis
         let mut mn = [255.0f64; 3];
@@ -1041,9 +899,7 @@ pub fn median_cut(frames: &[&[u8]], max: usize) -> Vec<[u8; 3]> {
                 mx[a] = mx[a].max(ch(c, a));
             }
         }
-        let axis = (0..3)
-            .max_by(|&a, &b| (mx[a] - mn[a]).total_cmp(&(mx[b] - mn[b])).then(b.cmp(&a)))
-            .unwrap();
+        let axis = (0..3).max_by(|&a, &b| (mx[a] - mn[a]).total_cmp(&(mx[b] - mn[b])).then(b.cmp(&a))).unwrap();
         items[lo..hi].sort_by(|x, y| ch(x.0, axis).total_cmp(&ch(y.0, axis)).then(x.0.cmp(&y.0)));
         let pop: u64 = items[lo..hi].iter().map(|x| x.1 as u64).sum();
         let mut acc = 0u64;
@@ -1057,16 +913,8 @@ pub fn median_cut(frames: &[&[u8]], max: usize) -> Vec<[u8; 3]> {
         }
         let cut = cut.clamp(lo + 1, hi - 1);
         let (s1, s2) = (sse_of(&items[lo..cut]), sse_of(&items[cut..hi]));
-        boxes[bi] = B {
-            lo,
-            hi: cut,
-            sse: s1,
-        };
-        boxes.push(B {
-            lo: cut,
-            hi,
-            sse: s2,
-        });
+        boxes[bi] = B { lo, hi: cut, sse: s1 };
+        boxes.push(B { lo: cut, hi, sse: s2 });
     }
     boxes.sort_by_key(|b| b.lo);
     boxes
@@ -1080,11 +928,7 @@ pub fn median_cut(frames: &[&[u8]], max: usize) -> Vec<[u8; 3]> {
                     *ma += ch(c, a) * n as f64;
                 }
             }
-            [
-                (m[0] / w).round() as u8,
-                (m[1] / w).round() as u8,
-                (m[2] / w).round() as u8,
-            ]
+            [(m[0] / w).round() as u8, (m[1] / w).round() as u8, (m[2] / w).round() as u8]
         })
         .collect()
 }
@@ -1097,11 +941,7 @@ struct Mapper<'a> {
 
 impl<'a> Mapper<'a> {
     fn new(pal: &'a [[u8; 3]], base: u8) -> Self {
-        Mapper {
-            pal,
-            base,
-            cache: FastMap::default(),
-        }
+        Mapper { pal, base, cache: FastMap::default() }
     }
     fn nearest(&mut self, r: u8, g: u8, b: u8) -> u8 {
         let key = pack(r, g, b);
@@ -1110,9 +950,7 @@ impl<'a> Mapper<'a> {
         }
         let mut best = (u32::MAX, 0usize);
         for (i, c) in self.pal.iter().enumerate() {
-            let d = (c[0] as i32 - r as i32).pow(2) as u32 * 3
-                + (c[1] as i32 - g as i32).pow(2) as u32 * 4
-                + (c[2] as i32 - b as i32).pow(2) as u32 * 2;
+            let d = (c[0] as i32 - r as i32).pow(2) as u32 * 3 + (c[1] as i32 - g as i32).pow(2) as u32 * 4 + (c[2] as i32 - b as i32).pow(2) as u32 * 2;
             if d < best.0 {
                 best = (d, i);
             }
@@ -1136,14 +974,7 @@ pub struct Indexed {
 
 /// Quantise `frames` (straight RGBA, all `w x h`) to at most `colors` palette entries in total.
 /// Pixels with alpha < 128 map to the reserved index 0 (so `reserve` must be true if any exist).
-pub fn quantize<F: AsRef<[u8]>>(
-    frames: &[F],
-    w: usize,
-    h: usize,
-    colors: usize,
-    dither: bool,
-    reserve: bool,
-) -> Indexed {
+pub fn quantize<F: AsRef<[u8]>>(frames: &[F], w: usize, h: usize, colors: usize, dither: bool, reserve: bool) -> Indexed {
     let colors = colors.clamp(2, 256);
     let ncol = colors - reserve as usize;
     let refs: Vec<&[u8]> = frames.iter().map(|f| f.as_ref()).collect();
@@ -1195,22 +1026,12 @@ pub fn quantize<F: AsRef<[u8]>>(
         } else {
             for (p, slot) in idx.iter_mut().enumerate().take(w * h) {
                 let o = p * 4;
-                *slot = if fr[o + 3] < 128 {
-                    0
-                } else {
-                    mapper.nearest(fr[o], fr[o + 1], fr[o + 2])
-                };
+                *slot = if fr[o + 3] < 128 { 0 } else { mapper.nearest(fr[o], fr[o + 1], fr[o + 2]) };
             }
         }
         out.push(idx);
     }
-    Indexed {
-        w,
-        h,
-        palette: full,
-        transparent: reserve,
-        frames: out,
-    }
+    Indexed { w, h, palette: full, transparent: reserve, frames: out }
 }
 
 /// One output frame: a rectangle of indices.
@@ -1232,13 +1053,7 @@ pub fn delta_rects(q: &Indexed, tol: u8) -> Vec<Rect> {
     let mut shown: Vec<u8> = Vec::new();
     for (k, fr) in q.frames.iter().enumerate() {
         if k == 0 {
-            out.push(Rect {
-                left: 0,
-                top: 0,
-                w,
-                h,
-                idx: fr.clone(),
-            });
+            out.push(Rect { left: 0, top: 0, w, h, idx: fr.clone() });
             shown = fr.clone();
             continue;
         }
@@ -1264,13 +1079,7 @@ pub fn delta_rects(q: &Indexed, tol: u8) -> Vec<Rect> {
             }
         }
         if x1 <= x0 {
-            out.push(Rect {
-                left: 0,
-                top: 0,
-                w: 1,
-                h: 1,
-                idx: vec![0],
-            });
+            out.push(Rect { left: 0, top: 0, w: 1, h: 1, idx: vec![0] });
             continue;
         }
         let (rw, rh) = (x1 - x0, y1 - y0);
@@ -1284,13 +1093,7 @@ pub fn delta_rects(q: &Indexed, tol: u8) -> Vec<Rect> {
                 }
             }
         }
-        out.push(Rect {
-            left: x0,
-            top: y0,
-            w: rw,
-            h: rh,
-            idx,
-        });
+        out.push(Rect { left: x0, top: y0, w: rw, h: rh, idx });
     }
     out
 }
@@ -1301,13 +1104,7 @@ fn delay_cs(fps: f32, step: u32) -> u16 {
 
 /// Looping GIF with a global palette, optional deltas. `alpha` = frames contain transparent pixels
 /// (then no deltas are used and every frame is redrawn on a cleared canvas).
-pub fn gif_encode(
-    q: &Indexed,
-    fps: f32,
-    step: u32,
-    delta: bool,
-    delta_tol: u8,
-) -> Result<Vec<u8>, String> {
+pub fn gif_encode(q: &Indexed, fps: f32, step: u32, delta: bool, delta_tol: u8) -> Result<Vec<u8>, String> {
     if q.w > u16::MAX as usize || q.h > u16::MAX as usize {
         return Err("image too large for GIF".into());
     }
@@ -1319,24 +1116,13 @@ pub fn gif_encode(
     }
     let mut out = Vec::new();
     {
-        let mut e =
-            gif::Encoder::new(&mut out, q.w as u16, q.h as u16, &pal).map_err(|e| e.to_string())?;
-        e.set_repeat(gif::Repeat::Infinite)
-            .map_err(|e| e.to_string())?;
+        let mut e = gif::Encoder::new(&mut out, q.w as u16, q.h as u16, &pal).map_err(|e| e.to_string())?;
+        e.set_repeat(gif::Repeat::Infinite).map_err(|e| e.to_string())?;
         let delay = delay_cs(fps, step);
         let rects: Vec<Rect> = if delta && q.transparent && q.frames.len() > 1 {
             delta_rects(q, delta_tol)
         } else {
-            q.frames
-                .iter()
-                .map(|f| Rect {
-                    left: 0,
-                    top: 0,
-                    w: q.w,
-                    h: q.h,
-                    idx: f.clone(),
-                })
-                .collect()
+            q.frames.iter().map(|f| Rect { left: 0, top: 0, w: q.w, h: q.h, idx: f.clone() }).collect()
         };
         for (k, r) in rects.into_iter().enumerate() {
             let mut fr = gif::Frame {
@@ -1351,11 +1137,7 @@ pub fn gif_encode(
             if q.transparent {
                 fr.transparent = Some(0);
                 // with deltas the canvas is kept; with real transparency each frame clears the previous one
-                fr.dispose = if delta && q.frames.len() > 1 {
-                    gif::DisposalMethod::Keep
-                } else {
-                    gif::DisposalMethod::Background
-                };
+                fr.dispose = if delta && q.frames.len() > 1 { gif::DisposalMethod::Keep } else { gif::DisposalMethod::Background };
             }
             let _ = k;
             e.write_frame(&fr).map_err(|e| e.to_string())?;
@@ -1381,12 +1163,7 @@ pub fn gif_decode(bytes: &[u8]) -> Result<(usize, usize, Vec<Vec<u8>>), String> 
                 }
             }
         }
-        let (l, t, rw, rh) = (
-            fr.left as usize,
-            fr.top as usize,
-            fr.width as usize,
-            fr.height as usize,
-        );
+        let (l, t, rw, rh) = (fr.left as usize, fr.top as usize, fr.width as usize, fr.height as usize);
         for y in 0..rh {
             for x in 0..rw {
                 let (cx, cy) = (l + x, t + y);
@@ -1437,13 +1214,7 @@ fn pack_rows(idx: &[u8], w: usize, h: usize, bits: usize) -> Vec<u8> {
 }
 
 /// Looping APNG from an indexed sequence (palette + tRNS entry 0, bit depth by palette size, optional deltas).
-pub fn apng_encode_indexed(
-    q: &Indexed,
-    fps: f32,
-    step: u32,
-    delta: bool,
-    delta_tol: u8,
-) -> Result<Vec<u8>, String> {
+pub fn apng_encode_indexed(q: &Indexed, fps: f32, step: u32, delta: bool, delta_tol: u8) -> Result<Vec<u8>, String> {
     let n = q.frames.len() as u32;
     if n == 0 {
         return Err("no frames".into());
@@ -1456,56 +1227,29 @@ pub fn apng_encode_indexed(
         enc.set_depth(depth);
         enc.set_compression(png::Compression::High);
         enc.set_filter(png::Filter::Adaptive);
-        enc.set_palette(
-            q.palette
-                .iter()
-                .flat_map(|c| c.iter().copied())
-                .collect::<Vec<u8>>(),
-        );
+        enc.set_palette(q.palette.iter().flat_map(|c| c.iter().copied()).collect::<Vec<u8>>());
         if q.transparent {
             enc.set_trns(vec![0u8]);
         }
         enc.set_animated(n, 0).map_err(|e| e.to_string())?;
         // not `clamp`: a NaN `fps` must land on the lower bound as `max` does, `clamp` would pass NaN through
         #[allow(clippy::manual_clamp)]
-        enc.set_frame_delay(
-            (100 * step).min(65535) as u16,
-            (fps * 100.0).round().max(1.0).min(65535.0) as u16,
-        )
-        .map_err(|e| e.to_string())?;
+        enc.set_frame_delay((100 * step).min(65535) as u16, (fps * 100.0).round().max(1.0).min(65535.0) as u16).map_err(|e| e.to_string())?;
         let mut wr = enc.write_header().map_err(|e| e.to_string())?;
         let rects: Vec<Rect> = if delta && q.transparent && q.frames.len() > 1 {
             delta_rects(q, delta_tol)
         } else {
-            q.frames
-                .iter()
-                .map(|f| Rect {
-                    left: 0,
-                    top: 0,
-                    w: q.w,
-                    h: q.h,
-                    idx: f.clone(),
-                })
-                .collect()
+            q.frames.iter().map(|f| Rect { left: 0, top: 0, w: q.w, h: q.h, idx: f.clone() }).collect()
         };
         for (k, r) in rects.iter().enumerate() {
             if k > 0 {
-                wr.set_frame_dimension(r.w as u32, r.h as u32)
-                    .map_err(|e| e.to_string())?;
-                wr.set_frame_position(r.left as u32, r.top as u32)
-                    .map_err(|e| e.to_string())?;
+                wr.set_frame_dimension(r.w as u32, r.h as u32).map_err(|e| e.to_string())?;
+                wr.set_frame_position(r.left as u32, r.top as u32).map_err(|e| e.to_string())?;
                 let over = delta && q.transparent;
-                wr.set_blend_op(if over {
-                    png::BlendOp::Over
-                } else {
-                    png::BlendOp::Source
-                })
-                .map_err(|e| e.to_string())?;
-                wr.set_dispose_op(png::DisposeOp::None)
-                    .map_err(|e| e.to_string())?;
+                wr.set_blend_op(if over { png::BlendOp::Over } else { png::BlendOp::Source }).map_err(|e| e.to_string())?;
+                wr.set_dispose_op(png::DisposeOp::None).map_err(|e| e.to_string())?;
             }
-            wr.write_image_data(&pack_rows(&r.idx, r.w, r.h, bits))
-                .map_err(|e| e.to_string())?;
+            wr.write_image_data(&pack_rows(&r.idx, r.w, r.h, bits)).map_err(|e| e.to_string())?;
         }
         wr.finish().map_err(|e| e.to_string())?;
     }
@@ -1513,13 +1257,7 @@ pub fn apng_encode_indexed(
 }
 
 /// Truecolour looping APNG at maximum deflate effort with adaptive filtering.
-pub fn apng_encode_rgba<F: AsRef<[u8]>>(
-    w: usize,
-    h: usize,
-    frames: &[F],
-    fps: f32,
-    step: u32,
-) -> Result<Vec<u8>, String> {
+pub fn apng_encode_rgba<F: AsRef<[u8]>>(w: usize, h: usize, frames: &[F], fps: f32, step: u32) -> Result<Vec<u8>, String> {
     if frames.is_empty() {
         return Err("no frames".into());
     }
@@ -1530,15 +1268,10 @@ pub fn apng_encode_rgba<F: AsRef<[u8]>>(
         enc.set_depth(png::BitDepth::Eight);
         enc.set_compression(png::Compression::High);
         enc.set_filter(png::Filter::Adaptive);
-        enc.set_animated(frames.len() as u32, 0)
-            .map_err(|e| e.to_string())?;
+        enc.set_animated(frames.len() as u32, 0).map_err(|e| e.to_string())?;
         // not `clamp`: a NaN `fps` must land on the lower bound as `max` does, `clamp` would pass NaN through
         #[allow(clippy::manual_clamp)]
-        enc.set_frame_delay(
-            (100 * step).min(65535) as u16,
-            (fps * 100.0).round().max(1.0).min(65535.0) as u16,
-        )
-        .map_err(|e| e.to_string())?;
+        enc.set_frame_delay((100 * step).min(65535) as u16, (fps * 100.0).round().max(1.0).min(65535.0) as u16).map_err(|e| e.to_string())?;
         let mut wr = enc.write_header().map_err(|e| e.to_string())?;
         for f in frames {
             wr.write_image_data(f.as_ref()).map_err(|e| e.to_string())?;
@@ -1556,10 +1289,7 @@ pub fn apng_decode(bytes: &[u8]) -> Result<(usize, usize, Vec<Vec<u8>>), String>
     dec.set_transformations(png::Transformations::EXPAND);
     let mut r = dec.read_info().map_err(|e| e.to_string())?;
     let (w, h) = (r.info().width as usize, r.info().height as usize);
-    let n = r
-        .info()
-        .animation_control
-        .map_or(1, |a| a.num_frames as usize);
+    let n = r.info().animation_control.map_or(1, |a| a.num_frames as usize);
     let mut canvas = vec![0u8; w * h * 4];
     let mut frames = Vec::new();
     for _ in 0..n {
@@ -1567,30 +1297,14 @@ pub fn apng_decode(bytes: &[u8]) -> Result<(usize, usize, Vec<Vec<u8>>), String>
         let oi = r.next_frame(&mut buf).map_err(|e| e.to_string())?;
         let fc = r.info().frame_control;
         let (fx, fy, fw, fh, blend, dispose) = match fc {
-            Some(c) => (
-                c.x_offset as usize,
-                c.y_offset as usize,
-                c.width as usize,
-                c.height as usize,
-                c.blend_op,
-                c.dispose_op,
-            ),
+            Some(c) => (c.x_offset as usize, c.y_offset as usize, c.width as usize, c.height as usize, c.blend_op, c.dispose_op),
             None => (0, 0, w, h, png::BlendOp::Source, png::DisposeOp::None),
         };
         let px: Vec<u8> = match oi.color_type {
             png::ColorType::Rgba => buf[..fw * fh * 4].to_vec(),
-            png::ColorType::Rgb => buf[..fw * fh * 3]
-                .chunks_exact(3)
-                .flat_map(|c| [c[0], c[1], c[2], 255])
-                .collect(),
-            png::ColorType::GrayscaleAlpha => buf[..fw * fh * 2]
-                .chunks_exact(2)
-                .flat_map(|c| [c[0], c[0], c[0], c[1]])
-                .collect(),
-            png::ColorType::Grayscale => buf[..fw * fh]
-                .iter()
-                .flat_map(|&c| [c, c, c, 255])
-                .collect(),
+            png::ColorType::Rgb => buf[..fw * fh * 3].chunks_exact(3).flat_map(|c| [c[0], c[1], c[2], 255]).collect(),
+            png::ColorType::GrayscaleAlpha => buf[..fw * fh * 2].chunks_exact(2).flat_map(|c| [c[0], c[0], c[0], c[1]]).collect(),
+            png::ColorType::Grayscale => buf[..fw * fh].iter().flat_map(|&c| [c, c, c, 255]).collect(),
             png::ColorType::Indexed => return Err("indexed output after expand".into()),
         };
         let before = canvas.clone();
@@ -1612,10 +1326,7 @@ pub fn apng_decode(bytes: &[u8]) -> Result<(usize, usize, Vec<Vec<u8>>), String>
                             let da = canvas[o + 3] as u32;
                             let oa = a + da * (255 - a) / 255;
                             for c in 0..3 {
-                                canvas[o + c] = ((px[s + c] as u32 * a
-                                    + canvas[o + c] as u32 * da * (255 - a) / 255)
-                                    / oa.max(1))
-                                    as u8;
+                                canvas[o + c] = ((px[s + c] as u32 * a + canvas[o + c] as u32 * da * (255 - a) / 255) / oa.max(1)) as u8;
                             }
                             canvas[o + 3] = oa as u8;
                         }
@@ -1643,65 +1354,19 @@ pub fn apng_decode(bytes: &[u8]) -> Result<(usize, usize, Vec<Vec<u8>>), String>
 // WebM through ffmpeg (VP9 with alpha, constant quality)
 // ------------------------------------------------------------------------------------------
 
+
 pub fn ffmpeg_available() -> bool {
-    std::process::Command::new("ffmpeg")
-        .arg("-version")
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
-        .status()
-        .is_ok_and(|s| s.success())
+    std::process::Command::new("ffmpeg").arg("-version").stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null()).status().is_ok_and(|s| s.success())
 }
 
 /// VP9 (libvpx) WebM of straight-RGBA frames at `fps`, odd sizes padded to even.
-pub fn webm_encode<F: AsRef<[u8]>>(
-    w: usize,
-    h: usize,
-    frames: &[F],
-    fps: f32,
-    crf: u8,
-) -> Result<Vec<u8>, String> {
+pub fn webm_encode<F: AsRef<[u8]>>(w: usize, h: usize, frames: &[F], fps: f32, crf: u8) -> Result<Vec<u8>, String> {
     let dir = crate::fsutil::private_temp_dir("osatura-fit")?;
     let out = dir.join("out.webm");
     let mut child = std::process::Command::new("ffmpeg")
-        .args([
-            "-y",
-            "-loglevel",
-            "error",
-            "-protocol_whitelist",
-            "file,pipe,fd",
-            "-f",
-            "rawvideo",
-            "-pix_fmt",
-            "rgba",
-            "-s",
-            &format!("{w}x{h}"),
-            "-framerate",
-            &format!("{fps}"),
-            "-i",
-            "-",
-        ])
-        .args([
-            "-vf",
-            "pad=ceil(iw/2)*2:ceil(ih/2)*2:color=0x00000000",
-            "-c:v",
-            "libvpx-vp9",
-            "-pix_fmt",
-            "yuva420p",
-            "-b:v",
-            "0",
-            "-crf",
-            &crf.to_string(),
-        ])
-        .args([
-            "-auto-alt-ref",
-            "0",
-            "-deadline",
-            "good",
-            "-cpu-used",
-            "2",
-            "-threads",
-            "1",
-        ])
+        .args(["-y", "-loglevel", "error", "-protocol_whitelist", "file,pipe,fd", "-f", "rawvideo", "-pix_fmt", "rgba", "-s", &format!("{w}x{h}"), "-framerate", &format!("{fps}"), "-i", "-"])
+        .args(["-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2:color=0x00000000", "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-b:v", "0", "-crf", &crf.to_string()])
+        .args(["-auto-alt-ref", "0", "-deadline", "good", "-cpu-used", "2", "-threads", "1"])
         .arg(&out)
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::null())
@@ -1717,14 +1382,7 @@ pub fn webm_encode<F: AsRef<[u8]>>(
         }
     }
     let o = child.wait_with_output().map_err(|e| e.to_string())?;
-    if o.status.success() {
-        std::fs::read(&out).map_err(|e| e.to_string())
-    } else {
-        Err(format!(
-            "ffmpeg failed: {}",
-            String::from_utf8_lossy(&o.stderr).trim()
-        ))
-    }
+    if o.status.success() { std::fs::read(&out).map_err(|e| e.to_string()) } else { Err(format!("ffmpeg failed: {}", String::from_utf8_lossy(&o.stderr).trim())) }
 }
 
 /// Decode a WebM to RGBA frames of `w x h` (cropping any padding).
@@ -1734,33 +1392,14 @@ pub fn webm_decode(bytes: &[u8], w: usize, h: usize) -> Result<Vec<Vec<u8>>, Str
     std::fs::write(&inp, bytes).map_err(|e| e.to_string())?;
     let (pw, ph) = (w + w % 2, h + h % 2);
     let o = std::process::Command::new("ffmpeg")
-        .args([
-            "-loglevel",
-            "error",
-            "-protocol_whitelist",
-            "file",
-            "-c:v",
-            "libvpx-vp9",
-            "-i",
-        ])
+        .args(["-loglevel", "error", "-protocol_whitelist", "file", "-c:v", "libvpx-vp9", "-i"])
         .arg(&inp)
-        .args([
-            "-f",
-            "rawvideo",
-            "-pix_fmt",
-            "rgba",
-            "-fps_mode",
-            "passthrough",
-            "-",
-        ])
+        .args(["-f", "rawvideo", "-pix_fmt", "rgba", "-fps_mode", "passthrough", "-"])
         .output()
         .map_err(|e| format!("cannot run ffmpeg ({e})"));
     let o = o?;
     if !o.status.success() {
-        return Err(format!(
-            "ffmpeg decode failed: {}",
-            String::from_utf8_lossy(&o.stderr).trim()
-        ));
+        return Err(format!("ffmpeg decode failed: {}", String::from_utf8_lossy(&o.stderr).trim()));
     }
     let fsz = pw * ph * 4;
     if fsz == 0 || o.stdout.len() % fsz != 0 {
@@ -1804,10 +1443,7 @@ fn samp_of_shape(closed: bool, nodes: &[PNode], d: u8) -> Samp {
     for n in nodes {
         v.extend(n.o.iter().map(|&x| round_dec(x, d)));
     }
-    Samp {
-        sig: (closed, nodes.len()),
-        v,
-    }
+    Samp { sig: (closed, nodes.len()), v }
 }
 
 fn shape_of_samp(s: &Samp) -> Value {
@@ -1821,28 +1457,14 @@ fn shape_of_samp(s: &Samp) -> Value {
 
 fn parse_shape(v: &Value) -> Option<(bool, Vec<PNode>)> {
     let arr = |k: &str| -> Option<Vec<[f64; 2]>> {
-        v.get(k)?
-            .as_array()?
-            .iter()
-            .map(|p| {
-                let a = p.as_array()?;
-                Some([a.first()?.as_f64()?, a.get(1)?.as_f64()?])
-            })
-            .collect()
+        v.get(k)?.as_array()?.iter().map(|p| { let a = p.as_array()?; Some([a.first()?.as_f64()?, a.get(1)?.as_f64()?]) }).collect()
     };
     let (vv, ii, oo) = (arr("v")?, arr("i")?, arr("o")?);
     if vv.len() != ii.len() || vv.len() != oo.len() {
         return None;
     }
     let closed = v.get("c").and_then(Value::as_bool).unwrap_or(false);
-    Some((
-        closed,
-        vv.iter()
-            .zip(&ii)
-            .zip(&oo)
-            .map(|((&p, &i), &o)| PNode { p, i, o })
-            .collect(),
-    ))
+    Some((closed, vv.iter().zip(&ii).zip(&oo).map(|((&p, &i), &o)| PNode { p, i, o }).collect()))
 }
 
 /// Choose the keyframes of a series. `step` keeps every `step`-th frame; with `linear` the kept frames are
@@ -1882,9 +1504,7 @@ fn select_keys(s: &[Samp], step: usize, tol: f64, linear: bool) -> Vec<(usize, b
             let mut worst = (0.0f64, 0usize);
             for j in a + 1..b {
                 let t = (k[j] as f64 - fa) / (fb - fa);
-                let e = (0..s[k[j]].v.len())
-                    .map(|c| (s[k[j]].v[c] - lerp(s[k[a]].v[c], s[k[b]].v[c], t)).abs())
-                    .fold(0.0, f64::max);
+                let e = (0..s[k[j]].v.len()).map(|c| (s[k[j]].v[c] - lerp(s[k[a]].v[c], s[k[b]].v[c], t)).abs()).fold(0.0, f64::max);
                 if e > worst.0 {
                     worst = (e, j);
                 }
@@ -1910,20 +1530,13 @@ fn select_keys(s: &[Samp], step: usize, tol: f64, linear: bool) -> Vec<(usize, b
     }
     (0..out.len())
         .map(|q| {
-            let hold = out
-                .get(q + 1)
-                .is_none_or(|&nx| s[k[nx]].sig != s[k[out[q]]].sig);
+            let hold = out.get(q + 1).is_none_or(|&nx| s[k[nx]].sig != s[k[out[q]]].sig);
             (k[out[q]], hold)
         })
         .collect()
 }
 
-fn emit_keys(
-    s: &[Samp],
-    keys: &[(usize, bool)],
-    linear: bool,
-    mk: &dyn Fn(&Samp) -> Value,
-) -> Value {
+fn emit_keys(s: &[Samp], keys: &[(usize, bool)], linear: bool, mk: &dyn Fn(&Samp) -> Value) -> Value {
     if keys.len() <= 1 {
         let f = keys.first().map_or(0, |k| k.0);
         return json!({"a": 0, "k": mk(&s[f])});
@@ -1951,13 +1564,7 @@ fn emit_keys(
 
 /// Hold keyframes (exact at the kept frames) or, when `linear`, linear keyframes within `tol`, whichever
 /// serialises smaller: linear keys carry easing handles, so they only pay off when they remove enough keys.
-fn pick_encoding(
-    s: &[Samp],
-    step: usize,
-    tol: f64,
-    linear: bool,
-    mk: &dyn Fn(&Samp) -> Value,
-) -> Value {
+fn pick_encoding(s: &[Samp], step: usize, tol: f64, linear: bool, mk: &dyn Fn(&Samp) -> Value) -> Value {
     let hold = emit_keys(s, &select_keys(s, step, 0.0, false), false, mk);
     if !linear {
         return hold;
@@ -1977,27 +1584,12 @@ fn pick_encoding(
 /// Hold-keyframe list of an animated track expanded to one value per frame (`n` frames).
 fn expand_hold(k: &Value, n: usize) -> Option<Vec<Value>> {
     let arr = k.as_array()?;
-    let mut keys: Vec<(usize, &Value)> = arr
-        .iter()
-        .filter_map(|e| {
-            Some((
-                e.get("t")?.as_f64()? as usize,
-                e.get("s")?.as_array()?.first()?,
-            ))
-        })
-        .collect();
+    let mut keys: Vec<(usize, &Value)> = arr.iter().filter_map(|e| Some((e.get("t")?.as_f64()? as usize, e.get("s")?.as_array()?.first()?))).collect();
     keys.sort_by_key(|k| k.0);
     if keys.is_empty() {
         return None;
     }
-    Some(
-        (0..n)
-            .map(|f| {
-                let i = keys.partition_point(|k| k.0 <= f);
-                keys[i.saturating_sub(1)].1.clone()
-            })
-            .collect(),
-    )
+    Some((0..n).map(|f| { let i = keys.partition_point(|k| k.0 <= f); keys[i.saturating_sub(1)].1.clone() }).collect())
 }
 
 fn round_doc(v: &mut Value, d: u8, cd: u8, colour: bool) {
@@ -2012,10 +1604,7 @@ fn round_doc(v: &mut Value, d: u8, cd: u8, colour: bool) {
         Value::Array(a) => a.iter_mut().for_each(|e| round_doc(e, d, cd, colour)),
         Value::Object(m) => {
             for (k, e) in m.iter_mut() {
-                if matches!(
-                    k.as_str(),
-                    "fr" | "w" | "h" | "sw" | "sh" | "ip" | "op" | "t" | "s_"
-                ) {
+                if matches!(k.as_str(), "fr" | "w" | "h" | "sw" | "sh" | "ip" | "op" | "t" | "s_") {
                     continue;
                 }
                 round_doc(e, d, cd, colour || k == "c" || k == "g");
@@ -2031,42 +1620,26 @@ fn round_doc(v: &mut Value, d: u8, cd: u8, colour: bool) {
 /// [`select_keys`]) and `frame_step`. Repeated frames are always merged and constant tracks become static.
 pub fn lottie_reduce(base: &Value, s: &Settings) -> Value {
     let mut doc = base.clone();
-    let n = doc
-        .get("op")
-        .and_then(Value::as_f64)
-        .unwrap_or(1.0)
-        .max(1.0) as usize;
+    let n = doc.get("op").and_then(Value::as_f64).unwrap_or(1.0).max(1.0) as usize;
     let d = s.decimals;
     let linear = s.key_tol > 0.0;
     let tol = s.key_tol as f64;
     let step = s.frame_step.max(1) as usize;
-    let Some(layers) = doc.get_mut("layers").and_then(Value::as_array_mut) else {
-        return doc;
-    };
+    let Some(layers) = doc.get_mut("layers").and_then(Value::as_array_mut) else { return doc };
     for layer in layers.iter_mut() {
         // layer opacity
         if let Some(o) = layer.get_mut("ks").and_then(|k| k.get_mut("o")) {
             if o.get("a").and_then(Value::as_i64) == Some(1) {
                 if let Some(vals) = o.get("k").and_then(|k| expand_hold(k, n)) {
-                    let samp: Vec<Samp> = vals
-                        .iter()
-                        .map(|v| Samp {
-                            sig: (false, 1),
-                            v: vec![round_dec(v.as_f64().unwrap_or(0.0), d)],
-                        })
-                        .collect();
+                    let samp: Vec<Samp> = vals.iter().map(|v| Samp { sig: (false, 1), v: vec![round_dec(v.as_f64().unwrap_or(0.0), d)] }).collect();
                     *o = pick_encoding(&samp, step, tol, linear, &|sm| num(sm.v[0]));
                 }
             }
         }
         // shape tracks
-        let Some(groups) = layer.get_mut("shapes").and_then(Value::as_array_mut) else {
-            continue;
-        };
+        let Some(groups) = layer.get_mut("shapes").and_then(Value::as_array_mut) else { continue };
         for g in groups.iter_mut() {
-            let Some(items) = g.get_mut("it").and_then(Value::as_array_mut) else {
-                continue;
-            };
+            let Some(items) = g.get_mut("it").and_then(Value::as_array_mut) else { continue };
             for it in items.iter_mut() {
                 if it.get("ty").and_then(Value::as_str) != Some("sh") {
                     continue;
@@ -2075,31 +1648,23 @@ pub fn lottie_reduce(base: &Value, s: &Settings) -> Value {
                 if ks.get("a").and_then(Value::as_i64) != Some(1) {
                     continue;
                 }
-                let Some(vals) = ks.get("k").and_then(|k| expand_hold(k, n)) else {
-                    continue;
-                };
-                let parsed: Vec<Option<(bool, Vec<PNode>)>> =
-                    vals.iter().map(parse_shape).collect();
+                let Some(vals) = ks.get("k").and_then(|k| expand_hold(k, n)) else { continue };
+                let parsed: Vec<Option<(bool, Vec<PNode>)>> = vals.iter().map(parse_shape).collect();
                 if parsed.iter().any(|p| p.is_none()) {
                     continue;
                 }
-                let mut shapes: Vec<(bool, Vec<PNode>)> =
-                    parsed.into_iter().map(|p| p.unwrap()).collect();
+                let mut shapes: Vec<(bool, Vec<PNode>)> = parsed.into_iter().map(|p| p.unwrap()).collect();
                 // spatial simplification when the topology is the same in every frame
                 if s.path_eps > 0.0 {
                     let (c0, n0) = (shapes[0].0, shapes[0].1.len());
                     if n0 >= 3 && shapes.iter().all(|(c, v)| *c == c0 && v.len() == n0) {
-                        let mut fr: Vec<Vec<PNode>> =
-                            shapes.iter().map(|(_, v)| v.clone()).collect();
+                        let mut fr: Vec<Vec<PNode>> = shapes.iter().map(|(_, v)| v.clone()).collect();
                         if simplify_paths(&mut fr, c0, s.path_eps as f64) > 0 {
                             shapes = fr.into_iter().map(|v| (c0, v)).collect();
                         }
                     }
                 }
-                let samp: Vec<Samp> = shapes
-                    .iter()
-                    .map(|(c, v)| samp_of_shape(*c, v, d))
-                    .collect();
+                let samp: Vec<Samp> = shapes.iter().map(|(c, v)| samp_of_shape(*c, v, d)).collect();
                 *ks = pick_encoding(&samp, step, tol, linear, &shape_of_samp);
             }
         }
@@ -2115,10 +1680,7 @@ fn read_shape_at(ks: &Value, f: usize) -> Option<(bool, Vec<PNode>)> {
         return parse_shape(ks.get("k")?);
     }
     let arr = ks.get("k")?.as_array()?;
-    let mut keys: Vec<(usize, &Value)> = arr
-        .iter()
-        .filter_map(|e| Some((e.get("t")?.as_f64()? as usize, e)))
-        .collect();
+    let mut keys: Vec<(usize, &Value)> = arr.iter().filter_map(|e| Some((e.get("t")?.as_f64()? as usize, e))).collect();
     keys.sort_by_key(|k| k.0);
     let i = keys.partition_point(|k| k.0 <= f).saturating_sub(1);
     let (t0, e0) = keys[i];
@@ -2134,35 +1696,17 @@ fn read_shape_at(ks: &Value, f: usize) -> Option<(bool, Vec<PNode>)> {
     }
     let u = (f - t0) as f64 / (t1 - t0) as f64;
     let mix = |p: [f64; 2], q: [f64; 2]| [lerp(p[0], q[0], u), lerp(p[1], q[1], u)];
-    Some((
-        a.0,
-        a.1.iter()
-            .zip(&b.1)
-            .map(|(x, y)| PNode {
-                p: mix(x.p, y.p),
-                i: mix(x.i, y.i),
-                o: mix(x.o, y.o),
-            })
-            .collect(),
-    ))
+    Some((a.0, a.1.iter().zip(&b.1).map(|(x, y)| PNode { p: mix(x.p, y.p), i: mix(x.i, y.i), o: mix(x.o, y.o) }).collect()))
 }
 
 fn read_scalar_at(o: &Value, f: usize) -> f64 {
     if o.get("a").and_then(Value::as_i64) != Some(1) {
         return o.get("k").and_then(Value::as_f64).unwrap_or(100.0);
     }
-    let Some(arr) = o.get("k").and_then(Value::as_array) else {
-        return 100.0;
-    };
+    let Some(arr) = o.get("k").and_then(Value::as_array) else { return 100.0 };
     let mut keys: Vec<(usize, f64, bool)> = arr
         .iter()
-        .filter_map(|e| {
-            Some((
-                e.get("t")?.as_f64()? as usize,
-                e.get("s")?.as_array()?.first()?.as_f64()?,
-                e.get("h").and_then(Value::as_i64) == Some(1),
-            ))
-        })
+        .filter_map(|e| Some((e.get("t")?.as_f64()? as usize, e.get("s")?.as_array()?.first()?.as_f64()?, e.get("h").and_then(Value::as_i64) == Some(1))))
         .collect();
     keys.sort_by_key(|a| a.0);
     if keys.is_empty() {
@@ -2178,25 +1722,14 @@ fn read_scalar_at(o: &Value, f: usize) -> f64 {
 }
 
 pub fn clone_frame(f: &Frame) -> Frame {
-    Frame {
-        world: f.world.clone(),
-        camera: f.camera,
-        nodes: f.nodes.clone(),
-        roots: f.roots.clone(),
-        nonfinite: f.nonfinite.clone(),
-    }
+    Frame { world: f.world.clone(), camera: f.camera, nodes: f.nodes.clone(), roots: f.roots.clone(), nonfinite: f.nonfinite.clone() }
 }
 
 /// The picture a Lottie player would show at frame `f`, built from the evaluated engine frame `eval`
 /// (structure, fills, strokes, masks) with the geometry and the layer opacity replaced by what is *read
 /// from the produced document*. Baked vertices are in screen space, so layer transforms become identity;
 /// group opacity is flattened into the leaves, as the exporter does.
-pub fn lottie_model_frame(
-    eval: &Frame,
-    doc: &Value,
-    map: &[crate::export::LottieLayerMap],
-    f: usize,
-) -> Frame {
+pub fn lottie_model_frame(eval: &Frame, doc: &Value, map: &[crate::export::LottieLayerMap], f: usize) -> Frame {
     let mut fr = clone_frame(eval);
     // groups whose opacity lives in a precomp (a vector leaf below them has no top-level layer) keep it
     let mapped: std::collections::HashSet<usize> = map.iter().map(|m| m.node).collect();
@@ -2230,38 +1763,18 @@ pub fn lottie_model_frame(
     }
     let layers = doc.get("layers").and_then(Value::as_array);
     for m in map.iter().filter(|m| !m.matte_copy) {
-        let Some(layer) = layers.and_then(|l| l.get(m.index)) else {
-            continue;
-        };
+        let Some(layer) = layers.and_then(|l| l.get(m.index)) else { continue };
         let nd = &mut fr.nodes[m.node];
         nd.world = Affine2::IDENTITY;
         nd.visible = true;
         if let Some(o) = layer.get("ks").and_then(|k| k.get("o")) {
             nd.opacity = (read_scalar_at(o, f) / 100.0).clamp(0.0, 1.0) as f32;
         }
-        for g in layer
-            .get("shapes")
-            .and_then(Value::as_array)
-            .into_iter()
-            .flatten()
-        {
-            let pi: Option<usize> = g
-                .get("nm")
-                .and_then(Value::as_str)
-                .and_then(|s| s.strip_prefix('g'))
-                .and_then(|s| s.parse().ok());
-            let (Some(pi), Some(items)) = (pi, g.get("it").and_then(Value::as_array)) else {
-                continue;
-            };
-            let Some(sh) = items
-                .iter()
-                .find(|i| i.get("ty").and_then(Value::as_str) == Some("sh"))
-            else {
-                continue;
-            };
-            let Some(path) = nd.paths.get_mut(pi) else {
-                continue;
-            };
+        for g in layer.get("shapes").and_then(Value::as_array).into_iter().flatten() {
+            let pi: Option<usize> = g.get("nm").and_then(Value::as_str).and_then(|s| s.strip_prefix('g')).and_then(|s| s.parse().ok());
+            let (Some(pi), Some(items)) = (pi, g.get("it").and_then(Value::as_array)) else { continue };
+            let Some(sh) = items.iter().find(|i| i.get("ty").and_then(Value::as_str) == Some("sh")) else { continue };
+            let Some(path) = nd.paths.get_mut(pi) else { continue };
             match sh.get("ks").and_then(|k| read_shape_at(k, f)) {
                 Some((closed, nodes)) if nodes.len() >= 2 => {
                     path.anchors = anchors_of(&nodes);
@@ -2285,11 +1798,8 @@ fn round_nums(val: &str, d: u8, path_mode: bool) -> String {
     while i < b.len() {
         let c = b[i];
         let starts = c.is_ascii_digit()
-            || ((c == b'-' || c == b'+' || c == b'.')
-                && b.get(i + 1)
-                    .is_some_and(|n| n.is_ascii_digit() || (*n == b'.' && c != b'.')));
-        let prev_ok =
-            i == 0 || path_mode || !(b[i - 1].is_ascii_alphanumeric() || b[i - 1] == b'_');
+            || ((c == b'-' || c == b'+' || c == b'.') && b.get(i + 1).is_some_and(|n| n.is_ascii_digit() || (*n == b'.' && c != b'.')));
+        let prev_ok = i == 0 || path_mode || !(b[i - 1].is_ascii_alphanumeric() || b[i - 1] == b'_');
         if starts && prev_ok {
             let mut j = i + 1;
             let mut dot = c == b'.';
@@ -2312,14 +1822,7 @@ fn round_nums(val: &str, d: u8, path_mode: bool) -> String {
 }
 
 fn round_attr(name: &str, val: &str, d: u8) -> String {
-    if name == "id"
-        || name == "class"
-        || name == "xmlns"
-        || name.ends_with("href")
-        || val.contains('#')
-        || val.contains("url(")
-        || val.starts_with("data:")
-    {
+    if name == "id" || name == "class" || name == "xmlns" || name.ends_with("href") || val.contains('#') || val.contains("url(") || val.starts_with("data:") {
         return val.to_string();
     }
     match name {
@@ -2333,17 +1836,11 @@ fn round_attr(name: &str, val: &str, d: u8) -> String {
             let f: Vec<String> = parts
                 .iter()
                 .enumerate()
-                .map(|(k, p)| {
-                    p.parse::<f64>()
-                        .map(|x| fmt_dec(x, if k < 4 { d.saturating_add(3) } else { d }))
-                        .unwrap_or_else(|_| p.to_string())
-                })
+                .map(|(k, p)| p.parse::<f64>().map(|x| fmt_dec(x, if k < 4 { d.saturating_add(3) } else { d })).unwrap_or_else(|_| p.to_string()))
                 .collect();
             format!("matrix({})", f.join(" "))
         }
-        "opacity" | "fill-opacity" | "stroke-opacity" | "stop-opacity" | "offset" => {
-            round_nums(val, d.max(2), false)
-        }
+        "opacity" | "fill-opacity" | "stroke-opacity" | "stop-opacity" | "offset" => round_nums(val, d.max(2), false),
         _ => round_nums(val, d, false),
     }
 }
@@ -2355,9 +1852,7 @@ pub fn svg_round(svg: &str, d: u8) -> String {
     let mut out = String::with_capacity(svg.len());
     let mut rest = svg;
     while let Some(p) = rest.find("=\"") {
-        let name_start = rest[..p]
-            .rfind(|c: char| c.is_whitespace() || c == '<')
-            .map_or(0, |i| i + 1);
+        let name_start = rest[..p].rfind(|c: char| c.is_whitespace() || c == '<').map_or(0, |i| i + 1);
         out.push_str(&rest[..p + 2]);
         let after = &rest[p + 2..];
         let Some(end) = after.find('"') else {
@@ -2370,9 +1865,7 @@ pub fn svg_round(svg: &str, d: u8) -> String {
         rest = &after[end + 1..];
     }
     out.push_str(rest);
-    out.replace(">\n", ">")
-        .replace(" opacity=\"1\"", "")
-        .replace(" fill-opacity=\"1\"", "")
+    out.replace(">\n", ">").replace(" opacity=\"1\"", "").replace(" fill-opacity=\"1\"", "")
 }
 
 /// Apply the rounding of [`svg_round`] to the evaluated frame data (positions, tangents, stroke widths,
@@ -2415,16 +1908,8 @@ fn simplify_frame_paths(f: &mut Frame, eps: f64) {
 }
 
 /// The page: frames as inline SVG, deduplicated (`x` maps displayed frame -> unique frame), play / pause / scrubber.
-pub fn html_page(
-    title: &str,
-    width: f32,
-    fps: f32,
-    unique: &[String],
-    x: Option<&[usize]>,
-) -> String {
-    let data = serde_json::to_string(unique)
-        .unwrap_or_else(|_| "[]".into())
-        .replace("</", "<\\/");
+pub fn html_page(title: &str, width: f32, fps: f32, unique: &[String], x: Option<&[usize]>) -> String {
+    let data = serde_json::to_string(unique).unwrap_or_else(|_| "[]".into()).replace("</", "<\\/");
     let xs = match x {
         Some(x) => serde_json::to_string(x).unwrap_or_else(|_| "null".into()),
         None => "null".into(),
@@ -2549,19 +2034,7 @@ pub struct FitOptions {
 
 impl FitOptions {
     pub fn new(format: Format, budget: usize) -> FitOptions {
-        FitOptions {
-            format,
-            budget,
-            measure: Measure::Raw,
-            min_ssim: None,
-            sample_frames: 8,
-            search: Search::Descent,
-            max_evals: 120,
-            max_seconds: 60.0,
-            grid_max: 250,
-            audit: false,
-            baseline: true,
-        }
+        FitOptions { format, budget, measure: Measure::Raw, min_ssim: None, sample_frames: 8, search: Search::Descent, max_evals: 120, max_seconds: 60.0, grid_max: 250, audit: false, baseline: true }
     }
 }
 
@@ -2673,9 +2146,7 @@ fn sample_list(n: usize, k: usize) -> Vec<usize> {
     if k == 1 || n <= 1 {
         return vec![0];
     }
-    let mut v: Vec<usize> = (0..k)
-        .map(|i| (i * (n - 1) + (k - 1) / 2) / (k - 1))
-        .collect();
+    let mut v: Vec<usize> = (0..k).map(|i| (i * (n - 1) + (k - 1) / 2) / (k - 1)).collect();
     v.dedup();
     v
 }
@@ -2692,27 +2163,14 @@ impl<'a> Fit<'a> {
             }
         }
         if o.format == Format::Webm && !ffmpeg_available() {
-            return Err(
-                "webm needs ffmpeg on PATH (it is not available); choose gif or apng".into(),
-            );
+            return Err("webm needs ffmpeg on PATH (it is not available); choose gif or apng".into());
         }
-        let ref_engine = Engine::new(src.clone())
-            .map_err(|e| format!("project does not validate: {}", e.join("; ")))?;
+        let ref_engine = Engine::new(src.clone()).map_err(|e| format!("project does not validate: {}", e.join("; ")))?;
         let n = src.frames.max(1) as usize;
-        let (pre_project, dead) =
-            if matches!(o.format, Format::Lottie | Format::Html | Format::Project) {
-                drop_dead_layers(src)
-            } else {
-                (src.clone(), vec![])
-            };
-        let pre_engine = Engine::new(pre_project.clone())
-            .map_err(|e| format!("reduced project does not validate: {}", e.join("; ")))?;
+        let (pre_project, dead) = if matches!(o.format, Format::Lottie | Format::Html | Format::Project) { drop_dead_layers(src) } else { (src.clone(), vec![]) };
+        let pre_engine = Engine::new(pre_project.clone()).map_err(|e| format!("reduced project does not validate: {}", e.join("; ")))?;
         let samples = sample_list(n, o.sample_frames);
-        let ro = RasterOptions {
-            scale: 1.0,
-            show_bones: false,
-            transparent: false,
-        };
+        let ro = RasterOptions { scale: 1.0, show_bones: false, transparent: false };
         let mut refs = Vec::new();
         for &f in &samples {
             let (w, h, d) = render_rgba(&ref_engine, f as f32, &ro);
@@ -2720,29 +2178,7 @@ impl<'a> Fit<'a> {
         }
         let axes = axes(o.format);
         let order = chain(o.format);
-        Ok(Fit {
-            fmt: o.format,
-            o,
-            axes,
-            n,
-            samples,
-            pre_engine,
-            pre_project,
-            dead,
-            refs,
-            ref_engine,
-            frames_cache: (0..n).map(|_| None).collect(),
-            lottie_base: None,
-            raster_cache: HashMap::new(),
-            cache: HashMap::new(),
-            quant_cache: Vec::new(),
-            order,
-            evals: 0,
-            started,
-            time_limited: std::cell::Cell::new(false),
-            grace: std::cell::Cell::new(false),
-            src,
-        })
+        Ok(Fit { fmt: o.format, o, axes, n, samples, pre_engine, pre_project, dead, refs, ref_engine, frames_cache: (0..n).map(|_| None).collect(), lottie_base: None, raster_cache: HashMap::new(), cache: HashMap::new(), quant_cache: Vec::new(), order, evals: 0, started, time_limited: std::cell::Cell::new(false), grace: std::cell::Cell::new(false), src })
     }
 
     fn ensure_frame(&mut self, f: usize) {
@@ -2778,14 +2214,8 @@ impl<'a> Fit<'a> {
     fn fill_raster(&mut self, scale: f32, frames: &[usize]) -> Result<(), String> {
         let key = scale.to_bits();
         let n = self.n;
-        self.raster_cache
-            .entry(key)
-            .or_insert_with(|| (0, 0, (0..n).map(|_| None).collect()));
-        let opts = RasterOptions {
-            scale,
-            show_bones: false,
-            transparent: false,
-        };
+        self.raster_cache.entry(key).or_insert_with(|| (0, 0, (0..n).map(|_| None).collect()));
+        let opts = RasterOptions { scale, show_bones: false, transparent: false };
         for &f in frames {
             if self.raster_cache[&key].2[f].is_none() {
                 if self.expired() {
@@ -2800,13 +2230,7 @@ impl<'a> Fit<'a> {
             }
         }
         if self.raster_cache.len() > 3 {
-            let drop: Vec<u32> = self
-                .raster_cache
-                .keys()
-                .copied()
-                .filter(|&k| k != key)
-                .take(self.raster_cache.len() - 3)
-                .collect();
+            let drop: Vec<u32> = self.raster_cache.keys().copied().filter(|&k| k != key).take(self.raster_cache.len() - 3).collect();
             for k in drop {
                 self.raster_cache.remove(&k);
             }
@@ -2814,13 +2238,7 @@ impl<'a> Fit<'a> {
         Ok(())
     }
 
-    fn sample_imgs_from_frames(
-        &self,
-        w: usize,
-        h: usize,
-        decoded: &[Vec<u8>],
-        step: usize,
-    ) -> Result<Vec<Img>, String> {
+    fn sample_imgs_from_frames(&self, w: usize, h: usize, decoded: &[Vec<u8>], step: usize) -> Result<Vec<Img>, String> {
         let (rw, rh) = (self.refs[0].w, self.refs[0].h);
         let mut out = Vec::new();
         for &f in &self.samples {
@@ -2837,11 +2255,7 @@ impl<'a> Fit<'a> {
     /// Produce the export for `s` and the decoded sample frames at the reference size.
     fn produce(&mut self, s: &Settings) -> Result<(Vec<u8>, Vec<Img>), String> {
         let step = s.frame_step.max(1) as usize;
-        let ro = RasterOptions {
-            scale: 1.0,
-            show_bones: false,
-            transparent: false,
-        };
+        let ro = RasterOptions { scale: 1.0, show_bones: false, transparent: false };
         match self.fmt {
             Format::Lottie => {
                 if self.lottie_base.is_none() {
@@ -2857,18 +2271,9 @@ impl<'a> Fit<'a> {
                     self.time_up()?;
                     let f = self.samples[k];
                     self.ensure_frame(f);
-                    let fr = lottie_model_frame(
-                        self.frames_cache[f].as_ref().unwrap(),
-                        &parsed,
-                        &map,
-                        f,
-                    );
+                    let fr = lottie_model_frame(self.frames_cache[f].as_ref().unwrap(), &parsed, &map, f);
                     let pm = pixmap_from_frame(&self.pre_engine, &fr, f as f32, &ro);
-                    imgs.push(Img::new(
-                        pm.width() as usize,
-                        pm.height() as usize,
-                        to_straight_rgba(&pm),
-                    )?);
+                    imgs.push(Img::new(pm.width() as usize, pm.height() as usize, to_straight_rgba(&pm))?);
                 }
                 Ok((bytes, imgs))
             }
@@ -2881,12 +2286,7 @@ impl<'a> Fit<'a> {
                     self.ensure_frame(f);
                     let mut fr = clone_frame(self.frames_cache[f].as_ref().unwrap());
                     simplify_frame_paths(&mut fr, s.path_eps as f64);
-                    let svg = crate::svg::render_evaluated(
-                        &self.pre_engine,
-                        &fr,
-                        f as f32,
-                        &crate::svg::RenderOptions::default(),
-                    );
+                    let svg = crate::svg::render_evaluated(&self.pre_engine, &fr, f as f32, &crate::svg::RenderOptions::default());
                     strs.push(svg_round(&svg, s.decimals));
                     sim.push(fr);
                 }
@@ -2902,13 +2302,7 @@ impl<'a> Fit<'a> {
                 }
                 let identity = x.iter().enumerate().all(|(i, &v)| i == v);
                 let p = &self.pre_project;
-                let page = html_page(
-                    &p.name,
-                    p.width,
-                    p.fps / step as f32,
-                    &uniq,
-                    if identity { None } else { Some(&x) },
-                );
+                let page = html_page(&p.name, p.width, p.fps / step as f32, &uniq, if identity { None } else { Some(&x) });
                 let mut imgs = Vec::new();
                 for &f in &self.samples {
                     self.time_up()?;
@@ -2916,20 +2310,14 @@ impl<'a> Fit<'a> {
                     let mut fr = clone_frame(&sim[m]);
                     round_frame(&mut fr, s.decimals);
                     let pm = pixmap_from_frame(&self.pre_engine, &fr, (m * step) as f32, &ro);
-                    imgs.push(Img::new(
-                        pm.width() as usize,
-                        pm.height() as usize,
-                        to_straight_rgba(&pm),
-                    )?);
+                    imgs.push(Img::new(pm.width() as usize, pm.height() as usize, to_straight_rgba(&pm))?);
                 }
                 Ok((page.into_bytes(), imgs))
             }
             Format::Project => {
                 let bytes = project_bytes(&self.pre_project, s)?;
-                let p2: Project = serde_json::from_slice(&bytes)
-                    .map_err(|e| format!("reduced project does not parse: {e}"))?;
-                let e2 = Engine::new(p2)
-                    .map_err(|e| format!("reduced project does not validate: {}", e.join("; ")))?;
+                let p2: Project = serde_json::from_slice(&bytes).map_err(|e| format!("reduced project does not parse: {e}"))?;
+                let e2 = Engine::new(p2).map_err(|e| format!("reduced project does not validate: {}", e.join("; ")))?;
                 let mut imgs = Vec::new();
                 for &f in &self.samples {
                     self.time_up()?;
@@ -2956,14 +2344,7 @@ impl<'a> Fit<'a> {
                         let q = match self.quant_cache.iter().find(|(k, _)| *k == key) {
                             Some((_, q)) => q.clone(),
                             None => {
-                                let q = std::rc::Rc::new(quantize(
-                                    &refs,
-                                    w,
-                                    h,
-                                    s.colors as usize,
-                                    s.dither,
-                                    reserve,
-                                ));
+                                let q = std::rc::Rc::new(quantize(&refs, w, h, s.colors as usize, s.dither, reserve));
                                 self.quant_cache.push((key, q.clone()));
                                 if self.quant_cache.len() > 4 {
                                     self.quant_cache.remove(0);
@@ -2987,14 +2368,7 @@ impl<'a> Fit<'a> {
                             let q = match self.quant_cache.iter().find(|(k, _)| *k == key) {
                                 Some((_, q)) => q.clone(),
                                 None => {
-                                    let q = std::rc::Rc::new(quantize(
-                                        &refs,
-                                        w,
-                                        h,
-                                        s.colors as usize,
-                                        s.dither,
-                                        reserve,
-                                    ));
+                                    let q = std::rc::Rc::new(quantize(&refs, w, h, s.colors as usize, s.dither, reserve));
                                     self.quant_cache.push((key, q.clone()));
                                     if self.quant_cache.len() > 4 {
                                         self.quant_cache.remove(0);
@@ -3043,18 +2417,8 @@ impl<'a> Fit<'a> {
                         Err(e) => err = Some(e),
                     }
                 }
-                let worst = per.iter().cloned().fold((0usize, f64::INFINITY), |a, b| {
-                    if b.1 < a.1 {
-                        b
-                    } else {
-                        a
-                    }
-                });
-                let mean = if per.is_empty() {
-                    0.0
-                } else {
-                    per.iter().map(|p| p.1).sum::<f64>() / per.len() as f64
-                };
+                let worst = per.iter().cloned().fold((0usize, f64::INFINITY), |a, b| if b.1 < a.1 { b } else { a });
+                let mean = if per.is_empty() { 0.0 } else { per.iter().map(|p| p.1).sum::<f64>() / per.len() as f64 };
                 Candidate {
                     pos: pos.to_vec(),
                     settings,
@@ -3062,11 +2426,7 @@ impl<'a> Fit<'a> {
                     error: err,
                     raw,
                     gzip: gz,
-                    budgeted: if self.o.measure == Measure::Raw {
-                        raw
-                    } else {
-                        gz_budget
-                    },
+                    budgeted: if self.o.measure == Measure::Raw { raw } else { gz_budget },
                     ssim_mean: mean,
                     ssim_min: if worst.1.is_finite() { worst.1 } else { 0.0 },
                     worst_frame: worst.0,
@@ -3076,33 +2436,9 @@ impl<'a> Fit<'a> {
             Err(e) if e == TIME_UP => {
                 // interrupted by the time budget: not a result, not remembered
                 self.evals -= 1;
-                return Candidate {
-                    pos: pos.to_vec(),
-                    settings,
-                    valid: false,
-                    error: Some(e),
-                    raw: 0,
-                    gzip: 0,
-                    budgeted: usize::MAX,
-                    ssim_mean: 0.0,
-                    ssim_min: 0.0,
-                    worst_frame: 0,
-                    per_frame: vec![],
-                };
+                return Candidate { pos: pos.to_vec(), settings, valid: false, error: Some(e), raw: 0, gzip: 0, budgeted: usize::MAX, ssim_mean: 0.0, ssim_min: 0.0, worst_frame: 0, per_frame: vec![] };
             }
-            Err(e) => Candidate {
-                pos: pos.to_vec(),
-                settings,
-                valid: false,
-                error: Some(e),
-                raw: 0,
-                gzip: 0,
-                budgeted: usize::MAX,
-                ssim_mean: 0.0,
-                ssim_min: 0.0,
-                worst_frame: 0,
-                per_frame: vec![],
-            },
+            Err(e) => Candidate { pos: pos.to_vec(), settings, valid: false, error: Some(e), raw: 0, gzip: 0, budgeted: usize::MAX, ssim_mean: 0.0, ssim_min: 0.0, worst_frame: 0, per_frame: vec![] },
         };
         self.cache.insert(pos.to_vec(), c.clone());
         c
@@ -3205,28 +2541,14 @@ impl<'a> Fit<'a> {
 
     /// All grid positions, axes thinned (endpoints kept) so that the product is at most `max`.
     pub fn grid_positions(&self, max: usize) -> Vec<Vec<usize>> {
-        let mut idx: Vec<Vec<usize>> = self
-            .axes
-            .iter()
-            .map(|a| (0..a.values.len()).collect())
-            .collect();
+        let mut idx: Vec<Vec<usize>> = self.axes.iter().map(|a| (0..a.values.len()).collect()).collect();
         while idx.iter().map(|v| v.len()).product::<usize>() > max {
-            let (k, _) = idx
-                .iter()
-                .enumerate()
-                .max_by(|a, b| a.1.len().cmp(&b.1.len()).then(b.0.cmp(&a.0)))
-                .unwrap();
+            let (k, _) = idx.iter().enumerate().max_by(|a, b| a.1.len().cmp(&b.1.len()).then(b.0.cmp(&a.0))).unwrap();
             if idx[k].len() <= 2 {
                 break;
             }
             let last = idx[k].len() - 1;
-            let mut v: Vec<usize> = idx[k]
-                .iter()
-                .copied()
-                .enumerate()
-                .filter(|(i, _)| i % 2 == 0)
-                .map(|(_, x)| x)
-                .collect();
+            let mut v: Vec<usize> = idx[k].iter().copied().enumerate().filter(|(i, _)| i % 2 == 0).map(|(_, x)| x).collect();
             if v.last() != Some(&idx[k][last]) {
                 v.push(idx[k][last]);
             }
@@ -3251,14 +2573,7 @@ impl<'a> Fit<'a> {
     /// monotonicity check over everything probed and a linear-scan fallback.
     fn ladder(&mut self, chain: &[Vec<usize>], audit: bool) -> Ladder {
         let n = chain.len();
-        let mut out = Ladder {
-            idx: None,
-            probes: Vec::new(),
-            monotone: true,
-            fallback: false,
-            audit_agrees: None,
-            len: n,
-        };
+        let mut out = Ladder { idx: None, probes: Vec::new(), monotone: true, fallback: false, audit_agrees: None, len: n };
         let probe = |me: &mut Self, i: usize, probes: &mut Vec<(usize, usize)>| -> Candidate {
             let c = me.eval(&chain[i]);
             if !probes.iter().any(|p| p.0 == i) {
@@ -3296,8 +2611,7 @@ impl<'a> Fit<'a> {
         let monotone_of = |probes: &[(usize, usize)]| {
             let mut p = probes.to_vec();
             p.sort();
-            p.windows(2)
-                .all(|w| w[1].1 <= w[0].1 || w[1].1 == usize::MAX && w[0].1 == usize::MAX)
+            p.windows(2).all(|w| w[1].1 <= w[0].1 || w[1].1 == usize::MAX && w[0].1 == usize::MAX)
         };
         out.monotone = monotone_of(&out.probes);
         if !out.monotone || audit {
@@ -3339,14 +2653,7 @@ impl<'a> Fit<'a> {
                 let mut q = vec![0usize; na];
                 q[a] = r;
                 let c = self.eval(&q);
-                scan[a].push((
-                    if c.valid {
-                        c.budgeted as f64
-                    } else {
-                        f64::INFINITY
-                    },
-                    if c.valid { c.ssim_mean } else { 0.0 },
-                ));
+                scan[a].push((if c.valid { c.budgeted as f64 } else { f64::INFINITY }, if c.valid { c.ssim_mean } else { 0.0 }));
             }
         }
         let mut pos = vec![0usize; na];
@@ -3359,11 +2666,7 @@ impl<'a> Fit<'a> {
                     continue;
                 }
                 let ((s0, q0), (s1, q1)) = (scan[a][r], scan[a][r + 1]);
-                let saved = if s1.is_infinite() || s0.is_infinite() {
-                    f64::NEG_INFINITY
-                } else {
-                    s0 - s1
-                };
+                let saved = if s1.is_infinite() || s0.is_infinite() { f64::NEG_INFINITY } else { s0 - s1 };
                 let ratio = saved / (q0 - q1).max(1e-4);
                 if best.is_none_or(|(b, _)| ratio > b) {
                     best = Some((ratio, a));
@@ -3382,14 +2685,7 @@ impl<'a> Fit<'a> {
         let chosen: Option<Candidate>;
         let mut reason: Option<String> = None;
         let static_chain = self.order.clone();
-        let mut primary = Ladder {
-            idx: None,
-            probes: Vec::new(),
-            monotone: true,
-            fallback: false,
-            audit_agrees: None,
-            len: static_chain.len(),
-        };
+        let mut primary = Ladder { idx: None, probes: Vec::new(), monotone: true, fallback: false, audit_agrees: None, len: static_chain.len() };
         let mut chain_kind = "static";
         let mut static_start: Option<Vec<usize>> = None;
         let mut adaptive_start: Option<Vec<usize>> = None;
@@ -3403,11 +2699,7 @@ impl<'a> Fit<'a> {
                 }
             }
             let top_ok = primary.idx == Some(0) && static_start.is_some();
-            if self.o.search == Search::Descent
-                && !top_ok
-                && primary.idx.is_some()
-                && !self.out_of_time()
-            {
+            if self.o.search == Search::Descent && !top_ok && primary.idx.is_some() && !self.out_of_time() {
                 let ach = self.adaptive_chain();
                 let lo = self.ladder(&ach, false);
                 if let Some(i) = lo.idx {
@@ -3426,22 +2718,13 @@ impl<'a> Fit<'a> {
         let mut best_pos: Option<Vec<usize>> = static_start.clone().or(adaptive_start.clone());
         if self.o.search == Search::Descent {
             let mut scored: Vec<(Vec<usize>, Candidate)> = Vec::new();
-            for q in [static_start.clone(), adaptive_start.clone()]
-                .into_iter()
-                .flatten()
-            {
+            for q in [static_start.clone(), adaptive_start.clone()].into_iter().flatten() {
                 if !scored.iter().any(|(p, _)| *p == q) {
                     let c = self.eval(&q);
                     scored.push((q, c));
                 }
             }
-            scored.sort_by(|a, b| {
-                if Self::better(&a.1, &b.1) {
-                    std::cmp::Ordering::Less
-                } else {
-                    std::cmp::Ordering::Greater
-                }
-            });
+            scored.sort_by(|a, b| if Self::better(&a.1, &b.1) { std::cmp::Ordering::Less } else { std::cmp::Ordering::Greater });
             let mut best: Option<Candidate> = None;
             for (q, _) in scored {
                 let end = self.descend(q);
@@ -3452,19 +2735,9 @@ impl<'a> Fit<'a> {
             }
             best_pos = best.map(|c| c.pos).or(best_pos);
         }
-        let (probes, monotone, fallback, audit_agrees, n) = (
-            primary.probes.clone(),
-            primary.monotone,
-            primary.fallback,
-            primary.audit_agrees,
-            primary.len,
-        );
+        let (probes, monotone, fallback, audit_agrees, n) = (primary.probes.clone(), primary.monotone, primary.fallback, primary.audit_agrees, primary.len);
         // grid: asked for, or the only way left to satisfy the constraints
-        let need_grid = self.o.search == Search::Grid
-            || (self.o.search == Search::Descent
-                && best_pos.is_none()
-                && self.o.min_ssim.is_some()
-                && ladder_idx.is_some());
+        let need_grid = self.o.search == Search::Grid || (self.o.search == Search::Descent && best_pos.is_none() && self.o.min_ssim.is_some() && ladder_idx.is_some());
         if need_grid {
             let mut gbest: Option<Candidate> = best_pos.as_ref().map(|p| self.eval(p));
             for p in self.grid_positions(self.o.grid_max) {
@@ -3497,48 +2770,25 @@ impl<'a> Fit<'a> {
             met = false;
             // best achievable: smallest valid size seen; if constraints were the problem, say so
             let all: Vec<Candidate> = self.cache.values().filter(|c| c.valid).cloned().collect();
-            let smallest = all
-                .iter()
-                .min_by(|a, b| a.budgeted.cmp(&b.budgeted).then(a.pos.cmp(&b.pos)))
-                .cloned();
+            let smallest = all.iter().min_by(|a, b| a.budgeted.cmp(&b.budgeted).then(a.pos.cmp(&b.pos))).cloned();
             let fitting_any = all.iter().any(|c| c.budgeted <= budget);
-            let time_note = if self.time_limited.get() {
-                format!(" [time budget of {} s exhausted: the search was cut short, a longer --max-seconds may find a fit]", self.o.max_seconds)
-            } else {
-                String::new()
-            };
+            let time_note = if self.time_limited.get() { format!(" [time budget of {} s exhausted: the search was cut short, a longer --max-seconds may find a fit]", self.o.max_seconds) } else { String::new() };
             reason = Some(if fitting_any {
-                format!(
-                    "a candidate fits {budget} bytes but none reaches --min-ssim {:.4}",
-                    self.o.min_ssim.unwrap_or(0.0)
-                )
+                format!("a candidate fits {budget} bytes but none reaches --min-ssim {:.4}", self.o.min_ssim.unwrap_or(0.0))
             } else {
                 format!("the smallest export found is {} bytes ({}), above the budget of {budget} bytes: every knob is at its floor", smallest.as_ref().map_or(0, |c| c.budgeted), self.o.measure.name())
             });
             if self.o.search != Search::Grid {
                 // an unmet size budget is only a statement about the chain floor and the probes
                 if !fitting_any {
-                    reason = reason.map(|r| {
-                        format!(
-                            "{r} (checked the chain floor and {} probes; sizes assumed monotone)",
-                            probes.len()
-                        )
-                    });
+                    reason = reason.map(|r| format!("{r} (checked the chain floor and {} probes; sizes assumed monotone)", probes.len()));
                 }
             }
             reason = reason.map(|r| format!("{r}{time_note}"));
             chosen = smallest.or_else(|| all.first().cloned());
             if chosen.is_none() {
-                let errs: Vec<String> = self
-                    .cache
-                    .values()
-                    .filter_map(|c| c.error.clone())
-                    .take(3)
-                    .collect();
-                return Err(format!(
-                    "no candidate could be produced: {}",
-                    errs.join("; ")
-                ));
+                let errs: Vec<String> = self.cache.values().filter_map(|c| c.error.clone()).take(3).collect();
+                return Err(format!("no candidate could be produced: {}", errs.join("; ")));
             }
         }
         let chosen = chosen.unwrap();
@@ -3552,11 +2802,7 @@ impl<'a> Fit<'a> {
             de_max = de_max.max(d.max_de_raw);
             per.push((self.samples[k], d.ssim, d.max_de_raw));
         }
-        let worst =
-            per.iter().cloned().fold(
-                (0usize, f64::INFINITY, 0.0),
-                |a, b| if b.1 < a.1 { b } else { a },
-            );
+        let worst = per.iter().cloned().fold((0usize, f64::INFINITY, 0.0), |a, b| if b.1 < a.1 { b } else { a });
         let quality = Quality {
             ssim_mean: per.iter().map(|p| p.1).sum::<f64>() / per.len().max(1) as f64,
             ssim_min: worst.1,
@@ -3564,23 +2810,9 @@ impl<'a> Fit<'a> {
             per_frame: per,
             de_max,
         };
-        let baseline = if self.o.baseline && !self.time_limited.get() {
-            self.baseline().ok()
-        } else {
-            None
-        };
-        let last = self
-            .axes
-            .iter()
-            .map(|a| a.values.len() - 1)
-            .collect::<Vec<_>>();
-        let floors: Vec<String> = self
-            .axes
-            .iter()
-            .enumerate()
-            .filter(|(i, a)| a.in_chain && chosen.pos[*i] == last[*i])
-            .map(|(_, a)| a.name.to_string())
-            .collect();
+        let baseline = if self.o.baseline && !self.time_limited.get() { self.baseline().ok() } else { None };
+        let last = self.axes.iter().map(|a| a.values.len() - 1).collect::<Vec<_>>();
+        let floors: Vec<String> = self.axes.iter().enumerate().filter(|(i, a)| a.in_chain && chosen.pos[*i] == last[*i]).map(|(_, a)| a.name.to_string()).collect();
         let mut all: Vec<Candidate> = self.cache.values().cloned().collect();
         all.sort_by(|a, b| a.pos.cmp(&b.pos));
         Ok(FitResult {
@@ -3603,20 +2835,14 @@ impl<'a> Fit<'a> {
             dead_layers: self.dead.clone(),
             sample_frames: self.samples.clone(),
             all,
-            axes: self
-                .axes
-                .iter()
-                .map(|a| (a.name.to_string(), a.values.clone()))
-                .collect(),
+            axes: self.axes.iter().map(|a| (a.name.to_string(), a.values.clone())).collect(),
         })
     }
 
     /// Size of the existing exporter at its default settings: (raw, gzip).
     fn baseline(&mut self) -> Result<(usize, usize), String> {
         let bytes: Vec<u8> = match self.fmt {
-            Format::Lottie => crate::export::lottie_json(&self.ref_engine)
-                .to_string()
-                .into_bytes(),
+            Format::Lottie => crate::export::lottie_json(&self.ref_engine).to_string().into_bytes(),
             Format::Html => crate::export::html_player(&self.ref_engine).into_bytes(),
             Format::Gif => crate::export::gif_bytes(&self.ref_engine, 1.0)?,
             Format::Apng => crate::open_formats::apng_bytes(&self.ref_engine, 1.0)?,
@@ -3645,13 +2871,7 @@ pub fn fit(project: &Project, o: FitOptions) -> Result<FitResult, String> {
 /// Non-dominated candidates (smaller budgeted size, higher mean SSIM), by index into `all`.
 pub fn pareto_front(all: &[Candidate]) -> Vec<usize> {
     let mut idx: Vec<usize> = (0..all.len()).filter(|&i| all[i].valid).collect();
-    idx.sort_by(|&a, &b| {
-        all[a]
-            .budgeted
-            .cmp(&all[b].budgeted)
-            .then(all[b].ssim_mean.total_cmp(&all[a].ssim_mean))
-            .then(all[a].pos.cmp(&all[b].pos))
-    });
+    idx.sort_by(|&a, &b| all[a].budgeted.cmp(&all[b].budgeted).then(all[b].ssim_mean.total_cmp(&all[a].ssim_mean)).then(all[a].pos.cmp(&all[b].pos)));
     let mut front = Vec::new();
     let mut best = f64::NEG_INFINITY;
     for i in idx {
@@ -3718,11 +2938,7 @@ impl FitResult {
             let t = &c.settings;
             s.push_str(&format!(
                 "{},{},{},{},{},{},{},{},{},{},{},{},{},{:.6},{:.6},{},{},{},{}\n",
-                c.pos
-                    .iter()
-                    .map(|p| p.to_string())
-                    .collect::<Vec<_>>()
-                    .join("-"),
+                c.pos.iter().map(|p| p.to_string()).collect::<Vec<_>>().join("-"),
                 t.decimals,
                 t.path_eps,
                 t.key_tol,
@@ -3734,11 +2950,7 @@ impl FitResult {
                 t.crf,
                 c.raw,
                 c.gzip,
-                if c.valid {
-                    c.budgeted.to_string()
-                } else {
-                    String::new()
-                },
+                if c.valid { c.budgeted.to_string() } else { String::new() },
                 c.ssim_mean,
                 c.ssim_min,
                 c.valid as u8,
@@ -3758,27 +2970,18 @@ fn layer_bytes(l: &crate::project::Layer) -> usize {
 /// What contributes bytes: the project file per layer, image and channel; the baked Lottie per layer; the
 /// HTML page per frame and per layer. `tol` is the key tolerance used for the "removable keys" estimate.
 pub fn size_report(project: &Project, tol: f32) -> Result<Value, String> {
-    let engine = Engine::new(project.clone())
-        .map_err(|e| format!("project does not validate: {}", e.join("; ")))?;
+    let engine = Engine::new(project.clone()).map_err(|e| format!("project does not validate: {}", e.join("; ")))?;
     let pj = serde_json::to_vec(project).map_err(|e| e.to_string())?;
     // project file
     let mut layers: Vec<Value> = Vec::new();
     fn walk(ls: &[crate::project::Layer], prefix: &str, out: &mut Vec<Value>) {
         for l in ls {
-            let path = if prefix.is_empty() {
-                l.name.clone()
-            } else {
-                format!("{prefix}/{}", l.name)
-            };
+            let path = if prefix.is_empty() { l.name.clone() } else { format!("{prefix}/{}", l.name) };
             let img = match &l.kind {
-                crate::project::LayerKind::Image { source, .. } => {
-                    source.png_base64.as_ref().map_or(0, |b| b.len())
-                }
+                crate::project::LayerKind::Image { source, .. } => source.png_base64.as_ref().map_or(0, |b| b.len()),
                 _ => 0,
             };
-            out.push(
-                json!({"layer": path, "json_bytes": layer_bytes(l), "embedded_image_bytes": img}),
-            );
+            out.push(json!({"layer": path, "json_bytes": layer_bytes(l), "embedded_image_bytes": img}));
             walk(l.children(), &path, out);
         }
     }
@@ -3788,10 +2991,7 @@ pub fn size_report(project: &Project, tol: f32) -> Result<Value, String> {
     for c in &project.channels {
         let bytes = serde_json::to_vec(c).map_or(0, |v| v.len());
         let (keys, removable) = match &c.source {
-            Source::Keys { track } => (
-                track.keys.len(),
-                track.keys.len() - reduce_track(track, tol, project.frames).keys.len(),
-            ),
+            Source::Keys { track } => (track.keys.len(), track.keys.len() - reduce_track(track, tol, project.frames).keys.len()),
             _ => (0, 0),
         };
         chans.push(json!({"channel": format!("{}.{:?}", c.target, c.prop), "json_bytes": bytes, "keys": keys, "removable_keys_at_tol": removable}));
@@ -3820,8 +3020,7 @@ pub fn size_report(project: &Project, tol: f32) -> Result<Value, String> {
     let mut by_group: HashMap<String, usize> = HashMap::new();
     let mut defs = 0usize;
     for f in 0..n {
-        let svg =
-            crate::svg::render_frame(&engine, f as f32, &crate::svg::RenderOptions::default());
+        let svg = crate::svg::render_frame(&engine, f as f32, &crate::svg::RenderOptions::default());
         frame_bytes.push(svg.len());
         if let (Some(a), Some(b)) = (svg.find("<defs>"), svg.find("</defs>")) {
             defs += b + 7 - a;
@@ -3830,8 +3029,7 @@ pub fn size_report(project: &Project, tol: f32) -> Result<Value, String> {
         parts.next();
         for p in parts {
             if let Some(e) = p.find('"') {
-                *by_group.entry(p[..e].to_string()).or_insert(0) +=
-                    p.len().min(p.find("</g>").map_or(p.len(), |x| x + 4));
+                *by_group.entry(p[..e].to_string()).or_insert(0) += p.len().min(p.find("</g>").map_or(p.len(), |x| x + 4));
             }
         }
     }
@@ -3858,64 +3056,23 @@ pub fn size_report_text(r: &Value, top: usize) -> String {
     let p = &r["project"];
     s.push_str(&format!("project file: {} bytes ({} gzip)\n  by layer (JSON bytes; embedded image base64 in brackets):\n", u(p, "json_bytes"), u(p, "gzip_bytes")));
     for l in p["layers"].as_array().into_iter().flatten().take(top) {
-        s.push_str(&format!(
-            "    {:>9}  {}{}\n",
-            u(l, "json_bytes"),
-            l["layer"].as_str().unwrap_or("?"),
-            if u(l, "embedded_image_bytes") > 0 {
-                format!("  [image {}]", u(l, "embedded_image_bytes"))
-            } else {
-                String::new()
-            }
-        ));
+        s.push_str(&format!("    {:>9}  {}{}\n", u(l, "json_bytes"), l["layer"].as_str().unwrap_or("?"), if u(l, "embedded_image_bytes") > 0 { format!("  [image {}]", u(l, "embedded_image_bytes")) } else { String::new() }));
     }
-    s.push_str(&format!(
-        "  by channel (keys, removable at tol {}):\n",
-        p["key_tolerance"]
-    ));
+    s.push_str(&format!("  by channel (keys, removable at tol {}):\n", p["key_tolerance"]));
     for c in p["channels"].as_array().into_iter().flatten().take(top) {
-        s.push_str(&format!(
-            "    {:>9}  {}  keys {} removable {}\n",
-            u(c, "json_bytes"),
-            c["channel"].as_str().unwrap_or("?"),
-            u(c, "keys"),
-            u(c, "removable_keys_at_tol")
-        ));
+        s.push_str(&format!("    {:>9}  {}  keys {} removable {}\n", u(c, "json_bytes"), c["channel"].as_str().unwrap_or("?"), u(c, "keys"), u(c, "removable_keys_at_tol")));
     }
     let l = &r["lottie"];
-    s.push_str(&format!(
-        "baked Lottie: {} bytes ({} gzip), by layer:\n",
-        u(l, "raw_bytes"),
-        u(l, "gzip_bytes")
-    ));
+    s.push_str(&format!("baked Lottie: {} bytes ({} gzip), by layer:\n", u(l, "raw_bytes"), u(l, "gzip_bytes")));
     for x in l["layers"].as_array().into_iter().flatten().take(top) {
-        s.push_str(&format!(
-            "    {:>9}  {}{}\n",
-            u(x, "json_bytes"),
-            x["layer"].as_str().unwrap_or("?"),
-            if x["matte_copy"].as_bool() == Some(true) {
-                "  (matte copy)"
-            } else {
-                ""
-            }
-        ));
+        s.push_str(&format!("    {:>9}  {}{}\n", u(x, "json_bytes"), x["layer"].as_str().unwrap_or("?"), if x["matte_copy"].as_bool() == Some(true) { "  (matte copy)" } else { "" }));
     }
     let h = &r["html"];
     s.push_str(&format!("HTML page: {} bytes ({} gzip), {} frames of {}..{} bytes (mean {}), gradient defs {} bytes in total; by layer over all frames:\n", u(h, "raw_bytes"), u(h, "gzip_bytes"), u(h, "frames"), u(h, "frame_bytes_min"), u(h, "frame_bytes_max"), u(h, "frame_bytes_mean"), u(h, "defs_bytes_total")));
     for x in h["layers"].as_array().into_iter().flatten().take(top) {
-        s.push_str(&format!(
-            "    {:>9}  {}\n",
-            u(x, "svg_bytes_all_frames"),
-            x["layer"].as_str().unwrap_or("?")
-        ));
+        s.push_str(&format!("    {:>9}  {}\n", u(x, "svg_bytes_all_frames"), x["layer"].as_str().unwrap_or("?")));
     }
-    s.push_str(&format!(
-        "raster: {} frames of {}x{} = {} bytes uncompressed RGBA\n",
-        u(&r["raster"], "frames"),
-        r["raster"]["width"],
-        r["raster"]["height"],
-        u(&r["raster"], "raw_rgba_bytes")
-    ));
+    s.push_str(&format!("raster: {} frames of {}x{} = {} bytes uncompressed RGBA\n", u(&r["raster"], "frames"), r["raster"]["width"], r["raster"]["height"], u(&r["raster"], "raw_rgba_bytes")));
     s
 }
 
@@ -3936,12 +3093,7 @@ mod tests {
         for (name, data) in [("lottie", lottie), ("html", html), ("project", project)] {
             let budget = gzip_budget_len(&data);
             for level in ["-9", "-6", "-1"] {
-                let mut c = Command::new("gzip")
-                    .args([level, "-c"])
-                    .stdin(Stdio::piped())
-                    .stdout(Stdio::piped())
-                    .spawn()
-                    .unwrap();
+                let mut c = Command::new("gzip").args([level, "-c"]).stdin(Stdio::piped()).stdout(Stdio::piped()).spawn().unwrap();
                 let mut stdin = c.stdin.take().unwrap();
                 let d = data.clone();
                 let t = std::thread::spawn(move || {
@@ -3950,17 +3102,9 @@ mod tests {
                 let out = c.wait_with_output().unwrap();
                 t.join().unwrap();
                 match level {
-                    "-9" => assert!(
-                        out.stdout.len() <= budget,
-                        "{name} gzip -9: {} > budget {budget}",
-                        out.stdout.len()
-                    ),
+                    "-9" => assert!(out.stdout.len() <= budget, "{name} gzip -9: {} > budget {budget}", out.stdout.len()),
                     // the default level is a weaker compressor: documented to be up to ~10 % larger
-                    "-6" => assert!(
-                        out.stdout.len() * 100 <= budget * 110,
-                        "{name} gzip -6: {} vs budget {budget}",
-                        out.stdout.len()
-                    ),
+                    "-6" => assert!(out.stdout.len() * 100 <= budget * 110, "{name} gzip -6: {} vs budget {budget}", out.stdout.len()),
                     _ => {}
                 }
             }
@@ -3982,33 +3126,12 @@ mod tests {
     fn flat() -> Project {
         let mut p = Project::new("flat", 64.0, 48.0, 12.0, 16);
         p.background = Some(crate::style::Rgba::hex("#ffffff"));
-        let sq = Layer::vector(
-            "sq",
-            vec![VPath::rect("r", 6.0, 8.0, 14.0, 14.0)
-                .with_fill("#cc2222")
-                .with_stroke("#000000", 1.5)],
-        );
-        let ball = Layer::vector(
-            "ball",
-            vec![VPath::circle("c", Vec2::new(40.0, 24.0), 7.0).with_fill("#2255cc")],
-        );
+        let sq = Layer::vector("sq", vec![VPath::rect("r", 6.0, 8.0, 14.0, 14.0).with_fill("#cc2222").with_stroke("#000000", 1.5)]);
+        let ball = Layer::vector("ball", vec![VPath::circle("c", Vec2::new(40.0, 24.0), 7.0).with_fill("#2255cc")]);
         p.layers = vec![sq, ball];
         p.channels = vec![
-            Channel::keys(
-                "sq",
-                Prop::LayerX,
-                Track::with_keys(&[(0.0, 0.0, Ease::Linear), (15.0, 30.0, Ease::Linear)]),
-            ),
-            Channel::keys(
-                "ball",
-                Prop::LayerY,
-                Track::with_keys(&[
-                    (0.0, 0.0, Ease::Smooth),
-                    (5.0, -10.0, Ease::Smooth),
-                    (10.0, 6.0, Ease::Smooth),
-                    (15.0, 0.0, Ease::Smooth),
-                ]),
-            ),
+            Channel::keys("sq", Prop::LayerX, Track::with_keys(&[(0.0, 0.0, Ease::Linear), (15.0, 30.0, Ease::Linear)])),
+            Channel::keys("ball", Prop::LayerY, Track::with_keys(&[(0.0, 0.0, Ease::Smooth), (5.0, -10.0, Ease::Smooth), (10.0, 6.0, Ease::Smooth), (15.0, 0.0, Ease::Smooth)])),
         ];
         p
     }
@@ -4025,21 +3148,12 @@ mod tests {
         type SizeCache = Mutex<HashMap<(Format, String, u32), Vec<usize>>>;
         static CACHE: OnceLock<SizeCache> = OnceLock::new();
         let key = (fmt, p.name.clone(), p.frames);
-        if let Some(v) = CACHE
-            .get_or_init(Default::default)
-            .lock()
-            .unwrap()
-            .get(&key)
-        {
+        if let Some(v) = CACHE.get_or_init(Default::default).lock().unwrap().get(&key) {
             return v.clone();
         }
         let mut f = Fit::new(p, opts(fmt, usize::MAX)).unwrap();
         let v: Vec<usize> = chain(fmt).iter().map(|pos| f.eval(pos).budgeted).collect();
-        CACHE
-            .get_or_init(Default::default)
-            .lock()
-            .unwrap()
-            .insert(key, v.clone());
+        CACHE.get_or_init(Default::default).lock().unwrap().insert(key, v.clone());
         v
     }
 
@@ -4051,12 +3165,7 @@ mod tests {
         assert_eq!(parse_size("1.5 MB").unwrap(), 1_500_000);
         assert_eq!(parse_size("64000").unwrap(), 64_000);
         assert_eq!(parse_size("2kib").unwrap(), 2048);
-        assert!(
-            parse_size("fast").is_err()
-                && parse_size("12 parsecs").is_err()
-                && parse_size("0").is_err()
-                && parse_size("").is_err()
-        );
+        assert!(parse_size("fast").is_err() && parse_size("12 parsecs").is_err() && parse_size("0").is_err() && parse_size("").is_err());
     }
 
     #[test]
@@ -4078,96 +3187,40 @@ mod tests {
     fn svg_text_rounding_keeps_identifiers_colours_and_data() {
         let svg = "<svg viewBox=\"0 0 640 480\">\n<g id=\"g12\" opacity=\"1.000\">\n<path d=\"M60.00 412.567 C-0.004 3.14159 1.5-2.25 7 8\" fill=\"#123456\" stroke-width=\"3.456\" clip-path=\"url(#c1.5)\"/>\n<image href=\"data:image/png;base64,AB12.5+9\" transform=\"matrix(0.123456789 0 0 1.5 10.123456 20.5)\"/>\n</g>\n</svg>\n";
         let r = svg_round(svg, 1);
-        assert!(
-            r.contains("id=\"g12\"")
-                && r.contains("fill=\"#123456\"")
-                && r.contains("url(#c1.5)")
-                && r.contains("AB12.5+9")
-        );
+        assert!(r.contains("id=\"g12\"") && r.contains("fill=\"#123456\"") && r.contains("url(#c1.5)") && r.contains("AB12.5+9"));
         assert!(r.contains("d=\"M60 412.6 C0 3.1 1.5-2.3 7 8\""), "{r}");
         assert!(r.contains("stroke-width=\"3.5\""));
         assert!(!r.contains("opacity=\"1\"") && !r.contains('\n'), "{r}");
-        assert!(
-            r.contains("matrix(0.1235 0 0 1.5 10.1 20.5)"),
-            "linear part keeps d+3 decimals: {r}"
-        );
+        assert!(r.contains("matrix(0.1235 0 0 1.5 10.1 20.5)"), "linear part keeps d+3 decimals: {r}");
         // idempotent
         assert_eq!(svg_round(&r, 1), r);
     }
 
     #[test]
     fn chain_is_a_proper_ladder() {
-        for f in [
-            Format::Lottie,
-            Format::Html,
-            Format::Gif,
-            Format::Apng,
-            Format::Webm,
-            Format::Project,
-        ] {
+        for f in [Format::Lottie, Format::Html, Format::Gif, Format::Apng, Format::Webm, Format::Project] {
             let ch = chain(f);
             let ax = axes(f);
-            assert_eq!(
-                ch.len(),
-                1 + ax
-                    .iter()
-                    .filter(|a| a.in_chain)
-                    .map(|a| a.values.len() - 1)
-                    .sum::<usize>()
-            );
+            assert_eq!(ch.len(), 1 + ax.iter().filter(|a| a.in_chain).map(|a| a.values.len() - 1).sum::<usize>());
             assert!(ch[0].iter().all(|&p| p == 0));
-            assert_eq!(
-                *ch.last().unwrap(),
-                ax.iter()
-                    .map(|a| if a.in_chain { a.values.len() - 1 } else { 0 })
-                    .collect::<Vec<_>>()
-            );
+            assert_eq!(*ch.last().unwrap(), ax.iter().map(|a| if a.in_chain { a.values.len() - 1 } else { 0 }).collect::<Vec<_>>());
             for w in ch.windows(2) {
-                let d: Vec<i64> = w[1]
-                    .iter()
-                    .zip(&w[0])
-                    .map(|(a, b)| *a as i64 - *b as i64)
-                    .collect();
-                assert_eq!(
-                    d.iter().filter(|&&x| x != 0).count(),
-                    1,
-                    "each step moves one knob"
-                );
+                let d: Vec<i64> = w[1].iter().zip(&w[0]).map(|(a, b)| *a as i64 - *b as i64).collect();
+                assert_eq!(d.iter().filter(|&&x| x != 0).count(), 1, "each step moves one knob");
                 assert_eq!(d.iter().sum::<i64>(), 1, "by exactly one rung");
             }
             // rung 0 reduces nothing
             let s0 = settings_at(f, &ch[0]);
-            assert!(
-                s0.path_eps == 0.0
-                    && s0.key_tol == 0.0
-                    && s0.frame_step == 1
-                    && s0.scale == 1.0
-                    && s0.delta_tol == 0
-                    && s0.crf == 24,
-                "{f:?}: {s0:?}"
-            );
+            assert!(s0.path_eps == 0.0 && s0.key_tol == 0.0 && s0.frame_step == 1 && s0.scale == 1.0 && s0.delta_tol == 0 && s0.crf == 24, "{f:?}: {s0:?}");
             assert!(s0.decimals >= 2 && s0.drop_dead, "{f:?}: {s0:?}");
             // every axis list is strictly ordered from best to worst
-            for a in ax
-                .iter()
-                .filter(|a| a.in_chain && !(a.name == "colors" && a.values[0] == 0.0))
-            {
+            for a in ax.iter().filter(|a| a.in_chain && !(a.name == "colors" && a.values[0] == 0.0)) {
                 assert!(a.values.len() >= 2, "{f:?} {}", a.name);
                 let up = a.values[1] > a.values[0];
-                assert!(
-                    a.values
-                        .windows(2)
-                        .all(|w| (w[1] > w[0]) == up && w[1] != w[0]),
-                    "{f:?} {}",
-                    a.name
-                );
+                assert!(a.values.windows(2).all(|w| (w[1] > w[0]) == up && w[1] != w[0]), "{f:?} {}", a.name);
             }
         }
-        assert!(
-            Format::parse("svg").unwrap_err().contains("not supported")
-                && Format::parse("gltf").is_err()
-                && Format::parse("mp3").is_err()
-        );
+        assert!(Format::parse("svg").unwrap_err().contains("not supported") && Format::parse("gltf").is_err() && Format::parse("mp3").is_err());
         assert_eq!(Format::from_path("a/b.GIF"), Some(Format::Gif));
         assert_eq!(Format::from_path("x.json"), Some(Format::Lottie));
         assert_eq!(Format::from_path("x.txt"), None);
@@ -4184,11 +3237,7 @@ mod tests {
             .map(|k| {
                 let a = k as f64 / n as f64 * std::f64::consts::TAU;
                 let h = r * 4.0 / 3.0 * (std::f64::consts::TAU / n as f64 / 4.0).tan();
-                PNode {
-                    p: [r * a.cos(), r * a.sin()],
-                    i: [h * a.sin(), -h * a.cos()],
-                    o: [-h * a.sin(), h * a.cos()],
-                }
+                PNode { p: [r * a.cos(), r * a.sin()], i: [h * a.sin(), -h * a.cos()], o: [-h * a.sin(), h * a.cos()] }
             })
             .collect();
         for eps in [0.05, 0.5, 2.0] {
@@ -4219,19 +3268,12 @@ mod tests {
 
     #[test]
     fn collinear_vertices_go_corners_stay_and_open_ends_stay() {
-        let c = |x: f64, y: f64| PNode {
-            p: [x, y],
-            i: [0.0, 0.0],
-            o: [0.0, 0.0],
-        };
+        let c = |x: f64, y: f64| PNode { p: [x, y], i: [0.0, 0.0], o: [0.0, 0.0] };
         // open polyline with a collinear middle point and a real corner
         let mut fr = vec![vec![c(0.0, 0.0), c(5.0, 0.0), c(10.0, 0.0), c(10.0, 10.0)]];
         let removed = simplify_paths(&mut fr, false, 0.01);
         assert_eq!(removed, 1);
-        assert_eq!(
-            fr[0].iter().map(|n| n.p).collect::<Vec<_>>(),
-            vec![[0.0, 0.0], [10.0, 0.0], [10.0, 10.0]]
-        );
+        assert_eq!(fr[0].iter().map(|n| n.p).collect::<Vec<_>>(), vec![[0.0, 0.0], [10.0, 0.0], [10.0, 10.0]]);
         // a closed triangle keeps its 3 corners whatever the tolerance
         let mut tri = vec![vec![c(0.0, 0.0), c(10.0, 0.0), c(5.0, 8.0)]];
         assert_eq!(simplify_paths(&mut tri, true, 100.0), 0);
@@ -4243,47 +3285,21 @@ mod tests {
         assert_eq!(simplify_paths(&mut two, false, 0.01), 0);
         assert_eq!(two[0].len(), 4);
         // mismatching topology: nothing happens
-        let mut bad = vec![
-            vec![c(0.0, 0.0), c(1.0, 0.0), c(2.0, 0.0)],
-            vec![c(0.0, 0.0), c(2.0, 0.0)],
-        ];
+        let mut bad = vec![vec![c(0.0, 0.0), c(1.0, 0.0), c(2.0, 0.0)], vec![c(0.0, 0.0), c(2.0, 0.0)]];
         assert_eq!(simplify_paths(&mut bad, false, 1.0), 0);
     }
 
     // ---- key reduction
 
     fn lcg(seed: &mut u64) -> f32 {
-        *seed = seed
-            .wrapping_mul(6364136223846793005)
-            .wrapping_add(1442695040888963407);
+        *seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
         ((*seed >> 33) as f32) / (1u64 << 31) as f32
     }
 
     #[test]
     fn key_reduction_bound_is_exact_for_every_ease_and_extrapolation() {
-        let eases = [
-            Ease::Linear,
-            Ease::Step,
-            Ease::EaseIn,
-            Ease::EaseOut,
-            Ease::EaseInOut,
-            Ease::Smooth,
-            Ease::CubicBezier {
-                x1: 0.2,
-                y1: 0.8,
-                x2: 0.7,
-                y2: 0.1,
-            },
-            Ease::Back { overshoot: 1.2 },
-            Ease::Bounce,
-        ];
-        let extr = [
-            Extrapolate::Hold,
-            Extrapolate::Linear,
-            Extrapolate::Loop,
-            Extrapolate::PingPong,
-            Extrapolate::LoopOffset,
-        ];
+        let eases = [Ease::Linear, Ease::Step, Ease::EaseIn, Ease::EaseOut, Ease::EaseInOut, Ease::Smooth, Ease::CubicBezier { x1: 0.2, y1: 0.8, x2: 0.7, y2: 0.1 }, Ease::Back { overshoot: 1.2 }, Ease::Bounce];
+        let extr = [Extrapolate::Hold, Extrapolate::Linear, Extrapolate::Loop, Extrapolate::PingPong, Extrapolate::LoopOffset];
         let mut seed = 7u64;
         let mut reduced_any = false;
         for trial in 0..60 {
@@ -4291,11 +3307,7 @@ mod tests {
             let mut t = Track::new();
             let mut f = (lcg(&mut seed) * 3.0).floor();
             for _ in 0..n {
-                t.set_key(
-                    f,
-                    (lcg(&mut seed) - 0.5) * 100.0 * if trial % 3 == 0 { 0.01 } else { 1.0 },
-                    eases[(lcg(&mut seed) * eases.len() as f32) as usize % eases.len()],
-                );
+                t.set_key(f, (lcg(&mut seed) - 0.5) * 100.0 * if trial % 3 == 0 { 0.01 } else { 1.0 }, eases[(lcg(&mut seed) * eases.len() as f32) as usize % eases.len()]);
                 f += 1.0 + (lcg(&mut seed) * 4.0).floor() + if trial % 4 == 0 { 0.5 } else { 0.0 };
             }
             t.extrapolate = extr[trial % extr.len()];
@@ -4310,13 +3322,9 @@ mod tests {
                 let mut probes: Vec<f32> = (0..frames).map(|x| x as f32).collect();
                 probes.extend(t.keys.iter().map(|k| k.frame));
                 for x in probes {
-                    worst =
-                        worst.max((t.eval(x).unwrap() as f64 - r.eval(x).unwrap() as f64).abs());
+                    worst = worst.max((t.eval(x).unwrap() as f64 - r.eval(x).unwrap() as f64).abs());
                 }
-                assert!(
-                    worst <= tol as f64,
-                    "trial {trial} tol {tol}: deviation {worst}"
-                );
+                assert!(worst <= tol as f64, "trial {trial} tol {tol}: deviation {worst}");
                 assert_eq!(worst, track_deviation(&t, &r, frames));
                 if tol == 0.0 {
                     assert_eq!(worst, 0.0);
@@ -4326,12 +3334,7 @@ mod tests {
         }
         assert!(reduced_any, "the reduction never removed a key");
         // a straight line collapses to its two ends
-        let t = Track::with_keys(&[
-            (0.0, 0.0, Ease::Linear),
-            (1.0, 1.0, Ease::Linear),
-            (2.0, 2.0, Ease::Linear),
-            (3.0, 3.0, Ease::Linear),
-        ]);
+        let t = Track::with_keys(&[(0.0, 0.0, Ease::Linear), (1.0, 1.0, Ease::Linear), (2.0, 2.0, Ease::Linear), (3.0, 3.0, Ease::Linear)]);
         assert_eq!(reduce_track(&t, 1e-4, 4).keys.len(), 2);
         // a negative or NaN tolerance leaves the track alone
         assert_eq!(reduce_track(&t, f32::NAN, 4), t);
@@ -4341,24 +3344,13 @@ mod tests {
     #[test]
     fn project_key_reduction_reports_and_bounds_every_channel() {
         let mut p = crate::demo::project();
-        let before: usize = p
-            .channels
-            .iter()
-            .map(|c| {
-                if let Source::Keys { track } = &c.source {
-                    track.keys.len()
-                } else {
-                    0
-                }
-            })
-            .sum();
+        let before: usize = p.channels.iter().map(|c| if let Source::Keys { track } = &c.source { track.keys.len() } else { 0 }).sum();
         let orig = p.clone();
         let r = reduce_project_keys(&mut p, 0.5);
         assert_eq!(r.keys_before, before);
         assert!(r.keys_after <= r.keys_before && r.max_deviation <= 0.5);
         for (a, b) in orig.channels.iter().zip(&p.channels) {
-            if let (Source::Keys { track: ta }, Source::Keys { track: tb }) = (&a.source, &b.source)
-            {
+            if let (Source::Keys { track: ta }, Source::Keys { track: tb }) = (&a.source, &b.source) {
                 assert!(track_deviation(ta, tb, orig.frames) <= 0.5);
             }
         }
@@ -4367,10 +3359,7 @@ mod tests {
         assert_eq!(z.max_deviation, 0.0);
         let mut e = orig.clone();
         let hi = reduce_project_keys(&mut e, 50.0);
-        assert!(
-            hi.keys_after < hi.keys_before,
-            "a large tolerance must drop keys on the demo"
-        );
+        assert!(hi.keys_after < hi.keys_before, "a large tolerance must drop keys on the demo");
         Engine::new(e).expect("a reduced project still validates");
     }
 
@@ -4379,69 +3368,32 @@ mod tests {
     #[test]
     fn dead_layers_are_dropped_only_when_provably_invisible() {
         let mut p = flat();
-        let mut hidden = Layer::vector(
-            "ghost",
-            vec![VPath::rect("g", 1.0, 1.0, 5.0, 5.0).with_fill("#00ff00")],
-        );
+        let mut hidden = Layer::vector("ghost", vec![VPath::rect("g", 1.0, 1.0, 5.0, 5.0).with_fill("#00ff00")]);
         hidden.visible = false;
-        let mut clear = Layer::vector(
-            "clear",
-            vec![VPath::rect("g", 30.0, 30.0, 5.0, 5.0).with_fill("#00ff00")],
-        );
+        let mut clear = Layer::vector("clear", vec![VPath::rect("g", 30.0, 30.0, 5.0, 5.0).with_fill("#00ff00")]);
         clear.opacity = 0.0;
         // a hidden mask source must stay (it shapes another layer)
-        let mut msrc = Layer::vector(
-            "msrc",
-            vec![VPath::rect("m", 0.0, 0.0, 30.0, 30.0).with_fill("#ffffff")],
-        );
+        let mut msrc = Layer::vector("msrc", vec![VPath::rect("m", 0.0, 0.0, 30.0, 30.0).with_fill("#ffffff")]);
         msrc.visible = false;
-        let mut masked = Layer::vector(
-            "masked",
-            vec![VPath::rect("g", 0.0, 0.0, 64.0, 48.0).with_fill("#ffaa00")],
-        );
-        masked.mask = Some(crate::project::MaskRef {
-            layer: "msrc".into(),
-            invert: false,
-        });
+        let mut masked = Layer::vector("masked", vec![VPath::rect("g", 0.0, 0.0, 64.0, 48.0).with_fill("#ffaa00")]);
+        masked.mask = Some(crate::project::MaskRef { layer: "msrc".into(), invert: false });
         p.layers.extend([hidden, clear, msrc, masked]);
-        p.channels.push(Channel::keys(
-            "ghost",
-            Prop::LayerX,
-            Track::with_keys(&[(0.0, 0.0, Ease::Linear), (5.0, 9.0, Ease::Linear)]),
-        ));
+        p.channels.push(Channel::keys("ghost", Prop::LayerX, Track::with_keys(&[(0.0, 0.0, Ease::Linear), (5.0, 9.0, Ease::Linear)])));
         let before = serde_json::to_string(&p).unwrap();
         let (q, dropped) = drop_dead_layers(&p);
-        assert_eq!(
-            serde_json::to_string(&p).unwrap(),
-            before,
-            "the input is not touched"
-        );
+        assert_eq!(serde_json::to_string(&p).unwrap(), before, "the input is not touched");
         assert_eq!(dropped, vec!["ghost".to_string(), "clear".to_string()]);
-        assert!(
-            q.find_layer("ghost").is_none()
-                && q.find_layer("msrc").is_some()
-                && q.find_layer("masked").is_some()
-        );
-        assert!(
-            !q.channels.iter().any(|c| c.target == "ghost"),
-            "the dead layer's channels go with it"
-        );
+        assert!(q.find_layer("ghost").is_none() && q.find_layer("msrc").is_some() && q.find_layer("masked").is_some());
+        assert!(!q.channels.iter().any(|c| c.target == "ghost"), "the dead layer's channels go with it");
         // pixel-identical picture
         let (e0, e1) = (Engine::new(p).unwrap(), Engine::new(q).unwrap());
-        let o = RasterOptions {
-            scale: 1.0,
-            show_bones: false,
-            transparent: false,
-        };
+        let o = RasterOptions { scale: 1.0, show_bones: false, transparent: false };
         for f in [0.0, 7.0, 15.0] {
             assert_eq!(render_rgba(&e0, f, &o).2, render_rgba(&e1, f, &o).2);
         }
         // nothing to drop: same project back
         let (r, d) = drop_dead_layers(&flat());
-        assert!(
-            d.is_empty()
-                && serde_json::to_string(&r).unwrap() == serde_json::to_string(&flat()).unwrap()
-        );
+        assert!(d.is_empty() && serde_json::to_string(&r).unwrap() == serde_json::to_string(&flat()).unwrap());
     }
 
     // ---- quantiser, GIF, APNG
@@ -4455,15 +3407,7 @@ mod tests {
                         let o = (y * w + x) * 4;
                         let band = ((x + y) / 3) % colours;
                         let moving = x >= k * 2 && x < k * 2 + 6 && (4..10).contains(&y);
-                        let c = if moving {
-                            [250, 250, 20]
-                        } else {
-                            [
-                                (band * 40 % 256) as u8,
-                                (band * 97 % 256) as u8,
-                                (band * 23 % 256) as u8,
-                            ]
-                        };
+                        let c = if moving { [250, 250, 20] } else { [(band * 40 % 256) as u8, (band * 97 % 256) as u8, (band * 23 % 256) as u8] };
                         v[o..o + 3].copy_from_slice(&c);
                     }
                 }
@@ -4478,13 +3422,7 @@ mod tests {
         let refs: Vec<&[u8]> = fr.iter().map(|f| f.as_slice()).collect();
         let pal = median_cut(&refs, 256);
         assert_eq!(pal.len(), 6, "5 band colours + the moving block");
-        let rich: Vec<Vec<u8>> = (0..2)
-            .map(|k| {
-                (0..32 * 32)
-                    .flat_map(|i| [(i * 7 + k) as u8, (i * 13) as u8, (i / 3) as u8, 255])
-                    .collect()
-            })
-            .collect();
+        let rich: Vec<Vec<u8>> = (0..2).map(|k| (0..32 * 32).flat_map(|i| [(i * 7 + k) as u8, (i * 13) as u8, (i / 3) as u8, 255]).collect()).collect();
         let r2: Vec<&[u8]> = rich.iter().map(|f| f.as_slice()).collect();
         for max in [2, 16, 64] {
             let p = median_cut(&r2, max);
@@ -4498,9 +3436,7 @@ mod tests {
             for (f, idx) in rich.iter().zip(&q.frames) {
                 for (p, &i) in f.chunks_exact(4).zip(idx) {
                     let c = q.palette[i as usize];
-                    e += (0..3)
-                        .map(|a| (p[a] as i64 - c[a] as i64).pow(2) as u64)
-                        .sum::<u64>();
+                    e += (0..3).map(|a| (p[a] as i64 - c[a] as i64).pow(2) as u64).sum::<u64>();
                 }
             }
             e
@@ -4514,12 +3450,7 @@ mod tests {
         let q = quantize(&fr, 40, 24, 256, false, true);
         let plain = gif_encode(&q, 12.0, 1, false, 0).unwrap();
         let delta = gif_encode(&q, 12.0, 1, true, 0).unwrap();
-        assert!(
-            delta.len() < plain.len(),
-            "deltas shrink a mostly static clip ({} vs {})",
-            delta.len(),
-            plain.len()
-        );
+        assert!(delta.len() < plain.len(), "deltas shrink a mostly static clip ({} vs {})", delta.len(), plain.len());
         let (w, h, a) = gif_decode(&plain).unwrap();
         let (_, _, b) = gif_decode(&delta).unwrap();
         assert_eq!((w, h, a.len()), (40, 24, 6));
@@ -4529,29 +3460,13 @@ mod tests {
         }
         // lossy delta: per-channel error to the indexed truth is bounded by the tolerance
         let q2 = quantize(&test_frames(40, 24, 6, 40), 40, 24, 64, false, true);
-        let truth: Vec<Vec<u8>> = q2
-            .frames
-            .iter()
-            .map(|f| {
-                f.iter()
-                    .flat_map(|&i| {
-                        let c = q2.palette[i as usize];
-                        [c[0], c[1], c[2], 255]
-                    })
-                    .collect()
-            })
-            .collect();
+        let truth: Vec<Vec<u8>> = q2.frames.iter().map(|f| f.iter().flat_map(|&i| { let c = q2.palette[i as usize]; [c[0], c[1], c[2], 255] }).collect()).collect();
         let (_, _, lossy) = gif_decode(&gif_encode(&q2, 12.0, 1, true, 12).unwrap()).unwrap();
         let mut worst = 0i32;
         for (t, d) in truth.iter().zip(&lossy) {
             for (x, y) in t.chunks_exact(4).zip(d.chunks_exact(4)) {
                 if x[0..3] != [0, 0, 0] || y[0..3] != [0, 0, 0] {
-                    worst = worst.max(
-                        (0..3)
-                            .map(|c| (x[c] as i32 - y[c] as i32).abs())
-                            .max()
-                            .unwrap(),
-                    );
+                    worst = worst.max((0..3).map(|c| (x[c] as i32 - y[c] as i32).abs()).max().unwrap());
                 }
             }
         }
@@ -4565,9 +3480,7 @@ mod tests {
         }
         let qt = quantize(&t, 16, 16, 256, false, true);
         let (_, _, dec) = gif_decode(&gif_encode(&qt, 12.0, 1, false, 0).unwrap()).unwrap();
-        assert!(dec
-            .iter()
-            .all(|f| f.chunks_exact(4).take(40).all(|p| p[3] == 0)));
+        assert!(dec.iter().all(|f| f.chunks_exact(4).take(40).all(|p| p[3] == 0)));
         assert!(gif_decode(b"not a gif").is_err());
     }
 
@@ -4598,8 +3511,7 @@ mod tests {
         for ncol in [2usize, 4, 13, 40] {
             let f = test_frames(17, 9, 3, ncol);
             let q = quantize(&f, 17, 9, 256, false, true);
-            let (_, _, d) =
-                apng_decode(&apng_encode_indexed(&q, 12.0, 1, true, 0).unwrap()).unwrap();
+            let (_, _, d) = apng_decode(&apng_encode_indexed(&q, 12.0, 1, true, 0).unwrap()).unwrap();
             assert_eq!(d, f, "{ncol} colours");
         }
         assert!(apng_decode(b"nope").is_err());
@@ -4632,37 +3544,13 @@ mod tests {
         // the full rung is lossless to 1e-6 and strictly smaller than the raw exporter output
         let full = lottie_reduce(&base, &Settings::full());
         let (b0, b1) = (base.to_string().len(), full.to_string().len());
-        assert!(
-            b1 < b0,
-            "lossless merging and number cleaning shrink the file ({b1} vs {b0})"
-        );
+        assert!(b1 < b0, "lossless merging and number cleaning shrink the file ({b1} vs {b0})");
         let layers = base["layers"].as_array().unwrap();
         type Shapes = Vec<Vec<Vec<(bool, Vec<PNode>)>>>;
         let read_all = |doc: &Value| -> Shapes {
-            doc["layers"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .map(|l| {
-                    l.get("shapes")
-                        .and_then(Value::as_array)
-                        .into_iter()
-                        .flatten()
-                        .flat_map(|g| {
-                            g["it"]
-                                .as_array()
-                                .unwrap()
-                                .iter()
-                                .filter(|i| i["ty"] == "sh")
-                        })
-                        .map(|sh| {
-                            (0..n)
-                                .map(|f| read_shape_at(&sh["ks"], f).unwrap())
-                                .collect()
-                        })
-                        .collect()
-                })
-                .collect()
+            doc["layers"].as_array().unwrap().iter().map(|l| {
+                l.get("shapes").and_then(Value::as_array).into_iter().flatten().flat_map(|g| g["it"].as_array().unwrap().iter().filter(|i| i["ty"] == "sh")).map(|sh| (0..n).map(|f| read_shape_at(&sh["ks"], f).unwrap()).collect()).collect()
+            }).collect()
         };
         let want = read_all(&base);
         let got = read_all(&full);
@@ -4674,10 +3562,7 @@ mod tests {
                         assert_eq!((sa.0, sa.1.len()), (sb.0, sb.1.len()));
                         for (x, y) in sa.1.iter().zip(&sb.1) {
                             for c in 0..2 {
-                                worst = worst
-                                    .max((x.p[c] - y.p[c]).abs())
-                                    .max((x.i[c] - y.i[c]).abs())
-                                    .max((x.o[c] - y.o[c]).abs());
+                                worst = worst.max((x.p[c] - y.p[c]).abs()).max((x.i[c] - y.i[c]).abs()).max((x.o[c] - y.o[c]).abs());
                             }
                         }
                     }
@@ -4685,27 +3570,16 @@ mod tests {
             }
             worst
         };
-        assert!(
-            dev(&want, &got) <= 5.1e-7,
-            "full rung deviation {}",
-            dev(&want, &got)
-        );
+        assert!(dev(&want, &got) <= 5.1e-7, "full rung deviation {}", dev(&want, &got));
         assert!(!layers.is_empty() && !map.is_empty());
         // precision: every non-integer number in the shape data has at most d decimals and moved by <= 0.5e-d
         for d in [0u8, 1, 2, 3] {
-            let s = Settings {
-                decimals: d,
-                ..Settings::full()
-            };
+            let s = Settings { decimals: d, ..Settings::full() };
             let doc = lottie_reduce(&base, &s);
             let text = doc.to_string();
             let m = 10f64.powi(d as i32);
             let got = read_all(&doc);
-            assert!(
-                dev(&want, &got) <= 0.5 / m + 1e-9,
-                "d={d}: {}",
-                dev(&want, &got)
-            );
+            assert!(dev(&want, &got) <= 0.5 / m + 1e-9, "d={d}: {}", dev(&want, &got));
             for (_, v) in got.iter().flatten().flatten() {
                 for nd in v {
                     for x in [nd.p[0], nd.p[1], nd.i[0], nd.i[1], nd.o[0], nd.o[1]] {
@@ -4719,13 +3593,7 @@ mod tests {
         let count = |doc: &Value| doc.to_string().matches("\"t\":").count();
         let mut last = count(&full);
         for tol in [0.05f32, 0.5, 2.0] {
-            let doc = lottie_reduce(
-                &base,
-                &Settings {
-                    key_tol: tol,
-                    ..Settings::full()
-                },
-            );
+            let doc = lottie_reduce(&base, &Settings { key_tol: tol, ..Settings::full() });
             let got = read_all(&doc);
             let d = dev(&want, &got);
             assert!(d <= tol as f64 + 1e-5, "tol {tol}: deviation {d}");
@@ -4734,18 +3602,9 @@ mod tests {
             last = c;
             let _: Value = serde_json::from_str(&doc.to_string()).unwrap();
         }
-        assert!(
-            last < count(&full),
-            "a 2 unit tolerance must drop keyframes on the demo"
-        );
+        assert!(last < count(&full), "a 2 unit tolerance must drop keyframes on the demo");
         // frame decimation: odd frames show the even frame before them (hold)
-        let dec = lottie_reduce(
-            &base,
-            &Settings {
-                frame_step: 2,
-                ..Settings::full()
-            },
-        );
+        let dec = lottie_reduce(&base, &Settings { frame_step: 2, ..Settings::full() });
         let got = read_all(&dec);
         for (la, lb) in want.iter().zip(&got) {
             for (ta, tb) in la.iter().zip(lb) {
@@ -4754,12 +3613,7 @@ mod tests {
                     assert_eq!((a.0, a.1.len()), (b.0, b.1.len()));
                     for (x, y) in a.1.iter().zip(&b.1) {
                         for c in 0..2 {
-                            assert!(
-                                (x.p[c] - y.p[c]).abs() <= 5.1e-7
-                                    && (x.i[c] - y.i[c]).abs() <= 5.1e-7
-                                    && (x.o[c] - y.o[c]).abs() <= 5.1e-7,
-                                "frame {f}"
-                            );
+                            assert!((x.p[c] - y.p[c]).abs() <= 5.1e-7 && (x.i[c] - y.i[c]).abs() <= 5.1e-7 && (x.o[c] - y.o[c]).abs() <= 5.1e-7, "frame {f}");
                         }
                     }
                 }
@@ -4774,21 +3628,13 @@ mod tests {
         let mut f = Fit::new(&p, o).unwrap();
         let c = f.eval(&chain(Format::Lottie)[0]);
         assert!(c.valid, "{:?}", c.error);
-        assert!(
-            c.ssim_min > 0.98,
-            "baked Lottie read back vs the engine: {}",
-            c.ssim_min
-        );
+        assert!(c.ssim_min > 0.98, "baked Lottie read back vs the engine: {}", c.ssim_min);
         // constant tracks become static and layer opacity too
         let (doc, _) = crate::export::lottie_json_mapped(&Engine::new(p).unwrap());
         let red = lottie_reduce(&doc, &Settings::full());
         let kf = red["layers"][0]["shapes"][0]["it"][0]["ks"].clone();
         assert!(kf["a"] == 1 || kf["a"] == 0);
-        assert!(
-            red["layers"][0]["ks"]["o"]["a"] == 0,
-            "constant opacity is static: {}",
-            red["layers"][0]["ks"]["o"]
-        );
+        assert!(red["layers"][0]["ks"]["o"]["a"] == 0, "constant opacity is static: {}", red["layers"][0]["ks"]["o"]);
     }
 
     // ---- HTML
@@ -4800,11 +3646,7 @@ mod tests {
         let mut f = Fit::new(&p, o).unwrap();
         let (bytes, imgs) = f.produce(&Settings::full()).unwrap();
         let h = String::from_utf8(bytes).unwrap();
-        assert!(
-            h.starts_with("<!doctype html>")
-                && h.contains("requestAnimationFrame")
-                && h.contains("<svg")
-        );
+        assert!(h.starts_with("<!doctype html>") && h.contains("requestAnimationFrame") && h.contains("<svg"));
         assert!(!h.contains("src=\"http") && !h.contains("href=\"http"));
         assert_eq!(h.matches("</script>").count(), 1);
         assert_eq!(imgs.len(), 2);
@@ -4814,27 +3656,11 @@ mod tests {
         let mut f = Fit::new(&still, opts(Format::Html, usize::MAX)).unwrap();
         let (bytes, _) = f.produce(&Settings::full()).unwrap();
         let h = String::from_utf8(bytes).unwrap();
-        assert_eq!(
-            h.matches("<svg").count(),
-            1,
-            "identical frames are stored once"
-        );
-        assert!(
-            h.contains(",X=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]"),
-            "{}",
-            &h[h.find("const F").unwrap_or(0)..]
-                .chars()
-                .take(40)
-                .collect::<String>()
-        );
+        assert_eq!(h.matches("<svg").count(), 1, "identical frames are stored once");
+        assert!(h.contains(",X=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]"), "{}", &h[h.find("const F").unwrap_or(0)..].chars().take(40).collect::<String>());
         // step halves the displayed frames
         let mut f = Fit::new(&p, opts(Format::Html, usize::MAX)).unwrap();
-        let (bytes, _) = f
-            .produce(&Settings {
-                frame_step: 4,
-                ..Settings::full()
-            })
-            .unwrap();
+        let (bytes, _) = f.produce(&Settings { frame_step: 4, ..Settings::full() }).unwrap();
         assert_eq!(String::from_utf8(bytes).unwrap().matches("<svg").count(), 4);
     }
 
@@ -4846,37 +3672,18 @@ mod tests {
         let mut f = Fit::new(&p, opts(Format::Gif, 20_000)).unwrap();
         let ch = f.adaptive_chain();
         let ax = axes(Format::Gif);
-        assert_eq!(
-            ch.len(),
-            1 + ax
-                .iter()
-                .filter(|a| a.in_chain)
-                .map(|a| a.values.len() - 1)
-                .sum::<usize>()
-        );
+        assert_eq!(ch.len(), 1 + ax.iter().filter(|a| a.in_chain).map(|a| a.values.len() - 1).sum::<usize>());
         assert!(ch[0].iter().all(|&x| x == 0));
-        assert_eq!(
-            *ch.last().unwrap(),
-            ax.iter()
-                .map(|a| if a.in_chain { a.values.len() - 1 } else { 0 })
-                .collect::<Vec<_>>()
-        );
+        assert_eq!(*ch.last().unwrap(), ax.iter().map(|a| if a.in_chain { a.values.len() - 1 } else { 0 }).collect::<Vec<_>>());
         for w in ch.windows(2) {
-            let d: Vec<i64> = w[1]
-                .iter()
-                .zip(&w[0])
-                .map(|(a, b)| *a as i64 - *b as i64)
-                .collect();
+            let d: Vec<i64> = w[1].iter().zip(&w[0]).map(|(a, b)| *a as i64 - *b as i64).collect();
             assert!(d.iter().filter(|&&x| x != 0).count() == 1 && d.iter().sum::<i64>() == 1);
         }
         // deterministic
         assert_eq!(ch, f.adaptive_chain());
         // and a descent-search report says which chain it bisected
         let r = fit(&p, opts(Format::Gif, 6_000)).unwrap();
-        assert!(
-            ["static", "adaptive"].contains(&r.chain_kind)
-                && r.to_json()["search"]["chain_kind"].is_string()
-        );
+        assert!(["static", "adaptive"].contains(&r.chain_kind) && r.to_json()["search"]["chain_kind"].is_string());
     }
 
     #[test]
@@ -4884,30 +3691,15 @@ mod tests {
         let p = small_demo();
         for fmt in [Format::Lottie, Format::Html, Format::Project] {
             let s = chain_sizes(&p, fmt);
-            assert!(
-                s.iter().all(|&b| b < usize::MAX),
-                "{fmt:?}: every rung must build"
-            );
+            assert!(s.iter().all(|&b| b < usize::MAX), "{fmt:?}: every rung must build");
             let factor = if fmt == Format::Project { 1 } else { 2 };
-            assert!(
-                s.last().unwrap() * factor < s[0],
-                "{fmt:?}: the floor is smaller than the top ({} vs {})",
-                s.last().unwrap(),
-                s[0]
-            );
+            assert!(s.last().unwrap() * factor < s[0], "{fmt:?}: the floor is smaller than the top ({} vs {})", s.last().unwrap(), s[0]);
             // near-monotone: any increase is below 2 % of the previous rung (the search checks and falls back)
             for w in s.windows(2) {
-                assert!(
-                    w[1] as f64 <= w[0] as f64 * 1.02,
-                    "{fmt:?}: size grew along the ladder: {s:?}"
-                );
+                assert!(w[1] as f64 <= w[0] as f64 * 1.02, "{fmt:?}: size grew along the ladder: {s:?}");
             }
             let ups = s.windows(2).filter(|w| w[1] > w[0]).count();
-            assert!(
-                ups * 4 <= s.len(),
-                "{fmt:?}: {ups} increases in {} rungs: {s:?}",
-                s.len()
-            );
+            assert!(ups * 4 <= s.len(), "{fmt:?}: {ups} increases in {} rungs: {s:?}", s.len());
         }
         let g = flat();
         for fmt in [Format::Gif, Format::Apng] {
@@ -4924,28 +3716,16 @@ mod tests {
     #[test]
     fn bisection_finds_the_same_rung_as_a_brute_force_scan() {
         let (mut bisected, mut scanned) = (0, 0);
-        for (p, fmt) in [
-            (small_demo(), Format::Lottie),
-            (small_demo(), Format::Html),
-            (small_demo(), Format::Project),
-            (flat(), Format::Gif),
-        ] {
+        for (p, fmt) in [(small_demo(), Format::Lottie), (small_demo(), Format::Html), (small_demo(), Format::Project), (flat(), Format::Gif)] {
             let sizes = chain_sizes(&p, fmt);
             let mut sorted = sizes.clone();
             sorted.sort();
-            for (bi, budget) in [sorted[sorted.len() / 4], sorted[sorted.len() * 3 / 4]]
-                .into_iter()
-                .enumerate()
-            {
+            for (bi, budget) in [sorted[sorted.len() / 4], sorted[sorted.len() * 3 / 4]].into_iter().enumerate() {
                 let brute = sizes.iter().position(|&s| s <= budget).unwrap();
                 let mut o = opts(fmt, budget);
                 o.search = Search::Ladder;
                 let plain = fit(&p, o.clone()).unwrap();
-                assert_eq!(
-                    plain.chosen.pos,
-                    chain(fmt)[brute],
-                    "{fmt:?} budget {budget} (no audit)"
-                );
+                assert_eq!(plain.chosen.pos, chain(fmt)[brute], "{fmt:?} budget {budget} (no audit)");
                 o.audit = bi == 0;
                 let r = fit(&p, o).unwrap();
                 assert!(r.met, "{fmt:?} budget {budget}");
@@ -4954,26 +3734,15 @@ mod tests {
                 assert!(r.chosen.budgeted <= budget);
                 assert_eq!(r.bytes.len(), r.chosen.raw);
                 if plain.monotone && !plain.fallback_linear {
-                    assert!(
-                        plain.probes.len() < sizes.len(),
-                        "bisection probes fewer rungs than the scan ({} of {})",
-                        plain.probes.len(),
-                        sizes.len()
-                    );
+                    assert!(plain.probes.len() < sizes.len(), "bisection probes fewer rungs than the scan ({} of {})", plain.probes.len(), sizes.len());
                     bisected += 1;
                 } else {
-                    assert!(
-                        plain.fallback_linear,
-                        "a non-monotone chain must trigger the linear scan"
-                    );
+                    assert!(plain.fallback_linear, "a non-monotone chain must trigger the linear scan");
                     scanned += 1;
                 }
             }
         }
-        assert!(
-            bisected > 0,
-            "at least one chain must be searched by bisection (scanned {scanned})"
-        );
+        assert!(bisected > 0, "at least one chain must be searched by bisection (scanned {scanned})");
     }
 
     #[test]
@@ -4989,12 +3758,7 @@ mod tests {
         lo.search = Search::Descent;
         let b = fit(&p, lo.clone()).unwrap();
         assert!(b.chosen.budgeted <= budget && a.chosen.budgeted <= budget);
-        assert!(
-            b.chosen.ssim_mean >= a.chosen.ssim_mean - 1e-12,
-            "descent {} vs ladder {}",
-            b.chosen.ssim_mean,
-            a.chosen.ssim_mean
-        );
+        assert!(b.chosen.ssim_mean >= a.chosen.ssim_mean - 1e-12, "descent {} vs ladder {}", b.chosen.ssim_mean, a.chosen.ssim_mean);
     }
 
     #[test]
@@ -5012,28 +3776,16 @@ mod tests {
         let front = pareto_front(&g.all);
         assert!(!front.is_empty());
         for w in front.windows(2) {
-            assert!(
-                g.all[w[1]].budgeted >= g.all[w[0]].budgeted
-                    && g.all[w[1]].ssim_mean > g.all[w[0]].ssim_mean
-            );
+            assert!(g.all[w[1]].budgeted >= g.all[w[0]].budgeted && g.all[w[1]].ssim_mean > g.all[w[0]].ssim_mean);
         }
         // nothing outside the front dominates a front member
         for &i in &front {
-            assert!(!g.all.iter().any(|c| c.valid
-                && c.budgeted < g.all[i].budgeted
-                && c.ssim_mean > g.all[i].ssim_mean + 1e-12));
+            assert!(!g.all.iter().any(|c| c.valid && c.budgeted < g.all[i].budgeted && c.ssim_mean > g.all[i].ssim_mean + 1e-12));
         }
         let csv = g.pareto_csv();
         assert_eq!(csv.lines().count(), g.all.len() + 1);
-        assert!(
-            csv.lines().next().unwrap().starts_with("position,decimals") && csv.contains(",1,"),
-            "front rows are flagged"
-        );
-        assert_eq!(
-            csv.lines().filter(|l| l.ends_with(",1")).count(),
-            1,
-            "exactly one chosen row"
-        );
+        assert!(csv.lines().next().unwrap().starts_with("position,decimals") && csv.contains(",1,"), "front rows are flagged");
+        assert_eq!(csv.lines().filter(|l| l.ends_with(",1")).count(), 1, "exactly one chosen row");
     }
 
     #[test]
@@ -5042,18 +3794,10 @@ mod tests {
         for fmt in [Format::Lottie, Format::Html] {
             let r = fit(&p, opts(fmt, 10)).unwrap();
             assert!(!r.met);
-            assert!(
-                r.reason.as_deref().unwrap().contains("floor"),
-                "{:?}",
-                r.reason
-            );
+            assert!(r.reason.as_deref().unwrap().contains("floor"), "{:?}", r.reason);
             let floor = chain(fmt).last().unwrap().clone();
             assert_eq!(r.chosen.pos, floor, "the smallest export is the floor rung");
-            assert_eq!(
-                r.floors.len(),
-                axes(fmt).iter().filter(|a| a.in_chain).count(),
-                "every knob is at its floor"
-            );
+            assert_eq!(r.floors.len(), axes(fmt).iter().filter(|a| a.in_chain).count(), "every knob is at its floor");
             assert!(r.chosen.budgeted > 10 && r.bytes.len() == r.chosen.raw);
             let j = r.to_json();
             assert_eq!(j["met"], false);
@@ -5079,16 +3823,8 @@ mod tests {
         o.max_seconds = 0.0;
         let full = fit(&p, o).unwrap();
         assert!(!full.time_limited);
-        assert!(
-            full.evaluations >= limited.evaluations,
-            "{} vs {}",
-            full.evaluations,
-            limited.evaluations
-        );
-        assert!(
-            full.quality.ssim_mean >= limited.quality.ssim_mean - 1e-9,
-            "the unbounded search is at least as good"
-        );
+        assert!(full.evaluations >= limited.evaluations, "{} vs {}", full.evaluations, limited.evaluations);
+        assert!(full.quality.ssim_mean >= limited.quality.ssim_mean - 1e-9, "the unbounded search is at least as good");
     }
 
     /// M3 (wave 4): `max_seconds` used to be checked only between whole candidates, so a GIF search overshot it by
@@ -5115,15 +3851,8 @@ mod tests {
                             assert!(r.chosen.budgeted <= budget);
                         }
                         if r.evaluations > expire {
-                            assert!(
-                                r.time_limited,
-                                "{search:?}/{expire}: the budget ran out but is not reported"
-                            );
-                            assert!(
-                                r.reason.as_deref().unwrap_or("").contains("time budget") || r.met,
-                                "{:?}",
-                                r.reason
-                            );
+                            assert!(r.time_limited, "{search:?}/{expire}: the budget ran out but is not reported");
+                            assert!(r.reason.as_deref().unwrap_or("").contains("time budget") || r.met, "{:?}", r.reason);
                         }
                     }
                     Err(e) => assert!(e.contains("budget"), "{search:?}/{expire}: {e}"),
@@ -5142,16 +3871,9 @@ mod tests {
         let t = crate::clock::Stamp::now();
         let r = fit(&p, o);
         let took = t.elapsed().as_secs_f64();
-        assert!(
-            took < budget_s * 1.5 + 3.0,
-            "took {took} s for a {budget_s} s budget"
-        );
+        assert!(took < budget_s * 1.5 + 3.0, "took {took} s for a {budget_s} s budget");
         if let (Ok(r), true) = (r, took > budget_s) {
-            assert!(
-                r.time_limited && r.reason.as_deref().unwrap_or("").contains("time budget"),
-                "{:?}",
-                r.reason
-            );
+            assert!(r.time_limited && r.reason.as_deref().unwrap_or("").contains("time budget"), "{:?}", r.reason);
         }
     }
 
@@ -5167,11 +3889,7 @@ mod tests {
         o.min_ssim = Some(1.0);
         o.search = Search::Ladder;
         let r = fit(&p, o).unwrap();
-        assert!(
-            !r.met && r.reason.as_deref().unwrap().contains("min-ssim"),
-            "{:?}",
-            r.reason
-        );
+        assert!(!r.met && r.reason.as_deref().unwrap().contains("min-ssim"), "{:?}", r.reason);
         // an achievable floor is honoured
         let mut o = opts(Format::Lottie, budget);
         o.min_ssim = Some((free.quality.ssim_min - 0.01).max(0.0));
@@ -5191,14 +3909,8 @@ mod tests {
         o.search = Search::Ladder;
         let r = fit(&p, o).unwrap();
         assert!(r.met, "{:?}", r.reason);
-        assert!(
-            r.chosen.budgeted <= raw_top / 6
-                && r.chosen.budgeted >= r.chosen.gzip + r.chosen.gzip / 100 + 32
-        );
-        assert!(
-            r.chosen.raw > r.chosen.gzip,
-            "the raw file is bigger than the budget while its gzip fits"
-        );
+        assert!(r.chosen.budgeted <= raw_top / 6 && r.chosen.budgeted >= r.chosen.gzip + r.chosen.gzip / 100 + 32);
+        assert!(r.chosen.raw > r.chosen.gzip, "the raw file is bigger than the budget while its gzip fits");
         assert_eq!(gzip_len(&r.bytes), r.chosen.gzip);
         assert_eq!(r.to_json()["measure"], "gzip");
     }
@@ -5214,11 +3926,7 @@ mod tests {
         assert_eq!(a.bytes, b.bytes);
         assert_eq!(a.to_json(), b.to_json());
         assert_eq!(a.pareto_csv(), b.pareto_csv());
-        assert_eq!(
-            serde_json::to_string(&p).unwrap(),
-            before,
-            "source project untouched"
-        );
+        assert_eq!(serde_json::to_string(&p).unwrap(), before, "source project untouched");
     }
 
     #[test]
@@ -5230,61 +3938,22 @@ mod tests {
         let r = fit(&p, o).unwrap();
         let j = r.to_json();
         assert_eq!(j["schema"], SCHEMA);
-        for k in [
-            "format",
-            "budget_bytes",
-            "measure",
-            "met",
-            "reason",
-            "search",
-            "chosen",
-            "quality",
-            "baseline",
-            "dead_layers",
-            "axes",
-        ] {
+        for k in ["format", "budget_bytes", "measure", "met", "reason", "search", "chosen", "quality", "baseline", "dead_layers", "axes"] {
             assert!(j.get(k).is_some(), "missing {k}");
         }
-        for k in [
-            "strategy",
-            "evaluations",
-            "chain_length",
-            "probes",
-            "monotone",
-            "fallback_linear",
-            "audit_agrees",
-        ] {
+        for k in ["strategy", "evaluations", "chain_length", "probes", "monotone", "fallback_linear", "audit_agrees"] {
             assert!(j["search"].get(k).is_some(), "search.{k}");
         }
-        for k in [
-            "position",
-            "settings",
-            "raw_bytes",
-            "gzip_bytes",
-            "budgeted_bytes",
-            "floors",
-        ] {
+        for k in ["position", "settings", "raw_bytes", "gzip_bytes", "budgeted_bytes", "floors"] {
             assert!(j["chosen"].get(k).is_some(), "chosen.{k}");
         }
-        for k in [
-            "metric",
-            "sample_frames",
-            "ssim_mean",
-            "ssim_min",
-            "worst_frame",
-            "max_ciede2000",
-            "per_frame",
-            "min_ssim_required",
-        ] {
+        for k in ["metric", "sample_frames", "ssim_mean", "ssim_min", "worst_frame", "max_ciede2000", "per_frame", "min_ssim_required"] {
             assert!(j["quality"].get(k).is_some(), "quality.{k}");
         }
         assert!(j["quality"]["per_frame"].as_array().unwrap().len() == r.sample_frames.len());
         assert!(j["baseline"]["raw_bytes"].as_u64().unwrap() > 0);
         assert_eq!(j["format"], "gif");
-        assert!(
-            j["quality"]["ssim_min"].as_f64().unwrap()
-                <= j["quality"]["ssim_mean"].as_f64().unwrap() + 1e-12
-        );
+        assert!(j["quality"]["ssim_min"].as_f64().unwrap() <= j["quality"]["ssim_mean"].as_f64().unwrap() + 1e-12);
     }
 
     #[test]
@@ -5295,12 +3964,7 @@ mod tests {
         let top = f.eval(&ch[0]);
         let low = f.eval(ch.last().unwrap());
         assert!(top.valid && low.valid);
-        assert!(
-            top.ssim_mean > low.ssim_mean && top.ssim_mean > 0.9,
-            "top {} low {}",
-            top.ssim_mean,
-            low.ssim_mean
-        );
+        assert!(top.ssim_mean > low.ssim_mean && top.ssim_mean > 0.9, "top {} low {}", top.ssim_mean, low.ssim_mean);
         assert!(low.budgeted < top.budgeted);
     }
 
@@ -5323,23 +3987,15 @@ mod tests {
         let p = small_demo();
         let r = size_report(&p, 0.05).unwrap();
         assert!(r["project"]["json_bytes"].as_u64().unwrap() > 1000);
-        assert!(
-            !r["project"]["layers"].as_array().unwrap().is_empty()
-                && !r["project"]["channels"].as_array().unwrap().is_empty()
-        );
+        assert!(!r["project"]["layers"].as_array().unwrap().is_empty() && !r["project"]["channels"].as_array().unwrap().is_empty());
         assert!(r["lottie"]["raw_bytes"].as_u64().unwrap() > 0 && r["html"]["frames"] == 8);
         assert!(!r["html"]["layers"].as_array().unwrap().is_empty());
         let lj = r["project"]["layers"].as_array().unwrap();
         for w in lj.windows(2) {
-            assert!(
-                w[0]["json_bytes"].as_u64() >= w[1]["json_bytes"].as_u64(),
-                "sorted by size"
-            );
+            assert!(w[0]["json_bytes"].as_u64() >= w[1]["json_bytes"].as_u64(), "sorted by size");
         }
         let t = size_report_text(&r, 3);
-        assert!(
-            t.contains("project file") && t.contains("baked Lottie") && t.contains("HTML page")
-        );
+        assert!(t.contains("project file") && t.contains("baked Lottie") && t.contains("HTML page"));
     }
 
     #[test]
@@ -5350,11 +4006,7 @@ mod tests {
         assert!(Fit::new(&p, o).is_err());
         assert!(Measure::parse("zip").is_err() && Search::parse("random").is_err());
         let mut bad = flat();
-        bad.channels.push(Channel::keys(
-            "nobody",
-            Prop::LayerX,
-            Track::with_keys(&[(0.0, 0.0, Ease::Linear)]),
-        ));
+        bad.channels.push(Channel::keys("nobody", Prop::LayerX, Track::with_keys(&[(0.0, 0.0, Ease::Linear)])));
         assert!(Fit::new(&bad, FitOptions::new(Format::Lottie, 1000)).is_err());
         assert_eq!(sample_list(1, 8), vec![0]);
         assert_eq!(sample_list(10, 3), vec![0, 5, 9]);

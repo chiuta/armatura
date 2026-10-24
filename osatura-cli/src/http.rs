@@ -35,10 +35,7 @@ pub struct HttpReq {
 
 impl HttpReq {
     pub fn header(&self, name: &str) -> Option<&str> {
-        self.headers
-            .iter()
-            .find(|(k, _)| k.eq_ignore_ascii_case(name))
-            .map(|(_, v)| v.as_str())
+        self.headers.iter().find(|(k, _)| k.eq_ignore_ascii_case(name)).map(|(_, v)| v.as_str())
     }
 }
 
@@ -52,18 +49,10 @@ pub struct Resp {
 
 impl Resp {
     pub fn from_string(s: impl Into<String>) -> Resp {
-        Resp {
-            status: 200,
-            headers: vec![("Content-Type".into(), "text/plain; charset=utf-8".into())],
-            body: s.into().into_bytes(),
-        }
+        Resp { status: 200, headers: vec![("Content-Type".into(), "text/plain; charset=utf-8".into())], body: s.into().into_bytes() }
     }
     pub fn from_data(b: Vec<u8>) -> Resp {
-        Resp {
-            status: 200,
-            headers: vec![("Content-Type".into(), "application/octet-stream".into())],
-            body: b,
-        }
+        Resp { status: 200, headers: vec![("Content-Type".into(), "application/octet-stream".into())], body: b }
     }
     /// Sets a header, replacing an earlier one of the same name.
     pub fn with_header(mut self, h: (String, String)) -> Resp {
@@ -95,14 +84,7 @@ pub struct Limits {
 
 impl Default for Limits {
     fn default() -> Limits {
-        Limits {
-            head_deadline: Duration::from_secs(10),
-            body_deadline: Duration::from_secs(20),
-            write_timeout: Duration::from_secs(10),
-            max_head: 16 << 10,
-            max_body: 32 << 20,
-            max_conns: 128,
-        }
+        Limits { head_deadline: Duration::from_secs(10), body_deadline: Duration::from_secs(20), write_timeout: Duration::from_secs(10), max_head: 16 << 10, max_body: 32 << 20, max_conns: 128 }
     }
 }
 
@@ -131,12 +113,7 @@ fn reason(c: u16) -> &'static str {
 }
 
 fn security_headers() -> [(&'static str, &'static str); 4] {
-    [
-        ("Content-Security-Policy", CSP),
-        ("X-Content-Type-Options", "nosniff"),
-        ("X-Frame-Options", "DENY"),
-        ("Referrer-Policy", "no-referrer"),
-    ]
+    [("Content-Security-Policy", CSP), ("X-Content-Type-Options", "nosniff"), ("X-Frame-Options", "DENY"), ("Referrer-Policy", "no-referrer")]
 }
 
 /// The bytes of a response head + body (what is written to the socket).
@@ -158,13 +135,7 @@ pub fn encode(r: &Resp) -> Vec<u8> {
     if !have("cache-control") {
         out.extend_from_slice(b"Cache-Control: no-store\r\n");
     }
-    out.extend_from_slice(
-        format!(
-            "Content-Length: {}\r\nConnection: close\r\n\r\n",
-            r.body.len()
-        )
-        .as_bytes(),
-    );
+    out.extend_from_slice(format!("Content-Length: {}\r\nConnection: close\r\n\r\n", r.body.len()).as_bytes());
     out.extend_from_slice(&r.body);
     out
 }
@@ -184,11 +155,7 @@ pub fn parse_head(head: &[u8]) -> Result<(Method, String, Vec<Header>), Fail> {
     let mut lines = text.split("\r\n");
     let line = lines.next().unwrap_or("");
     let mut it = line.split(' ');
-    let (m, u, v) = (
-        it.next().unwrap_or(""),
-        it.next().unwrap_or(""),
-        it.next().unwrap_or(""),
-    );
+    let (m, u, v) = (it.next().unwrap_or(""), it.next().unwrap_or(""), it.next().unwrap_or(""));
     if it.next().is_some() || m.is_empty() || u.is_empty() {
         return Err((400, "bad request line"));
     }
@@ -205,14 +172,8 @@ pub fn parse_head(head: &[u8]) -> Result<(Method, String, Vec<Header>), Fail> {
     }
     let mut headers = Vec::new();
     for l in lines {
-        let Some((k, val)) = l.split_once(':') else {
-            return Err((400, "bad header line"));
-        };
-        if k.is_empty()
-            || !k
-                .bytes()
-                .all(|c| c.is_ascii_alphanumeric() || b"-_!#$%&'*+.^`|~".contains(&c))
-        {
+        let Some((k, val)) = l.split_once(':') else { return Err((400, "bad header line")) };
+        if k.is_empty() || !k.bytes().all(|c| c.is_ascii_alphanumeric() || b"-_!#$%&'*+.^`|~".contains(&c)) {
             return Err((400, "bad header name"));
         }
         if headers.len() >= 100 {
@@ -232,15 +193,11 @@ fn set_left(s: &TcpStream, deadline: Instant) -> Result<(), Fail> {
     if left.is_zero() {
         return Err((408, "request timed out"));
     }
-    s.set_read_timeout(Some(left))
-        .map_err(|_| (500, "socket error"))
+    s.set_read_timeout(Some(left)).map_err(|_| (500, "socket error"))
 }
 
 fn timed_out(e: &std::io::Error) -> bool {
-    matches!(
-        e.kind(),
-        std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut
-    )
+    matches!(e.kind(), std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut)
 }
 
 /// Read one request from `s` under the deadlines and size limits of `lim`.
@@ -268,13 +225,7 @@ pub fn read_request(s: &mut TcpStream, lim: &Limits) -> Result<HttpReq, Fail> {
     }
     let (method, url, headers) = parse_head(&buf[..end])?;
     let mut body: Vec<u8> = buf[end + 4..].to_vec();
-    let get = |n: &str| -> Vec<&str> {
-        headers
-            .iter()
-            .filter(|(k, _)| k.eq_ignore_ascii_case(n))
-            .map(|(_, v)| v.as_str())
-            .collect()
-    };
+    let get = |n: &str| -> Vec<&str> { headers.iter().filter(|(k, _)| k.eq_ignore_ascii_case(n)).map(|(_, v)| v.as_str()).collect() };
     if get("host").len() > 1 {
         // two Host headers: proxies and this server could disagree on which one is meant (host-confusion attacks)
         return Err((400, "duplicate Host header"));
@@ -286,9 +237,7 @@ pub fn read_request(s: &mut TcpStream, lim: &Limits) -> Result<HttpReq, Fail> {
     let len: usize = match cls.as_slice() {
         [] => 0,
         [one] => one.parse().map_err(|_| (400, "bad Content-Length"))?,
-        many if many.iter().all(|x| x == &many[0]) => {
-            many[0].parse().map_err(|_| (400, "bad Content-Length"))?
-        }
+        many if many.iter().all(|x| x == &many[0]) => many[0].parse().map_err(|_| (400, "bad Content-Length"))?,
         _ => return Err((400, "conflicting Content-Length headers")),
     };
     if len > lim.max_body {
@@ -297,11 +246,7 @@ pub fn read_request(s: &mut TcpStream, lim: &Limits) -> Result<HttpReq, Fail> {
     if method == Method::Get && len > 0 {
         return Err((400, "a GET request must not have a body"));
     }
-    if get("expect")
-        .iter()
-        .any(|v| v.eq_ignore_ascii_case("100-continue"))
-        && body.len() < len
-    {
+    if get("expect").iter().any(|v| v.eq_ignore_ascii_case("100-continue")) && body.len() < len {
         let _ = s.write_all(b"HTTP/1.1 100 Continue\r\n\r\n");
     }
     let bt = Instant::now() + lim.body_deadline;
@@ -316,17 +261,8 @@ pub fn read_request(s: &mut TcpStream, lim: &Limits) -> Result<HttpReq, Fail> {
         }
     }
     body.truncate(len);
-    let peer = s
-        .peer_addr()
-        .map(|a| a.ip().to_string())
-        .unwrap_or_default();
-    Ok(HttpReq {
-        method,
-        url,
-        headers,
-        body,
-        peer,
-    })
+    let peer = s.peer_addr().map(|a| a.ip().to_string()).unwrap_or_default();
+    Ok(HttpReq { method, url, headers, body, peer })
 }
 
 fn write_all_timeout(s: &mut TcpStream, b: &[u8], lim: &Limits) -> bool {
@@ -361,11 +297,7 @@ fn serve_conn(mut s: TcpStream, lim: Limits, jobs: mpsc::Sender<Job>) {
     let req = match read_request(&mut s, &lim) {
         Ok(r) => r,
         Err((code, msg)) => {
-            write_all_timeout(
-                &mut s,
-                &encode(&Resp::from_string(msg).with_status_code(code)),
-                &lim,
-            );
+            write_all_timeout(&mut s, &encode(&Resp::from_string(msg).with_status_code(code)), &lim);
             finish(s, true);
             return;
         }
@@ -422,22 +354,15 @@ pub fn serve_loop(listener: TcpListener, lim: Limits, mut handler: impl FnMut(Ht
             let Ok(mut s) = conn else { continue };
             if l2.fetch_add(1, Ordering::SeqCst) >= lim.max_conns {
                 l2.fetch_sub(1, Ordering::SeqCst);
-                write_all_timeout(
-                    &mut s,
-                    &encode(&Resp::from_string("too many connections").with_status_code(503)),
-                    &lim,
-                );
+                write_all_timeout(&mut s, &encode(&Resp::from_string("too many connections").with_status_code(503)), &lim);
                 continue;
             }
             let slot = Slot(l2.clone());
             let jt = jobs_tx.clone();
-            if std::thread::Builder::new()
-                .spawn(move || {
-                    let _slot = slot;
-                    serve_conn(s, lim, jt);
-                })
-                .is_err()
-            {
+            if std::thread::Builder::new().spawn(move || {
+                let _slot = slot;
+                serve_conn(s, lim, jt);
+            }).is_err() {
                 // (the slot moved into the closure is dropped with it)
             }
         }
@@ -453,14 +378,7 @@ mod tests {
     use super::*;
 
     fn lim() -> Limits {
-        Limits {
-            head_deadline: Duration::from_millis(400),
-            body_deadline: Duration::from_millis(400),
-            write_timeout: Duration::from_secs(2),
-            max_head: 4096,
-            max_body: 1024,
-            max_conns: 6,
-        }
+        Limits { head_deadline: Duration::from_millis(400), body_deadline: Duration::from_millis(400), write_timeout: Duration::from_secs(2), max_head: 4096, max_body: 1024, max_conns: 6 }
     }
 
     fn start(l: Limits) -> std::net::SocketAddr {
@@ -487,18 +405,10 @@ mod tests {
     #[test]
     fn answers_with_security_headers_and_parses_the_body() {
         let a = start(lim());
-        let r = roundtrip(
-            a,
-            b"POST /x?y=1 HTTP/1.1\r\nHost: h\r\nContent-Length: 3\r\n\r\nabc",
-        );
+        let r = roundtrip(a, b"POST /x?y=1 HTTP/1.1\r\nHost: h\r\nContent-Length: 3\r\n\r\nabc");
         assert!(r.starts_with("HTTP/1.1 200 OK"), "{r}");
         assert!(r.ends_with("Post /x?y=1 3"));
-        for h in [
-            "Content-Security-Policy: default-src 'self'",
-            "X-Content-Type-Options: nosniff",
-            "X-Frame-Options: DENY",
-            "Referrer-Policy: no-referrer",
-        ] {
+        for h in ["Content-Security-Policy: default-src 'self'", "X-Content-Type-Options: nosniff", "X-Frame-Options: DENY", "Referrer-Policy: no-referrer"] {
             assert!(r.contains(h), "missing {h} in {r}");
         }
     }
@@ -509,15 +419,8 @@ mod tests {
         // 413 comes although no body byte was sent at all
         let r = roundtrip(a, b"POST /x HTTP/1.1\r\nContent-Length: 999999999\r\n\r\n");
         assert!(r.starts_with("HTTP/1.1 413"), "{r}");
-        assert!(
-            roundtrip(a, b"POST /x HTTP/1.1\r\nTransfer-Encoding: chunked\r\n\r\n")
-                .starts_with("HTTP/1.1 411")
-        );
-        assert!(roundtrip(
-            a,
-            b"POST /x HTTP/1.1\r\nContent-Length: 1\r\nContent-Length: 2\r\n\r\nab"
-        )
-        .starts_with("HTTP/1.1 400"));
+        assert!(roundtrip(a, b"POST /x HTTP/1.1\r\nTransfer-Encoding: chunked\r\n\r\n").starts_with("HTTP/1.1 411"));
+        assert!(roundtrip(a, b"POST /x HTTP/1.1\r\nContent-Length: 1\r\nContent-Length: 2\r\n\r\nab").starts_with("HTTP/1.1 400"));
         assert!(roundtrip(a, b"PUT /x HTTP/1.1\r\n\r\n").starts_with("HTTP/1.1 405"));
         assert!(roundtrip(a, b"GET nope HTTP/1.1\r\n\r\n").starts_with("HTTP/1.1 400"));
         let big = format!("GET /x HTTP/1.1\r\nX: {}\r\n\r\n", "a".repeat(9000));
@@ -527,52 +430,26 @@ mod tests {
     #[test]
     fn two_host_headers_are_refused_and_the_peer_address_is_known() {
         let a = start(lim());
-        let r = roundtrip(
-            a,
-            b"GET /x HTTP/1.1\r\nHost: a.example\r\nHost: b.example\r\n\r\n",
-        );
-        assert!(
-            r.starts_with("HTTP/1.1 400") && r.contains("duplicate Host"),
-            "{r}"
-        );
-        let r = roundtrip(
-            a,
-            b"GET /x HTTP/1.1\r\nhost: a.example\r\nHOST: a.example\r\n\r\n",
-        );
+        let r = roundtrip(a, b"GET /x HTTP/1.1\r\nHost: a.example\r\nHost: b.example\r\n\r\n");
+        assert!(r.starts_with("HTTP/1.1 400") && r.contains("duplicate Host"), "{r}");
+        let r = roundtrip(a, b"GET /x HTTP/1.1\r\nhost: a.example\r\nHOST: a.example\r\n\r\n");
         assert!(r.starts_with("HTTP/1.1 400"), "case-insensitive: {r}");
-        assert!(
-            roundtrip(a, b"GET /x HTTP/1.1\r\nHost: a.example\r\n\r\n").starts_with("HTTP/1.1 200")
-        );
+        assert!(roundtrip(a, b"GET /x HTTP/1.1\r\nHost: a.example\r\n\r\n").starts_with("HTTP/1.1 200"));
         // the handler sees the TCP peer
         let li = TcpListener::bind("127.0.0.1:0").unwrap();
         let addr = li.local_addr().unwrap();
-        std::thread::spawn(move || {
-            serve_loop(li, lim(), |r| {
-                Reply::Full(Resp::from_string(format!("peer={}", r.peer)))
-            })
-        });
+        std::thread::spawn(move || serve_loop(li, lim(), |r| Reply::Full(Resp::from_string(format!("peer={}", r.peer)))));
         assert!(roundtrip(addr, b"GET /x HTTP/1.1\r\n\r\n").ends_with("peer=127.0.0.1"));
     }
 
     #[test]
     fn control_characters_in_header_values_are_refused() {
         let a = start(lim());
-        for bad in [
-            &b"GET /x HTTP/1.1\r\nHost: a.example\r\nX: a\x00b\r\n\r\n"[..],
-            b"GET /x HTTP/1.1\r\nHost: a.example\r\nX: a\rb\r\n\r\n",
-            b"GET /x HTTP/1.1\r\nHost: a.example\r\nX: a\x7fb\r\n\r\n",
-        ] {
-            assert!(
-                roundtrip(a, bad).starts_with("HTTP/1.1 400"),
-                "{:?}",
-                String::from_utf8_lossy(bad)
-            );
+        for bad in [&b"GET /x HTTP/1.1\r\nHost: a.example\r\nX: a\x00b\r\n\r\n"[..], b"GET /x HTTP/1.1\r\nHost: a.example\r\nX: a\rb\r\n\r\n", b"GET /x HTTP/1.1\r\nHost: a.example\r\nX: a\x7fb\r\n\r\n"] {
+            assert!(roundtrip(a, bad).starts_with("HTTP/1.1 400"), "{:?}", String::from_utf8_lossy(bad));
         }
         // a horizontal tab inside a value is legal
-        assert!(
-            roundtrip(a, b"GET /x HTTP/1.1\r\nHost: a.example\r\nX: a\tb\r\n\r\n")
-                .starts_with("HTTP/1.1 200")
-        );
+        assert!(roundtrip(a, b"GET /x HTTP/1.1\r\nHost: a.example\r\nX: a\tb\r\n\r\n").starts_with("HTTP/1.1 200"));
     }
 
     #[test]
@@ -580,9 +457,7 @@ mod tests {
         let a = start(lim());
         // a POST that promises 100 bytes and sends 2, and a head that never ends
         let mut slow_body = TcpStream::connect(a).unwrap();
-        slow_body
-            .write_all(b"POST /x HTTP/1.1\r\nContent-Length: 100\r\n\r\nab")
-            .unwrap();
+        slow_body.write_all(b"POST /x HTTP/1.1\r\nContent-Length: 100\r\n\r\nab").unwrap();
         let mut slow_head = TcpStream::connect(a).unwrap();
         slow_head.write_all(b"GET /x HTTP/1.1\r\nHost: a").unwrap();
         // while both stall, other clients are served at once
@@ -590,11 +465,7 @@ mod tests {
         for _ in 0..5 {
             assert!(roundtrip(a, b"GET /ok HTTP/1.1\r\n\r\n").starts_with("HTTP/1.1 200"));
         }
-        assert!(
-            t0.elapsed() < Duration::from_millis(300),
-            "served while others stall: {:?}",
-            t0.elapsed()
-        );
+        assert!(t0.elapsed() < Duration::from_millis(300), "served while others stall: {:?}", t0.elapsed());
         for s in [&mut slow_body, &mut slow_head] {
             s.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
             let mut out = String::new();
@@ -606,13 +477,11 @@ mod tests {
     #[test]
     fn the_number_of_connections_is_capped() {
         let a = start(lim());
-        let holders: Vec<TcpStream> = (0..6)
-            .map(|_| {
-                let mut s = TcpStream::connect(a).unwrap();
-                s.write_all(b"GET /x HTTP/1.1\r\n").unwrap();
-                s
-            })
-            .collect();
+        let holders: Vec<TcpStream> = (0..6).map(|_| {
+            let mut s = TcpStream::connect(a).unwrap();
+            s.write_all(b"GET /x HTTP/1.1\r\n").unwrap();
+            s
+        }).collect();
         std::thread::sleep(Duration::from_millis(100));
         let r = roundtrip(a, b"GET /ok HTTP/1.1\r\n\r\n");
         assert!(r.starts_with("HTTP/1.1 503"), "{r}");

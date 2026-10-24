@@ -59,7 +59,7 @@
 
 use crate::anim::Ease;
 use crate::edit::Editor;
-use crate::project::{Project, Prop};
+use crate::project::{Prop, Project};
 use crate::raster::{render_png, render_rgba, RasterOptions};
 use crate::svg::{render_frame, RenderOptions};
 use std::fmt;
@@ -176,11 +176,7 @@ impl RenderSettings {
     /// Settings with the given scale (other options off). Use this and the `with_*` methods:
     /// the struct is `#[non_exhaustive]`, so it cannot be built with a struct literal.
     pub fn new(scale: f32) -> RenderSettings {
-        RenderSettings {
-            scale,
-            show_bones: false,
-            transparent: false,
-        }
+        RenderSettings { scale, show_bones: false, transparent: false }
     }
     pub fn with_bones(mut self, show_bones: bool) -> RenderSettings {
         self.show_bones = show_bones;
@@ -194,11 +190,7 @@ impl RenderSettings {
 
 impl Default for RenderSettings {
     fn default() -> Self {
-        RenderSettings {
-            scale: 1.0,
-            show_bones: false,
-            transparent: false,
-        }
+        RenderSettings { scale: 1.0, show_bones: false, transparent: false }
     }
 }
 
@@ -296,11 +288,7 @@ pub struct MocapSettings {
 
 impl MocapSettings {
     pub fn new() -> MocapSettings {
-        MocapSettings {
-            in_place: false,
-            mirror: false,
-            smooth: 0,
-        }
+        MocapSettings { in_place: false, mirror: false, smooth: 0 }
     }
     pub fn with_in_place(mut self, in_place: bool) -> MocapSettings {
         self.in_place = in_place;
@@ -463,15 +451,10 @@ pub fn trace_image_svg(image: &[u8], colors: usize) -> Result<String, ApiError> 
 
 fn trace_bytes(image: &[u8], colors: usize) -> Result<crate::autotrace::TraceResult, ApiError> {
     if !(2..=64).contains(&colors) {
-        return Err(ApiError::InvalidArgument(
-            "colors must be within 2..=64".into(),
-        ));
+        return Err(ApiError::InvalidArgument("colors must be within 2..=64".into()));
     }
     let img = crate::autotrace::decode_image(image).map_err(ApiError::InvalidArgument)?;
-    let o = crate::autotrace::TraceOptions {
-        colors,
-        ..Default::default()
-    };
+    let o = crate::autotrace::TraceOptions { colors, ..Default::default() };
     o.validate().map_err(ApiError::InvalidArgument)?;
     crate::autotrace::trace(&img, &o).map_err(ApiError::InvalidArgument)
 }
@@ -481,30 +464,15 @@ fn trace_bytes(image: &[u8], colors: usize) -> Result<crate::autotrace::TraceRes
 /// an empty list.
 pub fn vcs_log(path: &str, limit: usize) -> Result<Vec<VcsCommit>, ApiError> {
     if !(1..=10_000).contains(&limit) {
-        return Err(ApiError::InvalidArgument(
-            "limit must be within 1..=10000".into(),
-        ));
+        return Err(ApiError::InvalidArgument("limit must be within 1..=10000".into()));
     }
     guard(|| {
-        let repo = crate::vcs::Repo::open(std::path::Path::new(path))
-            .map_err(ApiError::InvalidArgument)?;
-        if repo
-            .head_commit()
-            .map_err(ApiError::InvalidArgument)?
-            .is_none()
-        {
+        let repo = crate::vcs::Repo::open(std::path::Path::new(path)).map_err(ApiError::InvalidArgument)?;
+        if repo.head_commit().map_err(ApiError::InvalidArgument)?.is_none() {
             return Ok(Vec::new());
         }
         let log = repo.log("HEAD", limit).map_err(ApiError::InvalidArgument)?;
-        Ok(log
-            .into_iter()
-            .map(|(id, c)| VcsCommit {
-                id,
-                author: c.author,
-                time: c.time,
-                message: c.message,
-            })
-            .collect())
+        Ok(log.into_iter().map(|(id, c)| VcsCommit { id, author: c.author, time: c.time, message: c.message }).collect())
     })
 }
 
@@ -512,11 +480,7 @@ pub fn vcs_log(path: &str, limit: usize) -> Result<Vec<VcsCommit>, ApiError> {
 /// manifest resolve next to it. A failing check is not an error: look at [`CiOutcome::exit_code`].
 pub fn ci_run(manifest_path: &str) -> Result<CiOutcome, ApiError> {
     guard(|| {
-        let r = crate::ci::run(
-            std::path::Path::new(manifest_path),
-            &crate::ci::RunOptions::default(),
-        )
-        .map_err(ApiError::InvalidArgument)?;
+        let r = crate::ci::run(std::path::Path::new(manifest_path), &crate::ci::RunOptions::default()).map_err(ApiError::InvalidArgument)?;
         Ok(ci_outcome(&r))
     })
 }
@@ -594,20 +558,14 @@ fn vcs_str<T>(r: Result<T, String>) -> Result<T, ApiError> {
 
 fn vcs_no_merge(repo: &crate::vcs::Repo) -> Result<(), ApiError> {
     match vcs_str(repo.merge_state())? {
-        Some(st) => Err(ApiError::MergeInProgress(format!(
-            "a {} is unfinished ({} conflict(s) left); resolve and commit, or call vcs_abort",
-            st.kind,
-            st.conflicts.len()
-        ))),
+        Some(st) => Err(ApiError::MergeInProgress(format!("a {} is unfinished ({} conflict(s) left); resolve and commit, or call vcs_abort", st.kind, st.conflicts.len()))),
         None => Ok(()),
     }
 }
 
 fn vcs_clean(repo: &crate::vcs::Repo) -> Result<(), ApiError> {
     if vcs_str(repo.head_commit())?.is_some() && vcs_str(repo.is_dirty())? {
-        return Err(ApiError::DirtyTree(
-            "the project file differs from the last commit: commit it first".into(),
-        ));
+        return Err(ApiError::DirtyTree("the project file differs from the last commit: commit it first".into()));
     }
     Ok(())
 }
@@ -617,18 +575,8 @@ fn vcs_conflict(c: &crate::semdiff::Conflict) -> VcsConflict {
         crate::semdiff::Slot::Value(v) => Some(v.to_string()),
         _ => None,
     };
-    let kind = serde_json::to_value(c.kind)
-        .ok()
-        .and_then(|v| v.as_str().map(String::from))
-        .unwrap_or_else(|| format!("{:?}", c.kind));
-    VcsConflict {
-        path: c.path.clone(),
-        kind,
-        description: c.description.clone(),
-        base: slot(&c.base),
-        ours: slot(&c.ours),
-        theirs: slot(&c.theirs),
-    }
+    let kind = serde_json::to_value(c.kind).ok().and_then(|v| v.as_str().map(String::from)).unwrap_or_else(|| format!("{:?}", c.kind));
+    VcsConflict { path: c.path.clone(), kind, description: c.description.clone(), base: slot(&c.base), ours: slot(&c.ours), theirs: slot(&c.theirs) }
 }
 
 fn vcs_outcome(o: crate::vcs::MergeOutcome) -> VcsMergeOutcome {
@@ -636,9 +584,7 @@ fn vcs_outcome(o: crate::vcs::MergeOutcome) -> VcsMergeOutcome {
         crate::vcs::MergeOutcome::UpToDate => VcsMergeOutcome::UpToDate,
         crate::vcs::MergeOutcome::FastForward(h) => VcsMergeOutcome::FastForward(h),
         crate::vcs::MergeOutcome::Merged(h) => VcsMergeOutcome::Merged(h),
-        crate::vcs::MergeOutcome::Conflicted(cs) => {
-            VcsMergeOutcome::Conflicted(cs.iter().map(vcs_conflict).collect())
-        }
+        crate::vcs::MergeOutcome::Conflicted(cs) => VcsMergeOutcome::Conflicted(cs.iter().map(vcs_conflict).collect()),
     }
 }
 
@@ -661,13 +607,7 @@ fn vcs_outcome(o: crate::vcs::MergeOutcome) -> VcsMergeOutcome {
 /// # Ok(()) }
 /// ```
 pub fn vcs_init(project_file: &str, author: Option<&str>) -> Result<(), ApiError> {
-    guard(|| {
-        vcs_str(crate::vcs::Repo::init(
-            std::path::Path::new(project_file),
-            author,
-        ))
-        .map(|_| ())
-    })
+    guard(|| vcs_str(crate::vcs::Repo::init(std::path::Path::new(project_file), author)).map(|_| ()))
 }
 
 /// Commit the project file on the current branch and return the new commit id. With a finished
@@ -690,18 +630,12 @@ pub fn vcs_init(project_file: &str, author: Option<&str>) -> Result<(), ApiError
 /// # std::fs::remove_dir_all(&dir).unwrap();
 /// # Ok(()) }
 /// ```
-pub fn vcs_commit(
-    path: &str,
-    message: Option<&str>,
-    author: Option<&str>,
-) -> Result<String, ApiError> {
+pub fn vcs_commit(path: &str, message: Option<&str>, author: Option<&str>) -> Result<String, ApiError> {
     guard(|| {
         let repo = vcs_open(path)?;
         if let Some(st) = vcs_str(repo.merge_state())? {
             if !st.conflicts.is_empty() {
-                return Err(ApiError::Conflicts(
-                    st.conflicts.iter().map(|c| c.path.clone()).collect(),
-                ));
+                return Err(ApiError::Conflicts(st.conflicts.iter().map(|c| c.path.clone()).collect()));
             }
         }
         vcs_str(repo.commit(message, author))
@@ -832,13 +766,7 @@ pub fn vcs_checkout(path: &str, target: &str, force: bool) -> Result<String, Api
 /// # std::fs::remove_dir_all(&dir).unwrap();
 /// # Ok(()) }
 /// ```
-pub fn vcs_merge(
-    path: &str,
-    rev: &str,
-    no_ff: bool,
-    message: Option<&str>,
-    author: Option<&str>,
-) -> Result<VcsMergeOutcome, ApiError> {
+pub fn vcs_merge(path: &str, rev: &str, no_ff: bool, message: Option<&str>, author: Option<&str>) -> Result<VcsMergeOutcome, ApiError> {
     guard(|| {
         let repo = vcs_open(path)?;
         vcs_no_merge(&repo)?;
@@ -864,11 +792,7 @@ pub fn vcs_merge(
 /// # Ok(()) }
 /// ```
 pub fn vcs_conflicts(path: &str) -> Result<Vec<VcsConflict>, ApiError> {
-    guard(|| {
-        Ok(vcs_str(vcs_open(path)?.merge_state())?
-            .map(|s| s.conflicts.iter().map(vcs_conflict).collect())
-            .unwrap_or_default())
-    })
+    guard(|| Ok(vcs_str(vcs_open(path)?.merge_state())?.map(|s| s.conflicts.iter().map(vcs_conflict).collect()).unwrap_or_default()))
 }
 
 /// Settle one conflict (by [`VcsConflict::path`]). Returns how many conflicts are left; when it
@@ -894,9 +818,7 @@ pub fn vcs_resolve(path: &str, conflict_path: &str, choice: &VcsChoice) -> Resul
         let c = match choice {
             VcsChoice::Ours => crate::semdiff::Choice::Ours,
             VcsChoice::Theirs => crate::semdiff::Choice::Theirs,
-            VcsChoice::Value(t) => crate::semdiff::Choice::Value(
-                serde_json::from_str(t).map_err(|e| ApiError::InvalidJson(e.to_string()))?,
-            ),
+            VcsChoice::Value(t) => crate::semdiff::Choice::Value(serde_json::from_str(t).map_err(|e| ApiError::InvalidJson(e.to_string()))?),
         };
         vcs_str(vcs_open(path)?.resolve(conflict_path, &c))
     })
@@ -947,11 +869,7 @@ pub fn vcs_abort(path: &str) -> Result<(), ApiError> {
 /// # std::fs::remove_dir_all(&dir).unwrap();
 /// # Ok(()) }
 /// ```
-pub fn vcs_cherry_pick(
-    path: &str,
-    rev: &str,
-    author: Option<&str>,
-) -> Result<VcsMergeOutcome, ApiError> {
+pub fn vcs_cherry_pick(path: &str, rev: &str, author: Option<&str>) -> Result<VcsMergeOutcome, ApiError> {
     guard(|| {
         let repo = vcs_open(path)?;
         vcs_no_merge(&repo)?;
@@ -983,11 +901,7 @@ pub fn vcs_cherry_pick(
 /// # std::fs::remove_dir_all(&dir).unwrap();
 /// # Ok(()) }
 /// ```
-pub fn vcs_revert(
-    path: &str,
-    rev: &str,
-    author: Option<&str>,
-) -> Result<VcsMergeOutcome, ApiError> {
+pub fn vcs_revert(path: &str, rev: &str, author: Option<&str>) -> Result<VcsMergeOutcome, ApiError> {
     guard(|| {
         let repo = vcs_open(path)?;
         vcs_no_merge(&repo)?;
@@ -997,27 +911,12 @@ pub fn vcs_revert(
 }
 
 fn vcs_changes(v: Vec<crate::semdiff::Change>) -> Vec<VcsChange> {
-    v.into_iter()
-        .map(|c| VcsChange {
-            kind: format!("{:?}", c.kind),
-            path: c.path,
-            description: c.description,
-        })
-        .collect()
+    v.into_iter().map(|c| VcsChange { kind: format!("{:?}", c.kind), path: c.path, description: c.description }).collect()
 }
 
 /// (1.4) List the branches, sorted by name. An empty repository has none.
 pub fn vcs_branches(path: &str) -> Result<Vec<VcsBranch>, ApiError> {
-    guard(|| {
-        Ok(vcs_str(vcs_open(path)?.branches())?
-            .into_iter()
-            .map(|(name, commit, current)| VcsBranch {
-                name,
-                commit,
-                current,
-            })
-            .collect())
-    })
+    guard(|| Ok(vcs_str(vcs_open(path)?.branches())?.into_iter().map(|(name, commit, current)| VcsBranch { name, commit, current }).collect()))
 }
 
 /// (1.4) Delete a branch. The checked-out branch and unknown names are refused. Commits stay in
@@ -1030,13 +929,7 @@ pub fn vcs_branch_delete(path: &str, name: &str) -> Result<(), ApiError> {
 pub fn vcs_status(path: &str) -> Result<VcsStatus, ApiError> {
     guard(|| {
         let st = vcs_str(vcs_open(path)?.status())?;
-        Ok(VcsStatus {
-            branch: st.branch,
-            head: st.head,
-            changes: vcs_changes(st.changes),
-            merge: st.merge,
-            conflicts: st.conflicts.into_iter().map(|c| c.path).collect(),
-        })
+        Ok(VcsStatus { branch: st.branch, head: st.head, changes: vcs_changes(st.changes), merge: st.merge, conflicts: st.conflicts.into_iter().map(|c| c.path).collect() })
     })
 }
 
@@ -1050,15 +943,7 @@ pub fn vcs_diff(path: &str, a: Option<&str>, b: Option<&str>) -> Result<Vec<VcsC
 pub fn vcs_show(path: &str, rev: &str) -> Result<VcsShow, ApiError> {
     guard(|| {
         let (id, c, ch) = vcs_str(vcs_open(path)?.show(rev))?;
-        Ok(VcsShow {
-            commit: VcsCommit {
-                id,
-                author: c.author,
-                time: c.time,
-                message: c.message,
-            },
-            changes: vcs_changes(ch),
-        })
+        Ok(VcsShow { commit: VcsCommit { id, author: c.author, time: c.time, message: c.message }, changes: vcs_changes(ch) })
     })
 }
 
@@ -1067,10 +952,7 @@ pub fn vcs_show(path: &str, rev: &str) -> Result<VcsShow, ApiError> {
 pub fn vcs_gc(path: &str) -> Result<VcsGc, ApiError> {
     guard(|| {
         let r = vcs_str(vcs_open(path)?.gc())?;
-        Ok(VcsGc {
-            kept: r.kept,
-            removed: r.removed,
-        })
+        Ok(VcsGc { kept: r.kept, removed: r.removed })
     })
 }
 
@@ -1130,13 +1012,8 @@ pub struct CiInit {
 /// ```
 pub fn ci_run_mode(manifest_path: &str, mode: CiMode) -> Result<CiOutcome, ApiError> {
     guard(|| {
-        let o = crate::ci::RunOptions {
-            update: mode == CiMode::Update,
-            bless: mode == CiMode::Bless,
-            ..Default::default()
-        };
-        let r = crate::ci::run(std::path::Path::new(manifest_path), &o)
-            .map_err(ApiError::InvalidArgument)?;
+        let o = crate::ci::RunOptions { update: mode == CiMode::Update, bless: mode == CiMode::Bless, ..Default::default() };
+        let r = crate::ci::run(std::path::Path::new(manifest_path), &o).map_err(ApiError::InvalidArgument)?;
         Ok(ci_outcome(&r))
     })
 }
@@ -1182,55 +1059,27 @@ pub fn ci_bless(manifest_path: &str) -> Result<CiOutcome, ApiError> {
 /// # std::fs::remove_dir_all(&dir).unwrap();
 /// # Ok(()) }
 /// ```
-pub fn ci_init(
-    project_file: &str,
-    manifest: Option<&str>,
-    write_goldens: bool,
-) -> Result<CiInit, ApiError> {
+pub fn ci_init(project_file: &str, manifest: Option<&str>, write_goldens: bool) -> Result<CiInit, ApiError> {
     guard(|| {
         let proj = std::path::Path::new(project_file);
         let out = match manifest {
             Some(m) => std::path::PathBuf::from(m),
-            None => proj
-                .parent()
-                .filter(|d| !d.as_os_str().is_empty())
-                .map(|d| d.join(crate::ci::DEFAULT_MANIFEST))
-                .unwrap_or_else(|| std::path::PathBuf::from(crate::ci::DEFAULT_MANIFEST)),
+            None => proj.parent().filter(|d| !d.as_os_str().is_empty()).map(|d| d.join(crate::ci::DEFAULT_MANIFEST)).unwrap_or_else(|| std::path::PathBuf::from(crate::ci::DEFAULT_MANIFEST)),
         };
         if out.exists() {
-            return Err(ApiError::InvalidArgument(format!(
-                "{} already exists",
-                out.display()
-            )));
+            return Err(ApiError::InvalidArgument(format!("{} already exists", out.display())));
         }
         let m = crate::ci::init_manifest(proj, &out).map_err(ApiError::InvalidArgument)?;
-        let text =
-            serde_json::to_string_pretty(&m).map_err(|e| ApiError::Internal(e.to_string()))?;
-        crate::fsutil::write_atomic(&out, text.as_bytes())
-            .map_err(|e| ApiError::InvalidArgument(format!("cannot write {e}")))?;
-        let checks = m
-            .checks
-            .iter()
-            .map(|c| (c.kind().to_string(), c.name().to_string()))
-            .collect();
+        let text = serde_json::to_string_pretty(&m).map_err(|e| ApiError::Internal(e.to_string()))?;
+        crate::fsutil::write_atomic(&out, text.as_bytes()).map_err(|e| ApiError::InvalidArgument(format!("cannot write {e}")))?;
+        let checks = m.checks.iter().map(|c| (c.kind().to_string(), c.name().to_string())).collect();
         let recorded = if write_goldens {
-            let r = crate::ci::run(
-                &out,
-                &crate::ci::RunOptions {
-                    update: true,
-                    ..Default::default()
-                },
-            )
-            .map_err(ApiError::InvalidArgument)?;
+            let r = crate::ci::run(&out, &crate::ci::RunOptions { update: true, ..Default::default() }).map_err(ApiError::InvalidArgument)?;
             Some(ci_outcome(&r))
         } else {
             None
         };
-        Ok(CiInit {
-            manifest: out.to_string_lossy().to_string(),
-            checks,
-            recorded,
-        })
+        Ok(CiInit { manifest: out.to_string_lossy().to_string(), checks, recorded })
     })
 }
 
@@ -1265,9 +1114,7 @@ fn guard<T>(f: impl FnOnce() -> Result<T, ApiError>) -> Result<T, ApiError> {
 
 fn check_frame(a: &Animation, frame: f32) -> Result<f32, ApiError> {
     if !frame.is_finite() {
-        return Err(ApiError::InvalidArgument(
-            "frame must be a finite number".into(),
-        ));
+        return Err(ApiError::InvalidArgument("frame must be a finite number".into()));
     }
     Ok(frame.clamp(0.0, a.editor.project().frames.saturating_sub(1) as f32))
 }
@@ -1276,13 +1123,10 @@ impl Animation {
     /// Parse and validate a project from JSON text.
     pub fn from_json(json: &str) -> Result<Animation, ApiError> {
         if json.len() > MAX_JSON_BYTES {
-            return Err(ApiError::InvalidJson(
-                "project is larger than MAX_JSON_BYTES".into(),
-            ));
+            return Err(ApiError::InvalidJson("project is larger than MAX_JSON_BYTES".into()));
         }
         guard(|| {
-            let project =
-                Project::from_json(json).map_err(|e| ApiError::InvalidJson(e.to_string()))?;
+            let project = Project::from_json(json).map_err(|e| ApiError::InvalidJson(e.to_string()))?;
             Self::from_project(project)
         })
     }
@@ -1299,9 +1143,7 @@ impl Animation {
 
     /// A small built-in example animation (useful for tests and first steps).
     pub fn demo() -> Animation {
-        Animation {
-            editor: Editor::new(crate::demo::project()).expect("built-in demo project is valid"),
-        }
+        Animation { editor: Editor::new(crate::demo::project()).expect("built-in demo project is valid") }
     }
 
     /// The current project as pretty-printed JSON.
@@ -1311,13 +1153,7 @@ impl Animation {
 
     pub fn info(&self) -> AnimationInfo {
         let p = self.editor.project();
-        AnimationInfo {
-            name: p.name.clone(),
-            width: p.width,
-            height: p.height,
-            fps: p.fps,
-            frames: p.frames,
-        }
+        AnimationInfo { name: p.name.clone(), width: p.width, height: p.height, fps: p.fps, frames: p.frames }
     }
 
     pub fn frame_count(&self) -> u32 {
@@ -1330,12 +1166,7 @@ impl Animation {
 
     /// Bone names in rig order (the order of [`Animation::bone_world`]).
     pub fn bone_names(&self) -> Vec<String> {
-        self.editor
-            .project()
-            .bones
-            .iter()
-            .map(|b| b.name.clone())
-            .collect()
+        self.editor.project().bones.iter().map(|b| b.name.clone()).collect()
     }
 
     /// Layer paths (`group/child`), depth first.
@@ -1347,34 +1178,19 @@ impl Animation {
     /// `a b c d tx ty`. Fails only for a non-finite frame.
     pub fn bone_world(&self, frame: f32) -> Result<Vec<[f32; 6]>, ApiError> {
         let f = check_frame(self, frame)?;
-        guard(|| {
-            Ok(self
-                .editor
-                .engine()
-                .evaluate(f)
-                .world
-                .iter()
-                .map(|m| [m.a, m.b, m.c, m.d, m.tx, m.ty])
-                .collect())
-        })
+        guard(|| Ok(self.editor.engine().evaluate(f).world.iter().map(|m| [m.a, m.b, m.c, m.d, m.tx, m.ty]).collect()))
     }
 
     /// Names of the runtime state machines stored in the project.
     pub fn machine_names(&self) -> Vec<String> {
-        self.editor
-            .project()
-            .machines
-            .iter()
-            .map(|m| m.name.clone())
-            .collect()
+        self.editor.project().machines.iter().map(|m| m.name.clone()).collect()
     }
 
     /// Start the named state machine at time 0 (states at their entry, inputs at their defaults).
     pub fn player(&self, machine: &str) -> Result<Player, ApiError> {
         guard(|| {
             let p = self.editor.project();
-            let rt = crate::machine::MachineRuntime::new(p, machine)
-                .map_err(ApiError::InvalidArgument)?;
+            let rt = crate::machine::MachineRuntime::new(p, machine).map_err(ApiError::InvalidArgument)?;
             let mut pl = Player {
                 rt,
                 proj: p.clone(),
@@ -1392,22 +1208,14 @@ impl Animation {
 
     fn raster_opts(&self, s: &RenderSettings) -> Result<RasterOptions, ApiError> {
         if !s.scale.is_finite() || !(0.05..=4.0).contains(&s.scale) {
-            return Err(ApiError::InvalidArgument(
-                "scale must be within 0.05..=4".into(),
-            ));
+            return Err(ApiError::InvalidArgument("scale must be within 0.05..=4".into()));
         }
         let p = self.editor.project();
         let (w, h) = ((p.width * s.scale).round(), (p.height * s.scale).round());
         if w > MAX_RENDER_SIDE as f32 || h > MAX_RENDER_SIDE as f32 {
-            return Err(ApiError::InvalidArgument(format!(
-                "output larger than {MAX_RENDER_SIDE} pixels per side"
-            )));
+            return Err(ApiError::InvalidArgument(format!("output larger than {MAX_RENDER_SIDE} pixels per side")));
         }
-        Ok(RasterOptions {
-            scale: s.scale,
-            show_bones: s.show_bones,
-            transparent: s.transparent,
-        })
+        Ok(RasterOptions { scale: s.scale, show_bones: s.show_bones, transparent: s.transparent })
     }
 
     /// Render one frame to straight-alpha RGBA8.
@@ -1416,11 +1224,7 @@ impl Animation {
         let o = self.raster_opts(settings)?;
         guard(|| {
             let (width, height, pixels) = render_rgba(self.editor.engine(), f, &o);
-            Ok(Image {
-                width,
-                height,
-                pixels,
-            })
+            Ok(Image { width, height, pixels })
         })
     }
 
@@ -1434,13 +1238,7 @@ impl Animation {
     /// Render one frame to an SVG document.
     pub fn render_svg(&self, frame: f32, show_bones: bool) -> Result<String, ApiError> {
         let f = check_frame(self, frame)?;
-        guard(|| {
-            Ok(render_frame(
-                self.editor.engine(),
-                f,
-                &RenderOptions { show_bones },
-            ))
-        })
+        guard(|| Ok(render_frame(self.editor.engine(), f, &RenderOptions { show_bones })))
     }
 
     /// Encode the whole animation. `scale` applies to GIF only (within 0.05..=4).
@@ -1448,23 +1246,14 @@ impl Animation {
         let e = self.editor.engine();
         match format {
             ExportFormat::Gif => {
-                let o = self.raster_opts(&RenderSettings {
-                    scale,
-                    ..RenderSettings::default()
-                })?;
+                let o = self.raster_opts(&RenderSettings { scale, ..RenderSettings::default() })?;
                 guard(|| crate::export::gif_bytes(e, o.scale).map_err(ApiError::Export))
             }
             ExportFormat::Glb => guard(|| crate::gltf::export_glb(e).map_err(ApiError::Export)),
-            ExportFormat::Lottie => {
-                guard(|| Ok(crate::export::lottie_json(e).to_string().into_bytes()))
-            }
+            ExportFormat::Lottie => guard(|| Ok(crate::export::lottie_json(e).to_string().into_bytes())),
             ExportFormat::Html => guard(|| Ok(crate::export::html_player(e).into_bytes())),
             ExportFormat::Apng => {
-                let o = self.raster_opts(&RenderSettings {
-                    scale,
-                    transparent: true,
-                    ..RenderSettings::default()
-                })?;
+                let o = self.raster_opts(&RenderSettings { scale, transparent: true, ..RenderSettings::default() })?;
                 guard(|| {
                     crate::raster::check_sequence(&e.project, o.scale).map_err(ApiError::Export)?;
                     let (mut w, mut h) = (0usize, 0usize);
@@ -1474,8 +1263,7 @@ impl Animation {
                         (w, h) = (fw as usize, fh as usize);
                         frames.push(px);
                     }
-                    crate::sizefit::apng_encode_rgba(w, h, &frames, e.project.fps, 1)
-                        .map_err(ApiError::Export)
+                    crate::sizefit::apng_encode_rgba(w, h, &frames, e.project.fps, 1).map_err(ApiError::Export)
                 })
             }
         }
@@ -1483,30 +1271,15 @@ impl Animation {
 
     /// Set (or add) a keyframe on `target.prop`. `prop` is the snake_case property name used in
     /// project JSON, for example `"bone_angle"`. Validated, undoable, respects channel locks.
-    pub fn set_key(
-        &mut self,
-        target: &str,
-        prop: &str,
-        frame: f32,
-        value: f32,
-        interpolation: Interpolation,
-    ) -> Result<(), ApiError> {
+    pub fn set_key(&mut self, target: &str, prop: &str, frame: f32, value: f32, interpolation: Interpolation) -> Result<(), ApiError> {
         let (prop, frame) = self.key_args(prop, frame, value)?;
-        guard(|| {
-            self.editor
-                .set_key(target, prop, frame, value, interpolation.ease())
-                .map_err(ApiError::EditRejected)
-        })
+        guard(|| self.editor.set_key(target, prop, frame, value, interpolation.ease()).map_err(ApiError::EditRejected))
     }
 
     /// Delete the key at `frame` on `target.prop`; returns whether a key was removed.
     pub fn delete_key(&mut self, target: &str, prop: &str, frame: f32) -> Result<bool, ApiError> {
         let (prop, frame) = self.key_args(prop, frame, 0.0)?;
-        guard(|| {
-            self.editor
-                .delete_key(target, prop, frame)
-                .map_err(ApiError::EditRejected)
-        })
+        guard(|| self.editor.delete_key(target, prop, frame).map_err(ApiError::EditRejected))
     }
 
     // ----- (1.4) editing basics: create layers and bones -----
@@ -1515,20 +1288,9 @@ impl Animation {
     /// layer goes into that group instead. Validated and undoable; `fill` is `#rgb`, `#rrggbb` or
     /// `#rrggbbaa`.
     #[allow(clippy::too_many_arguments)]
-    pub fn add_rect_layer(
-        &mut self,
-        name: &str,
-        x: f32,
-        y: f32,
-        w: f32,
-        h: f32,
-        fill: &str,
-        parent: Option<&str>,
-    ) -> Result<(), ApiError> {
+    pub fn add_rect_layer(&mut self, name: &str, x: f32, y: f32, w: f32, h: f32, fill: &str, parent: Option<&str>) -> Result<(), ApiError> {
         if ![x, y, w, h].iter().all(|v| v.is_finite()) || w <= 0.0 || h <= 0.0 {
-            return Err(ApiError::InvalidArgument(
-                "x, y must be finite and w, h positive finite numbers".into(),
-            ));
+            return Err(ApiError::InvalidArgument("x, y must be finite and w, h positive finite numbers".into()));
         }
         let path = crate::path::VPath::rect("shape", x, y, w, h);
         self.add_vector_layer(name, path, fill, parent)
@@ -1536,20 +1298,9 @@ impl Animation {
 
     /// Append a filled ellipse layer (see [`Animation::add_rect_layer`]).
     #[allow(clippy::too_many_arguments)]
-    pub fn add_ellipse_layer(
-        &mut self,
-        name: &str,
-        cx: f32,
-        cy: f32,
-        rx: f32,
-        ry: f32,
-        fill: &str,
-        parent: Option<&str>,
-    ) -> Result<(), ApiError> {
+    pub fn add_ellipse_layer(&mut self, name: &str, cx: f32, cy: f32, rx: f32, ry: f32, fill: &str, parent: Option<&str>) -> Result<(), ApiError> {
         if ![cx, cy, rx, ry].iter().all(|v| v.is_finite()) || rx <= 0.0 || ry <= 0.0 {
-            return Err(ApiError::InvalidArgument(
-                "cx, cy must be finite and rx, ry positive finite numbers".into(),
-            ));
+            return Err(ApiError::InvalidArgument("cx, cy must be finite and rx, ry positive finite numbers".into()));
         }
         let path = crate::path::VPath::ellipse("shape", crate::math::Vec2::new(cx, cy), rx, ry);
         self.add_vector_layer(name, path, fill, parent)
@@ -1561,48 +1312,22 @@ impl Animation {
         self.insert_layer(crate::project::Layer::group(name, Vec::new()), None)
     }
 
-    fn add_vector_layer(
-        &mut self,
-        name: &str,
-        path: crate::path::VPath,
-        fill: &str,
-        parent: Option<&str>,
-    ) -> Result<(), ApiError> {
+    fn add_vector_layer(&mut self, name: &str, path: crate::path::VPath, fill: &str, parent: Option<&str>) -> Result<(), ApiError> {
         if crate::style::Rgba::parse(fill).is_none() {
-            return Err(ApiError::InvalidArgument(format!(
-                "bad colour '{fill}' (use #rgb, #rrggbb or #rrggbbaa)"
-            )));
+            return Err(ApiError::InvalidArgument(format!("bad colour '{fill}' (use #rgb, #rrggbb or #rrggbbaa)")));
         }
-        self.insert_layer(
-            crate::project::Layer::vector(name, vec![path.with_fill(fill)]),
-            parent,
-        )
+        self.insert_layer(crate::project::Layer::vector(name, vec![path.with_fill(fill)]), parent)
     }
 
-    fn insert_layer(
-        &mut self,
-        layer: crate::project::Layer,
-        parent: Option<&str>,
-    ) -> Result<(), ApiError> {
+    fn insert_layer(&mut self, layer: crate::project::Layer, parent: Option<&str>) -> Result<(), ApiError> {
         if layer.name.trim().is_empty() {
-            return Err(ApiError::InvalidArgument(
-                "layer name must not be empty".into(),
-            ));
+            return Err(ApiError::InvalidArgument("layer name must not be empty".into()));
         }
         if layer.name.contains('/') {
-            return Err(ApiError::InvalidArgument(
-                "layer name must not contain '/'".into(),
-            ));
+            return Err(ApiError::InvalidArgument("layer name must not contain '/'".into()));
         }
-        if self
-            .layer_names()
-            .iter()
-            .any(|n| n == &layer.name || n.rsplit('/').next() == Some(layer.name.as_str()))
-        {
-            return Err(ApiError::InvalidArgument(format!(
-                "a layer named '{}' already exists",
-                layer.name
-            )));
+        if self.layer_names().iter().any(|n| n == &layer.name || n.rsplit('/').next() == Some(layer.name.as_str())) {
+            return Err(ApiError::InvalidArgument(format!("a layer named '{}' already exists", layer.name)));
         }
         let at = match parent {
             None => "/layers/-".to_string(),
@@ -1612,68 +1337,36 @@ impl Animation {
                     .project()
                     .layers
                     .iter()
-                    .position(|l| {
-                        l.name == g && matches!(l.kind, crate::project::LayerKind::Group { .. })
-                    })
-                    .ok_or_else(|| {
-                        ApiError::InvalidArgument(format!("no top-level group layer named '{g}'"))
-                    })?;
+                    .position(|l| l.name == g && matches!(l.kind, crate::project::LayerKind::Group { .. }))
+                    .ok_or_else(|| ApiError::InvalidArgument(format!("no top-level group layer named '{g}'")))?;
                 format!("/layers/{i}/layers/-")
             }
         };
         let value = serde_json::to_value(&layer).map_err(|e| ApiError::Internal(e.to_string()))?;
-        guard(|| {
-            self.editor
-                .apply(crate::edit::Op::Insert { path: at, value })
-                .map_err(ApiError::EditRejected)
-        })
+        guard(|| self.editor.apply(crate::edit::Op::Insert { path: at, value }).map_err(ApiError::EditRejected))
     }
 
     /// Append a bone. `parent` must already exist (parents precede children). `x`, `y` is the head
     /// position in the parent's space (world space for a root); `angle` is the rest rotation in
     /// degrees. Validated and undoable.
-    pub fn add_bone(
-        &mut self,
-        name: &str,
-        parent: Option<&str>,
-        length: f32,
-        x: f32,
-        y: f32,
-        angle: f32,
-    ) -> Result<(), ApiError> {
+    pub fn add_bone(&mut self, name: &str, parent: Option<&str>, length: f32, x: f32, y: f32, angle: f32) -> Result<(), ApiError> {
         if ![length, x, y, angle].iter().all(|v| v.is_finite()) || length <= 0.0 {
-            return Err(ApiError::InvalidArgument(
-                "length must be positive and all numbers finite".into(),
-            ));
+            return Err(ApiError::InvalidArgument("length must be positive and all numbers finite".into()));
         }
         if name.trim().is_empty() {
-            return Err(ApiError::InvalidArgument(
-                "bone name must not be empty".into(),
-            ));
+            return Err(ApiError::InvalidArgument("bone name must not be empty".into()));
         }
         if self.bone_names().iter().any(|n| n == name) {
-            return Err(ApiError::InvalidArgument(format!(
-                "a bone named '{name}' already exists"
-            )));
+            return Err(ApiError::InvalidArgument(format!("a bone named '{name}' already exists")));
         }
         if let Some(p) = parent {
             if !self.bone_names().iter().any(|n| n == p) {
-                return Err(ApiError::InvalidArgument(format!(
-                    "unknown parent bone '{p}'"
-                )));
+                return Err(ApiError::InvalidArgument(format!("unknown parent bone '{p}'")));
             }
         }
-        let bone =
-            crate::project::Bone::new(name, parent, length, crate::math::Vec2::new(x, y), angle);
+        let bone = crate::project::Bone::new(name, parent, length, crate::math::Vec2::new(x, y), angle);
         let value = serde_json::to_value(&bone).map_err(|e| ApiError::Internal(e.to_string()))?;
-        guard(|| {
-            self.editor
-                .apply(crate::edit::Op::Insert {
-                    path: "/bones/-".into(),
-                    value,
-                })
-                .map_err(ApiError::EditRejected)
-        })
+        guard(|| self.editor.apply(crate::edit::Op::Insert { path: "/bones/-".into(), value }).map_err(ApiError::EditRejected))
     }
 
     // ----- (1.4) physics bake and EXR -----
@@ -1682,37 +1375,19 @@ impl Animation {
     /// preset (`"hair"`, `"tail"`, `"rope"`, `"antenna"`, `"cape"`) and write the result as angle
     /// channels, as one undo step. With `overwrite = false`, bones that already have hand-made
     /// angle keys keep them (they are listed in [`PhysicsBake::skipped`]).
-    pub fn bake_physics(
-        &mut self,
-        chain: &[&str],
-        preset: &str,
-        overwrite: bool,
-    ) -> Result<PhysicsBake, ApiError> {
-        let opts = crate::physics::preset(preset).ok_or_else(|| {
-            ApiError::InvalidArgument(format!(
-                "unknown preset '{preset}' (hair, tail, rope, antenna, cape)"
-            ))
-        })?;
+    pub fn bake_physics(&mut self, chain: &[&str], preset: &str, overwrite: bool) -> Result<PhysicsBake, ApiError> {
+        let opts = crate::physics::preset(preset).ok_or_else(|| ApiError::InvalidArgument(format!("unknown preset '{preset}' (hair, tail, rope, antenna, cape)")))?;
         if chain.is_empty() {
-            return Err(ApiError::InvalidArgument(
-                "the chain must name at least one bone".into(),
-            ));
+            return Err(ApiError::InvalidArgument("the chain must name at least one bone".into()));
         }
         let names: Vec<String> = chain.iter().map(|s| s.to_string()).collect();
         guard(|| {
             let mut p = self.editor.project().clone();
-            let sim = crate::physics::simulate_chain(&p, &names, &opts)
-                .map_err(ApiError::InvalidArgument)?;
+            let sim = crate::physics::simulate_chain(&p, &names, &opts).map_err(ApiError::InvalidArgument)?;
             let (added, skipped) = crate::physics::merge_channels(&mut p, sim, overwrite);
             if added > 0 {
-                let value = serde_json::to_value(&p.channels)
-                    .map_err(|e| ApiError::Internal(e.to_string()))?;
-                self.editor
-                    .apply(crate::edit::Op::Set {
-                        path: "/channels".into(),
-                        value,
-                    })
-                    .map_err(ApiError::EditRejected)?;
+                let value = serde_json::to_value(&p.channels).map_err(|e| ApiError::Internal(e.to_string()))?;
+                self.editor.apply(crate::edit::Op::Set { path: "/channels".into(), value }).map_err(ApiError::EditRejected)?;
             }
             Ok(PhysicsBake { added, skipped })
         })
@@ -1720,33 +1395,20 @@ impl Animation {
 
     /// Render one frame to an OpenEXR file in memory: linear light, premultiplied alpha, rendered
     /// by the float compositor. `float32 = false` stores HALF, `true` stores FLOAT.
-    pub fn render_exr(
-        &self,
-        frame: f32,
-        settings: &RenderSettings,
-        float32: bool,
-    ) -> Result<Vec<u8>, ApiError> {
+    pub fn render_exr(&self, frame: f32, settings: &RenderSettings, float32: bool) -> Result<Vec<u8>, ApiError> {
         let f = check_frame(self, frame)?;
         let o = self.raster_opts(settings)?;
         guard(|| {
             let img = crate::fraster::render_float(self.editor.engine(), f, &o);
-            let prec = if float32 {
-                crate::hdr::Precision::Float
-            } else {
-                crate::hdr::Precision::Half
-            };
-            crate::hdr::encode_exr_buf(img.width, img.height, &img.rgba, prec)
-                .map_err(ApiError::Export)
+            let prec = if float32 { crate::hdr::Precision::Float } else { crate::hdr::Precision::Half };
+            crate::hdr::encode_exr_buf(img.width, img.height, &img.rgba, prec).map_err(ApiError::Export)
         })
     }
 
     fn key_args(&self, prop: &str, frame: f32, value: f32) -> Result<(Prop, f32), ApiError> {
-        let p = Prop::parse(prop)
-            .ok_or_else(|| ApiError::InvalidArgument(format!("unknown property '{prop}'")))?;
+        let p = Prop::parse(prop).ok_or_else(|| ApiError::InvalidArgument(format!("unknown property '{prop}'")))?;
         if !frame.is_finite() || !value.is_finite() {
-            return Err(ApiError::InvalidArgument(
-                "frame and value must be finite numbers".into(),
-            ));
+            return Err(ApiError::InvalidArgument("frame and value must be finite numbers".into()));
         }
         Ok((p, frame))
     }
@@ -1768,17 +1430,11 @@ impl Animation {
     /// assert_eq!(coarse.frame_count(), anim.frame_count());
     /// # Ok(()) }
     /// ```
-    pub fn lod_levels(
-        &self,
-        tolerance_px: f64,
-        scale: f64,
-        levels: usize,
-    ) -> Result<Vec<LodLevel>, ApiError> {
+    pub fn lod_levels(&self, tolerance_px: f64, scale: f64, levels: usize) -> Result<Vec<LodLevel>, ApiError> {
         let o = crate::lod::LodOptions::new(tolerance_px, scale, levels);
         o.check().map_err(ApiError::InvalidArgument)?;
         guard(|| {
-            let v =
-                crate::lod::build(self.editor.project(), &o).map_err(ApiError::InvalidArgument)?;
+            let v = crate::lod::build(self.editor.project(), &o).map_err(ApiError::InvalidArgument)?;
             Ok(v.into_iter()
                 .map(|l| LodLevel {
                     level: l.record.level,
@@ -1798,9 +1454,7 @@ impl Animation {
     /// result is returned with `met == false`.
     pub fn fit_to_size(&self, format: FitFormat, max_bytes: usize) -> Result<SizeFit, ApiError> {
         if !(1000..=1_000_000_000).contains(&max_bytes) {
-            return Err(ApiError::InvalidArgument(
-                "max_bytes must be within 1000..=1000000000".into(),
-            ));
+            return Err(ApiError::InvalidArgument("max_bytes must be within 1000..=1000000000".into()));
         }
         let f = match format {
             FitFormat::Lottie => crate::sizefit::Format::Lottie,
@@ -1810,47 +1464,24 @@ impl Animation {
             FitFormat::Project => crate::sizefit::Format::Project,
         };
         guard(|| {
-            let r = crate::sizefit::fit(
-                self.editor.project(),
-                crate::sizefit::FitOptions::new(f, max_bytes),
-            )
-            .map_err(ApiError::Export)?;
-            Ok(SizeFit {
-                met: r.met,
-                size: r.bytes.len(),
-                ssim_min: r.quality.ssim_min,
-                reason: r.reason,
-                bytes: r.bytes,
-            })
+            let r = crate::sizefit::fit(self.editor.project(), crate::sizefit::FitOptions::new(f, max_bytes)).map_err(ApiError::Export)?;
+            Ok(SizeFit { met: r.met, size: r.bytes.len(), ssim_min: r.quality.ssim_min, reason: r.reason, bytes: r.bytes })
         })
     }
 
     /// Retarget a BVH motion-capture clip (text) onto this rig as keyed channels, in one undoable
     /// edit. Bones are matched by name and topology; locked channels are skipped and reported.
-    pub fn retarget_bvh(
-        &mut self,
-        bvh: &str,
-        settings: &MocapSettings,
-    ) -> Result<MocapReport, ApiError> {
+    pub fn retarget_bvh(&mut self, bvh: &str, settings: &MocapSettings) -> Result<MocapReport, ApiError> {
         guard(|| {
             let b = crate::mocap::parse_bvh(bvh).map_err(ApiError::InvalidArgument)?;
             let p = self.editor.project().clone();
             let m = crate::mocap::match_bones(&b, &p, None).map_err(ApiError::InvalidArgument)?;
-            let o = crate::mocap::RetargetOptions {
-                in_place: settings.in_place,
-                mirror: settings.mirror,
-                smooth: settings.smooth,
-                ..Default::default()
-            };
+            let o = crate::mocap::RetargetOptions { in_place: settings.in_place, mirror: settings.mirror, smooth: settings.smooth, ..Default::default() };
             let r = crate::mocap::retarget(&p, &b, &m, &o).map_err(ApiError::InvalidArgument)?;
             let op = crate::mocap::bake_op(&p, &r).map_err(ApiError::Internal)?;
             self.editor.apply(op).map_err(ApiError::EditRejected)?;
             Ok(MocapReport {
-                matched: m
-                    .matches
-                    .iter()
-                    .map(|x| (x.bvh_name.clone(), x.rig_name.clone()))
-                    .collect(),
+                matched: m.matches.iter().map(|x| (x.bvh_name.clone(), x.rig_name.clone())).collect(),
                 unmatched_joints: m.unmatched_bvh.clone(),
                 unmatched_bones: m.unmatched_rig.clone(),
                 frames: r.out_frames,
@@ -1875,25 +1506,12 @@ impl Animation {
     /// ```
     pub fn fuzz(&self, samples: usize, seed: u64) -> Result<FuzzSummary, ApiError> {
         if !(1..=100_000).contains(&samples) {
-            return Err(ApiError::InvalidArgument(
-                "samples must be within 1..=100000".into(),
-            ));
+            return Err(ApiError::InvalidArgument("samples must be within 1..=100000".into()));
         }
         guard(|| {
-            let o = crate::fuzz::FuzzOptions {
-                samples,
-                seed,
-                ..Default::default()
-            };
-            let r = crate::fuzz::run(self.editor.project(), None, &o)
-                .map_err(ApiError::InvalidArgument)?;
-            Ok(FuzzSummary {
-                samples: r.summary.samples,
-                failures: r.summary.failures,
-                failure_rate: r.summary.failure_rate,
-                max_severity: r.summary.max_severity,
-                json: r.to_json(),
-            })
+            let o = crate::fuzz::FuzzOptions { samples, seed, ..Default::default() };
+            let r = crate::fuzz::run(self.editor.project(), None, &o).map_err(ApiError::InvalidArgument)?;
+            Ok(FuzzSummary { samples: r.summary.samples, failures: r.summary.failures, failure_rate: r.summary.failure_rate, max_severity: r.summary.max_severity, json: r.to_json() })
         })
     }
 
@@ -1920,16 +1538,12 @@ impl Animation {
 impl Player {
     /// Set a bool input.
     pub fn set_bool(&mut self, name: &str, value: bool) -> Result<(), ApiError> {
-        self.rt
-            .set_bool(name, value)
-            .map_err(ApiError::InvalidArgument)
+        self.rt.set_bool(name, value).map_err(ApiError::InvalidArgument)
     }
 
     /// Set a number input (finite).
     pub fn set_number(&mut self, name: &str, value: f64) -> Result<(), ApiError> {
-        self.rt
-            .set_number(name, value)
-            .map_err(ApiError::InvalidArgument)
+        self.rt.set_number(name, value).map_err(ApiError::InvalidArgument)
     }
 
     /// Fire a trigger input; it is consumed by the transition that tests it.
@@ -1941,16 +1555,9 @@ impl Player {
     /// A scroll region whose `input` is this path takes the value as its offset in pixels along
     /// its main axis (as if dragged there; the scroll is then at rest).
     pub fn set_value(&mut self, path: &str, value: f64) -> Result<(), ApiError> {
-        self.rt
-            .set_value(path, value)
-            .map_err(ApiError::InvalidArgument)?;
+        self.rt.set_value(path, value).map_err(ApiError::InvalidArgument)?;
         let mut hits: Vec<(String, [f32; 2])> = Vec::new();
-        for s in self
-            .proj
-            .scrolls
-            .iter()
-            .filter(|s| s.input.as_deref() == Some(path))
-        {
+        for s in self.proj.scrolls.iter().filter(|s| s.input.as_deref() == Some(path)) {
             let mut raw = [0.0f32; 2];
             match s.axis {
                 crate::containers::ScrollAxis::X => raw[0] = value as f32,
@@ -1983,18 +1590,10 @@ impl Player {
         if self.proj.scrolls.is_empty() {
             return Ok(());
         }
-        let sol = crate::containers::solve(&self.proj, self.canvas.0, self.canvas.1)
-            .map_err(ApiError::InvalidArgument)?;
+        let sol = crate::containers::solve(&self.proj, self.canvas.0, self.canvas.1).map_err(ApiError::InvalidArgument)?;
         for sc in &self.proj.scrolls {
-            let max = sol
-                .scrolls
-                .iter()
-                .find(|i| i.id == sc.id)
-                .map_or([0.0; 2], |i| i.max);
-            self.scrolls.push((
-                sc.id.clone(),
-                crate::containers::ScrollRuntime::new(sc, max),
-            ));
+            let max = sol.scrolls.iter().find(|i| i.id == sc.id).map_or([0.0; 2], |i| i.max);
+            self.scrolls.push((sc.id.clone(), crate::containers::ScrollRuntime::new(sc, max)));
         }
         Ok(())
     }
@@ -2003,8 +1602,7 @@ impl Player {
     /// containers re-solve, scroll limits follow, and renders get that size. Fails for a size that
     /// is not finite, not positive or larger than the engine allows.
     pub fn set_canvas_size(&mut self, width: f32, height: f32) -> Result<(), ApiError> {
-        crate::containers::responsive(&self.proj, width, height)
-            .map_err(ApiError::InvalidArgument)?;
+        crate::containers::responsive(&self.proj, width, height).map_err(ApiError::InvalidArgument)?;
         let old = self.canvas;
         self.canvas = (width, height);
         if let Err(e) = self.refresh_scroll_limits() {
@@ -2018,8 +1616,7 @@ impl Player {
         if self.scrolls.is_empty() {
             return Ok(());
         }
-        let sol = crate::containers::solve(&self.proj, self.canvas.0, self.canvas.1)
-            .map_err(ApiError::InvalidArgument)?;
+        let sol = crate::containers::solve(&self.proj, self.canvas.0, self.canvas.1).map_err(ApiError::InvalidArgument)?;
         for (id, r) in &mut self.scrolls {
             if let Some(i) = sol.scrolls.iter().find(|i| i.id == *id) {
                 r.set_max(i.max);
@@ -2039,20 +1636,14 @@ impl Player {
     }
 
     fn scroll_mut(&mut self, id: &str) -> Result<&mut crate::containers::ScrollRuntime, ApiError> {
-        self.scrolls
-            .iter_mut()
-            .find(|(i, _)| i == id)
-            .map(|(_, r)| r)
-            .ok_or_else(|| ApiError::InvalidArgument(format!("unknown scroll '{id}'")))
+        self.scrolls.iter_mut().find(|(i, _)| i == id).map(|(_, r)| r).ok_or_else(|| ApiError::InvalidArgument(format!("unknown scroll '{id}'")))
     }
 
     /// Finger / pointer drag: the raw offset in pixels the user asks for (content moved up / left
     /// by that much). Past the ends the displayed offset is rubber-banded or clamped.
     pub fn scroll_drag(&mut self, id: &str, x: f32, y: f32) -> Result<(), ApiError> {
         if !x.is_finite() || !y.is_finite() {
-            return Err(ApiError::InvalidArgument(
-                "scroll offset must be finite".into(),
-            ));
+            return Err(ApiError::InvalidArgument("scroll offset must be finite".into()));
         }
         self.scroll_mut(id)?.drag_to([x, y]);
         Ok(())
@@ -2062,9 +1653,7 @@ impl Player {
     /// region fling and settle (snap points, spring back).
     pub fn scroll_release(&mut self, id: &str, vx: f32, vy: f32) -> Result<(), ApiError> {
         if !vx.is_finite() || !vy.is_finite() {
-            return Err(ApiError::InvalidArgument(
-                "release velocity must be finite".into(),
-            ));
+            return Err(ApiError::InvalidArgument("release velocity must be finite".into()));
         }
         self.scroll_mut(id)?.release([vx, vy]);
         Ok(())
@@ -2072,26 +1661,17 @@ impl Player {
 
     /// Displayed offset of a scroll region in pixels, or `None` for an unknown id.
     pub fn scroll_offset(&self, id: &str) -> Option<[f32; 2]> {
-        self.scrolls
-            .iter()
-            .find(|(i, _)| i == id)
-            .map(|(_, r)| r.pos)
+        self.scrolls.iter().find(|(i, _)| i == id).map(|(_, r)| r.pos)
     }
 
     /// Largest useful offset of a scroll region at the current canvas size.
     pub fn scroll_max(&self, id: &str) -> Option<[f32; 2]> {
-        self.scrolls
-            .iter()
-            .find(|(i, _)| i == id)
-            .map(|(_, r)| r.max())
+        self.scrolls.iter().find(|(i, _)| i == id).map(|(_, r)| r.max())
     }
 
     /// Whether a scroll region has come to rest.
     pub fn scroll_settled(&self, id: &str) -> Option<bool> {
-        self.scrolls
-            .iter()
-            .find(|(i, _)| i == id)
-            .map(|(_, r)| r.is_settled())
+        self.scrolls.iter().find(|(i, _)| i == id).map(|(_, r)| r.is_settled())
     }
 
     /// Tell the player how large it is shown on screen so that it can pick a cheaper level of
@@ -2099,45 +1679,20 @@ impl Player {
     /// `max_error_px` pixels. The levels are built on first use (deterministically) and cached.
     /// Only geometry and timeline keys are reduced; state-machine poses are not modelled by the
     /// bound (see `lod::LIMITS`). With `max_error_px` of 0 only levels whose declared bound is 0 (lossless ones) qualify.
-    pub fn set_screen_size(
-        &mut self,
-        width_px: f32,
-        height_px: f32,
-        max_error_px: f32,
-    ) -> Result<(), ApiError> {
+    pub fn set_screen_size(&mut self, width_px: f32, height_px: f32, max_error_px: f32) -> Result<(), ApiError> {
         if !(width_px.is_finite() && height_px.is_finite() && width_px > 0.0 && height_px > 0.0) {
-            return Err(ApiError::InvalidArgument(
-                "screen size must be finite and > 0".into(),
-            ));
+            return Err(ApiError::InvalidArgument("screen size must be finite and > 0".into()));
         }
         if !max_error_px.is_finite() || max_error_px < 0.0 {
-            return Err(ApiError::InvalidArgument(
-                "max_error_px must be finite and >= 0".into(),
-            ));
+            return Err(ApiError::InvalidArgument("max_error_px must be finite and >= 0".into()));
         }
         guard(|| {
             if self.lod_levels.is_none() {
-                let lv = crate::lod::build(
-                    &self.proj,
-                    &crate::lod::LodOptions::new(LOD_TOLERANCE, 1.0, LOD_LEVELS),
-                )
-                .map_err(ApiError::InvalidArgument)?;
+                let lv = crate::lod::build(&self.proj, &crate::lod::LodOptions::new(LOD_TOLERANCE, 1.0, LOD_LEVELS)).map_err(ApiError::InvalidArgument)?;
                 self.lod_levels = Some(lv);
             }
-            let scale = crate::lod::fit_scale(
-                &Project {
-                    width: self.canvas.0,
-                    height: self.canvas.1,
-                    ..self.proj.clone()
-                },
-                width_px as f64,
-                height_px as f64,
-            );
-            let recs: Vec<_> = self
-                .lod_levels
-                .as_ref()
-                .map(|l| l.iter().map(|x| x.record.clone()).collect())
-                .unwrap_or_default();
+            let scale = crate::lod::fit_scale(&Project { width: self.canvas.0, height: self.canvas.1, ..self.proj.clone() }, width_px as f64, height_px as f64);
+            let recs: Vec<_> = self.lod_levels.as_ref().map(|l| l.iter().map(|x| x.record.clone()).collect()).unwrap_or_default();
             self.lod_pick = crate::lod::pick_level(&recs, scale, max_error_px as f64);
             self.lod_screen = Some((width_px, height_px, max_error_px));
             Ok(())
@@ -2162,29 +1717,16 @@ impl Player {
     /// Declared error bound in pixels of the level in use at the screen size given to
     /// [`Player::set_screen_size`]; 0 for the original or when no screen size is set.
     pub fn lod_bound_px(&self) -> f32 {
-        let (Some((w, h, _)), Some(lv)) = (self.lod_screen, self.lod_levels.as_ref()) else {
-            return 0.0;
-        };
-        let scale = crate::lod::fit_scale(
-            &Project {
-                width: self.canvas.0,
-                height: self.canvas.1,
-                ..self.proj.clone()
-            },
-            w as f64,
-            h as f64,
-        );
-        lv.get(self.lod_pick)
-            .map_or(0.0, |l| (l.record.bound_stage * scale) as f32)
+        let (Some((w, h, _)), Some(lv)) = (self.lod_screen, self.lod_levels.as_ref()) else { return 0.0 };
+        let scale = crate::lod::fit_scale(&Project { width: self.canvas.0, height: self.canvas.1, ..self.proj.clone() }, w as f64, h as f64);
+        lv.get(self.lod_pick).map_or(0.0, |l| (l.record.bound_stage * scale) as f32)
     }
 
     /// The project edits that make the playback engine: level of detail, canvas size, scroll offsets.
     fn shape(&self, p: &mut Project, dropped: &[usize]) {
         if self.lod_level() > 0 {
             if let Some(l) = self.lod_levels.as_ref().and_then(|v| v.get(self.lod_pick)) {
-                let pose: Vec<crate::project::Channel> = p
-                    .channels
-                    .split_off(self.base_channels.min(p.channels.len()));
+                let pose: Vec<crate::project::Channel> = p.channels.split_off(self.base_channels.min(p.channels.len()));
                 let mut q = l.project.clone();
                 q.machines.clear();
                 q.bindings.clear();
@@ -2202,8 +1744,7 @@ impl Player {
         for s in &mut p.scrolls {
             if let Some((_, r)) = self.scrolls.iter().find(|(i, _)| *i == s.id) {
                 for a in 0..2 {
-                    s.offset[a] =
-                        crate::containers::raw_offset_for(r.pos[a], r.max()[a], s.elastic.as_ref());
+                    s.offset[a] = crate::containers::raw_offset_for(r.pos[a], r.max()[a], s.elastic.as_ref());
                 }
             }
         }
@@ -2216,19 +1757,11 @@ impl Player {
                 Ok(e) => return Ok(e),
                 Err(m) => {
                     // a reduced level may have removed a layer that a pose channel animates: drop those channels
-                    let floor = self
-                        .lod_levels
-                        .as_ref()
-                        .and_then(|v| v.get(self.lod_pick))
-                        .map_or(usize::MAX, |l| l.project.channels.len());
+                    let floor = self.lod_levels.as_ref().and_then(|v| v.get(self.lod_pick)).map_or(usize::MAX, |l| l.project.channels.len());
                     let mut fresh = Vec::new();
                     if self.lod_level() > 0 {
                         for part in m.split("channel ").skip(1) {
-                            if let Some(n) = part
-                                .split(':')
-                                .next()
-                                .and_then(|d| d.trim().parse::<usize>().ok())
-                            {
+                            if let Some(n) = part.split(':').next().and_then(|d| d.trim().parse::<usize>().ok()) {
                                 if n >= floor && part.contains("unknown target") {
                                     // n counts the channels that are still present; map it back to the original position
                                     let mut left = n;
@@ -2282,30 +1815,16 @@ impl Player {
     /// Render the current pose to straight-alpha RGBA8.
     pub fn render_rgba(&self, settings: &RenderSettings) -> Result<Image, ApiError> {
         if !settings.scale.is_finite() || !(0.05..=4.0).contains(&settings.scale) {
-            return Err(ApiError::InvalidArgument(
-                "scale must be within 0.05..=4".into(),
-            ));
+            return Err(ApiError::InvalidArgument("scale must be within 0.05..=4".into()));
         }
-        if (self.canvas.0 * settings.scale).round() > MAX_RENDER_SIDE as f32
-            || (self.canvas.1 * settings.scale).round() > MAX_RENDER_SIDE as f32
-        {
-            return Err(ApiError::InvalidArgument(format!(
-                "output larger than {MAX_RENDER_SIDE} pixels per side"
-            )));
+        if (self.canvas.0 * settings.scale).round() > MAX_RENDER_SIDE as f32 || (self.canvas.1 * settings.scale).round() > MAX_RENDER_SIDE as f32 {
+            return Err(ApiError::InvalidArgument(format!("output larger than {MAX_RENDER_SIDE} pixels per side")));
         }
         guard(|| {
             let e = self.build_engine()?;
-            let o = RasterOptions {
-                scale: settings.scale,
-                show_bones: settings.show_bones,
-                transparent: settings.transparent,
-            };
+            let o = RasterOptions { scale: settings.scale, show_bones: settings.show_bones, transparent: settings.transparent };
             let (width, height, pixels) = render_rgba(&e, self.rt.base_frame(), &o);
-            Ok(Image {
-                width,
-                height,
-                pixels,
-            })
+            Ok(Image { width, height, pixels })
         })
     }
 
@@ -2313,11 +1832,7 @@ impl Player {
     pub fn render_svg(&self, show_bones: bool) -> Result<String, ApiError> {
         guard(|| {
             let e = self.build_engine()?;
-            Ok(render_frame(
-                &e,
-                self.rt.base_frame(),
-                &RenderOptions { show_bones },
-            ))
+            Ok(render_frame(&e, self.rt.base_frame(), &RenderOptions { show_bones }))
         })
     }
 
@@ -2325,11 +1840,7 @@ impl Player {
     pub fn bone_world(&self) -> Result<Vec<[f32; 6]>, ApiError> {
         guard(|| {
             let e = self.build_engine()?;
-            Ok(e.evaluate(self.rt.base_frame())
-                .world
-                .iter()
-                .map(|m| [m.a, m.b, m.c, m.d, m.tx, m.ty])
-                .collect())
+            Ok(e.evaluate(self.rt.base_frame()).world.iter().map(|m| [m.a, m.b, m.c, m.d, m.tx, m.ty]).collect())
         })
     }
 }
@@ -2340,18 +1851,9 @@ mod tests {
 
     #[test]
     fn load_errors_are_typed() {
-        assert!(matches!(
-            Animation::from_json(""),
-            Err(ApiError::InvalidJson(_))
-        ));
-        assert!(matches!(
-            Animation::from_json("[1,2]"),
-            Err(ApiError::InvalidJson(_))
-        ));
-        assert!(matches!(
-            Animation::from_json("{\"format\":9999,\"name\":\"x\"}"),
-            Err(ApiError::InvalidJson(_))
-        ));
+        assert!(matches!(Animation::from_json(""), Err(ApiError::InvalidJson(_))));
+        assert!(matches!(Animation::from_json("[1,2]"), Err(ApiError::InvalidJson(_))));
+        assert!(matches!(Animation::from_json("{\"format\":9999,\"name\":\"x\"}"), Err(ApiError::InvalidJson(_))));
         let mut p = crate::demo::project();
         p.fps = -1.0;
         let bad = p.to_json_pretty();
@@ -2378,24 +1880,12 @@ mod tests {
     #[test]
     fn render_validates_and_works() {
         let a = Animation::demo();
-        let s = RenderSettings {
-            scale: 0.5,
-            ..RenderSettings::default()
-        };
+        let s = RenderSettings { scale: 0.5, ..RenderSettings::default() };
         let img = a.render_rgba(0.0, &s).unwrap();
-        assert_eq!(
-            img.pixels.len(),
-            img.width as usize * img.height as usize * 4
-        );
+        assert_eq!(img.pixels.len(), img.width as usize * img.height as usize * 4);
         for bad in [0.0, -1.0, 5.0, f32::NAN] {
-            let s = RenderSettings {
-                scale: bad,
-                ..RenderSettings::default()
-            };
-            assert!(
-                matches!(a.render_rgba(0.0, &s), Err(ApiError::InvalidArgument(_))),
-                "scale {bad}"
-            );
+            let s = RenderSettings { scale: bad, ..RenderSettings::default() };
+            assert!(matches!(a.render_rgba(0.0, &s), Err(ApiError::InvalidArgument(_))), "scale {bad}");
             assert!(a.render_png(0.0, &s).is_err());
         }
         assert!(a.render_svg(f32::NAN, false).is_err());
@@ -2404,10 +1894,7 @@ mod tests {
     }
 
     fn s_default() -> RenderSettings {
-        RenderSettings {
-            scale: 0.25,
-            ..RenderSettings::default()
-        }
+        RenderSettings { scale: 0.25, ..RenderSettings::default() }
     }
 
     #[test]
@@ -2415,8 +1902,7 @@ mod tests {
         let mut a = Animation::demo();
         let bone = a.bone_names()[0].clone();
         let before = a.to_json();
-        a.set_key(&bone, "bone_angle", 3.0, 12.0, Interpolation::Smooth)
-            .unwrap();
+        a.set_key(&bone, "bone_angle", 3.0, 12.0, Interpolation::Smooth).unwrap();
         assert_ne!(a.to_json(), before);
         assert!(a.delete_key(&bone, "bone_angle", 3.0).unwrap());
         assert!(!a.delete_key(&bone, "bone_angle", 77.0).unwrap());
@@ -2424,51 +1910,21 @@ mod tests {
         assert_eq!(a.to_json(), before);
         assert!(!a.undo());
         assert!(a.redo());
-        assert!(matches!(
-            a.set_key(&bone, "no_such_prop", 0.0, 1.0, Interpolation::Linear),
-            Err(ApiError::InvalidArgument(_))
-        ));
-        assert!(a
-            .set_key(&bone, "bone_angle", f32::NAN, 1.0, Interpolation::Linear)
-            .is_err());
-        assert!(a
-            .set_key(
-                &bone,
-                "bone_angle",
-                1.0,
-                f32::INFINITY,
-                Interpolation::Linear
-            )
-            .is_err());
+        assert!(matches!(a.set_key(&bone, "no_such_prop", 0.0, 1.0, Interpolation::Linear), Err(ApiError::InvalidArgument(_))));
+        assert!(a.set_key(&bone, "bone_angle", f32::NAN, 1.0, Interpolation::Linear).is_err());
+        assert!(a.set_key(&bone, "bone_angle", 1.0, f32::INFINITY, Interpolation::Linear).is_err());
         // unknown target is rejected by validation, project unchanged
         let j = a.to_json();
-        assert!(a
-            .set_key(
-                "no_such_bone",
-                "bone_angle",
-                1.0,
-                1.0,
-                Interpolation::Linear
-            )
-            .is_err());
+        assert!(a.set_key("no_such_bone", "bone_angle", 1.0, 1.0, Interpolation::Linear).is_err());
         assert_eq!(a.to_json(), j);
     }
 
     #[test]
     fn exports_produce_bytes() {
         let a = Animation::demo();
-        assert!(a
-            .export(ExportFormat::Gif, 0.25)
-            .unwrap()
-            .starts_with(b"GIF8"));
-        assert!(a
-            .export(ExportFormat::Glb, 1.0)
-            .unwrap()
-            .starts_with(b"glTF"));
-        assert!(a
-            .export(ExportFormat::Lottie, 1.0)
-            .unwrap()
-            .starts_with(b"{"));
+        assert!(a.export(ExportFormat::Gif, 0.25).unwrap().starts_with(b"GIF8"));
+        assert!(a.export(ExportFormat::Glb, 1.0).unwrap().starts_with(b"glTF"));
+        assert!(a.export(ExportFormat::Lottie, 1.0).unwrap().starts_with(b"{"));
         assert!(a.export(ExportFormat::Html, 1.0).unwrap().len() > 100);
         assert!(a.export(ExportFormat::Gif, 99.0).is_err());
     }
@@ -2478,47 +1934,14 @@ mod tests {
         let mut p = crate::demo::project();
         let bone = p.bones[0].name.clone();
         let mk = |n: &str, v: f32| {
-            let tr = crate::motionlib::TakeTrack {
-                target: bone.clone(),
-                prop: Prop::BoneAngle,
-                keys: vec![
-                    crate::anim::Key {
-                        frame: 0.0,
-                        value: v,
-                        ease: Ease::Linear,
-                    },
-                    crate::anim::Key {
-                        frame: 10.0,
-                        value: v,
-                        ease: Ease::Linear,
-                    },
-                ],
-            };
-            crate::clipstack::Clip::new(
-                n,
-                crate::motionlib::Take {
-                    name: n.into(),
-                    length: 10.0,
-                    tracks: vec![tr],
-                },
-            )
+            let tr = crate::motionlib::TakeTrack { target: bone.clone(), prop: Prop::BoneAngle, keys: vec![crate::anim::Key { frame: 0.0, value: v, ease: Ease::Linear }, crate::anim::Key { frame: 10.0, value: v, ease: Ease::Linear }] };
+            crate::clipstack::Clip::new(n, crate::motionlib::Take { name: n.into(), length: 10.0, tracks: vec![tr] })
         };
         p.clips = vec![mk("a", 0.0), mk("b", 30.0)];
-        let st = |n: &str| crate::machine::State {
-            name: n.into(),
-            source: crate::machine::StateSource::Clip { clip: n.into() },
-            mode: Default::default(),
-            speed: 1.0,
-            blend_in: 0.0,
-        };
+        let st = |n: &str| crate::machine::State { name: n.into(), source: crate::machine::StateSource::Clip { clip: n.into() }, mode: Default::default(), speed: 1.0, blend_in: 0.0 };
         p.machines.push(crate::machine::Machine {
             name: "m".into(),
-            inputs: vec![crate::machine::Input {
-                name: "go".into(),
-                kind: crate::machine::InputKind::Bool,
-                default: 0.0,
-                hold: false,
-            }],
+            inputs: vec![crate::machine::Input { name: "go".into(), kind: crate::machine::InputKind::Bool, default: 0.0, hold: false }],
             layers: vec![crate::machine::Layer {
                 name: "l".into(),
                 mask: vec![],
@@ -2527,11 +1950,7 @@ mod tests {
                 transitions: vec![crate::machine::Transition {
                     from: "a".into(),
                     to: "b".into(),
-                    conditions: vec![crate::machine::Condition {
-                        input: "go".into(),
-                        op: Default::default(),
-                        value: 1.0,
-                    }],
+                    conditions: vec![crate::machine::Condition { input: "go".into(), op: Default::default(), value: 1.0 }],
                     exit_time: None,
                     duration: Some(0.0),
                     ease: Ease::Linear,
@@ -2557,19 +1976,8 @@ mod tests {
         assert_ne!(pl.bone_world().unwrap()[0], before);
         assert!(pl.take_events_json().contains("\"state\":\"b\""));
         assert!(pl.render_svg(false).unwrap().starts_with("<svg"));
-        assert_eq!(
-            pl.render_rgba(&RenderSettings::new(0.25))
-                .unwrap()
-                .pixels
-                .len()
-                % 4,
-            0
-        );
-        assert!(
-            pl.set_bool("zzz", true).is_err()
-                && pl.set_number("go", 1.0).is_err()
-                && pl.fire("go").is_err()
-        );
+        assert_eq!(pl.render_rgba(&RenderSettings::new(0.25)).unwrap().pixels.len() % 4, 0);
+        assert!(pl.set_bool("zzz", true).is_err() && pl.set_number("go", 1.0).is_err() && pl.fire("go").is_err());
         assert!(pl.advance(f64::NAN).is_err() && pl.set_value("bad path", 1.0).is_err());
         assert!(pl.render_rgba(&RenderSettings::new(9.0)).is_err());
     }
@@ -2581,25 +1989,13 @@ mod tests {
         use crate::project::Layer;
         let mut p = machine_project();
         for i in 0..10 {
-            p.layers.push(Layer::vector(
-                &format!("row{i}"),
-                vec![VPath::rect("r", 0.0, 0.0, 100.0, 20.0).with_fill("#336699")],
-            ));
+            p.layers.push(Layer::vector(&format!("row{i}"), vec![VPath::rect("r", 0.0, 0.0, 100.0, 20.0).with_fill("#336699")]));
         }
-        let mut c = Container::new(
-            "col",
-            Dir::Column,
-            (0..10).map(|i| Member::layer(&format!("row{i}"))).collect(),
-        );
+        let mut c = Container::new("col", Dir::Column, (0..10).map(|i| Member::layer(&format!("row{i}"))).collect());
         c.rect = RectRule::default();
         p.containers.push(c);
         let mut s = Scroll::new("list", "col");
-        s.viewport = RectRule::Fixed {
-            x: 0.0,
-            y: 0.0,
-            w: 100.0,
-            h: 50.0,
-        };
+        s.viewport = RectRule::Fixed { x: 0.0, y: 0.0, w: 100.0, h: 50.0 };
         s.snap_y = vec![0.0, 40.0, 80.0, 120.0, 150.0];
         s.input = Some("ui.scroll".into());
         p.scrolls.push(s);
@@ -2608,16 +2004,7 @@ mod tests {
 
     fn row_ys(pl: &Player) -> Vec<f32> {
         let e = pl.build_engine().unwrap();
-        (0..10)
-            .map(|i| {
-                e.layer_local_at(
-                    pl.rt.base_frame(),
-                    e.node_index(&format!("row{i}")).unwrap(),
-                )
-                .position
-                .y
-            })
-            .collect()
+        (0..10).map(|i| e.layer_local_at(pl.rt.base_frame(), e.node_index(&format!("row{i}")).unwrap()).position.y).collect()
     }
 
     #[test]
@@ -2628,17 +2015,11 @@ mod tests {
         assert!((pl.scroll_max("list").unwrap()[1] - 150.0).abs() < 1e-3);
         assert_eq!(pl.scroll_offset("list"), Some([0.0, 0.0]));
         assert!(pl.scroll_offset("nope").is_none() && pl.scroll_drag("nope", 0.0, 0.0).is_err());
-        assert!(
-            pl.scroll_drag("list", f32::NAN, 0.0).is_err()
-                && pl.scroll_release("list", 0.0, f32::INFINITY).is_err()
-        );
+        assert!(pl.scroll_drag("list", f32::NAN, 0.0).is_err() && pl.scroll_release("list", 0.0, f32::INFINITY).is_err());
         let y0 = row_ys(&pl);
         pl.scroll_drag("list", 0.0, 70.0).unwrap();
         let y1 = row_ys(&pl);
-        assert!(
-            (y0[0] - y1[0] - 70.0).abs() < 1e-3 && (y0[3] - y1[3] - 70.0).abs() < 1e-3,
-            "{y0:?} {y1:?}"
-        );
+        assert!((y0[0] - y1[0] - 70.0).abs() < 1e-3 && (y0[3] - y1[3] - 70.0).abs() < 1e-3, "{y0:?} {y1:?}");
         // past the end the offset clamps
         pl.scroll_drag("list", 0.0, 900.0).unwrap();
         assert!((pl.scroll_offset("list").unwrap()[1] - 150.0).abs() < 1e-3);
@@ -2676,34 +2057,17 @@ mod tests {
     fn player_canvas_size_relayouts_and_validates() {
         let mut p = scroll_player_project();
         // the viewport follows the canvas height (top 0, bottom 0), 100 wide
-        p.scrolls[0].viewport = crate::containers::RectRule::Pin {
-            left: Some(0.0),
-            top: Some(0.0),
-            right: None,
-            bottom: Some(0.0),
-            width: Some(100.0),
-            height: None,
-        };
+        p.scrolls[0].viewport = crate::containers::RectRule::Pin { left: Some(0.0), top: Some(0.0), right: None, bottom: Some(0.0), width: Some(100.0), height: None };
         let a = Animation::from_json(&p.to_json_pretty()).unwrap();
         let mut pl = a.player("m").unwrap();
         let (w0, h0) = pl.canvas_size();
         assert_eq!((w0, h0), (a.info().width, a.info().height));
-        for bad in [
-            (0.0, 10.0),
-            (-1.0, 10.0),
-            (f32::NAN, 10.0),
-            (10.0, f32::INFINITY),
-            (1e9, 10.0),
-        ] {
+        for bad in [(0.0, 10.0), (-1.0, 10.0), (f32::NAN, 10.0), (10.0, f32::INFINITY), (1e9, 10.0)] {
             assert!(pl.set_canvas_size(bad.0, bad.1).is_err(), "{bad:?}");
         }
         assert_eq!(pl.canvas_size(), (w0, h0));
         pl.set_canvas_size(w0, 120.0).unwrap();
-        assert!(
-            (pl.scroll_max("list").unwrap()[1] - 80.0).abs() < 1e-3,
-            "{:?}",
-            pl.scroll_max("list")
-        );
+        assert!((pl.scroll_max("list").unwrap()[1] - 80.0).abs() < 1e-3, "{:?}", pl.scroll_max("list"));
         // the position is re-clamped when the limit shrinks, and renders get the new size
         pl.scroll_drag("list", 0.0, 80.0).unwrap();
         pl.set_canvas_size(w0 / 2.0, 150.0).unwrap();
@@ -2731,20 +2095,13 @@ mod tests {
                 Vec2::new(100.0 + r * t.cos(), 100.0 + r * t.sin())
             })
             .collect();
-        p.layers.push(Layer::vector(
-            "blob",
-            vec![VPath::smooth_through("c", &pts, true, 1.0).with_fill("#336699")],
-        ));
+        p.layers.push(Layer::vector("blob", vec![VPath::smooth_through("c", &pts, true, 1.0).with_fill("#336699")]));
         let a = Animation::from_json(&p.to_json_pretty()).unwrap();
         let mut pl = a.player("m").unwrap();
         assert_eq!(pl.lod_level(), 0);
         assert_eq!(pl.lod_bound_px(), 0.0);
         let full = pl.render_rgba(&RenderSettings::new(1.0)).unwrap();
-        assert!(
-            pl.set_screen_size(0.0, 10.0, 1.0).is_err()
-                && pl.set_screen_size(10.0, 10.0, -1.0).is_err()
-                && pl.set_screen_size(f32::NAN, 10.0, 1.0).is_err()
-        );
+        assert!(pl.set_screen_size(0.0, 10.0, 1.0).is_err() && pl.set_screen_size(10.0, 10.0, -1.0).is_err() && pl.set_screen_size(f32::NAN, 10.0, 1.0).is_err());
         // exact request: nothing may be reduced
         let (w, h) = (a.info().width, a.info().height);
         pl.set_screen_size(w, h, 0.0).unwrap();
@@ -2752,19 +2109,12 @@ mod tests {
         // a generous request picks a coarser level whose declared bound stays within it
         for max_px in [0.25f32, 1.0, 4.0] {
             pl.set_screen_size(w, h, max_px).unwrap();
-            assert!(
-                pl.lod_bound_px() <= max_px + 1e-6,
-                "bound {} > {max_px}",
-                pl.lod_bound_px()
-            );
+            assert!(pl.lod_bound_px() <= max_px + 1e-6, "bound {} > {max_px}", pl.lod_bound_px());
             let img = pl.render_rgba(&RenderSettings::new(1.0)).unwrap();
             assert_eq!((img.width, img.height), (full.width, full.height));
         }
         pl.set_screen_size(w, h, 4.0).unwrap();
-        assert!(
-            pl.lod_level() > 0,
-            "a 4 px budget must allow a reduced level"
-        );
+        assert!(pl.lod_level() > 0, "a 4 px budget must allow a reduced level");
         let coarse = pl.lod_level();
         // a smaller screen tolerates at least as coarse a level
         pl.set_screen_size(w / 4.0, h / 4.0, 4.0).unwrap();
@@ -2798,21 +2148,8 @@ mod tests {
                 assert!(l.layers <= lv[0].layers && l.keys <= lv[0].keys);
             }
         }
-        for bad in [
-            (0.0, 1.0, 2usize),
-            (-1.0, 1.0, 2),
-            (1.0, 0.0, 2),
-            (1.0, 1.0, 0),
-            (1.0, 1.0, 99),
-            (f64::NAN, 1.0, 2),
-        ] {
-            assert!(
-                matches!(
-                    a.lod_levels(bad.0, bad.1, bad.2),
-                    Err(ApiError::InvalidArgument(_))
-                ),
-                "{bad:?}"
-            );
+        for bad in [(0.0, 1.0, 2usize), (-1.0, 1.0, 2), (1.0, 0.0, 2), (1.0, 1.0, 0), (1.0, 1.0, 99), (f64::NAN, 1.0, 2)] {
+            assert!(matches!(a.lod_levels(bad.0, bad.1, bad.2), Err(ApiError::InvalidArgument(_))), "{bad:?}");
         }
         assert_eq!(a.lod_levels(1.0, 1.0, 3).unwrap(), lv, "deterministic");
     }
@@ -2824,23 +2161,14 @@ mod tests {
         // a small animation keeps this fast in debug builds
         let mut p = Project::new("tiny", 32.0, 32.0, 12.0, 6);
         for i in 0..4 {
-            p.layers.push(Layer::vector(
-                &format!("l{i}"),
-                vec![VPath::rect("r", 2.0 + i as f32 * 6.0, 4.0, 8.0, 8.0).with_fill("#336699")],
-            ));
+            p.layers.push(Layer::vector(&format!("l{i}"), vec![VPath::rect("r", 2.0 + i as f32 * 6.0, 4.0, 8.0, 8.0).with_fill("#336699")]));
         }
         let a = Animation::from_json(&p.to_json_pretty()).unwrap();
         let r = a.fit_to_size(FitFormat::Lottie, 10_000_000).unwrap();
-        assert!(
-            r.met && r.size == r.bytes.len() && r.size <= 10_000_000 && r.ssim_min > 0.5,
-            "{r:?}"
-        );
+        assert!(r.met && r.size == r.bytes.len() && r.size <= 10_000_000 && r.ssim_min > 0.5, "{r:?}");
         let tiny = a.fit_to_size(FitFormat::Project, 1000).unwrap();
         assert!(tiny.size > 0 && (tiny.met == (tiny.size <= 1000)));
-        assert!(
-            a.fit_to_size(FitFormat::Html, 10).is_err()
-                && a.fit_to_size(FitFormat::Gif, usize::MAX).is_err()
-        );
+        assert!(a.fit_to_size(FitFormat::Html, 10).is_err() && a.fit_to_size(FitFormat::Gif, usize::MAX).is_err());
     }
 
     fn mini_bvh() -> String {
@@ -2857,80 +2185,40 @@ mod tests {
         use crate::math::Vec2;
         use crate::project::Bone;
         let mut p = Project::new("rig", 400.0, 400.0, 30.0, 10);
-        p.bones.push(Bone::new(
-            "hips",
-            None,
-            20.0,
-            Vec2::new(200.0, 250.0),
-            -90.0,
-        ));
-        p.bones.push(Bone::new(
-            "spine",
-            Some("hips"),
-            40.0,
-            Vec2::new(20.0, 0.0),
-            0.0,
-        ));
-        p.bones.push(Bone::new(
-            "head",
-            Some("spine"),
-            30.0,
-            Vec2::new(40.0, 0.0),
-            0.0,
-        ));
+        p.bones.push(Bone::new("hips", None, 20.0, Vec2::new(200.0, 250.0), -90.0));
+        p.bones.push(Bone::new("spine", Some("hips"), 40.0, Vec2::new(20.0, 0.0), 0.0));
+        p.bones.push(Bone::new("head", Some("spine"), 30.0, Vec2::new(40.0, 0.0), 0.0));
         let mut a = Animation::from_json(&p.to_json_pretty()).unwrap();
         let before = a.to_json();
-        let r = a
-            .retarget_bvh(&mini_bvh(), &MocapSettings::new().with_smooth(1))
-            .unwrap();
+        let r = a.retarget_bvh(&mini_bvh(), &MocapSettings::new().with_smooth(1)).unwrap();
         assert!(r.frames >= 3, "{r:?}");
-        assert!(
-            r.matched.iter().any(|(j, b)| j == "Spine" && b == "spine"),
-            "{r:?}"
-        );
+        assert!(r.matched.iter().any(|(j, b)| j == "Spine" && b == "spine"), "{r:?}");
         assert_ne!(a.to_json(), before);
         assert!(a.undo());
         assert_eq!(a.to_json(), before);
-        assert!(a
-            .retarget_bvh("not a bvh", &MocapSettings::default())
-            .is_err());
+        assert!(a.retarget_bvh("not a bvh", &MocapSettings::default()).is_err());
         assert_eq!(a.to_json(), before);
         // a rig without matching bones is an error, not a panic
         let mut d = Animation::demo();
-        let _ = d.retarget_bvh(
-            &mini_bvh(),
-            &MocapSettings::new().with_in_place(true).with_mirror(true),
-        );
+        let _ = d.retarget_bvh(&mini_bvh(), &MocapSettings::new().with_in_place(true).with_mirror(true));
     }
 
     #[test]
     fn tracing_and_fuzzing_validate_input() {
-        let png = Animation::demo()
-            .render_png(0.0, &RenderSettings::new(0.25))
-            .unwrap();
+        let png = Animation::demo().render_png(0.0, &RenderSettings::new(0.25)).unwrap();
         let a = Animation::from_image(&png, 6, "traced").unwrap();
         assert!(!a.layer_names().is_empty());
         assert!(a.render_rgba(0.0, &RenderSettings::new(0.5)).is_ok());
         for bad in [0usize, 1, 65] {
-            assert!(matches!(
-                Animation::from_image(&png, bad, "x"),
-                Err(ApiError::InvalidArgument(_))
-            ));
+            assert!(matches!(Animation::from_image(&png, bad, "x"), Err(ApiError::InvalidArgument(_))));
             assert!(trace_image_svg(&png, bad).is_err());
         }
-        assert!(
-            Animation::from_image(b"", 4, "x").is_err()
-                && Animation::from_image(&png[..20], 4, "x").is_err()
-        );
+        assert!(Animation::from_image(b"", 4, "x").is_err() && Animation::from_image(&png[..20], 4, "x").is_err());
         let f = Animation::demo().fuzz(30, 7).unwrap();
         assert_eq!(f.samples, 30);
         assert!(f.failure_rate >= 0.0 && f.failure_rate <= 1.0 && f.failures <= 30);
         let g = Animation::demo().fuzz(30, 7).unwrap();
-        assert_eq!(
-            (g.failures, g.max_severity),
-            (f.failures, f.max_severity),
-            "same seed, same result"
-        );
+        assert_eq!((g.failures, g.max_severity), (f.failures, f.max_severity), "same seed, same result");
         assert!(Animation::demo().fuzz(100_001, 1).is_err());
     }
 
@@ -2945,23 +2233,16 @@ mod tests {
         std::fs::write(&f, Animation::demo().to_json()).unwrap();
         let mut repo = crate::vcs::Repo::init(&f, Some("ana")).unwrap();
         repo.fixed_time = Some(1_000);
-        assert!(
-            vcs_log(f.to_str().unwrap(), 10).unwrap().is_empty(),
-            "no commits yet"
-        );
+        assert!(vcs_log(f.to_str().unwrap(), 10).unwrap().is_empty(), "no commits yet");
         repo.commit(Some("first"), None).unwrap();
         let mut a = Animation::from_json(&std::fs::read_to_string(&f).unwrap()).unwrap();
         let bone = a.bone_names()[0].clone();
-        a.set_key(&bone, "bone_angle", 5.0, 33.0, Interpolation::Linear)
-            .unwrap();
+        a.set_key(&bone, "bone_angle", 5.0, 33.0, Interpolation::Linear).unwrap();
         std::fs::write(&f, a.to_json()).unwrap();
         repo.fixed_time = Some(2_000);
         repo.commit(Some("second"), None).unwrap();
         let log = vcs_log(d.to_str().unwrap(), 10).unwrap();
-        assert_eq!(
-            log.iter().map(|c| c.message.as_str()).collect::<Vec<_>>(),
-            ["second", "first"]
-        );
+        assert_eq!(log.iter().map(|c| c.message.as_str()).collect::<Vec<_>>(), ["second", "first"]);
         assert_eq!(log[0].author, "ana");
         assert_eq!(vcs_log(f.to_str().unwrap(), 1).unwrap().len(), 1);
         assert!(vcs_log(f.to_str().unwrap(), 0).is_err());
@@ -2971,12 +2252,7 @@ mod tests {
         std::fs::write(&m, r#"{"schema":"osatura-ci/1","project":"p.json","goldens":"goldens","checks":[{"kind":"validate","name":"v"}]}"#).unwrap();
         match ci_run(m.to_str().unwrap()) {
             Ok(o) => {
-                assert_eq!(
-                    (o.total, o.passed, o.failed, o.errors, o.exit_code),
-                    (1, 1, 0, 0, 0),
-                    "{}",
-                    o.json
-                );
+                assert_eq!((o.total, o.passed, o.failed, o.errors, o.exit_code), (1, 1, 0, 0, 0), "{}", o.json);
                 assert!(o.json.contains("\"v\""));
             }
             Err(e) => panic!("{e}"),
@@ -2996,8 +2272,7 @@ mod tests {
         let edit = |angle: f32, frame: f32| {
             let mut a = Animation::from_json(&std::fs::read_to_string(&f).unwrap()).unwrap();
             let bone = a.bone_names()[0].clone();
-            a.set_key(&bone, "bone_angle", frame, angle, Interpolation::Linear)
-                .unwrap();
+            a.set_key(&bone, "bone_angle", frame, angle, Interpolation::Linear).unwrap();
             std::fs::write(&f, a.to_json()).unwrap();
         };
         assert!(vcs_commit(p, Some("x"), None).is_err(), "no repository yet");
@@ -3010,22 +2285,10 @@ mod tests {
         vcs_branch(p, "other", Some("v1")).unwrap();
         edit(20.0, 5.0);
         // dirty tree: typed error for checkout, merge, cherry-pick, revert
-        assert!(matches!(
-            vcs_checkout(p, "other", false),
-            Err(ApiError::DirtyTree(_))
-        ));
-        assert!(matches!(
-            vcs_merge(p, "other", false, None, None),
-            Err(ApiError::DirtyTree(_))
-        ));
-        assert!(matches!(
-            vcs_cherry_pick(p, &base, None),
-            Err(ApiError::DirtyTree(_))
-        ));
-        assert!(matches!(
-            vcs_revert(p, &base, None),
-            Err(ApiError::DirtyTree(_))
-        ));
+        assert!(matches!(vcs_checkout(p, "other", false), Err(ApiError::DirtyTree(_))));
+        assert!(matches!(vcs_merge(p, "other", false, None, None), Err(ApiError::DirtyTree(_))));
+        assert!(matches!(vcs_cherry_pick(p, &base, None), Err(ApiError::DirtyTree(_))));
+        assert!(matches!(vcs_revert(p, &base, None), Err(ApiError::DirtyTree(_))));
         vcs_commit(p, Some("main edit"), None).unwrap();
         vcs_checkout(p, "other", false).unwrap();
         edit(40.0, 5.0);
@@ -3035,46 +2298,22 @@ mod tests {
             VcsMergeOutcome::Conflicted(c) => c,
             o => panic!("{o:?}"),
         };
-        assert!(
-            !conflicts.is_empty()
-                && conflicts
-                    .iter()
-                    .all(|c| !c.path.is_empty() && !c.kind.is_empty())
-        );
-        assert!(conflicts
-            .iter()
-            .any(|c| c.ours.is_some() && c.theirs.is_some()));
+        assert!(!conflicts.is_empty() && conflicts.iter().all(|c| !c.path.is_empty() && !c.kind.is_empty()));
+        assert!(conflicts.iter().any(|c| c.ours.is_some() && c.theirs.is_some()));
         assert_eq!(vcs_conflicts(p).unwrap(), conflicts);
         // while merging: typed errors
-        assert!(
-            matches!(vcs_commit(p, None, None), Err(ApiError::Conflicts(v)) if v.len() == conflicts.len())
-        );
-        assert!(matches!(
-            vcs_checkout(p, "other", true),
-            Err(ApiError::MergeInProgress(_))
-        ));
-        assert!(matches!(
-            vcs_merge(p, "other", false, None, None),
-            Err(ApiError::MergeInProgress(_))
-        ));
-        assert!(matches!(
-            vcs_revert(p, &base, None),
-            Err(ApiError::MergeInProgress(_))
-        ));
+        assert!(matches!(vcs_commit(p, None, None), Err(ApiError::Conflicts(v)) if v.len() == conflicts.len()));
+        assert!(matches!(vcs_checkout(p, "other", true), Err(ApiError::MergeInProgress(_))));
+        assert!(matches!(vcs_merge(p, "other", false, None, None), Err(ApiError::MergeInProgress(_))));
+        assert!(matches!(vcs_revert(p, &base, None), Err(ApiError::MergeInProgress(_))));
         assert!(vcs_resolve(p, "/nowhere", &VcsChoice::Ours).is_err());
-        assert!(matches!(
-            vcs_resolve(p, &conflicts[0].path, &VcsChoice::Value("{ nope".into())),
-            Err(ApiError::InvalidJson(_))
-        ));
+        assert!(matches!(vcs_resolve(p, &conflicts[0].path, &VcsChoice::Value("{ nope".into())), Err(ApiError::InvalidJson(_))));
         // abort restores the committed state
         vcs_abort(p).unwrap();
         assert!(vcs_conflicts(p).unwrap().is_empty());
         assert!(vcs_abort(p).is_err());
         // merge again and resolve each side
-        let VcsMergeOutcome::Conflicted(c2) = vcs_merge(p, "other", false, None, None).unwrap()
-        else {
-            panic!()
-        };
+        let VcsMergeOutcome::Conflicted(c2) = vcs_merge(p, "other", false, None, None).unwrap() else { panic!() };
         let mut left = c2.len();
         for c in &c2 {
             left = vcs_resolve(p, &c.path, &VcsChoice::Ours).unwrap();
@@ -3082,22 +2321,11 @@ mod tests {
         assert_eq!(left, 0);
         let merged = vcs_commit(p, None, None).unwrap();
         assert_eq!(vcs_log(p, 1).unwrap()[0].id, merged);
-        assert_eq!(
-            vcs_merge(p, "other", false, None, None).unwrap(),
-            VcsMergeOutcome::UpToDate
-        );
+        assert_eq!(vcs_merge(p, "other", false, None, None).unwrap(), VcsMergeOutcome::UpToDate);
         // revert the merge's first-parent change, then cherry-pick it back via the original commit
         let log = vcs_log(p, 10).unwrap();
-        let main_edit = log
-            .iter()
-            .find(|c| c.message == "main edit")
-            .unwrap()
-            .id
-            .clone();
-        assert!(matches!(
-            vcs_revert(p, &main_edit, None).unwrap(),
-            VcsMergeOutcome::Merged(_) | VcsMergeOutcome::Conflicted(_)
-        ));
+        let main_edit = log.iter().find(|c| c.message == "main edit").unwrap().id.clone();
+        assert!(matches!(vcs_revert(p, &main_edit, None).unwrap(), VcsMergeOutcome::Merged(_) | VcsMergeOutcome::Conflicted(_)));
         let _ = vcs_abort(p);
         // fast-forward
         vcs_branch(p, "ahead", None).unwrap();
@@ -3105,10 +2333,7 @@ mod tests {
         edit(1.0, 9.0);
         let ahead = vcs_commit(p, Some("ahead"), None).unwrap();
         vcs_checkout(p, "main", false).unwrap();
-        assert_eq!(
-            vcs_merge(p, "ahead", false, None, None).unwrap(),
-            VcsMergeOutcome::FastForward(ahead)
-        );
+        assert_eq!(vcs_merge(p, "ahead", false, None, None).unwrap(), VcsMergeOutcome::FastForward(ahead));
         assert!(vcs_merge(p, "no-such-rev", false, None, None).is_err());
         assert!(vcs_branch(p, "x", Some("no-such-rev")).is_err());
         let _ = std::fs::remove_dir_all(&d);
@@ -3132,14 +2357,7 @@ mod tests {
         let mut a = Animation::from_json(&std::fs::read_to_string(&f).unwrap()).unwrap();
         let bone = a.bone_names()[0].clone();
         for fr in 0..4 {
-            a.set_key(
-                &bone,
-                "bone_angle",
-                fr as f32,
-                80.0 + fr as f32 * 10.0,
-                Interpolation::Linear,
-            )
-            .unwrap();
+            a.set_key(&bone, "bone_angle", fr as f32, 80.0 + fr as f32 * 10.0, Interpolation::Linear).unwrap();
         }
         std::fs::write(&f, a.to_json()).unwrap();
         assert_eq!(ci_run(ms).unwrap().exit_code, 1);
@@ -3149,24 +2367,10 @@ mod tests {
         // init: default manifest, no overwrite, optional goldens
         let f2 = d.join("q.json");
         std::fs::write(&f2, Animation::demo().to_json()).unwrap();
-        let i = ci_init(
-            f2.to_str().unwrap(),
-            Some(d.join("q-ci.json").to_str().unwrap()),
-            false,
-        )
-        .unwrap();
-        assert!(
-            i.recorded.is_none()
-                && i.checks.len() >= 4
-                && std::path::Path::new(&i.manifest).exists()
-        );
+        let i = ci_init(f2.to_str().unwrap(), Some(d.join("q-ci.json").to_str().unwrap()), false).unwrap();
+        assert!(i.recorded.is_none() && i.checks.len() >= 4 && std::path::Path::new(&i.manifest).exists());
         assert!(ci_init(f2.to_str().unwrap(), Some(&i.manifest), false).is_err());
-        assert!(ci_init(
-            d.join("none.json").to_str().unwrap(),
-            Some(d.join("z.json").to_str().unwrap()),
-            false
-        )
-        .is_err());
+        assert!(ci_init(d.join("none.json").to_str().unwrap(), Some(d.join("z.json").to_str().unwrap()), false).is_err());
         assert!(!d.join("z.json").exists());
         assert!(ci_run_mode(d.join("missing.json").to_str().unwrap(), CiMode::Bless).is_err());
         let _ = std::fs::remove_dir_all(&d);
@@ -3175,24 +2379,14 @@ mod tests {
 
     #[test]
     fn new_error_variants_display() {
-        assert_eq!(
-            ApiError::DirtyTree("x".into()).to_string(),
-            "uncommitted changes: x"
-        );
-        assert_eq!(
-            ApiError::MergeInProgress("y".into()).to_string(),
-            "merge in progress: y"
-        );
-        assert_eq!(
-            ApiError::Conflicts(vec!["a".into(), "b".into()]).to_string(),
-            "unresolved conflicts: a, b"
-        );
+        assert_eq!(ApiError::DirtyTree("x".into()).to_string(), "uncommitted changes: x");
+        assert_eq!(ApiError::MergeInProgress("y".into()).to_string(), "merge in progress: y");
+        assert_eq!(ApiError::Conflicts(vec!["a".into(), "b".into()]).to_string(), "unresolved conflicts: a, b");
     }
 
     #[test]
     fn error_display_and_trait() {
-        let e: Box<dyn std::error::Error> =
-            Box::new(ApiError::InvalidProject(vec!["a".into(), "b".into()]));
+        let e: Box<dyn std::error::Error> = Box::new(ApiError::InvalidProject(vec!["a".into(), "b".into()]));
         assert_eq!(e.to_string(), "invalid project: a; b");
         assert!(API_VERSION.starts_with(&format!("{API_VERSION_MAJOR}.")));
     }
@@ -3204,23 +2398,21 @@ mod tests {
         let mut a = Animation::demo();
         let n0 = a.layer_names().len();
         a.add_group_layer("grp").unwrap();
-        a.add_rect_layer("box", 1.0, 2.0, 30.0, 20.0, "#336699", Some("grp"))
-            .unwrap();
-        a.add_ellipse_layer("dot", 50.0, 50.0, 5.0, 8.0, "#f00", None)
-            .unwrap();
+        a.add_rect_layer("box", 1.0, 2.0, 30.0, 20.0, "#336699", Some("grp")).unwrap();
+        a.add_ellipse_layer("dot", 50.0, 50.0, 5.0, 8.0, "#f00", None).unwrap();
         assert_eq!(a.layer_names().len(), n0 + 3);
         assert!(a.layer_names().iter().any(|n| n == "grp/box"));
         assert!(a.render_rgba(0.0, &RenderSettings::new(0.2)).is_ok());
         // round-trips through JSON
         assert!(Animation::from_json(&a.to_json()).is_ok());
         for bad in [
-            a.add_rect_layer("box", 0.0, 0.0, 1.0, 1.0, "#fff", None), // duplicate name
-            a.add_rect_layer("x/y", 0.0, 0.0, 1.0, 1.0, "#fff", None), // slash
-            a.add_rect_layer("", 0.0, 0.0, 1.0, 1.0, "#fff", None),    // empty
-            a.add_rect_layer("n1", 0.0, 0.0, -1.0, 1.0, "#fff", None), // size
-            a.add_rect_layer("n2", f32::NAN, 0.0, 1.0, 1.0, "#fff", None), // NaN
-            a.add_rect_layer("n3", 0.0, 0.0, 1.0, 1.0, "red-ish", None), // colour
-            a.add_rect_layer("n4", 0.0, 0.0, 1.0, 1.0, "#fff", Some("dot")), // parent is not a group
+            a.add_rect_layer("box", 0.0, 0.0, 1.0, 1.0, "#fff", None),          // duplicate name
+            a.add_rect_layer("x/y", 0.0, 0.0, 1.0, 1.0, "#fff", None),          // slash
+            a.add_rect_layer("", 0.0, 0.0, 1.0, 1.0, "#fff", None),             // empty
+            a.add_rect_layer("n1", 0.0, 0.0, -1.0, 1.0, "#fff", None),          // size
+            a.add_rect_layer("n2", f32::NAN, 0.0, 1.0, 1.0, "#fff", None),      // NaN
+            a.add_rect_layer("n3", 0.0, 0.0, 1.0, 1.0, "red-ish", None),        // colour
+            a.add_rect_layer("n4", 0.0, 0.0, 1.0, 1.0, "#fff", Some("dot")),    // parent is not a group
             a.add_ellipse_layer("n5", 0.0, 0.0, 0.0, 1.0, "#fff", None),
         ] {
             assert!(matches!(bad, Err(ApiError::InvalidArgument(_))), "{bad:?}");
@@ -3231,17 +2423,13 @@ mod tests {
 
         let b0 = a.bone_names().len();
         let root = a.bone_names()[0].clone();
-        a.add_bone("tip", Some(&root), 12.0, 3.0, 0.0, 15.0)
-            .unwrap();
+        a.add_bone("tip", Some(&root), 12.0, 3.0, 0.0, 15.0).unwrap();
         assert_eq!(a.bone_names().len(), b0 + 1);
-        a.set_key("tip", "bone_angle", 4.0, 10.0, Interpolation::Linear)
-            .unwrap();
+        a.set_key("tip", "bone_angle", 4.0, 10.0, Interpolation::Linear).unwrap();
         assert!(a.add_bone("tip", None, 1.0, 0.0, 0.0, 0.0).is_err());
         assert!(a.add_bone("t2", Some("nope"), 1.0, 0.0, 0.0, 0.0).is_err());
         assert!(a.add_bone("t3", None, 0.0, 0.0, 0.0, 0.0).is_err());
-        assert!(a
-            .add_bone("t4", None, 1.0, f32::INFINITY, 0.0, 0.0)
-            .is_err());
+        assert!(a.add_bone("t4", None, 1.0, f32::INFINITY, 0.0, 0.0).is_err());
     }
 
     #[test]
@@ -3249,26 +2437,17 @@ mod tests {
         let a = Animation::demo();
         let apng = a.export(ExportFormat::Apng, 0.25).unwrap();
         assert_eq!(&apng[1..4], b"PNG");
-        assert!(
-            apng.windows(4).any(|w| w == b"acTL"),
-            "animation control chunk"
-        );
+        assert!(apng.windows(4).any(|w| w == b"acTL"), "animation control chunk");
         let (_, _, frames) = crate::sizefit::apng_decode(&apng).unwrap();
         assert_eq!(frames.len(), a.frame_count() as usize);
         assert!(a.export(ExportFormat::Apng, 0.0).is_err());
-        let half = a
-            .render_exr(0.0, &RenderSettings::new(0.25), false)
-            .unwrap();
+        let half = a.render_exr(0.0, &RenderSettings::new(0.25), false).unwrap();
         let full = a.render_exr(0.0, &RenderSettings::new(0.25), true).unwrap();
         assert_eq!(&half[0..4], &[0x76, 0x2f, 0x31, 0x01], "EXR magic");
         assert_eq!(&full[0..4], &[0x76, 0x2f, 0x31, 0x01]);
         assert!(full.len() > half.len());
-        assert!(a
-            .render_exr(f32::NAN, &RenderSettings::default(), false)
-            .is_err());
-        assert!(a
-            .render_exr(0.0, &RenderSettings::new(99.0), false)
-            .is_err());
+        assert!(a.render_exr(f32::NAN, &RenderSettings::default(), false).is_err());
+        assert!(a.render_exr(0.0, &RenderSettings::new(99.0), false).is_err());
     }
 
     #[test]
@@ -3283,10 +2462,7 @@ mod tests {
         let again = a.bake_physics(&["h1", "h2"], "hair", false).unwrap();
         assert_eq!(again.added, 0, "existing keys win");
         assert_eq!(again.skipped.len(), 2);
-        assert_eq!(
-            a.bake_physics(&["h1", "h2"], "cape", true).unwrap().added,
-            2
-        );
+        assert_eq!(a.bake_physics(&["h1", "h2"], "cape", true).unwrap().added, 2);
         assert!(a.undo() && a.undo());
         assert_eq!(a.to_json(), before);
         assert!(a.bake_physics(&["h1"], "lava", false).is_err());
@@ -3303,10 +2479,7 @@ mod tests {
         std::fs::write(&file, Animation::demo().to_json()).unwrap();
         let path = file.to_str().unwrap();
         vcs_init(path, Some("ana")).unwrap();
-        assert!(
-            vcs_branches(path).unwrap().is_empty()
-                || vcs_branches(path).unwrap().iter().all(|b| b.current)
-        );
+        assert!(vcs_branches(path).unwrap().is_empty() || vcs_branches(path).unwrap().iter().all(|b| b.current));
         let c1 = vcs_commit(path, Some("first"), None).unwrap();
         let st = vcs_status(path).unwrap();
         assert_eq!(st.head.as_deref(), Some(c1.as_str()));
@@ -3314,50 +2487,29 @@ mod tests {
 
         // edit the working file
         let mut a = Animation::from_json(&std::fs::read_to_string(&file).unwrap()).unwrap();
-        a.add_rect_layer("extra", 0.0, 0.0, 5.0, 5.0, "#0f0", None)
-            .unwrap();
+        a.add_rect_layer("extra", 0.0, 0.0, 5.0, 5.0, "#0f0", None).unwrap();
         std::fs::write(&file, a.to_json()).unwrap();
         let st = vcs_status(path).unwrap();
-        assert!(
-            st.changes
-                .iter()
-                .any(|c| c.kind == "Added" && c.path.contains("extra")
-                    || c.description.contains("extra")),
-            "{:?}",
-            st.changes
-        );
+        assert!(st.changes.iter().any(|c| c.kind == "Added" && c.path.contains("extra") || c.description.contains("extra")), "{:?}", st.changes);
         let d = vcs_diff(path, Some("HEAD"), None).unwrap();
         assert_eq!(d, st.changes);
-        assert!(vcs_diff(path, Some("HEAD"), Some("HEAD"))
-            .unwrap()
-            .is_empty());
+        assert!(vcs_diff(path, Some("HEAD"), Some("HEAD")).unwrap().is_empty());
         let c2 = vcs_commit(path, Some("second"), None).unwrap();
         let shown = vcs_show(path, &c2).unwrap();
         assert_eq!(shown.commit.id, c2);
         assert_eq!(shown.commit.message, "second");
         assert!(!shown.changes.is_empty());
-        assert!(
-            !vcs_show(path, &c1).unwrap().changes.is_empty(),
-            "a root commit shows everything"
-        );
+        assert!(!vcs_show(path, &c1).unwrap().changes.is_empty(), "a root commit shows everything");
         assert!(vcs_show(path, "nope").is_err());
 
         vcs_branch(path, "feature", Some(&c1)).unwrap();
         let bs = vcs_branches(path).unwrap();
-        assert!(bs
-            .iter()
-            .any(|b| b.name == "feature" && !b.current && b.commit == c1));
+        assert!(bs.iter().any(|b| b.name == "feature" && !b.current && b.commit == c1));
         let cur = bs.iter().find(|b| b.current).unwrap().name.clone();
-        assert!(
-            vcs_branch_delete(path, &cur).is_err(),
-            "cannot delete the checked-out branch"
-        );
+        assert!(vcs_branch_delete(path, &cur).is_err(), "cannot delete the checked-out branch");
         assert!(vcs_branch_delete(path, "ghost").is_err());
         vcs_branch_delete(path, "feature").unwrap();
-        assert!(!vcs_branches(path)
-            .unwrap()
-            .iter()
-            .any(|b| b.name == "feature"));
+        assert!(!vcs_branches(path).unwrap().iter().any(|b| b.name == "feature"));
 
         assert!(vcs_fsck(path).unwrap().is_empty());
         let g = vcs_gc(path).unwrap();
@@ -3380,17 +2532,9 @@ mod tests {
             if line.starts_with("#[cfg(test)]") {
                 break;
             }
-            if !line.starts_with(' ')
-                && !line.starts_with('#')
-                && !line.starts_with("//")
-                && !line.is_empty()
-                && !line.starts_with('}')
-            {
+            if !line.starts_with(' ') && !line.starts_with('#') && !line.starts_with("//") && !line.is_empty() && !line.starts_with('}') {
                 in_enum = line.starts_with("pub enum ");
-                ctx = if line.starts_with("impl")
-                    || line.starts_with("pub struct")
-                    || line.starts_with("pub enum")
-                {
+                ctx = if line.starts_with("impl") || line.starts_with("pub struct") || line.starts_with("pub enum") {
                     line.trim_end_matches('{').trim().to_string()
                 } else {
                     String::new()
@@ -3402,22 +2546,11 @@ mod tests {
                 items.push(line.trim_end().to_string());
             }
             let item = if top && t.starts_with("pub ") {
-                Some(
-                    t.trim_end_matches('{')
-                        .trim_end_matches(';')
-                        .trim()
-                        .to_string(),
-                )
+                Some(t.trim_end_matches('{').trim_end_matches(';').trim().to_string())
             } else if !top && line.starts_with("    ") && !line.starts_with("     ") {
                 let b = t.trim_start();
                 if b.starts_with("pub ") {
-                    Some(format!(
-                        "{ctx} :: {}",
-                        b.trim_end_matches('{')
-                            .trim_end_matches(',')
-                            .trim_end_matches(';')
-                            .trim()
-                    ))
+                    Some(format!("{ctx} :: {}", b.trim_end_matches('{').trim_end_matches(',').trim_end_matches(';').trim()))
                 } else if in_enum && b.chars().next().is_some_and(|c| c.is_ascii_uppercase()) {
                     Some(format!("{ctx} :: {}", b.trim_end_matches(',')))
                 } else {

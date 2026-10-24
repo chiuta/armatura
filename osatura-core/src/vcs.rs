@@ -49,22 +49,15 @@ pub const VCS_DIR: &str = ".osatura-vcs";
 // ---------------------------------------------------------------------------------------------
 
 const K256: [u32; 64] = [
-    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
-    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
-    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
-    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
-    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
-    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
-    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
-    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
 ];
 
 /// SHA-256 digest of `data`.
 pub fn sha256(data: &[u8]) -> [u8; 32] {
-    let mut h: [u32; 8] = [
-        0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab,
-        0x5be0cd19,
-    ];
+    let mut h: [u32; 8] = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
     let mut msg = data.to_vec();
     msg.push(0x80);
     while msg.len() % 64 != 56 {
@@ -74,30 +67,18 @@ pub fn sha256(data: &[u8]) -> [u8; 32] {
     for chunk in msg.chunks(64) {
         let mut w = [0u32; 64];
         for i in 0..16 {
-            w[i] = u32::from_be_bytes([
-                chunk[4 * i],
-                chunk[4 * i + 1],
-                chunk[4 * i + 2],
-                chunk[4 * i + 3],
-            ]);
+            w[i] = u32::from_be_bytes([chunk[4 * i], chunk[4 * i + 1], chunk[4 * i + 2], chunk[4 * i + 3]]);
         }
         for i in 16..64 {
             let s0 = w[i - 15].rotate_right(7) ^ w[i - 15].rotate_right(18) ^ (w[i - 15] >> 3);
             let s1 = w[i - 2].rotate_right(17) ^ w[i - 2].rotate_right(19) ^ (w[i - 2] >> 10);
-            w[i] = w[i - 16]
-                .wrapping_add(s0)
-                .wrapping_add(w[i - 7])
-                .wrapping_add(s1);
+            w[i] = w[i - 16].wrapping_add(s0).wrapping_add(w[i - 7]).wrapping_add(s1);
         }
         let mut v = h;
         for i in 0..64 {
             let s1 = v[4].rotate_right(6) ^ v[4].rotate_right(11) ^ v[4].rotate_right(25);
             let ch = (v[4] & v[5]) ^ (!v[4] & v[6]);
-            let t1 = v[7]
-                .wrapping_add(s1)
-                .wrapping_add(ch)
-                .wrapping_add(K256[i])
-                .wrapping_add(w[i]);
+            let t1 = v[7].wrapping_add(s1).wrapping_add(ch).wrapping_add(K256[i]).wrapping_add(w[i]);
             let s0 = v[0].rotate_right(2) ^ v[0].rotate_right(13) ^ v[0].rotate_right(22);
             let maj = (v[0] & v[1]) ^ (v[0] & v[2]) ^ (v[1] & v[2]);
             let t2 = s0.wrapping_add(maj);
@@ -126,9 +107,7 @@ pub fn sha256_hex(data: &[u8]) -> String {
 }
 
 fn is_hash(s: &str) -> bool {
-    s.len() == 64
-        && s.bytes()
-            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+    s.len() == 64 && s.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -142,29 +121,20 @@ fn encode_object(kind: &str, payload: &[u8]) -> Vec<u8> {
 }
 
 fn decode_object(bytes: &[u8]) -> Result<(String, Vec<u8>), String> {
-    let nl = bytes
-        .iter()
-        .position(|b| *b == b'\n')
-        .ok_or("object has no header")?;
+    let nl = bytes.iter().position(|b| *b == b'\n').ok_or("object has no header")?;
     let head = std::str::from_utf8(&bytes[..nl]).map_err(|_| "object header is not text")?;
     let mut it = head.split(' ');
     if it.next() != Some("ARMOBJ1") {
         return Err("object has a wrong magic".into());
     }
     let kind = it.next().ok_or("object header lacks a kind")?;
-    let len: usize = it
-        .next()
-        .and_then(|l| l.parse().ok())
-        .ok_or("object header lacks a length")?;
+    let len: usize = it.next().and_then(|l| l.parse().ok()).ok_or("object header lacks a length")?;
     if it.next().is_some() || !matches!(kind, "blob" | "tree" | "commit") {
         return Err(format!("object header is malformed ({head:?})"));
     }
     let payload = &bytes[nl + 1..];
     if payload.len() != len {
-        return Err(format!(
-            "object length {} differs from header {len}",
-            payload.len()
-        ));
+        return Err(format!("object length {} differs from header {len}", payload.len()));
     }
     Ok((kind.to_string(), payload.to_vec()))
 }
@@ -178,10 +148,7 @@ pub fn split_parts(doc: &Value) -> Result<BTreeMap<String, Value>, String> {
         match v {
             Value::Array(a) => match semdiff::elem_ids(a) {
                 Some(ids) => {
-                    parts.insert(
-                        format!("order/{k}"),
-                        Value::Array(ids.iter().map(|i| Value::String(i.clone())).collect()),
-                    );
+                    parts.insert(format!("order/{k}"), Value::Array(ids.iter().map(|i| Value::String(i.clone())).collect()));
                     for (id, e) in ids.iter().zip(a) {
                         parts.insert(format!("arr/{k}/{id}"), e.clone());
                     }
@@ -210,26 +177,14 @@ pub fn join_parts(parts: &BTreeMap<String, Value>) -> Result<Value, String> {
         _ => return Err("tree lacks the meta part".into()),
     }
     for (name, v) in parts {
-        if let Some(k) = name
-            .strip_prefix("obj/")
-            .or_else(|| name.strip_prefix("val/"))
-        {
+        if let Some(k) = name.strip_prefix("obj/").or_else(|| name.strip_prefix("val/")) {
             out.insert(k.to_string(), v.clone());
         } else if let Some(k) = name.strip_prefix("order/") {
-            let ids = v
-                .as_array()
-                .ok_or_else(|| format!("part {name} is not a list"))?;
+            let ids = v.as_array().ok_or_else(|| format!("part {name} is not a list"))?;
             let mut arr = Vec::new();
             for id in ids {
-                let id = id
-                    .as_str()
-                    .ok_or_else(|| format!("part {name} holds a non-text id"))?;
-                arr.push(
-                    parts
-                        .get(&format!("arr/{k}/{id}"))
-                        .ok_or_else(|| format!("tree lacks part arr/{k}/{id}"))?
-                        .clone(),
-                );
+                let id = id.as_str().ok_or_else(|| format!("part {name} holds a non-text id"))?;
+                arr.push(parts.get(&format!("arr/{k}/{id}")).ok_or_else(|| format!("tree lacks part arr/{k}/{id}"))?.clone());
             }
             out.insert(k.to_string(), Value::Array(arr));
         }
@@ -304,8 +259,7 @@ fn valid_ref_name(n: &str) -> Result<(), String> {
         && !n.contains("..")
         && !n.contains("//")
         && !n.ends_with(".lock")
-        && n.chars()
-            .all(|c| c.is_ascii_alphanumeric() || "._-/".contains(c));
+        && n.chars().all(|c| c.is_ascii_alphanumeric() || "._-/".contains(c));
     if ok {
         Ok(())
     } else {
@@ -318,92 +272,49 @@ impl Repo {
 
     /// Create a repository next to `project_file` (a path to an existing project JSON).
     pub fn init(project_file: &Path, author: Option<&str>) -> Result<Repo, String> {
-        let root = project_file
-            .parent()
-            .map(|p| {
-                if p.as_os_str().is_empty() {
-                    Path::new(".")
-                } else {
-                    p
-                }
-            })
-            .unwrap_or(Path::new("."))
-            .to_path_buf();
-        let name = project_file
-            .file_name()
-            .and_then(|n| n.to_str())
-            .ok_or("bad project file name")?
-            .to_string();
-        let text = fs::read_to_string(project_file)
-            .map_err(|e| format!("cannot read {}: {e}", project_file.display()))?;
-        let v: Value = serde_json::from_str(&text)
-            .map_err(|e| format!("{} is not JSON: {e}", project_file.display()))?;
+        let root = project_file.parent().map(|p| if p.as_os_str().is_empty() { Path::new(".") } else { p }).unwrap_or(Path::new(".")).to_path_buf();
+        let name = project_file.file_name().and_then(|n| n.to_str()).ok_or("bad project file name")?.to_string();
+        let text = fs::read_to_string(project_file).map_err(|e| format!("cannot read {}: {e}", project_file.display()))?;
+        let v: Value = serde_json::from_str(&text).map_err(|e| format!("{} is not JSON: {e}", project_file.display()))?;
         if !v.is_object() {
-            return Err(format!(
-                "{} is not a project (a JSON object is expected)",
-                project_file.display()
-            ));
+            return Err(format!("{} is not a project (a JSON object is expected)", project_file.display()));
         }
         let dir = root.join(VCS_DIR);
         if dir.exists() {
             return Err(format!("{} already exists", dir.display()));
         }
         for sub in ["objects", "refs/heads", "refs/tags"] {
-            fs::create_dir_all(dir.join(sub))
-                .map_err(|e| format!("cannot create {}: {e}", dir.join(sub).display()))?;
+            fs::create_dir_all(dir.join(sub)).map_err(|e| format!("cannot create {}: {e}", dir.join(sub).display()))?;
         }
-        let r = Repo {
-            root,
-            dir,
-            fixed_time: None,
-        };
+        let r = Repo { root, dir, fixed_time: None };
         write_atomic(&r.dir.join("HEAD"), b"ref: refs/heads/main\n")?;
         let cfg = json!({"project": name, "author": author.unwrap_or("")});
-        write_atomic(
-            &r.dir.join("config"),
-            semdiff::canon_string(&cfg, true).as_bytes(),
-        )?;
+        write_atomic(&r.dir.join("config"), semdiff::canon_string(&cfg, true).as_bytes())?;
         Ok(r)
     }
 
     /// Open the repository containing `start` (walks up through the parent directories).
     pub fn open(start: &Path) -> Result<Repo, String> {
-        let abs =
-            fs::canonicalize(start).map_err(|e| format!("cannot open {}: {e}", start.display()))?;
+        let abs = fs::canonicalize(start).map_err(|e| format!("cannot open {}: {e}", start.display()))?;
         for d in abs.ancestors() {
             if d.join(VCS_DIR).is_dir() {
-                return Ok(Repo {
-                    root: d.to_path_buf(),
-                    dir: d.join(VCS_DIR),
-                    fixed_time: None,
-                });
+                return Ok(Repo { root: d.to_path_buf(), dir: d.join(VCS_DIR), fixed_time: None });
             }
         }
-        Err(format!(
-            "no {VCS_DIR} repository found from {} upwards (run: osatura vcs init <project.json>)",
-            abs.display()
-        ))
+        Err(format!("no {VCS_DIR} repository found from {} upwards (run: osatura vcs init <project.json>)", abs.display()))
     }
 
     fn config(&self) -> Result<Value, String> {
-        let t = fs::read_to_string(self.dir.join("config"))
-            .map_err(|e| format!("cannot read config: {e}"))?;
+        let t = fs::read_to_string(self.dir.join("config")).map_err(|e| format!("cannot read config: {e}"))?;
         serde_json::from_str(&t).map_err(|e| format!("config is damaged: {e}"))
     }
 
     /// Absolute path of the tracked project file.
     pub fn project_path(&self) -> Result<PathBuf, String> {
         let c = self.config()?;
-        let name = c
-            .get("project")
-            .and_then(|p| p.as_str())
-            .ok_or("config lacks the project file name")?;
+        let name = c.get("project").and_then(|p| p.as_str()).ok_or("config lacks the project file name")?;
         let p = Path::new(name);
-        if p.is_absolute()
-            || p.components()
-                .any(|c| matches!(c, std::path::Component::ParentDir))
-            || name.is_empty()
-        {
+        if p.is_absolute() || p.components().any(|c| matches!(c, std::path::Component::ParentDir)) || name.is_empty() {
             return Err(format!("config names an unsafe project path '{name}'"));
         }
         Ok(self.root.join(p))
@@ -411,19 +322,11 @@ impl Repo {
 
     pub fn default_author(&self) -> String {
         if let Ok(c) = self.config() {
-            if let Some(a) = c
-                .get("author")
-                .and_then(|a| a.as_str())
-                .filter(|a| !a.is_empty())
-            {
+            if let Some(a) = c.get("author").and_then(|a| a.as_str()).filter(|a| !a.is_empty()) {
                 return a.to_string();
             }
         }
-        std::env::var("OSATURA_AUTHOR")
-            .ok()
-            .filter(|a| !a.is_empty())
-            .or_else(|| std::env::var("USER").ok().filter(|a| !a.is_empty()))
-            .unwrap_or_else(|| "unknown".into())
+        std::env::var("OSATURA_AUTHOR").ok().filter(|a| !a.is_empty()).or_else(|| std::env::var("USER").ok().filter(|a| !a.is_empty())).unwrap_or_else(|| "unknown".into())
     }
 
     fn now(&self) -> u64 {
@@ -454,8 +357,7 @@ impl Repo {
     }
 
     pub fn get_object(&self, h: &str) -> Result<(String, Vec<u8>), String> {
-        let bytes = fs::read(self.obj_path(h)?)
-            .map_err(|_| format!("object {} is missing", &h[..h.len().min(12)]))?;
+        let bytes = fs::read(self.obj_path(h)?).map_err(|_| format!("object {} is missing", &h[..h.len().min(12)]))?;
         if sha256_hex(&bytes) != h {
             return Err(format!("object {} is corrupt (hash mismatch)", &h[..12]));
         }
@@ -467,8 +369,7 @@ impl Repo {
         if k != kind {
             return Err(format!("object {} is a {k}, expected a {kind}", &h[..12]));
         }
-        serde_json::from_slice(&p)
-            .map_err(|e| format!("object {} is not valid JSON: {e}", &h[..12]))
+        serde_json::from_slice(&p).map_err(|e| format!("object {} is not valid JSON: {e}", &h[..12]))
     }
 
     /// Store a canonical project document as a tree; returns the tree hash.
@@ -476,12 +377,7 @@ impl Repo {
         let doc = semdiff::canonicalize(doc);
         let mut names = BTreeMap::new();
         for (name, part) in split_parts(&doc)? {
-            names.insert(
-                name,
-                Value::String(
-                    self.put_object("blob", semdiff::canon_string(&part, false).as_bytes())?,
-                ),
-            );
+            names.insert(name, Value::String(self.put_object("blob", semdiff::canon_string(&part, false).as_bytes())?));
         }
         let tree = json!({"parts": Value::Object(names.into_iter().collect())});
         self.put_object("tree", semdiff::canon_string(&tree, false).as_bytes())
@@ -489,24 +385,17 @@ impl Repo {
 
     pub fn read_tree(&self, h: &str) -> Result<Value, String> {
         let t = self.get_json(h, "tree")?;
-        let names = t
-            .get("parts")
-            .and_then(|p| p.as_object())
-            .ok_or("tree has no parts")?;
+        let names = t.get("parts").and_then(|p| p.as_object()).ok_or("tree has no parts")?;
         let mut parts = BTreeMap::new();
         for (n, ph) in names {
-            parts.insert(
-                n.clone(),
-                self.get_json(ph.as_str().ok_or("tree part hash is not text")?, "blob")?,
-            );
+            parts.insert(n.clone(), self.get_json(ph.as_str().ok_or("tree part hash is not text")?, "blob")?);
         }
         join_parts(&parts)
     }
 
     pub fn read_commit(&self, h: &str) -> Result<Commit, String> {
         let v = self.get_json(h, "commit")?;
-        let c: Commit = serde_json::from_value(v)
-            .map_err(|e| format!("commit {} is malformed: {e}", &h[..12]))?;
+        let c: Commit = serde_json::from_value(v).map_err(|e| format!("commit {} is malformed: {e}", &h[..12]))?;
         if !is_hash(&c.tree) || c.parents.iter().any(|p| !is_hash(p)) {
             return Err(format!("commit {} holds a malformed hash", &h[..12]));
         }
@@ -545,8 +434,7 @@ impl Repo {
 
     /// Current branch name, or `None` for a detached HEAD.
     pub fn current_branch(&self) -> Result<Option<String>, String> {
-        let t = fs::read_to_string(self.dir.join("HEAD"))
-            .map_err(|e| format!("cannot read HEAD: {e}"))?;
+        let t = fs::read_to_string(self.dir.join("HEAD")).map_err(|e| format!("cannot read HEAD: {e}"))?;
         let t = t.trim();
         if let Some(r) = t.strip_prefix("ref: refs/heads/") {
             valid_ref_name(r)?;
@@ -562,8 +450,7 @@ impl Repo {
         match self.current_branch()? {
             Some(b) => self.read_ref_file(&format!("refs/heads/{b}")),
             None => {
-                let t = fs::read_to_string(self.dir.join("HEAD"))
-                    .map_err(|e| format!("cannot read HEAD: {e}"))?;
+                let t = fs::read_to_string(self.dir.join("HEAD")).map_err(|e| format!("cannot read HEAD: {e}"))?;
                 Ok(Some(t.trim().to_string()))
             }
         }
@@ -587,11 +474,7 @@ impl Repo {
             };
             for e in rd.flatten() {
                 let name = e.file_name().to_string_lossy().to_string();
-                let full = if prefix.is_empty() {
-                    name.clone()
-                } else {
-                    format!("{prefix}/{name}")
-                };
+                let full = if prefix.is_empty() { name.clone() } else { format!("{prefix}/{name}") };
                 if e.path().is_dir() {
                     walk(&e.path(), &full, out)?;
                 } else if !name.starts_with('.') {
@@ -613,14 +496,10 @@ impl Repo {
 
     pub fn branches(&self) -> Result<Vec<(String, String, bool)>, String> {
         let cur = self.current_branch()?;
-        Ok(self
-            .list_refs("refs/heads")?
-            .into_iter()
-            .map(|(n, h)| {
-                let c = cur.as_deref() == Some(n.as_str());
-                (n, h, c)
-            })
-            .collect())
+        Ok(self.list_refs("refs/heads")?.into_iter().map(|(n, h)| {
+            let c = cur.as_deref() == Some(n.as_str());
+            (n, h, c)
+        }).collect())
     }
 
     pub fn tags(&self) -> Result<Vec<(String, String)>, String> {
@@ -631,34 +510,19 @@ impl Repo {
     /// by `~N` (N-th first-parent ancestor) to a commit hash.
     pub fn resolve_rev(&self, rev: &str) -> Result<String, String> {
         let (base, back) = match rev.split_once('~') {
-            Some((b, n)) => (
-                b,
-                if n.is_empty() {
-                    1
-                } else {
-                    n.parse::<usize>()
-                        .map_err(|_| format!("bad revision '{rev}'"))?
-                },
-            ),
+            Some((b, n)) => (b, if n.is_empty() { 1 } else { n.parse::<usize>().map_err(|_| format!("bad revision '{rev}'"))? }),
             None => (rev, 0),
         };
         let mut h = self.resolve_base(base)?;
         for _ in 0..back {
-            h = self
-                .read_commit(&h)?
-                .parents
-                .first()
-                .cloned()
-                .ok_or_else(|| format!("'{rev}' goes past the first commit"))?;
+            h = self.read_commit(&h)?.parents.first().cloned().ok_or_else(|| format!("'{rev}' goes past the first commit"))?;
         }
         Ok(h)
     }
 
     fn resolve_base(&self, s: &str) -> Result<String, String> {
         if s == "HEAD" {
-            return self
-                .head_commit()?
-                .ok_or_else(|| "there are no commits yet".to_string());
+            return self.head_commit()?.ok_or_else(|| "there are no commits yet".to_string());
         }
         if valid_ref_name(s).is_ok() {
             if let Some(h) = self.read_ref_file(&format!("refs/heads/{s}"))? {
@@ -668,19 +532,10 @@ impl Repo {
                 return Ok(h);
             }
         }
-        if s.len() >= 4
-            && s.len() <= 64
-            && s.bytes()
-                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
-        {
+        if s.len() >= 4 && s.len() <= 64 && s.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)) {
             let mut hits = Vec::new();
             for h in self.all_object_names()? {
-                if h.starts_with(s)
-                    && self
-                        .get_object(&h)
-                        .map(|o| o.0 == "commit")
-                        .unwrap_or(false)
-                {
+                if h.starts_with(s) && self.get_object(&h).map(|o| o.0 == "commit").unwrap_or(false) {
                     hits.push(h);
                 }
             }
@@ -695,8 +550,7 @@ impl Repo {
 
     fn all_object_names(&self) -> Result<Vec<String>, String> {
         let mut out = Vec::new();
-        let rd = fs::read_dir(self.dir.join("objects"))
-            .map_err(|e| format!("cannot list objects: {e}"))?;
+        let rd = fs::read_dir(self.dir.join("objects")).map_err(|e| format!("cannot list objects: {e}"))?;
         for d in rd.flatten() {
             let dn = d.file_name().to_string_lossy().to_string();
             if dn.len() != 2 || !d.path().is_dir() {
@@ -720,23 +574,16 @@ impl Repo {
     pub fn read_working(&self) -> Result<Value, String> {
         let p = self.project_path()?;
         let t = fs::read_to_string(&p).map_err(|e| format!("cannot read {}: {e}", p.display()))?;
-        let v: Value = serde_json::from_str(&t)
-            .map_err(|e| format!("{} is not valid JSON: {e}", p.display()))?;
+        let v: Value = serde_json::from_str(&t).map_err(|e| format!("{} is not valid JSON: {e}", p.display()))?;
         if !v.is_object() {
-            return Err(format!(
-                "{} is not a project (a JSON object is expected)",
-                p.display()
-            ));
+            return Err(format!("{} is not a project (a JSON object is expected)", p.display()));
         }
         Ok(semdiff::canonicalize(&v))
     }
 
     /// Replace the project file atomically (temporary file in the same directory, then rename).
     pub fn write_working(&self, doc: &Value) -> Result<(), String> {
-        write_atomic(
-            &self.project_path()?,
-            semdiff::canon_string(&semdiff::canonicalize(doc), true).as_bytes(),
-        )
+        write_atomic(&self.project_path()?, semdiff::canon_string(&semdiff::canonicalize(doc), true).as_bytes())
     }
 
     /// Whether the working file differs from the commit at HEAD (an unborn branch counts as clean
@@ -753,9 +600,7 @@ impl Repo {
 
     fn load_state(&self) -> Result<Option<MergeState>, String> {
         match fs::read_to_string(self.dir.join("MERGE_STATE")) {
-            Ok(t) => Ok(Some(
-                serde_json::from_str(&t).map_err(|e| format!("MERGE_STATE is damaged: {e}"))?,
-            )),
+            Ok(t) => Ok(Some(serde_json::from_str(&t).map_err(|e| format!("MERGE_STATE is damaged: {e}"))?)),
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
             Err(e) => Err(format!("cannot read MERGE_STATE: {e}")),
         }
@@ -763,10 +608,7 @@ impl Repo {
 
     fn save_state(&self, s: &MergeState) -> Result<(), String> {
         let v = serde_json::to_value(s).map_err(|e| e.to_string())?;
-        write_atomic(
-            &self.dir.join("MERGE_STATE"),
-            semdiff::canon_string(&v, true).as_bytes(),
-        )
+        write_atomic(&self.dir.join("MERGE_STATE"), semdiff::canon_string(&v, true).as_bytes())
     }
 
     fn clear_state(&self) -> Result<(), String> {
@@ -790,23 +632,9 @@ impl Repo {
 
     // ----- commits -----
 
-    fn make_commit(
-        &self,
-        doc: &Value,
-        parents: Vec<String>,
-        message: &str,
-        author: Option<&str>,
-    ) -> Result<String, String> {
+    fn make_commit(&self, doc: &Value, parents: Vec<String>, message: &str, author: Option<&str>) -> Result<String, String> {
         let tree = self.write_tree(doc)?;
-        let c = Commit {
-            tree,
-            parents,
-            author: author
-                .map(String::from)
-                .unwrap_or_else(|| self.default_author()),
-            time: self.now(),
-            message: message.to_string(),
-        };
+        let c = Commit { tree, parents, author: author.map(String::from).unwrap_or_else(|| self.default_author()), time: self.now(), message: message.to_string() };
         let v = serde_json::to_value(&c).map_err(|e| e.to_string())?;
         self.put_object("commit", semdiff::canon_string(&v, false).as_bytes())
     }
@@ -831,9 +659,7 @@ impl Repo {
                 return Err("nothing to commit (the project is unchanged)".into());
             }
         }
-        let msg = msg
-            .filter(|m| !m.trim().is_empty())
-            .ok_or("a commit message is required (-m)")?;
+        let msg = msg.filter(|m| !m.trim().is_empty()).ok_or("a commit message is required (-m)")?;
         let h = self.make_commit(&doc, parents, &msg, author)?;
         self.set_head_commit(&h)?;
         self.clear_state()?;
@@ -859,10 +685,7 @@ impl Repo {
                 *children.entry(p.as_str()).or_insert(0) += 1;
             }
         }
-        let mut ready: Vec<&String> = all
-            .keys()
-            .filter(|h| !children.contains_key(h.as_str()))
-            .collect();
+        let mut ready: Vec<&String> = all.keys().filter(|h| !children.contains_key(h.as_str())).collect();
         let mut out = Vec::new();
         while !ready.is_empty() && out.len() < limit {
             ready.sort_by(|a, b| (all[*a].time, a.as_str()).cmp(&(all[*b].time, b.as_str())));
@@ -979,8 +802,7 @@ impl Repo {
         if self.read_ref_file(&format!("refs/heads/{name}"))?.is_none() {
             return Err(format!("no branch '{name}'"));
         }
-        fs::remove_file(self.dir.join("refs/heads").join(name))
-            .map_err(|e| format!("cannot delete branch: {e}"))
+        fs::remove_file(self.dir.join("refs/heads").join(name)).map_err(|e| format!("cannot delete branch: {e}"))
     }
 
     pub fn tag_create(&self, name: &str, at: Option<&str>) -> Result<String, String> {
@@ -1003,15 +825,8 @@ impl Repo {
         }
         let doc = self.doc_of(&h)?;
         self.write_working(&doc)?;
-        if valid_ref_name(target).is_ok()
-            && self
-                .read_ref_file(&format!("refs/heads/{target}"))?
-                .is_some()
-        {
-            write_atomic(
-                &self.dir.join("HEAD"),
-                format!("ref: refs/heads/{target}\n").as_bytes(),
-            )?;
+        if valid_ref_name(target).is_ok() && self.read_ref_file(&format!("refs/heads/{target}"))?.is_some() {
+            write_atomic(&self.dir.join("HEAD"), format!("ref: refs/heads/{target}\n").as_bytes())?;
         } else {
             write_atomic(&self.dir.join("HEAD"), format!("{h}\n").as_bytes())?;
         }
@@ -1029,16 +844,7 @@ impl Repo {
 
     // internal merge helper threading one merge context; kept flat to match its callers.
     #[allow(clippy::too_many_arguments)]
-    fn apply_three_way(
-        &self,
-        kind: &str,
-        base: &Value,
-        ours: &Value,
-        theirs: &Value,
-        second_parent: Option<String>,
-        message: String,
-        author: Option<&str>,
-    ) -> Result<MergeOutcome, String> {
+    fn apply_three_way(&self, kind: &str, base: &Value, ours: &Value, theirs: &Value, second_parent: Option<String>, message: String, author: Option<&str>) -> Result<MergeOutcome, String> {
         let (merged, conflicts) = semdiff::merge_docs(base, ours, theirs);
         self.write_working(&merged)?;
         if conflicts.is_empty() {
@@ -1051,27 +857,14 @@ impl Repo {
             self.set_head_commit(&h)?;
             return Ok(MergeOutcome::Merged(h));
         }
-        self.save_state(&MergeState {
-            kind: kind.to_string(),
-            theirs: second_parent,
-            message,
-            conflicts: conflicts.clone(),
-        })?;
+        self.save_state(&MergeState { kind: kind.to_string(), theirs: second_parent, message, conflicts: conflicts.clone() })?;
         Ok(MergeOutcome::Conflicted(conflicts))
     }
 
     /// Merge `rev` into the current branch. Fast-forwards when possible (unless `no_ff`).
-    pub fn merge(
-        &self,
-        rev: &str,
-        no_ff: bool,
-        message: Option<&str>,
-        author: Option<&str>,
-    ) -> Result<MergeOutcome, String> {
+    pub fn merge(&self, rev: &str, no_ff: bool, message: Option<&str>, author: Option<&str>) -> Result<MergeOutcome, String> {
         self.require_no_merge()?;
-        let head = self
-            .head_commit()?
-            .ok_or("nothing to merge into: there are no commits yet")?;
+        let head = self.head_commit()?.ok_or("nothing to merge into: there are no commits yet")?;
         let theirs = self.resolve_rev(rev)?;
         self.require_clean()?;
         let base = self.merge_base(&head, &theirs)?;
@@ -1088,21 +881,11 @@ impl Repo {
             Some(b) => self.doc_of(b)?,
             None => Value::Object(Default::default()),
         };
-        let msg = message
-            .map(String::from)
-            .unwrap_or_else(|| match self.current_branch() {
-                Ok(Some(b)) => format!("Merge {rev} into {b}"),
-                _ => format!("Merge {rev}"),
-            });
-        self.apply_three_way(
-            "merge",
-            &base_doc,
-            &self.doc_of(&head)?,
-            &theirs_doc,
-            Some(theirs),
-            msg,
-            author,
-        )
+        let msg = message.map(String::from).unwrap_or_else(|| match self.current_branch() {
+            Ok(Some(b)) => format!("Merge {rev} into {b}"),
+            _ => format!("Merge {rev}"),
+        });
+        self.apply_three_way("merge", &base_doc, &self.doc_of(&head)?, &theirs_doc, Some(theirs), msg, author)
     }
 
     /// Replay the change a commit made (relative to its first parent) onto the current state.
@@ -1116,15 +899,7 @@ impl Repo {
             Some(p) => self.doc_of(p)?,
             None => Value::Object(Default::default()),
         };
-        self.apply_three_way(
-            "cherry-pick",
-            &base,
-            &self.doc_of(&head)?,
-            &self.read_tree(&commit.tree)?,
-            None,
-            commit.message.clone(),
-            author,
-        )
+        self.apply_three_way("cherry-pick", &base, &self.doc_of(&head)?, &self.read_tree(&commit.tree)?, None, commit.message.clone(), author)
     }
 
     /// Undo the change a commit made (relative to its first parent) on the current state.
@@ -1134,20 +909,9 @@ impl Repo {
         self.require_clean()?;
         let c = self.resolve_rev(rev)?;
         let commit = self.read_commit(&c)?;
-        let parent = commit
-            .parents
-            .first()
-            .ok_or("cannot revert the root commit")?;
+        let parent = commit.parents.first().ok_or("cannot revert the root commit")?;
         let msg = format!("Revert \"{}\"", commit.message.lines().next().unwrap_or(""));
-        self.apply_three_way(
-            "revert",
-            &self.read_tree(&commit.tree)?,
-            &self.doc_of(&head)?,
-            &self.doc_of(parent)?,
-            None,
-            msg,
-            author,
-        )
+        self.apply_three_way("revert", &self.read_tree(&commit.tree)?, &self.doc_of(&head)?, &self.doc_of(parent)?, None, msg, author)
     }
 
     /// Drop an in-progress merge / cherry-pick / revert and restore the committed project.
@@ -1163,11 +927,7 @@ impl Repo {
     /// Resolve one recorded conflict by its path.
     pub fn resolve(&self, path: &str, choice: &Choice) -> Result<usize, String> {
         let mut st = self.load_state()?.ok_or("no merge in progress")?;
-        let idx = st
-            .conflicts
-            .iter()
-            .position(|c| c.path == path)
-            .ok_or_else(|| format!("no conflict at '{path}' (see 'vcs status')"))?;
+        let idx = st.conflicts.iter().position(|c| c.path == path).ok_or_else(|| format!("no conflict at '{path}' (see 'vcs status')"))?;
         let mut doc = self.read_working()?;
         semdiff::resolve_in(&mut doc, &st.conflicts[idx], choice)?;
         self.write_working(&doc)?;
@@ -1205,11 +965,7 @@ impl Repo {
             stack.extend(c.parents.iter().cloned());
             let t = self.get_json(&c.tree, "tree")?;
             seen.insert(c.tree.clone());
-            for (_, ph) in t
-                .get("parts")
-                .and_then(|p| p.as_object())
-                .ok_or("tree has no parts")?
-            {
+            for (_, ph) in t.get("parts").and_then(|p| p.as_object()).ok_or("tree has no parts")? {
                 let ph = ph.as_str().ok_or("tree part hash is not text")?;
                 if !is_hash(ph) {
                     return Err("tree holds a malformed hash".into());
@@ -1223,16 +979,13 @@ impl Repo {
     /// Delete objects no ref (branch, tag, HEAD, pending merge) reaches. Aborts without deleting
     /// anything if the reachable history cannot be read.
     pub fn gc(&self) -> Result<GcReport, String> {
-        let keep = self
-            .reachable()
-            .map_err(|e| format!("gc aborted, nothing deleted: {e}"))?;
+        let keep = self.reachable().map_err(|e| format!("gc aborted, nothing deleted: {e}"))?;
         let mut rep = GcReport::default();
         for h in self.all_object_names()? {
             if keep.contains(&h) {
                 rep.kept += 1;
             } else {
-                fs::remove_file(self.obj_path(&h)?)
-                    .map_err(|e| format!("cannot delete object: {e}"))?;
+                fs::remove_file(self.obj_path(&h)?).map_err(|e| format!("cannot delete object: {e}"))?;
                 rep.removed += 1;
             }
         }
@@ -1274,65 +1027,42 @@ impl Repo {
                     }
                 };
                 if sha256_hex(&bytes) != name {
-                    bad.push(format!(
-                        "object {}: content does not match its hash (corrupt)",
-                        &name[..12]
-                    ));
+                    bad.push(format!("object {}: content does not match its hash (corrupt)", &name[..12]));
                     continue;
                 }
                 match decode_object(&bytes) {
                     Err(e) => bad.push(format!("object {}: {e}", &name[..12])),
-                    Ok((kind, payload)) => {
-                        match (kind.as_str(), serde_json::from_slice::<Value>(&payload)) {
-                            (_, Err(e)) => bad
-                                .push(format!("object {}: payload is not JSON ({e})", &name[..12])),
-                            ("commit", Ok(v)) => match serde_json::from_value::<Commit>(v) {
-                                Err(e) => {
-                                    bad.push(format!("commit {}: malformed ({e})", &name[..12]))
-                                }
-                                Ok(c) => {
-                                    let mut refs = vec![(c.tree.clone(), "tree")];
-                                    refs.extend(c.parents.iter().map(|p| (p.clone(), "commit")));
-                                    for (r, k) in refs {
-                                        match self.get_object(&r) {
-                                            Ok((rk, _)) if rk == k => {}
-                                            Ok((rk, _)) => bad.push(format!(
-                                                "commit {}: {k} {} is a {rk}",
-                                                &name[..12],
-                                                &r[..r.len().min(12)]
-                                            )),
-                                            Err(e) => {
-                                                bad.push(format!("commit {}: {e}", &name[..12]))
-                                            }
-                                        }
+                    Ok((kind, payload)) => match (kind.as_str(), serde_json::from_slice::<Value>(&payload)) {
+                        (_, Err(e)) => bad.push(format!("object {}: payload is not JSON ({e})", &name[..12])),
+                        ("commit", Ok(v)) => match serde_json::from_value::<Commit>(v) {
+                            Err(e) => bad.push(format!("commit {}: malformed ({e})", &name[..12])),
+                            Ok(c) => {
+                                let mut refs = vec![(c.tree.clone(), "tree")];
+                                refs.extend(c.parents.iter().map(|p| (p.clone(), "commit")));
+                                for (r, k) in refs {
+                                    match self.get_object(&r) {
+                                        Ok((rk, _)) if rk == k => {}
+                                        Ok((rk, _)) => bad.push(format!("commit {}: {k} {} is a {rk}", &name[..12], &r[..r.len().min(12)])),
+                                        Err(e) => bad.push(format!("commit {}: {e}", &name[..12])),
                                     }
                                 }
-                            },
-                            ("tree", Ok(v)) => match v.get("parts").and_then(|p| p.as_object()) {
-                                None => bad.push(format!("tree {}: no parts", &name[..12])),
-                                Some(p) => {
-                                    for (pn, ph) in p {
-                                        match ph.as_str().map(|h| self.get_object(h)) {
-                                            Some(Ok((k, _))) if k == "blob" => {}
-                                            Some(Ok((k, _))) => bad.push(format!(
-                                                "tree {}: part {pn} is a {k}",
-                                                &name[..12]
-                                            )),
-                                            Some(Err(e)) => bad.push(format!(
-                                                "tree {}: part {pn}: {e}",
-                                                &name[..12]
-                                            )),
-                                            None => bad.push(format!(
-                                                "tree {}: part {pn} has no hash",
-                                                &name[..12]
-                                            )),
-                                        }
+                            }
+                        },
+                        ("tree", Ok(v)) => match v.get("parts").and_then(|p| p.as_object()) {
+                            None => bad.push(format!("tree {}: no parts", &name[..12])),
+                            Some(p) => {
+                                for (pn, ph) in p {
+                                    match ph.as_str().map(|h| self.get_object(h)) {
+                                        Some(Ok((k, _))) if k == "blob" => {}
+                                        Some(Ok((k, _))) => bad.push(format!("tree {}: part {pn} is a {k}", &name[..12])),
+                                        Some(Err(e)) => bad.push(format!("tree {}: part {pn}: {e}", &name[..12])),
+                                        None => bad.push(format!("tree {}: part {pn} has no hash", &name[..12])),
                                     }
                                 }
-                            },
-                            _ => {}
-                        }
-                    }
+                            }
+                        },
+                        _ => {}
+                    },
                 }
             }
         }
@@ -1457,23 +1187,11 @@ mod tests {
 
     #[test]
     fn sha256_known_vectors() {
-        assert_eq!(
-            sha256_hex(b""),
-            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-        );
-        assert_eq!(
-            sha256_hex(b"abc"),
-            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
-        );
-        assert_eq!(
-            sha256_hex(b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"),
-            "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1"
-        );
+        assert_eq!(sha256_hex(b""), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+        assert_eq!(sha256_hex(b"abc"), "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+        assert_eq!(sha256_hex(b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"), "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1");
         let million = vec![b'a'; 1_000_000];
-        assert_eq!(
-            sha256_hex(&million),
-            "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0"
-        );
+        assert_eq!(sha256_hex(&million), "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0");
         // padding boundaries (55, 56, 63, 64, 65 bytes) must not panic and must differ
         let mut seen = HashSet::new();
         for n in [55, 56, 57, 63, 64, 65, 119, 120] {
@@ -1517,18 +1235,12 @@ mod tests {
         assert!(r.log("HEAD", 10).is_err());
         let c1 = r.commit(Some("first"), None).unwrap();
         tick(&mut r);
-        assert!(r
-            .commit(Some("again"), None)
-            .unwrap_err()
-            .contains("nothing to commit"));
+        assert!(r.commit(Some("again"), None).unwrap_err().contains("nothing to commit"));
         edit(&r, |d| setp(d, "/layers/sky/opacity", json!(0.4)));
         assert_eq!(r.status().unwrap().changes.len(), 1);
         let c2 = r.commit(Some("dim sky"), Some("bo")).unwrap();
         let log = r.log("HEAD", 10).unwrap();
-        assert_eq!(
-            log.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
-            vec![c2.clone(), c1.clone()]
-        );
+        assert_eq!(log.iter().map(|x| x.0.clone()).collect::<Vec<_>>(), vec![c2.clone(), c1.clone()]);
         assert_eq!(log[0].1.author, "bo");
         assert_eq!(log[1].1.author, "ana");
         assert_eq!(r.resolve_rev("HEAD~1").unwrap(), c1);
@@ -1536,10 +1248,7 @@ mod tests {
         assert!(r.resolve_rev("HEAD~5").is_err());
         assert!(r.resolve_rev("nope").is_err());
         r.branch_create("feature", Some(&c1)).unwrap();
-        assert!(r
-            .branch_create("feature", None)
-            .unwrap_err()
-            .contains("exists"));
+        assert!(r.branch_create("feature", None).unwrap_err().contains("exists"));
         assert!(r.branch_create("bad..name", None).is_err());
         r.tag_create("v1", None).unwrap();
         assert_eq!(r.resolve_rev("v1").unwrap(), c2);
@@ -1547,10 +1256,7 @@ mod tests {
         assert_eq!(r.current_branch().unwrap().as_deref(), Some("feature"));
         assert_eq!(r.read_working().unwrap()["layers"][0]["opacity"], json!(1));
         r.checkout("main", false).unwrap();
-        assert_eq!(
-            r.read_working().unwrap()["layers"][0]["opacity"],
-            json!(0.4)
-        );
+        assert_eq!(r.read_working().unwrap()["layers"][0]["opacity"], json!(0.4));
         r.checkout("v1", false).unwrap();
         assert_eq!(r.current_branch().unwrap(), None);
         r.checkout("main", false).unwrap();
@@ -1578,11 +1284,7 @@ mod tests {
         r.checkout("main", true).unwrap();
         assert_eq!(r.read_working().unwrap()["fps"], json!(30));
         // no temporary files left behind
-        let leftovers: Vec<_> = fs::read_dir(&r.root)
-            .unwrap()
-            .flatten()
-            .filter(|e| e.file_name().to_string_lossy().contains("armtmp"))
-            .collect();
+        let leftovers: Vec<_> = fs::read_dir(&r.root).unwrap().flatten().filter(|e| e.file_name().to_string_lossy().contains("armtmp")).collect();
         assert!(leftovers.is_empty());
         // a failing write (target directory vanished) leaves HEAD unchanged
         let mut cfg = r.config().unwrap();
@@ -1602,23 +1304,11 @@ mod tests {
         edit(&r, |d| setp(d, "/layers/sky/opacity", json!(0.3)));
         let c2 = r.commit(Some("topic work"), None).unwrap();
         r.checkout("main", false).unwrap();
-        assert_eq!(
-            r.merge("topic", false, None, None).unwrap(),
-            MergeOutcome::FastForward(c2.clone())
-        );
+        assert_eq!(r.merge("topic", false, None, None).unwrap(), MergeOutcome::FastForward(c2.clone()));
         assert_eq!(r.head_commit().unwrap().unwrap(), c2);
-        assert_eq!(
-            r.read_working().unwrap()["layers"][0]["opacity"],
-            json!(0.3)
-        );
-        assert_eq!(
-            r.merge("topic", false, None, None).unwrap(),
-            MergeOutcome::UpToDate
-        );
-        assert_eq!(
-            r.merge(&c1, false, None, None).unwrap(),
-            MergeOutcome::UpToDate
-        );
+        assert_eq!(r.read_working().unwrap()["layers"][0]["opacity"], json!(0.3));
+        assert_eq!(r.merge("topic", false, None, None).unwrap(), MergeOutcome::UpToDate);
+        assert_eq!(r.merge(&c1, false, None, None).unwrap(), MergeOutcome::UpToDate);
     }
 
     #[test]
@@ -1629,23 +1319,13 @@ mod tests {
         r.branch_create("bo", None).unwrap();
         r.checkout("ana", false).unwrap();
         tick(&mut r);
-        edit(&r, |d| {
-            setp(
-                d,
-                "/channels/a|bone_angle|keys/track/keys/12/value",
-                json!(15),
-            )
-        });
+        edit(&r, |d| setp(d, "/channels/a|bone_angle|keys/track/keys/12/value", json!(15)));
         let ca = r.commit(Some("ana: key 12"), Some("ana")).unwrap();
         r.checkout("bo", false).unwrap();
         tick(&mut r);
         edit(&r, |d| {
             setp(d, "/layers/hill/visible", json!(false));
-            setp(
-                d,
-                "/channels/sun|layer_opacity|keys/track/keys/0/value",
-                json!(0.5),
-            );
+            setp(d, "/channels/sun|layer_opacity|keys/track/keys/0/value", json!(0.5));
         });
         let cb = r.commit(Some("bo: hill + sun"), Some("bo")).unwrap();
         assert_eq!(r.merge_base(&ca, &cb).unwrap().unwrap(), c0);
@@ -1688,33 +1368,18 @@ mod tests {
         r.commit(Some("t edit"), None).unwrap();
         r.checkout("main", false).unwrap();
         let out = r.merge("t", false, None, None).unwrap();
-        let MergeOutcome::Conflicted(cs) = out else {
-            panic!("{out:?}")
-        };
+        let MergeOutcome::Conflicted(cs) = out else { panic!("{out:?}") };
         assert_eq!(cs.len(), 1);
         assert_eq!(cs[0].path, "/layers/sky/opacity");
         // working file holds ours; commit and checkout and a second merge are refused
-        assert_eq!(
-            r.read_working().unwrap()["layers"][0]["opacity"],
-            json!(0.2)
-        );
-        assert!(r
-            .commit(Some("x"), None)
-            .unwrap_err()
-            .contains("unresolved"));
+        assert_eq!(r.read_working().unwrap()["layers"][0]["opacity"], json!(0.2));
+        assert!(r.commit(Some("x"), None).unwrap_err().contains("unresolved"));
         assert!(r.checkout("t", true).unwrap_err().contains("in progress"));
         assert!(r.merge("t", false, None, None).is_err());
         assert!(r.resolve("/layers/nope", &Choice::Ours).is_err());
         assert!(r.status().unwrap().conflicts.len() == 1);
-        assert_eq!(
-            r.resolve("/layers/sky/opacity", &Choice::Value(json!(0.5)))
-                .unwrap(),
-            0
-        );
-        assert_eq!(
-            r.read_working().unwrap()["layers"][0]["opacity"],
-            json!(0.5)
-        );
+        assert_eq!(r.resolve("/layers/sky/opacity", &Choice::Value(json!(0.5))).unwrap(), 0);
+        assert_eq!(r.read_working().unwrap()["layers"][0]["opacity"], json!(0.5));
         tick(&mut r);
         let m = r.commit(None, None).unwrap();
         assert_eq!(r.read_commit(&m).unwrap().parents.len(), 2);
@@ -1739,26 +1404,12 @@ mod tests {
         });
         r.commit(Some("remove sun"), None).unwrap();
         r.checkout("main", false).unwrap();
-        let MergeOutcome::Conflicted(cs) = r.merge("t", false, None, None).unwrap() else {
-            panic!()
-        };
+        let MergeOutcome::Conflicted(cs) = r.merge("t", false, None, None).unwrap() else { panic!() };
         assert_eq!(cs[0].kind, semdiff::ConflictKind::DeleteEdit);
         r.resolve("/layers/sun", &Choice::Theirs).unwrap();
-        assert_eq!(
-            r.read_working().unwrap()["layers"]
-                .as_array()
-                .unwrap()
-                .len(),
-            2
-        );
+        assert_eq!(r.read_working().unwrap()["layers"].as_array().unwrap().len(), 2);
         r.abort().unwrap();
-        assert_eq!(
-            r.read_working().unwrap()["layers"]
-                .as_array()
-                .unwrap()
-                .len(),
-            3
-        );
+        assert_eq!(r.read_working().unwrap()["layers"].as_array().unwrap().len(), 3);
         assert!(r.abort().is_err());
         assert!(!r.is_dirty().unwrap());
     }
@@ -1775,29 +1426,19 @@ mod tests {
         r.commit(Some("hide hill"), None).unwrap();
         // revert the middle commit: sky restored, hill stays hidden
         tick(&mut r);
-        let MergeOutcome::Merged(_) = r.revert(&c1, None).unwrap() else {
-            panic!()
-        };
+        let MergeOutcome::Merged(_) = r.revert(&c1, None).unwrap() else { panic!() };
         let d = r.read_working().unwrap();
         assert_eq!(d["layers"][0]["opacity"], json!(1));
         assert_eq!(d["layers"][2]["visible"], json!(false));
-        assert!(r.log("HEAD", 1).unwrap()[0]
-            .1
-            .message
-            .starts_with("Revert \"dim sky\""));
+        assert!(r.log("HEAD", 1).unwrap()[0].1.message.starts_with("Revert \"dim sky\""));
         assert!(r.revert(&c0, None).unwrap_err().contains("root"));
         // cherry-pick c1 onto a branch from c0
         r.branch_create("old", Some(&c0)).unwrap();
         r.checkout("old", false).unwrap();
         tick(&mut r);
-        let MergeOutcome::Merged(p) = r.cherry_pick(&c1, None).unwrap() else {
-            panic!()
-        };
+        let MergeOutcome::Merged(p) = r.cherry_pick(&c1, None).unwrap() else { panic!() };
         assert_eq!(r.read_commit(&p).unwrap().parents, vec![c0.clone()]);
-        assert_eq!(
-            r.read_working().unwrap()["layers"][0]["opacity"],
-            json!(0.1)
-        );
+        assert_eq!(r.read_working().unwrap()["layers"][0]["opacity"], json!(0.1));
         // picking it again changes nothing
         assert!(r.cherry_pick(&c1, None).unwrap_err().contains("already"));
         assert!(r.cherry_pick("zzzz", None).is_err());
@@ -1808,23 +1449,11 @@ mod tests {
         let mut r = new_repo("sd");
         r.commit(Some("a"), None).unwrap();
         tick(&mut r);
-        edit(&r, |d| {
-            setp(
-                d,
-                "/channels/a|bone_angle|keys/track/keys/12/value",
-                json!(15),
-            )
-        });
+        edit(&r, |d| setp(d, "/channels/a|bone_angle|keys/track/keys/12/value", json!(15)));
         r.commit(Some("b"), None).unwrap();
         let ch = r.diff(Some("HEAD~1"), Some("HEAD")).unwrap();
         assert_eq!(ch.len(), 1);
-        assert!(
-            ch[0]
-                .description
-                .contains("key at frame 12 of channel a.bone_angle: value changed 10 -> 15"),
-            "{}",
-            ch[0].description
-        );
+        assert!(ch[0].description.contains("key at frame 12 of channel a.bone_angle: value changed 10 -> 15"), "{}", ch[0].description);
         assert!(r.diff(Some("HEAD"), None).unwrap().is_empty());
         let (_, c, sh) = r.show("HEAD").unwrap();
         assert_eq!(c.message, "b");
@@ -1855,12 +1484,7 @@ mod tests {
         assert_eq!(r.log("HEAD", 10).unwrap().len(), 2);
         assert_eq!(r.gc().unwrap().removed, 0);
         // corrupt a blob: flip a byte
-        let name = r
-            .all_object_names()
-            .unwrap()
-            .into_iter()
-            .find(|h| r.get_object(h).map(|o| o.0 == "blob").unwrap_or(false))
-            .unwrap();
+        let name = r.all_object_names().unwrap().into_iter().find(|h| r.get_object(h).map(|o| o.0 == "blob").unwrap_or(false)).unwrap();
         let p = r.obj_path(&name).unwrap();
         let mut b = fs::read(&p).unwrap();
         let n = b.len();
@@ -1869,17 +1493,10 @@ mod tests {
         let bad = r.fsck();
         assert!(bad.iter().any(|m| m.contains("corrupt")), "{bad:?}");
         let _ = r.gc();
-        assert!(
-            p.exists(),
-            "gc must not delete a reachable (even corrupt) object"
-        );
+        assert!(p.exists(), "gc must not delete a reachable (even corrupt) object");
         // a deleted object is reported by its referrer
         fs::remove_file(&p).unwrap();
-        assert!(
-            r.fsck().iter().any(|m| m.contains("missing")),
-            "{:?}",
-            r.fsck()
-        );
+        assert!(r.fsck().iter().any(|m| m.contains("missing")), "{:?}", r.fsck());
     }
 
     #[test]
@@ -1889,15 +1506,11 @@ mod tests {
         fs::write(d.join("a.json"), "not json").unwrap();
         assert!(Repo::init(&d.join("a.json"), None).is_err());
         fs::write(d.join("a.json"), "[1,2]").unwrap();
-        assert!(Repo::init(&d.join("a.json"), None)
-            .unwrap_err()
-            .contains("JSON object"));
+        assert!(Repo::init(&d.join("a.json"), None).unwrap_err().contains("JSON object"));
         fs::write(d.join("a.json"), "{}").unwrap();
         let mut r = Repo::init(&d.join("a.json"), None).unwrap();
         r.fixed_time = Some(5);
-        assert!(Repo::init(&d.join("a.json"), None)
-            .unwrap_err()
-            .contains("already"));
+        assert!(Repo::init(&d.join("a.json"), None).unwrap_err().contains("already"));
         assert!(r.commit(None, None).is_err()); // no message
         r.commit(Some("m"), None).unwrap();
         assert!(Repo::open(&d.join("zzz")).is_err());
@@ -1916,22 +1529,10 @@ mod tests {
         fs::write(r.dir.join("HEAD"), "ref: refs/heads/main\n").unwrap();
         fs::write(r.dir.join("refs/heads/main"), "nothex").unwrap();
         assert!(r.head_commit().is_err() && !r.fsck().is_empty());
-        fs::write(
-            r.dir.join("refs/heads/main"),
-            format!("{}\n", "a".repeat(64)),
-        )
-        .unwrap();
-        assert!(
-            r.log("HEAD", 3).is_err()
-                && r.merge("HEAD", false, None, None).is_err()
-                && r.gc().is_err()
-        );
+        fs::write(r.dir.join("refs/heads/main"), format!("{}\n", "a".repeat(64))).unwrap();
+        assert!(r.log("HEAD", 3).is_err() && r.merge("HEAD", false, None, None).is_err() && r.gc().is_err());
         fs::write(r.dir.join("MERGE_STATE"), "{").unwrap();
-        assert!(
-            r.merge_state().is_err()
-                && r.resolve("/x", &Choice::Ours).is_err()
-                && r.abort().is_err()
-        );
+        assert!(r.merge_state().is_err() && r.resolve("/x", &Choice::Ours).is_err() && r.abort().is_err());
         fs::write(r.dir.join("config"), "{\"project\": \"../evil.json\"}").unwrap();
         assert!(r.project_path().is_err() && r.read_working().is_err());
         fs::write(r.dir.join("config"), "").unwrap();
@@ -1943,15 +1544,7 @@ mod tests {
 
     #[test]
     fn object_decoding_rejects_junk() {
-        for junk in [
-            &b""[..],
-            b"no newline",
-            b"ARMOBJ1 blob x\nabc",
-            b"ARMOBJ1 blob 5\nabc",
-            b"ARMOBJ1 weird 3\nabc",
-            b"OTHER blob 3\nabc",
-            b"ARMOBJ1 blob 3 extra\nabc",
-        ] {
+        for junk in [&b""[..], b"no newline", b"ARMOBJ1 blob x\nabc", b"ARMOBJ1 blob 5\nabc", b"ARMOBJ1 weird 3\nabc", b"OTHER blob 3\nabc", b"ARMOBJ1 blob 3 extra\nabc"] {
             assert!(decode_object(junk).is_err(), "{junk:?}");
         }
         assert_eq!(decode_object(b"ARMOBJ1 blob 3\nabc").unwrap().1, b"abc");

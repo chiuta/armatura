@@ -130,11 +130,7 @@ pub struct Stamp {
 }
 
 impl Stamp {
-    const ZERO: Stamp = Stamp {
-        lamport: 0,
-        replica: 0,
-        idx: 0,
-    };
+    const ZERO: Stamp = Stamp { lamport: 0, replica: 0, idx: 0 };
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -182,32 +178,12 @@ enum Slot {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "t", rename_all = "snake_case")]
 pub enum Prim {
-    SetRoot {
-        value: Value,
-    },
-    SetKey {
-        obj: Id,
-        key: String,
-        value: Value,
-    },
-    DelKey {
-        obj: Id,
-        key: String,
-    },
-    SetElem {
-        arr: Id,
-        elem: Id,
-        value: Value,
-    },
-    InsElem {
-        arr: Id,
-        after: Option<Id>,
-        value: Value,
-    },
-    DelElem {
-        arr: Id,
-        elem: Id,
-    },
+    SetRoot { value: Value },
+    SetKey { obj: Id, key: String, value: Value },
+    DelKey { obj: Id, key: String },
+    SetElem { arr: Id, elem: Id, value: Value },
+    InsElem { arr: Id, after: Option<Id>, value: Value },
+    DelElem { arr: Id, elem: Id },
 }
 
 /// The unit that travels between replicas.
@@ -235,11 +211,7 @@ struct IdGen {
 
 impl IdGen {
     fn peek(&self) -> Id {
-        Id {
-            r: self.r,
-            s: self.s,
-            i: self.next,
-        }
+        Id { r: self.r, s: self.s, i: self.next }
     }
     fn take(&mut self) -> Id {
         let id = self.peek();
@@ -251,21 +223,9 @@ impl IdGen {
 /// How to reverse one primitive (kept locally, never sent).
 #[derive(Clone, Debug)]
 enum Undo {
-    Restore {
-        slot: Slot,
-        stamp: Stamp,
-        prev: Option<Value>,
-    },
-    Remove {
-        arr: Id,
-        elem: Id,
-    },
-    Reinsert {
-        arr: Id,
-        elem: Id,
-        left: Option<Id>,
-        value: Value,
-    },
+    Restore { slot: Slot, stamp: Stamp, prev: Option<Value> },
+    Remove { arr: Id, elem: Id },
+    Reinsert { arr: Id, elem: Id, left: Option<Id>, value: Value },
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -279,18 +239,8 @@ pub struct Doc {
 
 impl Doc {
     pub fn from_json(v: &Value) -> Doc {
-        let mut d = Doc {
-            nodes: BTreeMap::new(),
-            root: Reg {
-                stamp: Stamp::ZERO,
-                val: Val::Absent,
-            },
-        };
-        let mut gen = IdGen {
-            r: 0,
-            s: 0,
-            next: 0,
-        };
+        let mut d = Doc { nodes: BTreeMap::new(), root: Reg { stamp: Stamp::ZERO, val: Val::Absent } };
+        let mut gen = IdGen { r: 0, s: 0, next: 0 };
         let val = d.build(v, &mut gen, Stamp::ZERO, 0, 0);
         d.root.val = val;
         d
@@ -319,12 +269,7 @@ impl Doc {
                 for x in a {
                     let eid = gen.take();
                     let val = self.build(x, gen, stamp, ins, depth + 1);
-                    elems.push(Elem {
-                        id: eid,
-                        ins,
-                        reg: Reg { stamp, val },
-                        tomb: None,
-                    });
+                    elems.push(Elem { id: eid, ins, reg: Reg { stamp, val }, tomb: None });
                 }
                 self.nodes.insert(id, Cont::Arr(elems));
                 Val::Ref(id)
@@ -350,12 +295,7 @@ impl Doc {
                     }
                     Some(Value::Object(out))
                 }
-                Some(Cont::Arr(es)) => Some(Value::Array(
-                    es.iter()
-                        .filter(|e| e.tomb.is_none())
-                        .filter_map(|e| self.val_json(&e.reg.val, depth + 1))
-                        .collect(),
-                )),
+                Some(Cont::Arr(es)) => Some(Value::Array(es.iter().filter(|e| e.tomb.is_none()).filter_map(|e| self.val_json(&e.reg.val, depth + 1)).collect())),
                 None => Some(Value::Null),
             },
         }
@@ -380,29 +320,14 @@ impl Doc {
     }
 
     fn visible(&self, arr: Id) -> Vec<&Elem> {
-        self.arr(arr)
-            .map(|v| v.iter().filter(|e| e.tomb.is_none()).collect())
-            .unwrap_or_default()
+        self.arr(arr).map(|v| v.iter().filter(|e| e.tomb.is_none()).collect()).unwrap_or_default()
     }
 
     fn slot_val(&self, slot: &Slot) -> Result<Val, String> {
         match slot {
             Slot::Root => Ok(self.root.val.clone()),
-            Slot::Key(o, k) => Ok(self
-                .obj(*o)
-                .ok_or("unknown object")?
-                .get(k)
-                .map(|r| r.val.clone())
-                .unwrap_or(Val::Absent)),
-            Slot::Elem(a, e) => Ok(self
-                .arr(*a)
-                .ok_or("unknown array")?
-                .iter()
-                .find(|x| x.id == *e)
-                .ok_or("unknown element")?
-                .reg
-                .val
-                .clone()),
+            Slot::Key(o, k) => Ok(self.obj(*o).ok_or("unknown object")?.get(k).map(|r| r.val.clone()).unwrap_or(Val::Absent)),
+            Slot::Elem(a, e) => Ok(self.arr(*a).ok_or("unknown array")?.iter().find(|x| x.id == *e).ok_or("unknown element")?.reg.val.clone()),
         }
     }
 
@@ -414,10 +339,7 @@ impl Doc {
         match slot {
             Slot::Root => Some(self.root.stamp),
             Slot::Key(o, k) => self.obj(*o).and_then(|m| m.get(k)).map(|r| r.stamp),
-            Slot::Elem(a, e) => self
-                .arr(*a)
-                .and_then(|v| v.iter().find(|x| x.id == *e))
-                .map(|x| x.reg.stamp),
+            Slot::Elem(a, e) => self.arr(*a).and_then(|v| v.iter().find(|x| x.id == *e)).map(|x| x.reg.stamp),
         }
     }
 
@@ -425,18 +347,11 @@ impl Doc {
         match slot {
             Slot::Root => Ok(&mut self.root),
             Slot::Key(o, k) => match self.nodes.get_mut(o) {
-                Some(Cont::Obj(m)) => Ok(m.entry(k.clone()).or_insert(Reg {
-                    stamp: Stamp::ZERO,
-                    val: Val::Absent,
-                })),
+                Some(Cont::Obj(m)) => Ok(m.entry(k.clone()).or_insert(Reg { stamp: Stamp::ZERO, val: Val::Absent })),
                 _ => Err("unknown object".into()),
             },
             Slot::Elem(a, e) => match self.nodes.get_mut(a) {
-                Some(Cont::Arr(v)) => v
-                    .iter_mut()
-                    .find(|x| x.id == *e)
-                    .map(|x| &mut x.reg)
-                    .ok_or_else(|| "unknown element".to_string()),
+                Some(Cont::Arr(v)) => v.iter_mut().find(|x| x.id == *e).map(|x| &mut x.reg).ok_or_else(|| "unknown element".to_string()),
                 _ => Err("unknown array".into()),
             },
         }
@@ -445,10 +360,7 @@ impl Doc {
     fn check_slot(&self, slot: &Slot) -> Result<(), String> {
         match slot {
             Slot::Root => Ok(()),
-            Slot::Key(o, _) => self
-                .obj(*o)
-                .map(|_| ())
-                .ok_or_else(|| "unknown object".into()),
+            Slot::Key(o, _) => self.obj(*o).map(|_| ()).ok_or_else(|| "unknown object".into()),
             Slot::Elem(a, e) => {
                 let v = self.arr(*a).ok_or("unknown array")?;
                 if v.iter().any(|x| x.id == *e) {
@@ -462,20 +374,9 @@ impl Doc {
 
     /// LWW write (`value == None` deletes). Identities inside the value are always allocated, even
     /// when the write loses, so that every replica allocates identically.
-    fn write(
-        &mut self,
-        slot: &Slot,
-        stamp: Stamp,
-        value: Option<&Value>,
-        gen: &mut IdGen,
-        want_undo: bool,
-    ) -> Result<Vec<Undo>, String> {
+    fn write(&mut self, slot: &Slot, stamp: Stamp, value: Option<&Value>, gen: &mut IdGen, want_undo: bool) -> Result<Vec<Undo>, String> {
         self.check_slot(slot)?;
-        let prev = if want_undo {
-            Some(self.slot_json(slot))
-        } else {
-            None
-        };
+        let prev = if want_undo { Some(self.slot_json(slot)) } else { None };
         let new = match value {
             Some(v) => self.build(v, gen, stamp, stamp.lamport, 0),
             None => Val::Absent,
@@ -485,54 +386,24 @@ impl Doc {
             reg.stamp = stamp;
             reg.val = new;
             if let Some(p) = prev {
-                return Ok(vec![Undo::Restore {
-                    slot: slot.clone(),
-                    stamp,
-                    prev: p,
-                }]);
+                return Ok(vec![Undo::Restore { slot: slot.clone(), stamp, prev: p }]);
             }
         }
         Ok(vec![])
     }
 
-    fn apply_prim(
-        &mut self,
-        m: &Meta,
-        idx: u32,
-        gen: &mut IdGen,
-        prim: &Prim,
-        want_undo: bool,
-    ) -> Result<Vec<Undo>, String> {
-        let stamp = Stamp {
-            lamport: m.lamport,
-            replica: m.replica,
-            idx,
-        };
+    fn apply_prim(&mut self, m: &Meta, idx: u32, gen: &mut IdGen, prim: &Prim, want_undo: bool) -> Result<Vec<Undo>, String> {
+        let stamp = Stamp { lamport: m.lamport, replica: m.replica, idx };
         match prim {
             Prim::SetRoot { value } => self.write(&Slot::Root, stamp, Some(value), gen, want_undo),
-            Prim::SetKey { obj, key, value } => self.write(
-                &Slot::Key(*obj, key.clone()),
-                stamp,
-                Some(value),
-                gen,
-                want_undo,
-            ),
-            Prim::DelKey { obj, key } => {
-                self.write(&Slot::Key(*obj, key.clone()), stamp, None, gen, want_undo)
-            }
-            Prim::SetElem { arr, elem, value } => {
-                self.write(&Slot::Elem(*arr, *elem), stamp, Some(value), gen, want_undo)
-            }
+            Prim::SetKey { obj, key, value } => self.write(&Slot::Key(*obj, key.clone()), stamp, Some(value), gen, want_undo),
+            Prim::DelKey { obj, key } => self.write(&Slot::Key(*obj, key.clone()), stamp, None, gen, want_undo),
+            Prim::SetElem { arr, elem, value } => self.write(&Slot::Elem(*arr, *elem), stamp, Some(value), gen, want_undo),
             Prim::InsElem { arr, after, value } => {
                 let v = self.arr(*arr).ok_or("unknown array")?;
                 let mut pos = match after {
                     None => 0,
-                    Some(a) => {
-                        v.iter()
-                            .position(|e| e.id == *a)
-                            .ok_or("unknown anchor element")?
-                            + 1
-                    }
+                    Some(a) => v.iter().position(|e| e.id == *a).ok_or("unknown anchor element")? + 1,
                 };
                 let id = gen.take();
                 let val = self.build(value, gen, stamp, stamp.lamport, 0);
@@ -544,42 +415,16 @@ impl Doc {
                 while pos < v.len() && (v[pos].ins, v[pos].id) > (stamp.lamport, id) {
                     pos += 1;
                 }
-                v.insert(
-                    pos,
-                    Elem {
-                        id,
-                        ins: stamp.lamport,
-                        reg: Reg { stamp, val },
-                        tomb: None,
-                    },
-                );
-                Ok(if want_undo {
-                    vec![Undo::Remove {
-                        arr: *arr,
-                        elem: id,
-                    }]
-                } else {
-                    vec![]
-                })
+                v.insert(pos, Elem { id, ins: stamp.lamport, reg: Reg { stamp, val }, tomb: None });
+                Ok(if want_undo { vec![Undo::Remove { arr: *arr, elem: id }] } else { vec![] })
             }
             Prim::DelElem { arr, elem } => {
                 let (value, was_tomb, left) = {
                     let v = self.arr(*arr).ok_or("unknown array")?;
-                    let p = v
-                        .iter()
-                        .position(|e| e.id == *elem)
-                        .ok_or("unknown element")?;
+                    let p = v.iter().position(|e| e.id == *elem).ok_or("unknown element")?;
                     let e = &v[p];
                     let left = v[..p].iter().rev().find(|x| x.tomb.is_none()).map(|x| x.id);
-                    (
-                        if want_undo && e.tomb.is_none() {
-                            self.val_json(&e.reg.val, 0)
-                        } else {
-                            None
-                        },
-                        e.tomb.is_some(),
-                        left,
-                    )
+                    (if want_undo && e.tomb.is_none() { self.val_json(&e.reg.val, 0) } else { None }, e.tomb.is_some(), left)
                 };
                 if let Some(Cont::Arr(v)) = self.nodes.get_mut(arr) {
                     if let Some(e) = v.iter_mut().find(|e| e.id == *elem) {
@@ -591,12 +436,7 @@ impl Doc {
                     }
                 }
                 Ok(match (want_undo && !was_tomb, value) {
-                    (true, Some(value)) => vec![Undo::Reinsert {
-                        arr: *arr,
-                        elem: *elem,
-                        left,
-                        value,
-                    }],
+                    (true, Some(value)) => vec![Undo::Reinsert { arr: *arr, elem: *elem, left, value }],
                     _ => vec![],
                 })
             }
@@ -672,18 +512,13 @@ fn tokens(path: &str) -> Result<Vec<String>, String> {
 }
 
 fn ptr_of(toks: &[String]) -> String {
-    toks.iter()
-        .map(|t| format!("/{}", t.replace('~', "~0").replace('/', "~1")))
-        .collect()
+    toks.iter().map(|t| format!("/{}", t.replace('~', "~0").replace('/', "~1"))).collect()
 }
 
 fn child_of(doc: &Doc, cur: &Val, tok: &str) -> Option<Val> {
     let Val::Ref(id) = cur else { return None };
     match doc.nodes.get(id)? {
-        Cont::Obj(m) => m
-            .get(tok)
-            .filter(|r| r.val != Val::Absent)
-            .map(|r| r.val.clone()),
+        Cont::Obj(m) => m.get(tok).filter(|r| r.val != Val::Absent).map(|r| r.val.clone()),
         Cont::Arr(_) => {
             let i: usize = tok.parse().ok()?;
             doc.visible(*id).get(i).map(|e| e.reg.val.clone())
@@ -694,27 +529,16 @@ fn child_of(doc: &Doc, cur: &Val, tok: &str) -> Option<Val> {
 fn walk(doc: &Doc, toks: &[String]) -> Result<Val, String> {
     let mut cur = doc.root.val.clone();
     for (n, t) in toks.iter().enumerate() {
-        cur = child_of(doc, &cur, t)
-            .ok_or_else(|| format!("no such path '{}'", ptr_of(&toks[..=n])))?;
+        cur = child_of(doc, &cur, t).ok_or_else(|| format!("no such path '{}'", ptr_of(&toks[..=n])))?;
     }
     Ok(cur)
 }
 
 fn slot_prim(slot: &Slot, value: &Value) -> Prim {
     match slot {
-        Slot::Root => Prim::SetRoot {
-            value: value.clone(),
-        },
-        Slot::Key(o, k) => Prim::SetKey {
-            obj: *o,
-            key: k.clone(),
-            value: value.clone(),
-        },
-        Slot::Elem(a, e) => Prim::SetElem {
-            arr: *a,
-            elem: *e,
-            value: value.clone(),
-        },
+        Slot::Root => Prim::SetRoot { value: value.clone() },
+        Slot::Key(o, k) => Prim::SetKey { obj: *o, key: k.clone(), value: value.clone() },
+        Slot::Elem(a, e) => Prim::SetElem { arr: *a, elem: *e, value: value.clone() },
     }
 }
 
@@ -722,19 +546,12 @@ fn slot_prim(slot: &Slot, value: &Value) -> Prim {
 /// entities: replacing one by the other is a remove plus an insert, not a field-by-field rewrite.
 fn same_identity(a: &Value, b: &Value) -> bool {
     match (a, b) {
-        (Value::Object(x), Value::Object(y)) => {
-            ["id", "name", "target", "prop"]
-                .iter()
-                .all(|k| match (x.get(*k), y.get(*k)) {
-                    (Some(p), Some(q)) => p == q,
-                    _ => true,
-                })
-        }
+        (Value::Object(x), Value::Object(y)) => ["id", "name", "target", "prop"].iter().all(|k| match (x.get(*k), y.get(*k)) {
+            (Some(p), Some(q)) => p == q,
+            _ => true,
+        }),
         (Value::Array(_), Value::Array(_)) => true,
-        (Value::Object(_), _)
-        | (_, Value::Object(_))
-        | (Value::Array(_), _)
-        | (_, Value::Array(_)) => false,
+        (Value::Object(_), _) | (_, Value::Object(_)) | (Value::Array(_), _) | (_, Value::Array(_)) => false,
         _ => true,
     }
 }
@@ -744,25 +561,10 @@ fn diff_slot(doc: &mut Doc, tx: &mut Tx, slot: Slot, new: &Value) -> Result<(), 
     match (&cur, new) {
         (Val::Ref(id), Value::Object(nm)) if doc.obj(*id).is_some() => {
             let id = *id;
-            let existing: BTreeSet<String> = doc
-                .obj(id)
-                .map(|m| {
-                    m.iter()
-                        .filter(|(_, r)| r.val != Val::Absent)
-                        .map(|(k, _)| k.clone())
-                        .collect()
-                })
-                .unwrap_or_default();
+            let existing: BTreeSet<String> = doc.obj(id).map(|m| m.iter().filter(|(_, r)| r.val != Val::Absent).map(|(k, _)| k.clone()).collect()).unwrap_or_default();
             for k in &existing {
                 if !nm.contains_key(k) {
-                    emit(
-                        doc,
-                        tx,
-                        Prim::DelKey {
-                            obj: id,
-                            key: k.clone(),
-                        },
-                    )?;
+                    emit(doc, tx, Prim::DelKey { obj: id, key: k.clone() })?;
                 }
             }
             let mut keys: Vec<&String> = nm.keys().collect();
@@ -771,15 +573,7 @@ fn diff_slot(doc: &mut Doc, tx: &mut Tx, slot: Slot, new: &Value) -> Result<(), 
                 if existing.contains(k) {
                     diff_slot(doc, tx, Slot::Key(id, k.clone()), &nm[k])?;
                 } else {
-                    emit(
-                        doc,
-                        tx,
-                        Prim::SetKey {
-                            obj: id,
-                            key: k.clone(),
-                            value: nm[k].clone(),
-                        },
-                    )?;
+                    emit(doc, tx, Prim::SetKey { obj: id, key: k.clone(), value: nm[k].clone() })?;
                 }
             }
             Ok(())
@@ -791,11 +585,7 @@ fn diff_slot(doc: &mut Doc, tx: &mut Tx, slot: Slot, new: &Value) -> Result<(), 
 }
 
 fn diff_array(doc: &mut Doc, tx: &mut Tx, arr: Id, new: &[Value]) -> Result<(), String> {
-    let old: Vec<(Id, Value)> = doc
-        .visible(arr)
-        .iter()
-        .map(|e| (e.id, doc.val_json(&e.reg.val, 0).unwrap_or(Value::Null)))
-        .collect();
+    let old: Vec<(Id, Value)> = doc.visible(arr).iter().map(|e| (e.id, doc.val_json(&e.reg.val, 0).unwrap_or(Value::Null))).collect();
     let (n, m) = (old.len(), new.len());
     let mut pre = 0;
     while pre < n && pre < m && old[pre].1 == new[pre] {
@@ -813,11 +603,7 @@ fn diff_array(doc: &mut Doc, tx: &mut Tx, arr: Id, new: &[Value]) -> Result<(), 
         let mut t = vec![0u32; (on + 1) * w];
         for i in (0..on).rev() {
             for j in (0..nn).rev() {
-                t[i * w + j] = if old[pre + i].1 == new[pre + j] {
-                    t[(i + 1) * w + j + 1] + 1
-                } else {
-                    t[(i + 1) * w + j].max(t[i * w + j + 1])
-                };
+                t[i * w + j] = if old[pre + i].1 == new[pre + j] { t[(i + 1) * w + j + 1] + 1 } else { t[(i + 1) * w + j].max(t[i * w + j + 1]) };
             }
         }
         let (mut i, mut j) = (0, 0);
@@ -851,39 +637,16 @@ fn diff_array(doc: &mut Doc, tx: &mut Tx, arr: Id, new: &[Value]) -> Result<(), 
             } else {
                 emit(doc, tx, Prim::DelElem { arr, elem: *oid })?;
                 let nid = tx.gen.peek();
-                emit(
-                    doc,
-                    tx,
-                    Prim::InsElem {
-                        arr,
-                        after: anchor,
-                        value: nv.clone(),
-                    },
-                )?;
+                emit(doc, tx, Prim::InsElem { arr, after: anchor, value: nv.clone() })?;
                 anchor = Some(nid);
             }
         }
         for t in k..lo {
-            emit(
-                doc,
-                tx,
-                Prim::DelElem {
-                    arr,
-                    elem: old[oi + t].0,
-                },
-            )?;
+            emit(doc, tx, Prim::DelElem { arr, elem: old[oi + t].0 })?;
         }
         for t in k..ln {
             let nid = tx.gen.peek();
-            emit(
-                doc,
-                tx,
-                Prim::InsElem {
-                    arr,
-                    after: anchor,
-                    value: new[nj + t].clone(),
-                },
-            )?;
+            emit(doc, tx, Prim::InsElem { arr, after: anchor, value: new[nj + t].clone() })?;
             anchor = Some(nid);
         }
         if mi < n {
@@ -911,34 +674,18 @@ fn translate(doc: &mut Doc, tx: &mut Tx, op: &Op) -> Result<(), String> {
             let (pt, last) = toks.split_at(toks.len() - 1);
             let tok = &last[0];
             let parent = walk(doc, pt).map_err(|_| format!("no such path '{}'", ptr_of(pt)))?;
-            let Val::Ref(pid) = parent else {
-                return Err(format!("'{}' is not a container", ptr_of(pt)));
-            };
+            let Val::Ref(pid) = parent else { return Err(format!("'{}' is not a container", ptr_of(pt))) };
             match doc.nodes.get(&pid) {
                 Some(Cont::Obj(m)) => {
                     if m.get(tok).map(|r| r.val != Val::Absent).unwrap_or(false) {
                         diff_slot(doc, tx, Slot::Key(pid, tok.clone()), value)
                     } else {
-                        emit(
-                            doc,
-                            tx,
-                            Prim::SetKey {
-                                obj: pid,
-                                key: tok.clone(),
-                                value: value.clone(),
-                            },
-                        )
+                        emit(doc, tx, Prim::SetKey { obj: pid, key: tok.clone(), value: value.clone() })
                     }
                 }
                 Some(Cont::Arr(_)) => {
-                    let i: usize = tok
-                        .parse()
-                        .map_err(|_| format!("bad array index '{tok}'"))?;
-                    let id = doc
-                        .visible(pid)
-                        .get(i)
-                        .map(|e| e.id)
-                        .ok_or_else(|| format!("index {i} out of range at '{}'", ptr_of(pt)))?;
+                    let i: usize = tok.parse().map_err(|_| format!("bad array index '{tok}'"))?;
+                    let id = doc.visible(pid).get(i).map(|e| e.id).ok_or_else(|| format!("index {i} out of range at '{}'", ptr_of(pt)))?;
                     diff_slot(doc, tx, Slot::Elem(pid, id), value)
                 }
                 None => Err(format!("'{}' is not a container", ptr_of(pt))),
@@ -952,46 +699,23 @@ fn translate(doc: &mut Doc, tx: &mut Tx, op: &Op) -> Result<(), String> {
             let (pt, last) = toks.split_at(toks.len() - 1);
             let tok = &last[0];
             let parent = walk(doc, pt).map_err(|_| format!("no such path '{}'", ptr_of(pt)))?;
-            let Val::Ref(pid) = parent else {
-                return Err(format!("'{}' is not a container", ptr_of(pt)));
-            };
+            let Val::Ref(pid) = parent else { return Err(format!("'{}' is not a container", ptr_of(pt))) };
             match doc.nodes.get(&pid) {
                 Some(Cont::Obj(m)) => {
                     if m.get(tok).map(|r| r.val != Val::Absent).unwrap_or(false) {
                         diff_slot(doc, tx, Slot::Key(pid, tok.clone()), value)
                     } else {
-                        emit(
-                            doc,
-                            tx,
-                            Prim::SetKey {
-                                obj: pid,
-                                key: tok.clone(),
-                                value: value.clone(),
-                            },
-                        )
+                        emit(doc, tx, Prim::SetKey { obj: pid, key: tok.clone(), value: value.clone() })
                     }
                 }
                 Some(Cont::Arr(_)) => {
                     let vis = doc.visible(pid);
-                    let i = if tok == "-" {
-                        vis.len()
-                    } else {
-                        tok.parse()
-                            .map_err(|_| format!("bad array index '{tok}'"))?
-                    };
+                    let i = if tok == "-" { vis.len() } else { tok.parse().map_err(|_| format!("bad array index '{tok}'"))? };
                     if i > vis.len() {
                         return Err(format!("insert index {i} out of range at '{}'", ptr_of(pt)));
                     }
                     let after = if i == 0 { None } else { Some(vis[i - 1].id) };
-                    emit(
-                        doc,
-                        tx,
-                        Prim::InsElem {
-                            arr: pid,
-                            after,
-                            value: value.clone(),
-                        },
-                    )
+                    emit(doc, tx, Prim::InsElem { arr: pid, after, value: value.clone() })
                 }
                 None => Err(format!("'{}' is not a container", ptr_of(pt))),
             }
@@ -1004,33 +728,18 @@ fn translate(doc: &mut Doc, tx: &mut Tx, op: &Op) -> Result<(), String> {
             let (pt, last) = toks.split_at(toks.len() - 1);
             let tok = &last[0];
             let parent = walk(doc, pt).map_err(|_| format!("no such path '{}'", ptr_of(pt)))?;
-            let Val::Ref(pid) = parent else {
-                return Err(format!("'{}' is not a container", ptr_of(pt)));
-            };
+            let Val::Ref(pid) = parent else { return Err(format!("'{}' is not a container", ptr_of(pt))) };
             match doc.nodes.get(&pid) {
                 Some(Cont::Obj(m)) => {
                     if m.get(tok).map(|r| r.val != Val::Absent).unwrap_or(false) {
-                        emit(
-                            doc,
-                            tx,
-                            Prim::DelKey {
-                                obj: pid,
-                                key: tok.clone(),
-                            },
-                        )
+                        emit(doc, tx, Prim::DelKey { obj: pid, key: tok.clone() })
                     } else {
                         Err(format!("no key '{tok}' at '{}'", ptr_of(pt)))
                     }
                 }
                 Some(Cont::Arr(_)) => {
-                    let i: usize = tok
-                        .parse()
-                        .map_err(|_| format!("bad array index '{tok}'"))?;
-                    let id = doc
-                        .visible(pid)
-                        .get(i)
-                        .map(|e| e.id)
-                        .ok_or_else(|| format!("index {i} out of range at '{}'", ptr_of(pt)))?;
+                    let i: usize = tok.parse().map_err(|_| format!("bad array index '{tok}'"))?;
+                    let id = doc.visible(pid).get(i).map(|e| e.id).ok_or_else(|| format!("index {i} out of range at '{}'", ptr_of(pt)))?;
                     emit(doc, tx, Prim::DelElem { arr: pid, elem: id })
                 }
                 None => Err(format!("'{}' is not a container", ptr_of(pt))),
@@ -1047,12 +756,7 @@ fn coalesce(undos: Vec<Undo>) -> Vec<Undo> {
             Undo::Restore { slot, stamp, prev } => {
                 let mut merged = false;
                 for x in out.iter_mut() {
-                    if let Undo::Restore {
-                        slot: s2,
-                        stamp: st2,
-                        ..
-                    } = x
-                    {
+                    if let Undo::Restore { slot: s2, stamp: st2, .. } = x {
                         if *s2 == slot {
                             *st2 = stamp;
                             merged = true;
@@ -1064,24 +768,11 @@ fn coalesce(undos: Vec<Undo>) -> Vec<Undo> {
                     out.push(Undo::Restore { slot, stamp, prev });
                 }
             }
-            Undo::Reinsert {
-                arr,
-                elem,
-                left,
-                value,
-            } => {
-                if let Some(p) = out
-                    .iter()
-                    .position(|x| matches!(x, Undo::Remove { elem: e2, .. } if *e2 == elem))
-                {
+            Undo::Reinsert { arr, elem, left, value } => {
+                if let Some(p) = out.iter().position(|x| matches!(x, Undo::Remove { elem: e2, .. } if *e2 == elem)) {
                     out.remove(p);
                 } else {
-                    out.push(Undo::Reinsert {
-                        arr,
-                        elem,
-                        left,
-                        value,
-                    });
+                    out.push(Undo::Reinsert { arr, elem, left, value });
                 }
             }
             other => out.push(other),
@@ -1094,37 +785,15 @@ fn coalesce(undos: Vec<Undo>) -> Vec<Undo> {
 fn plan_inverse(doc: &mut Doc, tx: &mut Tx, u: &Undo) -> Result<(), String> {
     match u {
         Undo::Remove { arr, elem } => {
-            let live = doc
-                .arr(*arr)
-                .and_then(|v| v.iter().find(|e| e.id == *elem))
-                .map(|e| e.tomb.is_none())
-                .unwrap_or(false);
+            let live = doc.arr(*arr).and_then(|v| v.iter().find(|e| e.id == *elem)).map(|e| e.tomb.is_none()).unwrap_or(false);
             if live {
-                emit(
-                    doc,
-                    tx,
-                    Prim::DelElem {
-                        arr: *arr,
-                        elem: *elem,
-                    },
-                )?;
+                emit(doc, tx, Prim::DelElem { arr: *arr, elem: *elem })?;
             }
             Ok(())
         }
-        Undo::Reinsert {
-            arr,
-            elem,
-            left,
-            value,
-        } => {
+        Undo::Reinsert { arr, elem, left, value } => {
             let v = doc.arr(*arr).ok_or("array is gone")?;
-            let nearest_before = |p: usize| {
-                v[..=p]
-                    .iter()
-                    .rev()
-                    .find(|e| e.tomb.is_none())
-                    .map(|e| e.id)
-            };
+            let nearest_before = |p: usize| v[..=p].iter().rev().find(|e| e.tomb.is_none()).map(|e| e.id);
             let after = match v.iter().position(|e| e.id == *elem) {
                 Some(p) => {
                     if v[p].tomb.is_none() {
@@ -1141,41 +810,21 @@ fn plan_inverse(doc: &mut Doc, tx: &mut Tx, u: &Undo) -> Result<(), String> {
                     },
                 },
             };
-            emit(
-                doc,
-                tx,
-                Prim::InsElem {
-                    arr: *arr,
-                    after,
-                    value: value.clone(),
-                },
-            )
+            emit(doc, tx, Prim::InsElem { arr: *arr, after, value: value.clone() })
         }
         Undo::Restore { slot, stamp, prev } => {
             if doc.reg_stamp(slot) != Some(*stamp) {
                 return Ok(()); // somebody wrote after us: their write stays
             }
             if let Slot::Elem(a, e) = slot {
-                if doc
-                    .arr(*a)
-                    .and_then(|v| v.iter().find(|x| x.id == *e))
-                    .map(|x| x.tomb.is_some())
-                    .unwrap_or(true)
-                {
+                if doc.arr(*a).and_then(|v| v.iter().find(|x| x.id == *e)).map(|x| x.tomb.is_some()).unwrap_or(true) {
                     return Ok(());
                 }
             }
             match (slot, prev) {
                 (Slot::Root, Some(v)) => diff_slot(doc, tx, Slot::Root, v),
                 (Slot::Root, None) => Ok(()),
-                (Slot::Key(o, k), None) => emit(
-                    doc,
-                    tx,
-                    Prim::DelKey {
-                        obj: *o,
-                        key: k.clone(),
-                    },
-                ),
+                (Slot::Key(o, k), None) => emit(doc, tx, Prim::DelKey { obj: *o, key: k.clone() }),
                 (s, Some(v)) => diff_slot(doc, tx, s.clone(), v),
                 (Slot::Elem(..), None) => Ok(()),
             }
@@ -1231,17 +880,7 @@ impl Replica {
         if id == 0 {
             return Err("replica id 0 is reserved for the base document".into());
         }
-        Ok(Replica {
-            id,
-            lamport: 0,
-            applied: VClock::new(),
-            doc: Doc::from_json(base),
-            pending: vec![],
-            log: vec![],
-            undo: vec![],
-            redo: vec![],
-            dropped: 0,
-        })
+        Ok(Replica { id, lamport: 0, applied: VClock::new(), doc: Doc::from_json(base), pending: vec![], log: vec![], undo: vec![], redo: vec![], dropped: 0 })
     }
 
     /// Join an existing session from a snapshot (a fresh replica id, or a known one to continue it).
@@ -1249,25 +888,11 @@ impl Replica {
         if id == 0 {
             return Err("replica id 0 is reserved for the base document".into());
         }
-        Ok(Replica {
-            id,
-            lamport: snap.lamport,
-            applied: snap.clock,
-            doc: snap.doc,
-            pending: vec![],
-            log: vec![],
-            undo: vec![],
-            redo: vec![],
-            dropped: 0,
-        })
+        Ok(Replica { id, lamport: snap.lamport, applied: snap.clock, doc: snap.doc, pending: vec![], log: vec![], undo: vec![], redo: vec![], dropped: 0 })
     }
 
     pub fn snapshot(&self) -> Snapshot {
-        Snapshot {
-            doc: self.doc.clone(),
-            clock: self.applied.clone(),
-            lamport: self.lamport,
-        }
+        Snapshot { doc: self.doc.clone(), clock: self.applied.clone(), lamport: self.lamport }
     }
 
     /// Same replica state seen from another identity (a server-side proxy for one user).
@@ -1303,17 +928,7 @@ impl Replica {
         !self.redo.is_empty()
     }
     pub fn tombstones(&self) -> usize {
-        self.doc
-            .nodes
-            .values()
-            .map(|c| {
-                if let Cont::Arr(v) = c {
-                    v.iter().filter(|e| e.tomb.is_some()).count()
-                } else {
-                    0
-                }
-            })
-            .sum()
+        self.doc.nodes.values().map(|c| if let Cont::Arr(v) = c { v.iter().filter(|e| e.tomb.is_some()).count() } else { 0 }).sum()
     }
     pub fn node_count(&self) -> usize {
         self.doc.nodes.len()
@@ -1326,21 +941,7 @@ impl Replica {
         let backup = self.doc.clone();
         let seq = self.applied.get(&self.id).copied().unwrap_or(0) + 1;
         let lamport = self.lamport + 1;
-        let mut tx = Tx {
-            meta: Meta {
-                replica: self.id,
-                seq,
-                lamport,
-            },
-            idx: 0,
-            gen: IdGen {
-                r: self.id,
-                s: seq,
-                next: 0,
-            },
-            prims: vec![],
-            undos: vec![],
-        };
+        let mut tx = Tx { meta: Meta { replica: self.id, seq, lamport }, idx: 0, gen: IdGen { r: self.id, s: seq, next: 0 }, prims: vec![], undos: vec![] };
         if let Err(e) = f(&mut self.doc, &mut tx) {
             self.doc = backup;
             return Err(e);
@@ -1351,13 +952,7 @@ impl Replica {
         let deps = self.applied.clone();
         self.lamport = lamport;
         self.applied.insert(self.id, seq);
-        let env = Envelope {
-            replica: self.id,
-            seq,
-            lamport,
-            deps,
-            ops: tx.prims,
-        };
+        let env = Envelope { replica: self.id, seq, lamport, deps, ops: tx.prims };
         self.log.push(env.clone());
         Ok(Some((env, coalesce(tx.undos))))
     }
@@ -1403,11 +998,7 @@ impl Replica {
 
     fn step_back(&mut self, undoing: bool) -> Result<Option<Envelope>, String> {
         loop {
-            let recs = if undoing {
-                self.undo.pop()
-            } else {
-                self.redo.pop()
-            };
+            let recs = if undoing { self.undo.pop() } else { self.redo.pop() };
             let Some(recs) = recs else { return Ok(None) };
             let r = self.local_tx(|doc, tx| {
                 for u in recs.iter().rev() {
@@ -1419,11 +1010,7 @@ impl Replica {
             if let Some((env, inv)) = r {
                 let inv = coalesce(inv);
                 if !inv.is_empty() {
-                    let stack = if undoing {
-                        &mut self.redo
-                    } else {
-                        &mut self.undo
-                    };
+                    let stack = if undoing { &mut self.redo } else { &mut self.undo };
                     stack.push(inv);
                 }
                 return Ok(Some(env));
@@ -1433,11 +1020,7 @@ impl Replica {
 
     fn deliverable(&self, e: &Envelope) -> bool {
         let have = self.applied.get(&e.replica).copied().unwrap_or(0);
-        e.seq == have + 1
-            && e.deps.iter().all(|(r, s)| {
-                self.applied.get(r).copied().unwrap_or(0) >= *s
-                    || (*r == e.replica && *s < e.seq && *s <= have)
-            })
+        e.seq == have + 1 && e.deps.iter().all(|(r, s)| self.applied.get(r).copied().unwrap_or(0) >= *s || (*r == e.replica && *s < e.seq && *s <= have))
     }
 
     /// Applied envelopes still in the log, oldest first (after compaction a suffix of the full history).
@@ -1447,24 +1030,12 @@ impl Replica {
 
     /// Apply one deliverable envelope only if `validate` accepts the merged document; otherwise leave the
     /// replica exactly as it was. Used by a server that must never hold an invalid project.
-    pub fn receive_checked(
-        &mut self,
-        e: Envelope,
-        validate: &mut dyn FnMut(&Value) -> Result<(), Vec<String>>,
-    ) -> Result<(), Vec<String>> {
+    pub fn receive_checked(&mut self, e: Envelope, validate: &mut dyn FnMut(&Value) -> Result<(), Vec<String>>) -> Result<(), Vec<String>> {
         self.validate(&e).map_err(|x| vec![x])?;
         if !self.deliverable(&e) {
-            return Err(vec![format!(
-                "envelope {}:{} is not deliverable now (duplicate, or a predecessor is missing)",
-                e.replica, e.seq
-            )]);
+            return Err(vec![format!("envelope {}:{} is not deliverable now (duplicate, or a predecessor is missing)", e.replica, e.seq)]);
         }
-        let backup = (
-            self.doc.clone(),
-            self.applied.clone(),
-            self.lamport,
-            self.dropped,
-        );
+        let backup = (self.doc.clone(), self.applied.clone(), self.lamport, self.dropped);
         let log_len = self.log.len();
         self.apply_env(e);
         if let Err(errs) = validate(&self.doc.to_json()) {
@@ -1500,22 +1071,10 @@ impl Replica {
     }
 
     fn apply_env(&mut self, e: Envelope) {
-        let meta = Meta {
-            replica: e.replica,
-            seq: e.seq,
-            lamport: e.lamport,
-        };
-        let mut gen = IdGen {
-            r: e.replica,
-            s: e.seq,
-            next: 0,
-        };
+        let meta = Meta { replica: e.replica, seq: e.seq, lamport: e.lamport };
+        let mut gen = IdGen { r: e.replica, s: e.seq, next: 0 };
         for (i, p) in e.ops.iter().enumerate() {
-            if self
-                .doc
-                .apply_prim(&meta, i as u32, &mut gen, p, false)
-                .is_err()
-            {
+            if self.doc.apply_prim(&meta, i as u32, &mut gen, p, false).is_err() {
                 self.dropped += 1;
             }
         }
@@ -1530,11 +1089,7 @@ impl Replica {
         if e.seq <= self.applied.get(&e.replica).copied().unwrap_or(0) {
             return Ok(Delivery::Duplicate);
         }
-        if self
-            .pending
-            .iter()
-            .any(|p| p.replica == e.replica && p.seq == e.seq)
-        {
+        if self.pending.iter().any(|p| p.replica == e.replica && p.seq == e.seq) {
             return Ok(Delivery::Buffered);
         }
         if self.pending.len() >= MAX_PENDING {
@@ -1543,23 +1098,13 @@ impl Replica {
         self.pending.push(e);
         let mut applied = Vec::new();
         loop {
-            let next = self
-                .pending
-                .iter()
-                .enumerate()
-                .filter(|(_, p)| self.deliverable(p))
-                .min_by_key(|(_, p)| (p.replica, p.seq))
-                .map(|(i, _)| i);
+            let next = self.pending.iter().enumerate().filter(|(_, p)| self.deliverable(p)).min_by_key(|(_, p)| (p.replica, p.seq)).map(|(i, _)| i);
             let Some(i) = next else { break };
             let env = self.pending.remove(i);
             applied.push(env.clone());
             self.apply_env(env);
         }
-        Ok(if applied.is_empty() {
-            Delivery::Buffered
-        } else {
-            Delivery::Applied(applied)
-        })
+        Ok(if applied.is_empty() { Delivery::Buffered } else { Delivery::Applied(applied) })
     }
 
     /// Envelopes a peer with clock `clock` still lacks, in a causal order. `Err` when the log was
@@ -1569,12 +1114,7 @@ impl Replica {
         for (r, s) in &self.applied {
             need += (*s - clock.get(r).copied().unwrap_or(0).min(*s)) as usize;
         }
-        let out: Vec<Envelope> = self
-            .log
-            .iter()
-            .filter(|e| e.seq > clock.get(&e.replica).copied().unwrap_or(0))
-            .cloned()
-            .collect();
+        let out: Vec<Envelope> = self.log.iter().filter(|e| e.seq > clock.get(&e.replica).copied().unwrap_or(0)).cloned().collect();
         if out.len() < need {
             return Err("log was compacted past the peer's clock: fetch a snapshot".into());
         }
@@ -1591,19 +1131,10 @@ impl Replica {
             }
         }
         // only a prefix of the log is dropped, so positions stay meaningful for a relay that numbers them
-        let k = self
-            .log
-            .iter()
-            .take_while(|e| e.seq <= min.get(&e.replica).copied().unwrap_or(0))
-            .count();
+        let k = self.log.iter().take_while(|e| e.seq <= min.get(&e.replica).copied().unwrap_or(0)).count();
         self.log.drain(..k);
         st.log_dropped = k;
-        let nz = |c: &VClock| -> VClock {
-            c.iter()
-                .filter(|(_, v)| **v > 0)
-                .map(|(k, v)| (*k, *v))
-                .collect()
-        };
+        let nz = |c: &VClock| -> VClock { c.iter().filter(|(_, v)| **v > 0).map(|(k, v)| (*k, *v)).collect() };
         let mine = nz(&self.applied);
         if self.pending.is_empty() && peers.iter().all(|p| nz(p) == mine) {
             st.purged = true;
@@ -1631,9 +1162,7 @@ impl Replica {
 // ---------------------------------------------------------------------------------------------
 // presence (cursor, selection, name, colour) with expiry
 
-const PALETTE: [&str; 8] = [
-    "#e6194b", "#3cb44b", "#4363d8", "#f58231", "#911eb4", "#008080", "#9a6324", "#d2691e",
-];
+const PALETTE: [&str; 8] = ["#e6194b", "#3cb44b", "#4363d8", "#f58231", "#911eb4", "#008080", "#9a6324", "#d2691e"];
 
 pub fn colour_for(replica: ReplicaId) -> String {
     PALETTE[(replica as usize) % PALETTE.len()].to_string()
@@ -1671,17 +1200,7 @@ fn valid_colour(c: &str) -> bool {
 
 impl Presence {
     pub fn new(replica: ReplicaId, name: &str) -> Presence {
-        Presence {
-            replica,
-            name: clean_name(name, replica),
-            colour: colour_for(replica),
-            frame: None,
-            cursor: None,
-            selection: vec![],
-            bounds: None,
-            n: 0,
-            seen_ms: 0,
-        }
+        Presence { replica, name: clean_name(name, replica), colour: colour_for(replica), frame: None, cursor: None, selection: vec![], bounds: None, n: 0, seen_ms: 0 }
     }
     /// Make an untrusted update safe: bounded sizes, finite numbers, a valid `#rrggbb` colour.
     pub fn sanitized(mut self) -> Presence {
@@ -1731,10 +1250,7 @@ pub struct PresenceBoard {
 
 impl PresenceBoard {
     pub fn new(ttl_ms: u64) -> PresenceBoard {
-        PresenceBoard {
-            entries: BTreeMap::new(),
-            ttl_ms,
-        }
+        PresenceBoard { entries: BTreeMap::new(), ttl_ms }
     }
     /// Returns true when the update was accepted (not older than what is stored).
     pub fn update(&mut self, p: Presence, now_ms: u64) -> bool {
@@ -1759,12 +1275,7 @@ impl PresenceBoard {
     /// Drop entries not refreshed within the TTL; returns who expired.
     pub fn expire(&mut self, now_ms: u64) -> Vec<ReplicaId> {
         let ttl = self.ttl_ms;
-        let gone: Vec<ReplicaId> = self
-            .entries
-            .iter()
-            .filter(|(_, p)| now_ms.saturating_sub(p.seen_ms) > ttl)
-            .map(|(r, _)| *r)
-            .collect();
+        let gone: Vec<ReplicaId> = self.entries.iter().filter(|(_, p)| now_ms.saturating_sub(p.seen_ms) > ttl).map(|(r, _)| *r).collect();
         for r in &gone {
             self.entries.remove(r);
         }
@@ -1850,9 +1361,7 @@ fn bump_leaf(v: &mut Value, rng: &mut SimRng) -> bool {
         Value::Number(n) => {
             let x = n.as_f64().unwrap_or(0.0);
             let d = (rng.below(21) as f64 - 10.0) / 2.0;
-            *v = serde_json::Number::from_f64(x + d)
-                .map(Value::Number)
-                .unwrap_or(Value::Null);
+            *v = serde_json::Number::from_f64(x + d).map(Value::Number).unwrap_or(Value::Null);
             true
         }
         Value::String(s) => {
@@ -1887,19 +1396,9 @@ pub fn random_op(doc: &Value, rng: &mut SimRng) -> Option<Op> {
     let mut paths = Vec::new();
     collect_paths(doc, &mut String::new(), &mut paths, 0);
     let path = paths[rng.below(paths.len())].clone();
-    let at = if path.is_empty() {
-        doc
-    } else {
-        doc.pointer(&path)?
-    };
+    let at = if path.is_empty() { doc } else { doc.pointer(&path)? };
     let parent_ptr = path.rfind('/').map(|i| path[..i].to_string());
-    let parent = parent_ptr.as_ref().and_then(|p| {
-        if p.is_empty() {
-            Some(doc)
-        } else {
-            doc.pointer(p)
-        }
-    });
+    let parent = parent_ptr.as_ref().and_then(|p| if p.is_empty() { Some(doc) } else { doc.pointer(p) });
     let in_array = parent.map(|p| p.is_array()).unwrap_or(false);
     let fresh = |rng: &mut SimRng| serde_json::json!({"name": format!("n{}", rng.below(50)), "v": rng.below(100), "tags": [rng.below(5), rng.below(5)]});
     match at {
@@ -1912,40 +1411,21 @@ pub fn random_op(doc: &Value, rng: &mut SimRng) -> Option<Op> {
             if in_array && rng.chance(20) {
                 let i = path.rsplit('/').next()?.to_string();
                 let p = parent_ptr?;
-                return Some(Op::Insert {
-                    path: format!("{p}/{i}"),
-                    value: nv,
-                });
+                return Some(Op::Insert { path: format!("{p}/{i}"), value: nv });
             }
             Some(Op::Set { path, value: nv })
         }
-        Value::Null => Some(Op::Set {
-            path,
-            value: Value::from(rng.below(10) as u64),
-        }),
+        Value::Null => Some(Op::Set { path, value: Value::from(rng.below(10) as u64) }),
         Value::Array(a) => {
             let r = rng.below(10);
             if r < 6 || a.is_empty() {
                 let i = rng.below(a.len() + 2);
-                let ptr = if i > a.len() {
-                    format!("{path}/-")
-                } else {
-                    format!("{path}/{i}")
-                };
-                let v = if !a.is_empty() && rng.chance(40) {
-                    a[rng.below(a.len())].clone()
-                } else {
-                    fresh(rng)
-                };
-                Some(Op::Insert {
-                    path: ptr,
-                    value: v,
-                })
+                let ptr = if i > a.len() { format!("{path}/-") } else { format!("{path}/{i}") };
+                let v = if !a.is_empty() && rng.chance(40) { a[rng.below(a.len())].clone() } else { fresh(rng) };
+                Some(Op::Insert { path: ptr, value: v })
             } else if r < 8 {
                 let i = rng.below(a.len());
-                Some(Op::Remove {
-                    path: format!("{path}/{i}"),
-                })
+                Some(Op::Remove { path: format!("{path}/{i}") })
             } else {
                 let mut nv = at.clone();
                 bump_leaf(&mut nv, rng);
@@ -1956,23 +1436,12 @@ pub fn random_op(doc: &Value, rng: &mut SimRng) -> Option<Op> {
             let r = rng.below(10);
             if r < 4 {
                 let k = format!("k{}", rng.below(4));
-                let v = if rng.chance(50) {
-                    Value::from(rng.below(100) as u64)
-                } else {
-                    fresh(rng)
-                };
-                Some(Op::Set {
-                    path: format!("{path}/{k}"),
-                    value: v,
-                })
+                let v = if rng.chance(50) { Value::from(rng.below(100) as u64) } else { fresh(rng) };
+                Some(Op::Set { path: format!("{path}/{k}"), value: v })
             } else if r < 6 && !m.is_empty() && !path.is_empty() {
                 let keys: Vec<&String> = m.keys().collect();
-                let k = keys[rng.below(keys.len())]
-                    .replace('~', "~0")
-                    .replace('/', "~1");
-                Some(Op::Remove {
-                    path: format!("{path}/{k}"),
-                })
+                let k = keys[rng.below(keys.len())].replace('~', "~0").replace('/', "~1");
+                Some(Op::Remove { path: format!("{path}/{k}") })
             } else if r < 9 {
                 // whole-object replacement with one leaf changed: exercises the structural diff
                 let mut nv = at.clone();
@@ -1996,9 +1465,7 @@ pub fn random_op(doc: &Value, rng: &mut SimRng) -> Option<Op> {
 pub fn project_op(doc: &Value, rng: &mut SimRng) -> Option<Op> {
     let arr = |p: &str| doc.pointer(p).and_then(Value::as_array);
     let layers = arr("/layers")?;
-    let delta = |rng: &mut SimRng, x: f64, span: usize| {
-        x + (rng.below(span * 2 + 1) as f64 - span as f64) / 2.0
-    };
+    let delta = |rng: &mut SimRng, x: f64, span: usize| x + (rng.below(span * 2 + 1) as f64 - span as f64) / 2.0;
     let num = |v: &Value| v.as_f64();
     for _ in 0..8 {
         match rng.below(9) {
@@ -2009,10 +1476,7 @@ pub fn project_op(doc: &Value, rng: &mut SimRng) -> Option<Op> {
                 }
                 let i = rng.below(bones.len());
                 let x = num(&bones[i]["rest_angle"])?;
-                return Some(Op::Set {
-                    path: format!("/bones/{i}/rest_angle"),
-                    value: Value::from(delta(rng, x, 10)),
-                });
+                return Some(Op::Set { path: format!("/bones/{i}/rest_angle"), value: Value::from(delta(rng, x, 10)) });
             }
             1 => {
                 let bones = arr("/bones")?;
@@ -2021,10 +1485,7 @@ pub fn project_op(doc: &Value, rng: &mut SimRng) -> Option<Op> {
                 }
                 let (i, k) = (rng.below(bones.len()), rng.below(2));
                 let x = num(&bones[i]["rest_offset"][k])?;
-                return Some(Op::Set {
-                    path: format!("/bones/{i}/rest_offset/{k}"),
-                    value: Value::from(delta(rng, x, 6)),
-                });
+                return Some(Op::Set { path: format!("/bones/{i}/rest_offset/{k}"), value: Value::from(delta(rng, x, 6)) });
             }
             2 => {
                 if layers.is_empty() {
@@ -2032,10 +1493,7 @@ pub fn project_op(doc: &Value, rng: &mut SimRng) -> Option<Op> {
                 }
                 let i = rng.below(layers.len());
                 let v = (0.2 + rng.below(81) as f64 / 100.0).min(1.0);
-                return Some(Op::Set {
-                    path: format!("/layers/{i}/opacity"),
-                    value: Value::from(v),
-                });
+                return Some(Op::Set { path: format!("/layers/{i}/opacity"), value: Value::from(v) });
             }
             3 => {
                 if layers.is_empty() {
@@ -2043,10 +1501,7 @@ pub fn project_op(doc: &Value, rng: &mut SimRng) -> Option<Op> {
                 }
                 let (i, k) = (rng.below(layers.len()), rng.below(2));
                 let x = num(&layers[i]["transform"]["position"][k]).unwrap_or(0.0);
-                return Some(Op::Set {
-                    path: format!("/layers/{i}/transform/position/{k}"),
-                    value: Value::from(delta(rng, x, 20)),
-                });
+                return Some(Op::Set { path: format!("/layers/{i}/transform/position/{k}"), value: Value::from(delta(rng, x, 20)) });
             }
             4 => {
                 if layers.is_empty() {
@@ -2054,30 +1509,14 @@ pub fn project_op(doc: &Value, rng: &mut SimRng) -> Option<Op> {
                 }
                 let i = rng.below(layers.len());
                 let v = layers[i]["visible"].as_bool().unwrap_or(true);
-                return Some(Op::Set {
-                    path: format!("/layers/{i}/visible"),
-                    value: Value::Bool(!v),
-                });
+                return Some(Op::Set { path: format!("/layers/{i}/visible"), value: Value::Bool(!v) });
             }
             5 => {
                 // a key value of a position / rotation channel
                 let chans = arr("/channels")?;
-                let ok = [
-                    "bone_angle",
-                    "bone_offset_x",
-                    "bone_offset_y",
-                    "layer_x",
-                    "layer_y",
-                    "layer_rotation",
-                ];
+                let ok = ["bone_angle", "bone_offset_x", "bone_offset_y", "layer_x", "layer_y", "layer_rotation"];
                 let keyed: Vec<usize> = (0..chans.len())
-                    .filter(|&c| {
-                        chans[c]["source"] == "keys"
-                            && chans[c]["prop"].as_str().is_some_and(|p| ok.contains(&p))
-                            && chans[c]["track"]["keys"]
-                                .as_array()
-                                .is_some_and(|k| !k.is_empty())
-                    })
+                    .filter(|&c| chans[c]["source"] == "keys" && chans[c]["prop"].as_str().is_some_and(|p| ok.contains(&p)) && chans[c]["track"]["keys"].as_array().is_some_and(|k| !k.is_empty()))
                     .collect();
                 if keyed.is_empty() {
                     continue;
@@ -2086,57 +1525,27 @@ pub fn project_op(doc: &Value, rng: &mut SimRng) -> Option<Op> {
                 let keys = chans[c]["track"]["keys"].as_array()?;
                 let k = rng.below(keys.len());
                 let x = num(&keys[k]["value"])?;
-                return Some(Op::Set {
-                    path: format!("/channels/{c}/track/keys/{k}/value"),
-                    value: Value::from(delta(rng, x, 10)),
-                });
+                return Some(Op::Set { path: format!("/channels/{c}/track/keys/{k}/value"), value: Value::from(delta(rng, x, 10)) });
             }
             6 => {
                 // insert a fresh layer of our own
                 let name = format!("sim_{}", rng.below(1_000_000_000));
                 let (x, y) = (rng.below(300) as f32, rng.below(300) as f32);
-                let l = crate::project::Layer::vector(
-                    &name,
-                    vec![crate::path::VPath::rect(
-                        "r",
-                        x,
-                        y,
-                        20.0 + rng.below(60) as f32,
-                        20.0 + rng.below(60) as f32,
-                    )
-                    .with_fill("#3366aa")],
-                );
+                let l = crate::project::Layer::vector(&name, vec![crate::path::VPath::rect("r", x, y, 20.0 + rng.below(60) as f32, 20.0 + rng.below(60) as f32).with_fill("#3366aa")]);
                 let at = rng.below(layers.len() + 1);
-                return Some(Op::Insert {
-                    path: format!("/layers/{at}"),
-                    value: serde_json::to_value(&l).ok()?,
-                });
+                return Some(Op::Insert { path: format!("/layers/{at}"), value: serde_json::to_value(&l).ok()? });
             }
             7 => {
-                let own: Vec<usize> = (0..layers.len())
-                    .filter(|&i| {
-                        layers[i]["name"]
-                            .as_str()
-                            .is_some_and(|n| n.starts_with("sim_"))
-                    })
-                    .collect();
+                let own: Vec<usize> = (0..layers.len()).filter(|&i| layers[i]["name"].as_str().is_some_and(|n| n.starts_with("sim_"))).collect();
                 if own.is_empty() {
                     continue;
                 }
-                return Some(Op::Remove {
-                    path: format!("/layers/{}", own[rng.below(own.len())]),
-                });
+                return Some(Op::Remove { path: format!("/layers/{}", own[rng.below(own.len())]) });
             }
             _ => {
                 // move one of our layers: re-create it under a new name at another index (no duplicate names even when two
                 // replicas move the same layer concurrently)
-                let own: Vec<usize> = (0..layers.len())
-                    .filter(|&i| {
-                        layers[i]["name"]
-                            .as_str()
-                            .is_some_and(|n| n.starts_with("sim_"))
-                    })
-                    .collect();
+                let own: Vec<usize> = (0..layers.len()).filter(|&i| layers[i]["name"].as_str().is_some_and(|n| n.starts_with("sim_"))).collect();
                 if own.is_empty() {
                     continue;
                 }
@@ -2144,17 +1553,7 @@ pub fn project_op(doc: &Value, rng: &mut SimRng) -> Option<Op> {
                 let mut v = layers[i].clone();
                 v["name"] = Value::from(format!("sim_{}", rng.below(1_000_000_000)));
                 let at = rng.below(layers.len());
-                return Some(Op::Batch {
-                    ops: vec![
-                        Op::Remove {
-                            path: format!("/layers/{i}"),
-                        },
-                        Op::Insert {
-                            path: format!("/layers/{}", at.min(layers.len() - 1)),
-                            value: v,
-                        },
-                    ],
-                });
+                return Some(Op::Batch { ops: vec![Op::Remove { path: format!("/layers/{i}") }, Op::Insert { path: format!("/layers/{}", at.min(layers.len() - 1)), value: v }] });
             }
         }
     }
@@ -2176,14 +1575,7 @@ pub struct SimConfig {
 
 impl SimConfig {
     pub fn new(clients: usize, ops: usize, seed: u64) -> SimConfig {
-        SimConfig {
-            clients,
-            ops,
-            seed,
-            undo_pct: 12,
-            dup_pct: 8,
-            project_aware: false,
-        }
+        SimConfig { clients, ops, seed, undo_pct: 12, dup_pct: 8, project_aware: false }
     }
 }
 
@@ -2218,19 +1610,10 @@ pub fn simulate(base: &Value, cfg: &SimConfig) -> Result<SimReport, String> {
         return Err("clients must be 1..=64".into());
     }
     let mut rng = SimRng(cfg.seed);
-    let mut reps: Vec<Replica> = (0..cfg.clients)
-        .map(|i| Replica::new(i as u32 + 1, base))
-        .collect::<Result<_, _>>()?;
+    let mut reps: Vec<Replica> = (0..cfg.clients).map(|i| Replica::new(i as u32 + 1, base)).collect::<Result<_, _>>()?;
     let mut inbox: Vec<Vec<Envelope>> = vec![vec![]; cfg.clients];
-    let mut rep = SimReport {
-        clients: cfg.clients,
-        ..Default::default()
-    };
-    let deliver_one = |reps: &mut Vec<Replica>,
-                       inbox: &mut Vec<Vec<Envelope>>,
-                       who: usize,
-                       rng: &mut SimRng,
-                       rep: &mut SimReport| {
+    let mut rep = SimReport { clients: cfg.clients, ..Default::default() };
+    let deliver_one = |reps: &mut Vec<Replica>, inbox: &mut Vec<Vec<Envelope>>, who: usize, rng: &mut SimRng, rep: &mut SimReport| {
         if inbox[who].is_empty() {
             return;
         }
@@ -2262,26 +1645,13 @@ pub fn simulate(base: &Value, cfg: &SimConfig) -> Result<SimReport, String> {
             }
         } else {
             let cur = reps[c].json();
-            let gen = |cur: &Value, rng: &mut SimRng| {
-                if cfg.project_aware {
-                    project_op(cur, rng)
-                } else {
-                    random_op(cur, rng)
-                }
-            };
-            let Some(op) = gen(&cur, &mut rng) else {
-                continue;
-            };
+            let gen = |cur: &Value, rng: &mut SimRng| if cfg.project_aware { project_op(cur, rng) } else { random_op(cur, rng) };
+            let Some(op) = gen(&cur, &mut rng) else { continue };
             let op = if rng.chance(15) {
                 match gen(&cur, &mut rng) {
                     // indices of the second op were chosen against the same document: after a structural first op (insert /
                     // remove / move) they would hit other elements, so project mode batches plain value sets only
-                    Some(o2)
-                        if !cfg.project_aware
-                            || (matches!(op, Op::Set { .. }) && matches!(o2, Op::Set { .. })) =>
-                    {
-                        Op::Batch { ops: vec![op, o2] }
-                    }
+                    Some(o2) if !cfg.project_aware || (matches!(op, Op::Set { .. }) && matches!(o2, Op::Set { .. })) => Op::Batch { ops: vec![op, o2] },
                     _ => op,
                 }
             } else {
@@ -2353,23 +1723,14 @@ mod tests {
     }
 
     fn pair() -> (Replica, Replica) {
-        (
-            Replica::new(1, &base()).unwrap(),
-            Replica::new(2, &base()).unwrap(),
-        )
+        (Replica::new(1, &base()).unwrap(), Replica::new(2, &base()).unwrap())
     }
 
     fn set(p: &str, v: Value) -> Op {
-        Op::Set {
-            path: p.into(),
-            value: v,
-        }
+        Op::Set { path: p.into(), value: v }
     }
     fn ins(p: &str, v: Value) -> Op {
-        Op::Insert {
-            path: p.into(),
-            value: v,
-        }
+        Op::Insert { path: p.into(), value: v }
     }
     fn rem(p: &str) -> Op {
         Op::Remove { path: p.into() }
@@ -2386,24 +1747,16 @@ mod tests {
     fn local_ops_match_the_editor_semantics() {
         let mut r = Replica::new(1, &base()).unwrap();
         r.local_op(&set("/layers/1/opacity", json!(0.9))).unwrap();
-        r.local_op(&ins("/layers/1", json!({"name": "new"})))
-            .unwrap();
-        r.local_op(&ins("/layers/-", json!({"name": "last"})))
-            .unwrap();
+        r.local_op(&ins("/layers/1", json!({"name": "new"}))).unwrap();
+        r.local_op(&ins("/layers/-", json!({"name": "last"}))).unwrap();
         r.local_op(&rem("/layers/0")).unwrap();
         r.local_op(&set("/meta/extra", json!(7))).unwrap();
         r.local_op(&rem("/meta/tags")).unwrap();
         let mut want = base();
         // reference: the same ops on a plain document
         want["layers"][1]["opacity"] = json!(0.9);
-        want["layers"]
-            .as_array_mut()
-            .unwrap()
-            .insert(1, json!({"name": "new"}));
-        want["layers"]
-            .as_array_mut()
-            .unwrap()
-            .push(json!({"name": "last"}));
+        want["layers"].as_array_mut().unwrap().insert(1, json!({"name": "new"}));
+        want["layers"].as_array_mut().unwrap().push(json!({"name": "last"}));
         want["layers"].as_array_mut().unwrap().remove(0);
         want["meta"]["extra"] = json!(7);
         want["meta"].as_object_mut().unwrap().remove("tags");
@@ -2426,47 +1779,25 @@ mod tests {
             assert!(r.local_op(&op).is_err(), "{op:?}");
             assert_eq!(r.json(), base());
         }
-        let b = Op::Batch {
-            ops: vec![set("/frames", json!(99)), rem("/layers/7")],
-        };
+        let b = Op::Batch { ops: vec![set("/frames", json!(99)), rem("/layers/7")] };
         assert!(r.local_op(&b).is_err());
         assert_eq!(r.json(), base());
-        assert_eq!(
-            r.clock().get(&1),
-            None,
-            "a failed edit consumes no sequence number"
-        );
-        assert!(
-            r.local_op(&set("/frames", json!(24))).unwrap().is_none(),
-            "writing the same value is a no-op"
-        );
+        assert_eq!(r.clock().get(&1), None, "a failed edit consumes no sequence number");
+        assert!(r.local_op(&set("/frames", json!(24))).unwrap().is_none(), "writing the same value is a no-op");
     }
 
     #[test]
     fn concurrent_scalar_writes_use_lww_with_replica_tiebreak() {
         let (mut a, mut b) = pair();
-        let ea = a
-            .local_op(&set("/layers/0/opacity", json!(0.1)))
-            .unwrap()
-            .unwrap();
-        let eb = b
-            .local_op(&set("/layers/0/opacity", json!(0.9)))
-            .unwrap()
-            .unwrap();
+        let ea = a.local_op(&set("/layers/0/opacity", json!(0.1))).unwrap().unwrap();
+        let eb = b.local_op(&set("/layers/0/opacity", json!(0.9))).unwrap().unwrap();
         assert_eq!(ea.lamport, eb.lamport);
         a.receive(eb).unwrap();
         b.receive(ea).unwrap();
         assert_eq!(a.json(), b.json());
-        assert_eq!(
-            a.json()["layers"][0]["opacity"],
-            json!(0.9),
-            "equal lamport: the larger replica id wins"
-        );
+        assert_eq!(a.json()["layers"][0]["opacity"], json!(0.9), "equal lamport: the larger replica id wins");
         // a later write (larger lamport) beats a higher replica id
-        let e = a
-            .local_op(&set("/layers/0/opacity", json!(0.3)))
-            .unwrap()
-            .unwrap();
+        let e = a.local_op(&set("/layers/0/opacity", json!(0.3))).unwrap().unwrap();
         b.receive(e).unwrap();
         assert_eq!(b.json()["layers"][0]["opacity"], json!(0.3));
     }
@@ -2475,48 +1806,27 @@ mod tests {
     fn stale_indices_are_transformed_by_identity() {
         let (mut a, mut b) = pair();
         // a inserts at the front; b (not having seen it) edits what it sees as layer 1 ("b")
-        let ea = a
-            .local_op(&ins("/layers/0", json!({"name": "front"})))
-            .unwrap()
-            .unwrap();
-        let eb = b
-            .local_op(&set("/layers/1/opacity", json!(0.77)))
-            .unwrap()
-            .unwrap();
+        let ea = a.local_op(&ins("/layers/0", json!({"name": "front"}))).unwrap().unwrap();
+        let eb = b.local_op(&set("/layers/1/opacity", json!(0.77))).unwrap().unwrap();
         a.receive(eb).unwrap();
         b.receive(ea).unwrap();
         assert_eq!(a.json(), b.json());
         let l = a.json()["layers"].clone();
         assert_eq!(l[0]["name"], "front");
         assert_eq!(l[2]["name"], "b");
-        assert_eq!(
-            l[2]["opacity"],
-            json!(0.77),
-            "the edit followed its element, not its index"
-        );
+        assert_eq!(l[2]["opacity"], json!(0.77), "the edit followed its element, not its index");
         assert_eq!(l[1]["opacity"], json!(1.0));
     }
 
     #[test]
     fn concurrent_inserts_at_the_same_place_keep_both_in_one_order() {
         let (mut a, mut b) = pair();
-        let ea = a
-            .local_op(&ins("/layers/1", json!({"name": "from_a"})))
-            .unwrap()
-            .unwrap();
-        let eb = b
-            .local_op(&ins("/layers/1", json!({"name": "from_b"})))
-            .unwrap()
-            .unwrap();
+        let ea = a.local_op(&ins("/layers/1", json!({"name": "from_a"}))).unwrap().unwrap();
+        let eb = b.local_op(&ins("/layers/1", json!({"name": "from_b"}))).unwrap().unwrap();
         a.receive(eb).unwrap();
         b.receive(ea).unwrap();
         assert_eq!(a.json(), b.json());
-        let names: Vec<String> = a.json()["layers"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .map(|l| l["name"].as_str().unwrap().to_string())
-            .collect();
+        let names: Vec<String> = a.json()["layers"].as_array().unwrap().iter().map(|l| l["name"].as_str().unwrap().to_string()).collect();
         assert_eq!(names.len(), 5);
         assert_eq!(names[0], "a");
         assert_eq!(names[3], "b");
@@ -2527,10 +1837,7 @@ mod tests {
     fn remove_wins_over_edit_inside_and_the_edit_is_dropped_deterministically() {
         let (mut a, mut b) = pair();
         let ea = a.local_op(&rem("/layers/1")).unwrap().unwrap();
-        let eb = b
-            .local_op(&set("/layers/1/opacity", json!(0.01)))
-            .unwrap()
-            .unwrap();
+        let eb = b.local_op(&set("/layers/1/opacity", json!(0.01))).unwrap().unwrap();
         a.receive(eb).unwrap();
         b.receive(ea).unwrap();
         assert_eq!(a.json(), b.json());
@@ -2553,16 +1860,10 @@ mod tests {
         let (mut a, mut b) = pair();
         // a adds a key to the channel track by writing the whole channel (what Editor::set_key does)
         let mut ch = base()["channels"][0].clone();
-        ch["track"]["keys"]
-            .as_array_mut()
-            .unwrap()
-            .push(json!({"frame": 20, "value": 1.5}));
+        ch["track"]["keys"].as_array_mut().unwrap().push(json!({"frame": 20, "value": 1.5}));
         let ea = a.local_op(&set("/channels/0", ch)).unwrap().unwrap();
         // b meanwhile changes an existing key's value
-        let eb = b
-            .local_op(&set("/channels/0/track/keys/0/value", json!(-3.0)))
-            .unwrap()
-            .unwrap();
+        let eb = b.local_op(&set("/channels/0/track/keys/0/value", json!(-3.0))).unwrap().unwrap();
         assert_eq!(ea.ops.len(), 1, "only the new key travels: {:?}", ea.ops);
         a.receive(eb).unwrap();
         b.receive(ea).unwrap();
@@ -2579,10 +1880,7 @@ mod tests {
         let mut v = base();
         v["layers"] = json!([{"name": "z", "opacity": 3}]);
         let e = r.local_doc(&v).unwrap().unwrap();
-        assert!(
-            e.ops.iter().any(|p| matches!(p, Prim::DelElem { .. }))
-                && e.ops.iter().any(|p| matches!(p, Prim::InsElem { .. }))
-        );
+        assert!(e.ops.iter().any(|p| matches!(p, Prim::DelElem { .. })) && e.ops.iter().any(|p| matches!(p, Prim::InsElem { .. })));
         assert_eq!(r.json(), v);
     }
 
@@ -2611,23 +1909,13 @@ mod tests {
     #[test]
     fn redelivery_is_idempotent_and_the_causal_buffer_holds_back_early_envelopes() {
         let (mut a, mut b) = pair();
-        let e1 = a
-            .local_op(&ins("/layers/-", json!({"name": "n1"})))
-            .unwrap()
-            .unwrap();
-        let e2 = a
-            .local_op(&set("/layers/3/opacity", json!(0.4)))
-            .unwrap()
-            .unwrap();
+        let e1 = a.local_op(&ins("/layers/-", json!({"name": "n1"}))).unwrap().unwrap();
+        let e2 = a.local_op(&set("/layers/3/opacity", json!(0.4))).unwrap().unwrap();
         // e2 first: buffered, nothing visible yet
         assert_eq!(b.receive(e2.clone()).unwrap(), Delivery::Buffered);
         assert_eq!(b.json(), base());
         assert_eq!(b.pending_len(), 1);
-        assert_eq!(
-            b.receive(e2.clone()).unwrap(),
-            Delivery::Buffered,
-            "same buffered envelope twice is harmless"
-        );
+        assert_eq!(b.receive(e2.clone()).unwrap(), Delivery::Buffered, "same buffered envelope twice is harmless");
         match b.receive(e1.clone()).unwrap() {
             Delivery::Applied(v) => assert_eq!(v.len(), 2, "e1 releases e2"),
             d => panic!("{d:?}"),
@@ -2645,16 +1933,9 @@ mod tests {
         let mut a = Replica::new(1, &base()).unwrap();
         let mut b = Replica::new(2, &base()).unwrap();
         let mut c = Replica::new(3, &base()).unwrap();
-        let ea = send(
-            &mut a,
-            &ins("/layers/-", json!({"name": "from_a"})),
-            &mut [&mut b],
-        );
+        let ea = send(&mut a, &ins("/layers/-", json!({"name": "from_a"})), &mut [&mut b]);
         // b edits the element a created: its envelope depends on a's
-        let eb = b
-            .local_op(&set("/layers/3/opacity", json!(0.25)))
-            .unwrap()
-            .unwrap();
+        let eb = b.local_op(&set("/layers/3/opacity", json!(0.25))).unwrap().unwrap();
         assert_eq!(eb.deps.get(&1), Some(&1));
         assert_eq!(c.receive(eb).unwrap(), Delivery::Buffered);
         assert!(c.json()["layers"].as_array().unwrap().len() == 3);
@@ -2685,32 +1966,12 @@ mod tests {
         let mut r = Replica::new(1, &base()).unwrap();
         let unk = Id { r: 9, s: 9, i: 9 };
         let prims = vec![
-            Prim::SetKey {
-                obj: unk,
-                key: "k".into(),
-                value: json!(1),
-            },
-            Prim::DelKey {
-                obj: unk,
-                key: "k".into(),
-            },
-            Prim::SetElem {
-                arr: unk,
-                elem: unk,
-                value: json!(1),
-            },
-            Prim::InsElem {
-                arr: unk,
-                after: Some(unk),
-                value: json!(1),
-            },
-            Prim::DelElem {
-                arr: unk,
-                elem: unk,
-            },
-            Prim::SetRoot {
-                value: json!([1, 2, 3]),
-            },
+            Prim::SetKey { obj: unk, key: "k".into(), value: json!(1) },
+            Prim::DelKey { obj: unk, key: "k".into() },
+            Prim::SetElem { arr: unk, elem: unk, value: json!(1) },
+            Prim::InsElem { arr: unk, after: Some(unk), value: json!(1) },
+            Prim::DelElem { arr: unk, elem: unk },
+            Prim::SetRoot { value: json!([1, 2, 3]) },
         ];
         // wrong kinds: array ops on an object id and vice versa
         let root_obj = match &r.doc.root.val {
@@ -2718,98 +1979,30 @@ mod tests {
             _ => unreachable!(),
         };
         let mut ps = prims.clone();
-        ps.push(Prim::InsElem {
-            arr: root_obj,
-            after: None,
-            value: json!(1),
-        });
-        ps.push(Prim::SetKey {
-            obj: root_obj,
-            key: "ok".into(),
-            value: json!(1),
-        });
-        let env = Envelope {
-            replica: 2,
-            seq: 1,
-            lamport: 4,
-            deps: VClock::new(),
-            ops: ps,
-        };
+        ps.push(Prim::InsElem { arr: root_obj, after: None, value: json!(1) });
+        ps.push(Prim::SetKey { obj: root_obj, key: "ok".into(), value: json!(1) });
+        let env = Envelope { replica: 2, seq: 1, lamport: 4, deps: VClock::new(), ops: ps };
         r.receive(env).unwrap();
         assert!(r.dropped >= 6);
         for bad in [
-            Envelope {
-                replica: 0,
-                seq: 1,
-                lamport: 1,
-                deps: VClock::new(),
-                ops: vec![],
-            },
-            Envelope {
-                replica: 2,
-                seq: 0,
-                lamport: 1,
-                deps: VClock::new(),
-                ops: vec![],
-            },
-            Envelope {
-                replica: 2,
-                seq: 2,
-                lamport: 0,
-                deps: VClock::new(),
-                ops: vec![],
-            },
-            Envelope {
-                replica: 2,
-                seq: 2,
-                lamport: u64::MAX,
-                deps: VClock::new(),
-                ops: vec![],
-            },
-            Envelope {
-                replica: 1,
-                seq: 5,
-                lamport: 1,
-                deps: VClock::new(),
-                ops: vec![],
-            },
+            Envelope { replica: 0, seq: 1, lamport: 1, deps: VClock::new(), ops: vec![] },
+            Envelope { replica: 2, seq: 0, lamport: 1, deps: VClock::new(), ops: vec![] },
+            Envelope { replica: 2, seq: 2, lamport: 0, deps: VClock::new(), ops: vec![] },
+            Envelope { replica: 2, seq: 2, lamport: u64::MAX, deps: VClock::new(), ops: vec![] },
+            Envelope { replica: 1, seq: 5, lamport: 1, deps: VClock::new(), ops: vec![] },
         ] {
             assert!(r.receive(bad).is_err());
         }
         // an envelope that depends on something that never arrives just waits
         let mut deps = VClock::new();
         deps.insert(7, 3);
-        assert_eq!(
-            r.receive(Envelope {
-                replica: 2,
-                seq: 2,
-                lamport: 5,
-                deps,
-                ops: vec![]
-            })
-            .unwrap(),
-            Delivery::Buffered
-        );
+        assert_eq!(r.receive(Envelope { replica: 2, seq: 2, lamport: 5, deps, ops: vec![] }).unwrap(), Delivery::Buffered);
     }
 
     #[test]
     fn hostile_envelopes_are_applied_identically_in_any_order() {
         let unk = Id { r: 9, s: 9, i: 9 };
-        let mk = |rep: u32, n: u64| Envelope {
-            replica: rep,
-            seq: 1,
-            lamport: n,
-            deps: VClock::new(),
-            ops: vec![
-                Prim::DelElem {
-                    arr: unk,
-                    elem: unk,
-                },
-                Prim::SetRoot {
-                    value: json!({"w": n}),
-                },
-            ],
-        };
+        let mk = |rep: u32, n: u64| Envelope { replica: rep, seq: 1, lamport: n, deps: VClock::new(), ops: vec![Prim::DelElem { arr: unk, elem: unk }, Prim::SetRoot { value: json!({"w": n}) }] };
         let mut x = Replica::new(1, &base()).unwrap();
         let mut y = Replica::new(1, &base()).unwrap();
         for e in [mk(2, 3), mk(3, 3), mk(4, 9)] {
@@ -2826,25 +2019,11 @@ mod tests {
     fn random_runs_converge_for_many_seeds_and_sizes() {
         for (clients, ops) in [(2, 60), (3, 120), (5, 200), (8, 150)] {
             for seed in 0..12u64 {
-                let rep = simulate(
-                    &base(),
-                    &SimConfig::new(clients, ops, seed * 7919 + clients as u64),
-                )
-                .unwrap();
-                assert!(
-                    rep.converged,
-                    "clients {clients} seed {seed}: {:?}",
-                    rep.divergence
-                );
-                assert!(
-                    rep.state_identical,
-                    "internal state differs: clients {clients} seed {seed}"
-                );
+                let rep = simulate(&base(), &SimConfig::new(clients, ops, seed * 7919 + clients as u64)).unwrap();
+                assert!(rep.converged, "clients {clients} seed {seed}: {:?}", rep.divergence);
+                assert!(rep.state_identical, "internal state differs: clients {clients} seed {seed}");
                 assert!(rep.clocks_identical && rep.pending_left == 0, "seed {seed}");
-                assert_eq!(
-                    rep.dropped_prims, 0,
-                    "honest peers never produce dangling references (seed {seed})"
-                );
+                assert_eq!(rep.dropped_prims, 0, "honest peers never produce dangling references (seed {seed})");
                 assert!(rep.envelopes > ops / 3);
             }
         }
@@ -2883,11 +2062,7 @@ mod tests {
         let (mut a, mut b) = pair();
         send(&mut a, &set("/layers/0/opacity", json!(0.1)), &mut [&mut b]);
         send(&mut b, &set("/layers/2/opacity", json!(0.9)), &mut [&mut a]);
-        send(
-            &mut a,
-            &ins("/layers/-", json!({"name": "mine"})),
-            &mut [&mut b],
-        );
+        send(&mut a, &ins("/layers/-", json!({"name": "mine"})), &mut [&mut b]);
         send(&mut b, &set("/frames", json!(48)), &mut [&mut a]);
         // a undoes twice: the insert, then the opacity; b's edits stay
         for _ in 0..2 {
@@ -2922,21 +2097,12 @@ mod tests {
     fn undo_of_a_remove_reinserts_next_to_its_old_neighbour_after_remote_changes() {
         let (mut a, mut b) = pair();
         send(&mut a, &rem("/layers/1"), &mut [&mut b]); // removes "b"
-        send(
-            &mut b,
-            &ins("/layers/0", json!({"name": "front"})),
-            &mut [&mut a],
-        );
+        send(&mut b, &ins("/layers/0", json!({"name": "front"})), &mut [&mut a]);
         send(&mut b, &set("/layers/1/opacity", json!(0.6)), &mut [&mut a]); // edits "a"
         let e = a.undo().unwrap().unwrap();
         b.receive(e).unwrap();
         assert_eq!(a.json(), b.json());
-        let names: Vec<String> = a.json()["layers"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .map(|l| l["name"].as_str().unwrap().to_string())
-            .collect();
+        let names: Vec<String> = a.json()["layers"].as_array().unwrap().iter().map(|l| l["name"].as_str().unwrap().to_string()).collect();
         assert_eq!(names, vec!["front", "a", "b", "c"]);
         assert_eq!(a.json()["layers"][1]["opacity"], json!(0.6));
     }
@@ -2955,16 +2121,7 @@ mod tests {
     #[test]
     fn undo_of_a_multi_step_batch_restores_the_original() {
         let mut r = Replica::new(1, &base()).unwrap();
-        r.local_op(&Op::Batch {
-            ops: vec![
-                set("/frames", json!(30)),
-                set("/frames", json!(31)),
-                ins("/layers/0", json!({"name": "q"})),
-                rem("/layers/0"),
-                rem("/layers/0"),
-            ],
-        })
-        .unwrap();
+        r.local_op(&Op::Batch { ops: vec![set("/frames", json!(30)), set("/frames", json!(31)), ins("/layers/0", json!({"name": "q"})), rem("/layers/0"), rem("/layers/0")] }).unwrap();
         assert_ne!(r.json(), base());
         r.undo().unwrap();
         assert_eq!(r.json(), base());
@@ -2979,11 +2136,7 @@ mod tests {
             let mut cfg = SimConfig::new(4, 200, seed + 500);
             cfg.undo_pct = 45;
             let rep = simulate(&base(), &cfg).unwrap();
-            assert!(
-                rep.converged && rep.state_identical,
-                "seed {seed}: {:?}",
-                rep.divergence
-            );
+            assert!(rep.converged && rep.state_identical, "seed {seed}: {:?}", rep.divergence);
             assert!(rep.undos > 40);
         }
     }
@@ -2991,11 +2144,7 @@ mod tests {
     #[test]
     fn snapshot_roundtrips_through_json_and_a_joiner_continues_the_session() {
         let (mut a, mut b) = pair();
-        send(
-            &mut a,
-            &ins("/layers/0", json!({"name": "x"})),
-            &mut [&mut b],
-        );
+        send(&mut a, &ins("/layers/0", json!({"name": "x"})), &mut [&mut b]);
         send(&mut b, &rem("/layers/2"), &mut [&mut a]);
         let snap = a.snapshot();
         let text = serde_json::to_string(&snap).unwrap();
@@ -3003,39 +2152,22 @@ mod tests {
         let mut c = Replica::from_snapshot(3, back).unwrap();
         assert_eq!(c.json(), a.json());
         assert_eq!(c.clock(), a.clock());
-        let e = c
-            .local_op(&set("/layers/1/opacity", json!(0.42)))
-            .unwrap()
-            .unwrap();
+        let e = c.local_op(&set("/layers/1/opacity", json!(0.42))).unwrap().unwrap();
         a.receive(e.clone()).unwrap();
         b.receive(e).unwrap();
         assert_eq!(a.doc(), b.doc());
         assert_eq!(a.json()["layers"][1]["opacity"], json!(0.42));
         // the snapshot's identities line up: an edit made by a before the snapshot-based join is understood by c
-        let e = a
-            .local_op(&set("/layers/0/name", json!("renamed")))
-            .unwrap()
-            .unwrap();
+        let e = a.local_op(&set("/layers/0/name", json!("renamed"))).unwrap().unwrap();
         c.receive(e).unwrap();
         assert_eq!(a.json(), c.json());
-        assert!(
-            Replica::from_snapshot(0, a.snapshot()).is_err() && Replica::new(0, &base()).is_err()
-        );
+        assert!(Replica::from_snapshot(0, a.snapshot()).is_err() && Replica::new(0, &base()).is_err());
     }
 
     #[test]
     fn envelopes_roundtrip_through_json() {
         let mut a = Replica::new(1, &base()).unwrap();
-        let e = a
-            .local_op(&Op::Batch {
-                ops: vec![
-                    ins("/layers/1", json!({"name": "n", "k": [1, {"z": null}]})),
-                    rem("/layers/0"),
-                    set("/meta/new", json!("s")),
-                ],
-            })
-            .unwrap()
-            .unwrap();
+        let e = a.local_op(&Op::Batch { ops: vec![ins("/layers/1", json!({"name": "n", "k": [1, {"z": null}]})), rem("/layers/0"), set("/meta/new", json!("s"))] }).unwrap().unwrap();
         let text = serde_json::to_string(&e).unwrap();
         let back: Envelope = serde_json::from_str(&text).unwrap();
         assert_eq!(back, e);
@@ -3043,10 +2175,7 @@ mod tests {
         b.receive(back).unwrap();
         assert_eq!(a.doc(), b.doc());
         assert!(serde_json::from_str::<Envelope>("{\"replica\":1}").is_err());
-        assert!(serde_json::from_str::<Prim>(
-            "{\"t\":\"del_elem\",\"arr\":\"bad\",\"elem\":\"1.1.1\"}"
-        )
-        .is_err());
+        assert!(serde_json::from_str::<Prim>("{\"t\":\"del_elem\",\"arr\":\"bad\",\"elem\":\"1.1.1\"}").is_err());
     }
 
     #[test]
@@ -3054,11 +2183,7 @@ mod tests {
         let (mut a, mut b) = pair();
         send(&mut a, &rem("/layers/0"), &mut [&mut b]);
         send(&mut b, &rem("/layers/0"), &mut [&mut a]);
-        send(
-            &mut a,
-            &ins("/layers/-", json!({"name": "k", "sub": {"x": [1, 2]}})),
-            &mut [&mut b],
-        );
+        send(&mut a, &ins("/layers/-", json!({"name": "k", "sub": {"x": [1, 2]}})), &mut [&mut b]);
         send(&mut a, &set("/meta", json!({"fresh": true})), &mut [&mut b]); // replaces the old subtree => garbage nodes
         assert_eq!(a.tombstones(), 2);
         let nodes_before = a.node_count();
@@ -3069,28 +2194,15 @@ mod tests {
         // everybody has everything
         let before = a.json();
         let st = a.compact(&[b.clock().clone()]);
-        assert!(
-            st.purged && st.tombstones_purged == 2 && st.log_dropped >= 3,
-            "{st:?}"
-        );
+        assert!(st.purged && st.tombstones_purged == 2 && st.log_dropped >= 3, "{st:?}");
         assert!(a.node_count() < nodes_before && st.nodes_collected > 0);
         assert_eq!(a.json(), before);
         b.compact(&[a.clock().clone()]);
-        assert_eq!(
-            a.doc(),
-            b.doc(),
-            "both compacted at the same cut stay identical"
-        );
+        assert_eq!(a.doc(), b.doc(), "both compacted at the same cut stay identical");
         // and the session goes on
-        let e = a
-            .local_op(&ins("/layers/0", json!({"name": "after"})))
-            .unwrap()
-            .unwrap();
+        let e = a.local_op(&ins("/layers/0", json!({"name": "after"}))).unwrap().unwrap();
         b.receive(e).unwrap();
-        let e = b
-            .local_op(&set("/layers/0/name", json!("after2")))
-            .unwrap()
-            .unwrap();
+        let e = b.local_op(&set("/layers/0/name", json!("after2"))).unwrap().unwrap();
         a.receive(e).unwrap();
         assert_eq!(a.doc(), b.doc());
         // a peer behind the compacted log is told to fetch a snapshot
@@ -3153,10 +2265,7 @@ mod tests {
         assert_eq!(b.get(3).unwrap().name.chars().count(), 40);
         assert!(b.update(Presence::new(4, ""), 900));
         assert_eq!(b.get(4).unwrap().name, "user4");
-        assert!(
-            b.expire(1300).is_empty(),
-            "300 + 1000 not yet passed; 900 + 1000 neither"
-        );
+        assert!(b.expire(1300).is_empty(), "300 + 1000 not yet passed; 900 + 1000 neither");
         assert_eq!(b.expire(1301), vec![3]);
         b.touch(4, 1500);
         assert!(b.expire(2400).is_empty());
@@ -3188,26 +2297,14 @@ mod tests {
             let mut cfg = SimConfig::new(4, 250, seed);
             cfg.project_aware = true;
             let rep = simulate(&base, &cfg).unwrap();
-            assert!(
-                rep.converged && rep.state_identical && rep.pending_left == 0,
-                "seed {seed}"
-            );
+            assert!(rep.converged && rep.state_identical && rep.pending_left == 0, "seed {seed}");
             let real = crate::demo::project().layers.len();
-            assert_eq!(
-                rep.final_doc["layers"]
-                    .as_array()
-                    .unwrap()
-                    .iter()
-                    .filter(|l| !l["name"].as_str().unwrap().starts_with("sim_"))
-                    .count(),
-                real,
-                "seed {seed}: a real layer was lost"
-            );
-            let pr: crate::project::Project = serde_json::from_value(rep.final_doc.clone())
-                .unwrap_or_else(|e| panic!("seed {seed}: {e}"));
+            assert_eq!(rep.final_doc["layers"].as_array().unwrap().iter().filter(|l| !l["name"].as_str().unwrap().starts_with("sim_")).count(), real, "seed {seed}: a real layer was lost");
+            let pr: crate::project::Project = serde_json::from_value(rep.final_doc.clone()).unwrap_or_else(|e| panic!("seed {seed}: {e}"));
             if let Err(e) = crate::Engine::new(pr) {
                 panic!("seed {seed}: merged project does not compile: {e:?}");
             }
         }
     }
+
 }

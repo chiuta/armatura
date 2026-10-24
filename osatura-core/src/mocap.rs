@@ -104,23 +104,14 @@ fn tokenize(text: &str) -> Vec<Tok<'_>> {
                 for (i, c) in w.char_indices() {
                     if c == '{' || c == '}' {
                         if i > last {
-                            out.push(Tok {
-                                line: ln + 1,
-                                s: &w[last..i],
-                            });
+                            out.push(Tok { line: ln + 1, s: &w[last..i] });
                         }
-                        out.push(Tok {
-                            line: ln + 1,
-                            s: &w[i..i + 1],
-                        });
+                        out.push(Tok { line: ln + 1, s: &w[i..i + 1] });
                         last = i + 1;
                     }
                 }
                 if last < w.len() {
-                    out.push(Tok {
-                        line: ln + 1,
-                        s: &w[last..],
-                    });
+                    out.push(Tok { line: ln + 1, s: &w[last..] });
                 }
             }
         }
@@ -148,10 +139,7 @@ impl<'a> Parser<'a> {
                 self.i += 1;
                 Ok((t.line, t.s))
             }
-            None => Err(format!(
-                "line {}: unexpected end of file while reading {ctx}",
-                self.last_line()
-            )),
+            None => Err(format!("line {}: unexpected end of file while reading {ctx}", self.last_line())),
         }
     }
     fn expect(&mut self, word: &str) -> Result<usize, String> {
@@ -164,9 +152,7 @@ impl<'a> Parser<'a> {
     }
     fn num(&mut self, ctx: &str) -> Result<f64, String> {
         let (l, s) = self.next(ctx)?;
-        let v: f64 = s
-            .parse()
-            .map_err(|_| format!("line {l}: '{s}' is not a number ({ctx})"))?;
+        let v: f64 = s.parse().map_err(|_| format!("line {l}: '{s}' is not a number ({ctx})"))?;
         if !v.is_finite() {
             return Err(format!("line {l}: '{s}' is not a finite number ({ctx})"));
         }
@@ -174,17 +160,11 @@ impl<'a> Parser<'a> {
     }
     fn offset(&mut self) -> Result<V3, String> {
         self.expect("OFFSET")?;
-        Ok([
-            self.num("OFFSET x")?,
-            self.num("OFFSET y")?,
-            self.num("OFFSET z")?,
-        ])
+        Ok([self.num("OFFSET x")?, self.num("OFFSET y")?, self.num("OFFSET z")?])
     }
     fn joint(&mut self, parent: Option<usize>, kw_line: usize, depth: usize) -> Result<(), String> {
         if depth > MAX_DEPTH {
-            return Err(format!(
-                "line {kw_line}: hierarchy nested deeper than {MAX_DEPTH}"
-            ));
+            return Err(format!("line {kw_line}: hierarchy nested deeper than {MAX_DEPTH}"));
         }
         if self.joints.len() >= MAX_JOINTS {
             return Err(format!("line {kw_line}: more than {MAX_JOINTS} joints"));
@@ -202,15 +182,7 @@ impl<'a> Parser<'a> {
         }
         let name = name.join(" ");
         let idx = self.joints.len();
-        self.joints.push(Joint {
-            name: name.clone(),
-            parent,
-            offset: [0.0; 3],
-            channels: vec![],
-            chan_start: 0,
-            end_site: None,
-            children: vec![],
-        });
+        self.joints.push(Joint { name: name.clone(), parent, offset: [0.0; 3], channels: vec![], chan_start: 0, end_site: None, children: vec![] });
         if let Some(p) = parent {
             self.joints[p].children.push(idx);
         }
@@ -226,21 +198,14 @@ impl<'a> Parser<'a> {
                 }
                 "channels" => {
                     let (nl, ns) = self.next("channel count")?;
-                    let n: usize = ns
-                        .parse()
-                        .map_err(|_| format!("line {nl}: '{ns}' is not a channel count"))?;
+                    let n: usize = ns.parse().map_err(|_| format!("line {nl}: '{ns}' is not a channel count"))?;
                     if n > 24 {
-                        return Err(format!(
-                            "line {nl}: {n} channels on one joint is not plausible"
-                        ));
+                        return Err(format!("line {nl}: {n} channels on one joint is not plausible"));
                     }
                     let mut ch = Vec::with_capacity(n);
                     for _ in 0..n {
                         let (cl, cs) = self.next("channel name")?;
-                        ch.push(
-                            Chan::parse(cs)
-                                .ok_or_else(|| format!("line {cl}: unknown channel '{cs}'"))?,
-                        );
+                        ch.push(Chan::parse(cs).ok_or_else(|| format!("line {cl}: unknown channel '{cs}'"))?);
                     }
                     self.joints[idx].chan_start = self.nch;
                     self.nch += n;
@@ -275,10 +240,7 @@ impl<'a> Parser<'a> {
             let (l, s) = self.next(&format!("'{}'", words.join(" ")))?;
             let lower = s.to_ascii_lowercase();
             if !lower.starts_with(w) {
-                return Err(format!(
-                    "line {l}: expected '{}:', found '{s}'",
-                    words.join(" ")
-                ));
+                return Err(format!("line {l}: expected '{}:', found '{s}'", words.join(" ")));
             }
             let rest = &s[w.len()..];
             if wi + 1 == words.len() {
@@ -302,12 +264,7 @@ impl<'a> Parser<'a> {
 
 /// Parse BVH text.
 pub fn parse_bvh(text: &str) -> Result<Bvh, String> {
-    let mut p = Parser {
-        t: tokenize(text),
-        i: 0,
-        joints: vec![],
-        nch: 0,
-    };
+    let mut p = Parser { t: tokenize(text), i: 0, joints: vec![], nch: 0 };
     if p.t.is_empty() {
         return Err("line 1: empty file".into());
     }
@@ -329,65 +286,38 @@ pub fn parse_bvh(text: &str) -> Result<Bvh, String> {
                 p.i += 1;
                 break;
             }
-            Some(t) => {
-                return Err(format!(
-                    "line {}: expected ROOT or MOTION, found '{}'",
-                    t.line, t.s
-                ))
-            }
+            Some(t) => return Err(format!("line {}: expected ROOT or MOTION, found '{}'", t.line, t.s)),
         }
     }
     let (fl, fv) = p.labeled(&["frames"])?;
-    let frames: usize = fv
-        .parse()
-        .map_err(|_| format!("line {fl}: '{fv}' is not a frame count"))?;
+    let frames: usize = fv.parse().map_err(|_| format!("line {fl}: '{fv}' is not a frame count"))?;
     if frames > MAX_FRAMES {
-        return Err(format!(
-            "line {fl}: {frames} frames exceeds the limit of {MAX_FRAMES}"
-        ));
+        return Err(format!("line {fl}: {frames} frames exceeds the limit of {MAX_FRAMES}"));
     }
     let (tl, tv) = p.labeled(&["frame", "time"])?;
-    let frame_time: f64 = tv
-        .parse()
-        .map_err(|_| format!("line {tl}: '{tv}' is not a frame time"))?;
+    let frame_time: f64 = tv.parse().map_err(|_| format!("line {tl}: '{tv}' is not a frame time"))?;
     if !(frame_time.is_finite() && frame_time > 0.0) {
-        return Err(format!(
-            "line {tl}: frame time must be positive, got '{tv}'"
-        ));
+        return Err(format!("line {tl}: frame time must be positive, got '{tv}'"));
     }
     let nch = p.nch;
-    let expected = frames
-        .checked_mul(nch)
-        .filter(|&n| n <= MAX_VALUES)
-        .ok_or("motion data too large")?;
+    let expected = frames.checked_mul(nch).filter(|&n| n <= MAX_VALUES).ok_or("motion data too large")?;
     let rest = &p.t[p.i..];
     if rest.len() < expected {
         let l = rest.last().map_or(tl, |t| t.line);
         return Err(format!("line {l}: motion data has {} values, expected {expected} ({frames} frames x {nch} channels)", rest.len()));
     }
     if rest.len() > expected {
-        return Err(format!(
-            "line {}: extra data after {frames} frames",
-            rest[expected].line
-        ));
+        return Err(format!("line {}: extra data after {frames} frames", rest[expected].line));
     }
     let mut data = Vec::with_capacity(expected);
     for t in rest {
-        let v: f64 =
-            t.s.parse()
-                .map_err(|_| format!("line {}: '{}' is not a number", t.line, t.s))?;
+        let v: f64 = t.s.parse().map_err(|_| format!("line {}: '{}' is not a number", t.line, t.s))?;
         if !v.is_finite() {
             return Err(format!("line {}: '{}' is not a finite number", t.line, t.s));
         }
         data.push(v);
     }
-    Ok(Bvh {
-        joints: p.joints,
-        frame_time,
-        frames,
-        num_channels: nch,
-        data,
-    })
+    Ok(Bvh { joints: p.joints, frame_time, frames, num_channels: nch, data })
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -414,11 +344,7 @@ fn mmul(a: &M, b: &M) -> M {
 }
 
 fn trans(v: V3) -> M {
-    [
-        [1.0, 0.0, 0.0, v[0]],
-        [0.0, 1.0, 0.0, v[1]],
-        [0.0, 0.0, 1.0, v[2]],
-    ]
+    [[1.0, 0.0, 0.0, v[0]], [0.0, 1.0, 0.0, v[1]], [0.0, 0.0, 1.0, v[2]]]
 }
 
 /// Right-handed elementary rotation about axis 0/1/2 by `deg` degrees.
@@ -463,9 +389,7 @@ impl Bvh {
 
     /// Pose of a frame, or the rest pose (all channels zero) for `None`.
     pub fn pose(&self, frame: Option<usize>) -> Pose {
-        let row: Option<&[f64]> = frame
-            .filter(|&f| f < self.frames)
-            .map(|f| &self.data[f * self.num_channels..(f + 1) * self.num_channels]);
+        let row: Option<&[f64]> = frame.filter(|&f| f < self.frames).map(|f| &self.data[f * self.num_channels..(f + 1) * self.num_channels]);
         let mut world: Vec<M> = Vec::with_capacity(self.joints.len());
         for j in &self.joints {
             let mut m = trans(j.offset);
@@ -554,19 +478,8 @@ impl Bvh {
     pub fn summary(&self) -> String {
         let mut s = String::new();
         let n_end = self.joints.iter().filter(|j| j.end_site.is_some()).count();
-        s.push_str(&format!(
-            "{} joints ({} end sites), {} channels per frame\n",
-            self.joints.len(),
-            n_end,
-            self.num_channels
-        ));
-        s.push_str(&format!(
-            "{} frames at {:.4} s ({:.3} fps), duration {:.3} s\n",
-            self.frames,
-            self.frame_time,
-            self.fps(),
-            self.duration()
-        ));
+        s.push_str(&format!("{} joints ({} end sites), {} channels per frame\n", self.joints.len(), n_end, self.num_channels));
+        s.push_str(&format!("{} frames at {:.4} s ({:.3} fps), duration {:.3} s\n", self.frames, self.frame_time, self.fps(), self.duration()));
         fn walk(b: &Bvh, j: usize, depth: usize, s: &mut String) {
             let jt = &b.joints[j];
             let ch: Vec<&str> = jt
@@ -581,15 +494,7 @@ impl Bvh {
                     Chan::Zrot => "Zrot",
                 })
                 .collect();
-            s.push_str(&format!(
-                "{}{}  offset ({:.3}, {:.3}, {:.3})  [{}]\n",
-                "  ".repeat(depth),
-                jt.name,
-                jt.offset[0],
-                jt.offset[1],
-                jt.offset[2],
-                ch.join(" ")
-            ));
+            s.push_str(&format!("{}{}  offset ({:.3}, {:.3}, {:.3})  [{}]\n", "  ".repeat(depth), jt.name, jt.offset[0], jt.offset[1], jt.offset[2], ch.join(" ")));
             for &c in &jt.children {
                 walk(b, c, depth + 1, s);
             }
@@ -609,10 +514,7 @@ impl Bvh {
                     }
                 }
             }
-            s.push_str(&format!(
-                "joint extent over the clip: x {:.2}..{:.2}, y {:.2}..{:.2}, z {:.2}..{:.2}\n",
-                lo[0], hi[0], lo[1], hi[1], lo[2], hi[2]
-            ));
+            s.push_str(&format!("joint extent over the clip: x {:.2}..{:.2}, y {:.2}..{:.2}, z {:.2}..{:.2}\n", lo[0], hi[0], lo[1], hi[1], lo[2], hi[2]));
         }
         s
     }
@@ -642,10 +544,7 @@ impl View {
             "side" => Ok(View::Side),
             "top" => Ok(View::Top),
             _ => {
-                let d = s
-                    .strip_prefix("yaw=")
-                    .or_else(|| s.strip_prefix("yaw:"))
-                    .ok_or_else(|| format!("unknown view '{s}' (front, side, top or yaw=DEG)"))?;
+                let d = s.strip_prefix("yaw=").or_else(|| s.strip_prefix("yaw:")).ok_or_else(|| format!("unknown view '{s}' (front, side, top or yaw=DEG)"))?;
                 let v: f64 = d.parse().map_err(|_| format!("bad yaw angle '{d}'"))?;
                 if !v.is_finite() {
                     return Err(format!("bad yaw angle '{d}'"));
@@ -695,28 +594,15 @@ pub struct Projected {
 
 pub fn project_motion(b: &Bvh, view: View) -> Projected {
     let reach = b.reach();
-    let tips: Vec<Tip> = (0..b.joints.len())
-        .map(|j| b.default_tip_with(j, &reach))
-        .collect();
+    let tips: Vec<Tip> = (0..b.joints.len()).map(|j| b.default_tip_with(j, &reach)).collect();
     let mut points = Vec::with_capacity(b.frames);
     let mut angles = Vec::with_capacity(b.frames);
     for f in 0..b.frames {
         let pose = b.pose(Some(f));
         points.push(pose.pos.iter().map(|&p| view.project(p)).collect());
-        angles.push(
-            (0..b.joints.len())
-                .map(|j| {
-                    b.tip_point(&pose, tips[j])
-                        .and_then(|t| angle_2d(pose.pos[j], t, view, false))
-                })
-                .collect(),
-        );
+        angles.push((0..b.joints.len()).map(|j| b.tip_point(&pose, tips[j]).and_then(|t| angle_2d(pose.pos[j], t, view, false))).collect());
     }
-    Projected {
-        frame_time: b.frame_time,
-        points,
-        angles,
-    }
+    Projected { frame_time: b.frame_time, points, angles }
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -754,27 +640,7 @@ pub struct Tag {
     pub conf: f32,
 }
 
-const NOISE: &[&str] = &[
-    "bip",
-    "biped",
-    "mixamorig",
-    "def",
-    "org",
-    "mch",
-    "jnt",
-    "joint",
-    "bone",
-    "bn",
-    "sk",
-    "skel",
-    "skeleton",
-    "rig",
-    "armature",
-    "cc",
-    "base",
-    "char",
-    "character",
-];
+const NOISE: &[&str] = &["bip", "biped", "mixamorig", "def", "org", "mch", "jnt", "joint", "bone", "bn", "sk", "skel", "skeleton", "rig", "armature", "cc", "base", "char", "character"];
 const LEFT: &[&str] = &["left", "l", "lt", "lft"];
 const RIGHT: &[&str] = &["right", "r", "rt", "rgt"];
 const UPW: &[&str] = &["up", "upper", "upr"];
@@ -788,92 +654,17 @@ const CLAV_W: &[&str] = &["shoulder", "clavicle", "collar", "scapula", "clav"];
 const FOOT_W: &[&str] = &["foot", "feet", "ankle"];
 const TOE_W: &[&str] = &["toe", "toes", "toebase", "ball"];
 const HIPS_W: &[&str] = &["hips", "hip", "pelvis", "pelvic", "root", "cog"];
-const SPINE_W: &[&str] = &[
-    "spine",
-    "chest",
-    "abdomen",
-    "torso",
-    "back",
-    "waist",
-    "stomach",
-    "thorax",
-    "trunk",
-    "belly",
-    "lowerback",
-    "upperback",
-    "ribcage",
-    "sternum",
-];
+const SPINE_W: &[&str] = &["spine", "chest", "abdomen", "torso", "back", "waist", "stomach", "thorax", "trunk", "belly", "lowerback", "upperback", "ribcage", "sternum"];
 const NECK_W: &[&str] = &["neck", "lowerneck", "upperneck"];
 const HEAD_W: &[&str] = &["head", "skull", "cranium"];
-const FINGER_W: &[&str] = &[
-    "thumb", "index", "middle", "ring", "pinky", "pinkie", "little", "finger", "fingers", "digit",
-];
+const FINGER_W: &[&str] = &["thumb", "index", "middle", "ring", "pinky", "pinkie", "little", "finger", "fingers", "digit"];
 const OTHER_W: &[&str] = &[
-    "jaw",
-    "eye",
-    "eyes",
-    "eyelid",
-    "brow",
-    "ear",
-    "nose",
-    "tongue",
-    "teeth",
-    "hair",
-    "cheek",
-    "lip",
-    "lips",
-    "mouth",
-    "face",
-    "tail",
-    "wing",
-    "cape",
-    "skirt",
-    "cloth",
-    "breast",
-    "twist",
-    "roll",
-    "corrective",
-    "helper",
-    "end",
-    "site",
-    "nub",
-    "tip",
-    "null",
-    "dummy",
-    "prop",
-    "weapon",
-    "gun",
-    "sword",
-    "ik",
-    "pole",
-    "target",
-    "ctrl",
-    "control",
+    "jaw", "eye", "eyes", "eyelid", "brow", "ear", "nose", "tongue", "teeth", "hair", "cheek", "lip", "lips", "mouth", "face", "tail", "wing", "cape", "skirt", "cloth", "breast", "twist", "roll",
+    "corrective", "helper", "end", "site", "nub", "tip", "null", "dummy", "prop", "weapon", "gun", "sword", "ik", "pole", "target", "ctrl", "control",
 ];
 
 fn in_vocab(t: &str) -> bool {
-    [
-        THIGH_W,
-        SHIN_W,
-        UPARM_W,
-        FORE_W,
-        HAND_W,
-        CLAV_W,
-        FOOT_W,
-        TOE_W,
-        HIPS_W,
-        SPINE_W,
-        NECK_W,
-        HEAD_W,
-        FINGER_W,
-        OTHER_W,
-        UPW,
-        LOWW,
-        &["arm", "arms", "leg", "legs"],
-    ]
-    .iter()
-    .any(|l| l.contains(&t))
+    [THIGH_W, SHIN_W, UPARM_W, FORE_W, HAND_W, CLAV_W, FOOT_W, TOE_W, HIPS_W, SPINE_W, NECK_W, HEAD_W, FINGER_W, OTHER_W, UPW, LOWW, &["arm", "arms", "leg", "legs"]].iter().any(|l| l.contains(&t))
 }
 
 /// Split a bone name into lower-case tokens: namespaces (`mixamorig:`, `Armature|`) dropped,
@@ -956,10 +747,7 @@ pub fn classify(name: &str) -> Tag {
     let mut side = None;
     let mut index: Option<u32> = None;
     let mut ws: Vec<String> = Vec::new();
-    let non_side = toks
-        .iter()
-        .filter(|t| !LEFT.contains(&t.as_str()) && !RIGHT.contains(&t.as_str()))
-        .count();
+    let non_side = toks.iter().filter(|t| !LEFT.contains(&t.as_str()) && !RIGHT.contains(&t.as_str())).count();
     for t in &toks {
         if t.chars().all(|c| c.is_ascii_digit()) {
             index = t.parse().ok();
@@ -973,11 +761,7 @@ pub fn classify(name: &str) -> Tag {
     }
     let _ = index;
     let t = |role, conf| Tag { role, side, conf };
-    let other = Tag {
-        role: Role::Other,
-        side,
-        conf: 0.0,
-    };
+    let other = Tag { role: Role::Other, side, conf: 0.0 };
     if ws.is_empty() || any_of(&ws, OTHER_W) {
         return other;
     }
@@ -1039,11 +823,7 @@ pub fn classify(name: &str) -> Tag {
         return t(Role::Hips, 0.95);
     }
     if has(&ws, "hip") {
-        return if side.is_some() {
-            t(Role::Thigh, 0.5)
-        } else {
-            t(Role::Hips, 0.9)
-        };
+        return if side.is_some() { t(Role::Thigh, 0.5) } else { t(Role::Hips, 0.9) };
     }
     if has(&ws, "root") {
         return t(Role::Hips, 0.55);
@@ -1085,47 +865,17 @@ impl Skel {
                 depth[i] = depth[p] + 1;
             }
         }
-        Skel {
-            names,
-            parent,
-            children,
-            pos,
-            depth,
-            lat_axis: 0,
-            lat_sign: 1.0,
-            lat_fixed,
-        }
+        Skel { names, parent, children, pos, depth, lat_axis: 0, lat_sign: 1.0, lat_fixed }
     }
     fn from_bvh(b: &Bvh) -> Skel {
         let pose = b.pose(None);
-        Skel::new(
-            b.joints.iter().map(|j| j.name.clone()).collect(),
-            b.joints.iter().map(|j| j.parent).collect(),
-            pose.pos,
-            false,
-        )
+        Skel::new(b.joints.iter().map(|j| j.name.clone()).collect(), b.joints.iter().map(|j| j.parent).collect(), pose.pos, false)
     }
     fn from_rig(p: &Project) -> Result<Skel, String> {
         let w = crate::rigedit::rest_world(p)?;
-        let idx: BTreeMap<&str, usize> = p
-            .bones
-            .iter()
-            .enumerate()
-            .map(|(i, b)| (b.name.as_str(), i))
-            .collect();
-        let parent = p
-            .bones
-            .iter()
-            .map(|b| b.parent.as_deref().and_then(|n| idx.get(n).copied()))
-            .collect();
-        Ok(Skel::new(
-            p.bones.iter().map(|b| b.name.clone()).collect(),
-            parent,
-            w.iter()
-                .map(|(h, _)| [h.x as f64, -(h.y as f64), 0.0])
-                .collect(),
-            true,
-        ))
+        let idx: BTreeMap<&str, usize> = p.bones.iter().enumerate().map(|(i, b)| (b.name.as_str(), i)).collect();
+        let parent = p.bones.iter().map(|b| b.parent.as_deref().and_then(|n| idx.get(n).copied())).collect();
+        Ok(Skel::new(p.bones.iter().map(|b| b.name.clone()).collect(), parent, w.iter().map(|(h, _)| [h.x as f64, -(h.y as f64), 0.0]).collect(), true))
     }
     fn lat(&self, j: usize) -> f64 {
         self.pos[j][self.lat_axis] * self.lat_sign
@@ -1133,16 +883,7 @@ impl Skel {
     /// Lateral coordinate of the subtree point farthest sideways from `origin` (signed).
     fn lat_ext(&self, c: usize, origin: usize) -> f64 {
         let o = self.lat(origin);
-        self.subtree(c)
-            .iter()
-            .map(|&q| self.lat(q))
-            .fold(o, |best, v| {
-                if (v - o).abs() > (best - o).abs() {
-                    v
-                } else {
-                    best
-                }
-            })
+        self.subtree(c).iter().map(|&q| self.lat(q)).fold(o, |best, v| if (v - o).abs() > (best - o).abs() { v } else { best })
     }
     fn subtree(&self, j: usize) -> Vec<usize> {
         let mut out = vec![j];
@@ -1218,10 +959,7 @@ fn slot_key(role: Role, side: Option<Side>) -> Option<String> {
         Role::Toe => "toe",
         _ => return None,
     };
-    Some(format!(
-        "{nm}.{}",
-        if side? == Side::Left { "l" } else { "r" }
-    ))
+    Some(format!("{nm}.{}", if side? == Side::Left { "l" } else { "r" }))
 }
 
 fn name_slots(s: &Skel) -> Slots {
@@ -1250,25 +988,13 @@ fn name_slots(s: &Skel) -> Slots {
             continue;
         }
         if tag.role == Role::Spine {
-            spine.push(Assign {
-                joint: j,
-                conf: tag.conf,
-                via: Via::Name,
-            });
+            spine.push(Assign { joint: j, conf: tag.conf, via: Via::Name });
             continue;
         }
-        let Some(key) = slot_key(tag.role, tag.side) else {
-            continue;
-        };
-        let a = Assign {
-            joint: j,
-            conf: tag.conf,
-            via: Via::Name,
-        };
+        let Some(key) = slot_key(tag.role, tag.side) else { continue };
+        let a = Assign { joint: j, conf: tag.conf, via: Via::Name };
         match out.single.get(&key) {
-            Some(old)
-                if (old.conf, std::cmp::Reverse(s.depth[old.joint]))
-                    >= (a.conf, std::cmp::Reverse(s.depth[a.joint])) => {}
+            Some(old) if (old.conf, std::cmp::Reverse(s.depth[old.joint])) >= (a.conf, std::cmp::Reverse(s.depth[a.joint])) => {}
             _ => {
                 out.single.insert(key, a);
             }
@@ -1290,12 +1016,7 @@ fn topo_slots(s: &mut Skel, hips_hint: Option<usize>) -> Slots {
         Some(h) => h,
         None => {
             let roots: Vec<usize> = (0..n).filter(|&i| s.parent[i].is_none()).collect();
-            let Some(&r) = roots
-                .iter()
-                .max_by_key(|&&r| (s.subtree(r).len(), std::cmp::Reverse(r)))
-            else {
-                return out;
-            };
+            let Some(&r) = roots.iter().max_by_key(|&&r| (s.subtree(r).len(), std::cmp::Reverse(r))) else { return out };
             let mut c = r;
             while s.children[c].len() == 1 {
                 c = s.children[c][0];
@@ -1308,14 +1029,7 @@ fn topo_slots(s: &mut Skel, hips_hint: Option<usize>) -> Slots {
     };
     let tc = 0.6f32;
     let ts = 0.55f32;
-    out.single.insert(
-        "hips".into(),
-        Assign {
-            joint: hips,
-            conf: tc,
-            via: Via::Topology,
-        },
-    );
+    out.single.insert("hips".into(), Assign { joint: hips, conf: tc, via: Via::Topology });
     let hy = s.pos[hips][1];
     let mut legs: Vec<(usize, f64)> = Vec::new();
     let mut up: Vec<(usize, f64)> = Vec::new();
@@ -1333,22 +1047,14 @@ fn topo_slots(s: &mut Skel, hips_hint: Option<usize>) -> Slots {
     up.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
     // lateral axis of this skeleton from the leg separation
     let total_h = {
-        let (lo, hi) = s
-            .pos
-            .iter()
-            .fold((f64::MAX, f64::MIN), |(l, h), p| (l.min(p[1]), h.max(p[1])));
+        let (lo, hi) = s.pos.iter().fold((f64::MAX, f64::MIN), |(l, h), p| (l.min(p[1]), h.max(p[1])));
         (hi - lo).max(1e-9)
     };
     let mut sided = false;
     if legs.len() >= 2 {
         let (a, b) = (legs[0].0, legs[1].0);
         if !s.lat_fixed {
-            let ext = |c: usize, ax: usize| {
-                s.subtree(c)
-                    .iter()
-                    .map(|&q| s.pos[q][ax] - s.pos[hips][ax])
-                    .fold(0.0f64, |m, v| if v.abs() > m.abs() { v } else { m })
-            };
+            let ext = |c: usize, ax: usize| s.subtree(c).iter().map(|&q| s.pos[q][ax] - s.pos[hips][ax]).fold(0.0f64, |m, v| if v.abs() > m.abs() { v } else { m });
             let dx = (ext(a, 0) - ext(b, 0)).abs();
             let dz = (ext(a, 2) - ext(b, 2)).abs();
             if dz > dx {
@@ -1364,14 +1070,7 @@ fn topo_slots(s: &mut Skel, hips_hint: Option<usize>) -> Slots {
                 let ch = s.chain(c);
                 for (k, role) in ["thigh", "shin", "foot", "toe"].iter().enumerate() {
                     if let Some(&j) = ch.get(k) {
-                        out.single.insert(
-                            format!("{role}.{side}"),
-                            Assign {
-                                joint: j,
-                                conf: ts,
-                                via: Via::Topology,
-                            },
-                        );
+                        out.single.insert(format!("{role}.{side}"), Assign { joint: j, conf: ts, via: Via::Topology });
                     }
                 }
             }
@@ -1388,100 +1087,39 @@ fn topo_slots(s: &mut Skel, hips_hint: Option<usize>) -> Slots {
         let top = *chain.last().unwrap();
         let kids = s.children[top].clone();
         if kids.len() >= 3 {
-            let spread = |j: usize| {
-                s.subtree(j)
-                    .iter()
-                    .map(|&q| (s.lat(q) - s.lat(top)).abs())
-                    .fold(0.0, f64::max)
-            };
+            let spread = |j: usize| s.subtree(j).iter().map(|&q| (s.lat(q) - s.lat(top)).abs()).fold(0.0, f64::max);
             let mut ranked: Vec<(usize, f64)> = kids.iter().map(|&k| (k, spread(k))).collect();
             ranked.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
             let arms = [ranked[0].0, ranked[1].0];
-            let neck_c = ranked[2..]
-                .iter()
-                .max_by(|a, b| s.pos[a.0][1].total_cmp(&s.pos[b.0][1]).then(b.0.cmp(&a.0)))
-                .map(|x| x.0);
-            out.spine = chain
-                .iter()
-                .map(|&j| Assign {
-                    joint: j,
-                    conf: ts,
-                    via: Via::Topology,
-                })
-                .collect();
+            let neck_c = ranked[2..].iter().max_by(|a, b| s.pos[a.0][1].total_cmp(&s.pos[b.0][1]).then(b.0.cmp(&a.0))).map(|x| x.0);
+            out.spine = chain.iter().map(|&j| Assign { joint: j, conf: ts, via: Via::Topology }).collect();
             if let Some(nc) = neck_c {
                 let nch = s.chain(nc);
                 if nch.len() >= 2 {
-                    out.single.insert(
-                        "neck".into(),
-                        Assign {
-                            joint: nch[0],
-                            conf: ts,
-                            via: Via::Topology,
-                        },
-                    );
-                    out.single.insert(
-                        "head".into(),
-                        Assign {
-                            joint: nch[1],
-                            conf: ts,
-                            via: Via::Topology,
-                        },
-                    );
+                    out.single.insert("neck".into(), Assign { joint: nch[0], conf: ts, via: Via::Topology });
+                    out.single.insert("head".into(), Assign { joint: nch[1], conf: ts, via: Via::Topology });
                 } else {
-                    out.single.insert(
-                        "head".into(),
-                        Assign {
-                            joint: nch[0],
-                            conf: ts,
-                            via: Via::Topology,
-                        },
-                    );
+                    out.single.insert("head".into(), Assign { joint: nch[0], conf: ts, via: Via::Topology });
                 }
             }
             let (l0, l1) = (s.lat_ext(arms[0], top), s.lat_ext(arms[1], top));
             if (l0 - l1).abs() > 0.01 * total_h {
-                let (l, r) = if l0 > l1 {
-                    (arms[0], arms[1])
-                } else {
-                    (arms[1], arms[0])
-                };
+                let (l, r) = if l0 > l1 { (arms[0], arms[1]) } else { (arms[1], arms[0]) };
                 for (c, side) in [(l, "l"), (r, "r")] {
                     let ch = s.chain(c);
                     let shift = usize::from(ch.len() >= 4 && s.seg(&ch, 0) < 0.5 * s.seg(&ch, 1));
                     if shift == 1 {
-                        out.single.insert(
-                            format!("clavicle.{side}"),
-                            Assign {
-                                joint: ch[0],
-                                conf: ts,
-                                via: Via::Topology,
-                            },
-                        );
+                        out.single.insert(format!("clavicle.{side}"), Assign { joint: ch[0], conf: ts, via: Via::Topology });
                     }
                     for (k, role) in ["upperarm", "forearm", "hand"].iter().enumerate() {
                         if let Some(&j) = ch.get(k + shift) {
-                            out.single.insert(
-                                format!("{role}.{side}"),
-                                Assign {
-                                    joint: j,
-                                    conf: ts,
-                                    via: Via::Topology,
-                                },
-                            );
+                            out.single.insert(format!("{role}.{side}"), Assign { joint: j, conf: ts, via: Via::Topology });
                         }
                     }
                 }
             }
         } else {
-            out.spine = chain
-                .iter()
-                .map(|&j| Assign {
-                    joint: j,
-                    conf: ts,
-                    via: Via::Topology,
-                })
-                .collect();
+            out.spine = chain.iter().map(|&j| Assign { joint: j, conf: ts, via: Via::Topology }).collect();
         }
     }
     let _ = sided;
@@ -1490,12 +1128,7 @@ fn topo_slots(s: &mut Skel, hips_hint: Option<usize>) -> Slots {
 
 fn merge_slots(name: Slots, topo: Slots) -> Slots {
     let mut out = name;
-    let mut used: BTreeSet<usize> = out
-        .single
-        .values()
-        .map(|a| a.joint)
-        .chain(out.spine.iter().map(|a| a.joint))
-        .collect();
+    let mut used: BTreeSet<usize> = out.single.values().map(|a| a.joint).chain(out.spine.iter().map(|a| a.joint)).collect();
     for (k, a) in topo.single {
         if !out.single.contains_key(&k) && !used.contains(&a.joint) {
             used.insert(a.joint);
@@ -1503,11 +1136,7 @@ fn merge_slots(name: Slots, topo: Slots) -> Slots {
         }
     }
     if out.spine.is_empty() {
-        out.spine = topo
-            .spine
-            .into_iter()
-            .filter(|a| !used.contains(&a.joint))
-            .collect();
+        out.spine = topo.spine.into_iter().filter(|a| !used.contains(&a.joint)).collect();
     }
     out
 }
@@ -1545,11 +1174,8 @@ pub struct MatchResult {
 pub type ManualMap = BTreeMap<String, Option<String>>;
 
 pub fn parse_map(json: &str) -> Result<ManualMap, String> {
-    let v: serde_json::Value =
-        serde_json::from_str(json).map_err(|e| format!("bad mapping JSON: {e}"))?;
-    let obj = v
-        .as_object()
-        .ok_or("mapping must be a JSON object {\"bvh joint\": \"rig bone\"}")?;
+    let v: serde_json::Value = serde_json::from_str(json).map_err(|e| format!("bad mapping JSON: {e}"))?;
+    let obj = v.as_object().ok_or("mapping must be a JSON object {\"bvh joint\": \"rig bone\"}")?;
     let obj = match (obj.len(), obj.get("map").or_else(|| obj.get("bones"))) {
         (1, Some(serde_json::Value::Object(inner))) => inner,
         _ => obj,
@@ -1572,29 +1198,19 @@ fn median(v: &mut [f64]) -> Option<f64> {
     }
     v.sort_by(|a, b| a.total_cmp(b));
     let n = v.len();
-    Some(if n % 2 == 1 {
-        v[n / 2]
-    } else {
-        0.5 * (v[n / 2 - 1] + v[n / 2])
-    })
+    Some(if n % 2 == 1 { v[n / 2] } else { 0.5 * (v[n / 2 - 1] + v[n / 2]) })
 }
 
 fn find_joint(b: &Bvh, name: &str) -> Option<usize> {
     b.joint_index(name).or_else(|| {
         let l = name.to_lowercase();
-        let hits: Vec<usize> = (0..b.joints.len())
-            .filter(|&i| b.joints[i].name.to_lowercase() == l)
-            .collect();
+        let hits: Vec<usize> = (0..b.joints.len()).filter(|&i| b.joints[i].name.to_lowercase() == l).collect();
         (hits.len() == 1).then(|| hits[0])
     })
 }
 
 /// Match BVH joints to rig bones. See the module docs for the strategy.
-pub fn match_bones(
-    bvh: &Bvh,
-    p: &Project,
-    manual: Option<&ManualMap>,
-) -> Result<MatchResult, String> {
+pub fn match_bones(bvh: &Bvh, p: &Project, manual: Option<&ManualMap>) -> Result<MatchResult, String> {
     if p.bones.is_empty() {
         return Err("project has no bones".into());
     }
@@ -1660,11 +1276,7 @@ pub fn match_bones(
             bvh_name: bvh.joints[a.joint].name.clone(),
             rig_name: p.bones[r.joint].name.clone(),
             confidence: a.conf.min(r.conf),
-            via: if a.via == Via::Name && r.via == Via::Name {
-                "name"
-            } else {
-                "topology"
-            },
+            via: if a.via == Via::Name && r.via == Via::Name { "name" } else { "topology" },
             length_ratio: None,
             note: String::new(),
             tip: Tip::Extrap(a.joint),
@@ -1704,18 +1316,9 @@ pub fn match_bones(
         }
         // a manual match keeps the canonical slot of the BVH joint (hips, spine.N, upperarm.l, ...): the slot decides the
         // tip, root travel and the "no hips match" warning, so `Hips=bone` must stay the hips
-        let bvh_slot: BTreeMap<usize, String> = ab
-            .single
-            .iter()
-            .map(|(k, a)| (a.joint, k.clone()))
-            .collect();
+        let bvh_slot: BTreeMap<usize, String> = ab.single.iter().map(|(k, a)| (a.joint, k.clone())).collect();
         for (bj, rj) in ov {
-            let inherited = matches
-                .iter()
-                .find(|m| m.bvh == bj)
-                .map(|m| m.slot.clone())
-                .filter(|sl| sl != "manual")
-                .or_else(|| bvh_slot.get(&bj).cloned());
+            let inherited = matches.iter().find(|m| m.bvh == bj).map(|m| m.slot.clone()).filter(|sl| sl != "manual").or_else(|| bvh_slot.get(&bj).cloned());
             matches.retain(|m| m.bvh != bj && Some(m.rig) != rj);
             if let Some(rj) = rj {
                 let slot = match inherited {
@@ -1740,24 +1343,14 @@ pub fn match_bones(
 
     // tips: next matched slot in the chain, else the default tip
     let reach = bvh.reach();
-    let by_slot: BTreeMap<String, usize> =
-        matches.iter().map(|m| (m.slot.clone(), m.bvh)).collect();
-    let nspine = matches
-        .iter()
-        .filter(|m| m.slot.starts_with("spine."))
-        .count();
+    let by_slot: BTreeMap<String, usize> = matches.iter().map(|m| (m.slot.clone(), m.bvh)).collect();
+    let nspine = matches.iter().filter(|m| m.slot.starts_with("spine.")).count();
     for m in matches.iter_mut() {
         let next: Vec<String> = match m.slot.split_once('.') {
-            _ if m.slot == "hips" => (0..nspine)
-                .map(|i| format!("spine.{i}"))
-                .chain(["neck".to_string(), "head".to_string()])
-                .collect(),
+            _ if m.slot == "hips" => (0..nspine).map(|i| format!("spine.{i}")).chain(["neck".to_string(), "head".to_string()]).collect(),
             Some(("spine", i)) => {
                 let i: usize = i.parse().unwrap_or(0);
-                ((i + 1)..nspine)
-                    .map(|k| format!("spine.{k}"))
-                    .chain(["neck".to_string(), "head".to_string()])
-                    .collect()
+                ((i + 1)..nspine).map(|k| format!("spine.{k}")).chain(["neck".to_string(), "head".to_string()]).collect()
             }
             _ if m.slot == "neck" => vec!["head".into()],
             Some(("clavicle", s)) => vec![format!("upperarm.{s}")],
@@ -1802,23 +1395,10 @@ pub fn match_bones(
             }
         }
     }
-    let mut limb: Vec<f64> = matches
-        .iter()
-        .filter(|m| {
-            m.via != "manual"
-                && ["upperarm", "forearm", "thigh", "shin"]
-                    .iter()
-                    .any(|r| m.slot.starts_with(r))
-        })
-        .filter_map(|m| m.length_ratio)
-        .collect();
+    let mut limb: Vec<f64> = matches.iter().filter(|m| m.via != "manual" && ["upperarm", "forearm", "thigh", "shin"].iter().any(|r| m.slot.starts_with(r))).filter_map(|m| m.length_ratio).collect();
     if let Some(med) = median(&mut limb) {
         for m in matches.iter_mut() {
-            if m.via == "manual"
-                || !["upperarm", "forearm", "thigh", "shin"]
-                    .iter()
-                    .any(|r| m.slot.starts_with(r))
-            {
+            if m.via == "manual" || !["upperarm", "forearm", "thigh", "shin"].iter().any(|r| m.slot.starts_with(r)) {
                 continue;
             }
             if let Some(r) = m.length_ratio {
@@ -1836,14 +1416,8 @@ pub fn match_bones(
 
     let mb: BTreeSet<usize> = matches.iter().map(|m| m.bvh).collect();
     let mr: BTreeSet<usize> = matches.iter().map(|m| m.rig).collect();
-    let unmatched_bvh = (0..bvh.joints.len())
-        .filter(|i| !mb.contains(i))
-        .map(|i| bvh.joints[i].name.clone())
-        .collect();
-    let unmatched_rig = (0..p.bones.len())
-        .filter(|i| !mr.contains(i))
-        .map(|i| p.bones[i].name.clone())
-        .collect();
+    let unmatched_bvh = (0..bvh.joints.len()).filter(|i| !mb.contains(i)).map(|i| bvh.joints[i].name.clone()).collect();
+    let unmatched_rig = (0..p.bones.len()).filter(|i| !mr.contains(i)).map(|i| p.bones[i].name.clone()).collect();
     if !matches.iter().any(|m| m.slot == "hips") {
         warnings.push("no hips match: root motion will not be transferred".into());
     }
@@ -1858,21 +1432,13 @@ pub fn match_bones(
     if matches.is_empty() {
         warnings.push("no bones matched: supply a --map file".into());
     }
-    Ok(MatchResult {
-        matches,
-        unmatched_bvh,
-        unmatched_rig,
-        warnings,
-    })
+    Ok(MatchResult { matches, unmatched_bvh, unmatched_rig, warnings })
 }
 
 /// Plain-text match table.
 pub fn format_table(r: &MatchResult) -> String {
     let mut s = String::new();
-    s.push_str(&format!(
-        "{:<12} {:<26} {:<22} {:>5}  {:<9} {:>7}  {}\n",
-        "slot", "bvh joint", "rig bone", "conf", "via", "len x", "note"
-    ));
+    s.push_str(&format!("{:<12} {:<26} {:<22} {:>5}  {:<9} {:>7}  {}\n", "slot", "bvh joint", "rig bone", "conf", "via", "len x", "note"));
     for m in &r.matches {
         s.push_str(&format!(
             "{:<12} {:<26} {:<22} {:>5.2}  {:<9} {:>7}  {}\n",
@@ -1881,22 +1447,15 @@ pub fn format_table(r: &MatchResult) -> String {
             m.rig_name,
             m.confidence,
             m.via,
-            m.length_ratio
-                .map_or("-".to_string(), |v| format!("{v:.2}")),
+            m.length_ratio.map_or("-".to_string(), |v| format!("{v:.2}")),
             m.note
         ));
     }
     if !r.unmatched_bvh.is_empty() {
-        s.push_str(&format!(
-            "unmatched BVH joints: {}\n",
-            r.unmatched_bvh.join(", ")
-        ));
+        s.push_str(&format!("unmatched BVH joints: {}\n", r.unmatched_bvh.join(", ")));
     }
     if !r.unmatched_rig.is_empty() {
-        s.push_str(&format!(
-            "unmatched rig bones: {}\n",
-            r.unmatched_rig.join(", ")
-        ));
+        s.push_str(&format!("unmatched rig bones: {}\n", r.unmatched_rig.join(", ")));
     }
     for w in &r.warnings {
         s.push_str(&format!("warning: {w}\n"));
@@ -1943,21 +1502,7 @@ pub struct RetargetOptions {
 
 impl Default for RetargetOptions {
     fn default() -> Self {
-        RetargetOptions {
-            view: View::Front,
-            scale: Scale::Auto,
-            fps: None,
-            smooth: 0,
-            start: None,
-            end: None,
-            rest_frame: None,
-            mirror: false,
-            root_motion: true,
-            in_place: false,
-            weight: 1.0,
-            min_confidence: 0.4,
-            foot_lock: None,
-        }
+        RetargetOptions { view: View::Front, scale: Scale::Auto, fps: None, smooth: 0, start: None, end: None, rest_frame: None, mirror: false, root_motion: true, in_place: false, weight: 1.0, min_confidence: 0.4, foot_lock: None }
     }
 }
 
@@ -2007,12 +1552,7 @@ fn smooth_series(v: &mut [f64], radius: usize) {
     }
 }
 
-pub fn retarget(
-    p: &Project,
-    bvh: &Bvh,
-    mr: &MatchResult,
-    o: &RetargetOptions,
-) -> Result<RetargetResult, String> {
+pub fn retarget(p: &Project, bvh: &Bvh, mr: &MatchResult, o: &RetargetOptions) -> Result<RetargetResult, String> {
     if bvh.frames == 0 {
         return Err("BVH has no frames".into());
     }
@@ -2034,39 +1574,21 @@ pub fn retarget(
     let s0 = o.start.unwrap_or(0);
     let e0 = o.end.unwrap_or(bvh.frames - 1);
     if s0 > e0 || e0 >= bvh.frames {
-        return Err(format!(
-            "frame range {s0}..{e0} does not fit the {} BVH frames",
-            bvh.frames
-        ));
+        return Err(format!("frame range {s0}..{e0} does not fit the {} BVH frames", bvh.frames));
     }
     if let Some(rf) = o.rest_frame {
         if rf >= bvh.frames {
-            return Err(format!(
-                "rest frame {rf} is outside the {} BVH frames",
-                bvh.frames
-            ));
+            return Err(format!("rest frame {rf} is outside the {} BVH frames", bvh.frames));
         }
     }
-    let used: Vec<&BoneMatch> = mr
-        .matches
-        .iter()
-        .filter(|m| {
-            m.confidence >= o.min_confidence && m.rig < p.bones.len() && m.bvh < bvh.joints.len()
-        })
-        .collect();
+    let used: Vec<&BoneMatch> = mr.matches.iter().filter(|m| m.confidence >= o.min_confidence && m.rig < p.bones.len() && m.bvh < bvh.joints.len()).collect();
     if used.is_empty() {
         return Err("no bone matches to retarget (all below the confidence threshold?)".into());
     }
     let mut notes = Vec::new();
     let nsel = e0 - s0 + 1;
     let rest_pose = bvh.pose(o.rest_frame);
-    let rest_ang: Vec<Option<f64>> = used
-        .iter()
-        .map(|m| {
-            bvh.tip_point(&rest_pose, m.tip)
-                .and_then(|t| angle_2d(rest_pose.pos[m.bvh], t, o.view, o.mirror))
-        })
-        .collect();
+    let rest_ang: Vec<Option<f64>> = used.iter().map(|m| bvh.tip_point(&rest_pose, m.tip).and_then(|t| angle_2d(rest_pose.pos[m.bvh], t, o.view, o.mirror))).collect();
     for (m, r) in used.iter().zip(&rest_ang) {
         if r.is_none() {
             notes.push(format!("{}: the rest pose bone points along the view axis; this bone stays at its rest angle", m.rig_name));
@@ -2088,9 +1610,7 @@ pub fn retarget(
     for f in s0..=e0 {
         let pose = bvh.pose(Some(f));
         for (i, m) in used.iter().enumerate() {
-            let ang = bvh
-                .tip_point(&pose, m.tip)
-                .and_then(|t| angle_2d(pose.pos[m.bvh], t, o.view, o.mirror));
+            let ang = bvh.tip_point(&pose, m.tip).and_then(|t| angle_2d(pose.pos[m.bvh], t, o.view, o.mirror));
             let d = match (ang, rest_ang[i]) {
                 (Some(a), Some(r)) => {
                     let mut d = norm360(a - r);
@@ -2134,13 +1654,9 @@ pub fn retarget(
             for (a, b) in [("thigh", "shin"), ("upperarm", "forearm")] {
                 for side in ["l", "r"] {
                     let (ka, kb) = (format!("{a}.{side}"), format!("{b}.{side}"));
-                    if let (Some(ma), Some(mb)) = (
-                        used.iter().find(|m| m.slot == ka),
-                        used.iter().find(|m| m.slot == kb),
-                    ) {
+                    if let (Some(ma), Some(mb)) = (used.iter().find(|m| m.slot == ka), used.iter().find(|m| m.slot == kb)) {
                         let tip_b = bvh.tip_point(&rest_pose, mb.tip);
-                        let bl = dist3(rest_pose.pos[ma.bvh], rest_pose.pos[mb.bvh])
-                            + tip_b.map_or(0.0, |t| dist3(rest_pose.pos[mb.bvh], t));
+                        let bl = dist3(rest_pose.pos[ma.bvh], rest_pose.pos[mb.bvh]) + tip_b.map_or(0.0, |t| dist3(rest_pose.pos[mb.bvh], t));
                         let rl = (p.bones[ma.rig].length + p.bones[mb.rig].length) as f64;
                         if bl > 1e-9 && rl > 1e-9 {
                             ratios.push(rl / bl);
@@ -2163,20 +1679,13 @@ pub fn retarget(
 
     // resample to output frames
     let span = (e0 - s0) as f64;
-    let out_n = if e0 == s0 {
-        1
-    } else {
-        (span * bvh.frame_time * fps + 1e-6).floor() as usize + 1
-    };
+    let out_n = if e0 == s0 { 1 } else { (span * bvh.frame_time * fps + 1e-6).floor() as usize + 1 };
     if out_n > 1_000_000 {
         return Err("resulting animation would be longer than 1,000,000 frames".into());
     }
     let step = 1.0 / (fps * bvh.frame_time);
     let pos_of = |k: usize| (k as f64 * step).min(span);
-    let mut dl: Vec<Vec<f64>> = series
-        .iter()
-        .map(|s| (0..out_n).map(|k| lerp_at(s, pos_of(k))).collect())
-        .collect();
+    let mut dl: Vec<Vec<f64>> = series.iter().map(|s| (0..out_n).map(|k| lerp_at(s, pos_of(k))).collect()).collect();
     for d in dl.iter_mut() {
         smooth_series(d, o.smooth);
     }
@@ -2198,15 +1707,7 @@ pub fn retarget(
     // rig-space angles
     let rw = crate::rigedit::rest_world(p)?;
     let nbn = p.bones.len();
-    let parent: Vec<Option<usize>> = p
-        .bones
-        .iter()
-        .map(|b| {
-            b.parent
-                .as_deref()
-                .and_then(|n| p.bones.iter().position(|x| x.name == n))
-        })
-        .collect();
+    let parent: Vec<Option<usize>> = p.bones.iter().map(|b| b.parent.as_deref().and_then(|n| p.bones.iter().position(|x| x.name == n))).collect();
     let mut mi_of: Vec<Option<usize>> = vec![None; nbn];
     for (i, m) in used.iter().enumerate() {
         mi_of[m.rig] = Some(i);
@@ -2251,31 +1752,20 @@ pub fn retarget(
 
     // channels
     let key = |vals: &[f32]| -> Track {
-        let ks: Vec<(f32, f32, Ease)> = vals
-            .iter()
-            .enumerate()
-            .map(|(k, &v)| (k as f32, v, Ease::Linear))
-            .collect();
+        let ks: Vec<(f32, f32, Ease)> = vals.iter().enumerate().map(|(k, &v)| (k as f32, v, Ease::Linear)).collect();
         Track::with_keys(&ks)
     };
     let mut chans: Vec<Channel> = Vec::new();
     for b in 0..nbn {
         if mi_of[b].is_some() {
-            chans.push(
-                Channel::keys(&p.bones[b].name, Prop::BoneAngle, key(&local[b]))
-                    .with_weight(o.weight),
-            );
+            chans.push(Channel::keys(&p.bones[b].name, Prop::BoneAngle, key(&local[b])).with_weight(o.weight));
         }
     }
     if let (true, Some(hb)) = (o.root_motion, hips_rig) {
         let xs: Vec<f32> = root_off.iter().map(|v| v[0]).collect();
         let ys: Vec<f32> = root_off.iter().map(|v| v[1]).collect();
-        chans.push(
-            Channel::keys(&p.bones[hb].name, Prop::BoneOffsetX, key(&xs)).with_weight(o.weight),
-        );
-        chans.push(
-            Channel::keys(&p.bones[hb].name, Prop::BoneOffsetY, key(&ys)).with_weight(o.weight),
-        );
+        chans.push(Channel::keys(&p.bones[hb].name, Prop::BoneOffsetX, key(&xs)).with_weight(o.weight));
+        chans.push(Channel::keys(&p.bones[hb].name, Prop::BoneOffsetY, key(&ys)).with_weight(o.weight));
     } else if o.root_motion && hips_rig.is_none() {
         notes.push("no hips match: root travel not transferred".into());
     }
@@ -2286,38 +1776,20 @@ pub fn retarget(
     }
     let project_frames = p.frames.max(out_n as u32);
     if project_frames > p.frames {
-        notes.push(format!(
-            "project length extended from {} to {} frames",
-            p.frames, project_frames
-        ));
+        notes.push(format!("project length extended from {} to {} frames", p.frames, project_frames));
     }
     if let Some((bone, ground)) = &o.foot_lock {
         let mut tmp = p.clone();
         let base = tmp.channels.len();
         tmp.channels.extend(chans.iter().cloned());
         tmp.frames = project_frames;
-        let lo = crate::footlock::LockOptions {
-            ground_y: *ground,
-            ..Default::default()
-        };
+        let lo = crate::footlock::LockOptions { ground_y: *ground, ..Default::default() };
         let contacts = crate::footlock::lock_feet(&mut tmp, bone, &lo)?;
         let extra: Vec<Channel> = tmp.channels[base + chans.len()..].to_vec();
-        notes.push(format!(
-            "foot lock on '{bone}': {} contact(s) pinned",
-            contacts.len()
-        ));
+        notes.push(format!("foot lock on '{bone}': {} contact(s) pinned", contacts.len()));
         chans.extend(extra);
     }
-    Ok(RetargetResult {
-        channels: chans,
-        blocked,
-        out_frames: out_n,
-        project_frames,
-        scale,
-        bones_used,
-        degenerate,
-        notes,
-    })
+    Ok(RetargetResult { channels: chans, blocked, out_frames: out_n, project_frames, scale, bones_used, degenerate, notes })
 }
 
 /// Append the retargeted channels (and extend the project length if the clip is longer).
@@ -2330,16 +1802,10 @@ pub fn bake(p: &mut Project, r: &RetargetResult) {
 pub fn bake_op(p: &Project, r: &RetargetResult) -> Result<Op, String> {
     let mut ops = Vec::new();
     if r.project_frames > p.frames {
-        ops.push(Op::Set {
-            path: "/frames".into(),
-            value: serde_json::json!(r.project_frames),
-        });
+        ops.push(Op::Set { path: "/frames".into(), value: serde_json::json!(r.project_frames) });
     }
     for c in &r.channels {
-        ops.push(Op::Insert {
-            path: "/channels/-".into(),
-            value: serde_json::to_value(c).map_err(|e| e.to_string())?,
-        });
+        ops.push(Op::Insert { path: "/channels/-".into(), value: serde_json::to_value(c).map_err(|e| e.to_string())? });
     }
     Ok(Op::Batch { ops })
 }
@@ -2363,13 +1829,7 @@ mod tests {
     }
 
     fn j(name: &str, role: &'static str, off: V3, kids: Vec<J>, end: Option<V3>) -> J {
-        J {
-            name: name.into(),
-            role,
-            off,
-            kids,
-            end,
-        }
+        J { name: name.into(), role, off, kids, end }
     }
 
     /// Names for the 20-joint figure (3 spine joints, clavicles, 4-joint legs).
@@ -2462,132 +1922,52 @@ mod tests {
     /// T-pose figure facing +Z, y up, character-left = +X. Total leg 82, arm 50.
     fn figure(n: &Names) -> J {
         let arm = |s: usize, sg: f64| {
-            j(
-                n.clav[s],
-                if s == 0 { "clavL" } else { "clavR" },
-                [3.0 * sg, 8.0, 0.0],
-                vec![j(
-                    n.uarm[s],
-                    if s == 0 { "uarmL" } else { "uarmR" },
-                    [8.0 * sg, 0.0, 0.0],
-                    vec![j(
-                        n.farm[s],
-                        if s == 0 { "farmL" } else { "farmR" },
-                        [26.0 * sg, 0.0, 0.0],
-                        vec![j(
-                            n.hand[s],
-                            if s == 0 { "handL" } else { "handR" },
-                            [24.0 * sg, 0.0, 0.0],
-                            vec![],
-                            Some([8.0 * sg, 0.0, 0.0]),
-                        )],
-                        None,
-                    )],
-                    None,
-                )],
-                None,
-            )
+            j(n.clav[s], if s == 0 { "clavL" } else { "clavR" }, [3.0 * sg, 8.0, 0.0], vec![
+                j(n.uarm[s], if s == 0 { "uarmL" } else { "uarmR" }, [8.0 * sg, 0.0, 0.0], vec![
+                    j(n.farm[s], if s == 0 { "farmL" } else { "farmR" }, [26.0 * sg, 0.0, 0.0], vec![
+                        j(n.hand[s], if s == 0 { "handL" } else { "handR" }, [24.0 * sg, 0.0, 0.0], vec![], Some([8.0 * sg, 0.0, 0.0])),
+                    ], None),
+                ], None),
+            ], None)
         };
         let leg = |s: usize, sg: f64| {
-            j(
-                n.thigh[s],
-                if s == 0 { "thighL" } else { "thighR" },
-                [8.0 * sg, -4.0, 0.0],
-                vec![j(
-                    n.shin[s],
-                    if s == 0 { "shinL" } else { "shinR" },
-                    [0.0, -42.0, 0.0],
-                    vec![j(
-                        n.foot[s],
-                        if s == 0 { "footL" } else { "footR" },
-                        [0.0, -40.0, 0.0],
-                        vec![j(
-                            n.toe[s],
-                            if s == 0 { "toeL" } else { "toeR" },
-                            [0.0, -6.0, 10.0],
-                            vec![],
-                            Some([0.0, 0.0, 6.0]),
-                        )],
-                        None,
-                    )],
-                    None,
-                )],
-                None,
-            )
+            j(n.thigh[s], if s == 0 { "thighL" } else { "thighR" }, [8.0 * sg, -4.0, 0.0], vec![
+                j(n.shin[s], if s == 0 { "shinL" } else { "shinR" }, [0.0, -42.0, 0.0], vec![
+                    j(n.foot[s], if s == 0 { "footL" } else { "footR" }, [0.0, -40.0, 0.0], vec![
+                        j(n.toe[s], if s == 0 { "toeL" } else { "toeR" }, [0.0, -6.0, 10.0], vec![], Some([0.0, 0.0, 6.0])),
+                    ], None),
+                ], None),
+            ], None)
         };
-        j(
-            n.hips,
-            "hips",
-            [0.0, 0.0, 0.0],
-            vec![
-                j(
-                    n.spine[0],
-                    "sp0",
-                    [0.0, 10.0, 0.0],
-                    vec![j(
-                        n.spine[1],
-                        "sp1",
-                        [0.0, 12.0, 0.0],
-                        vec![j(
-                            n.spine[2],
-                            "sp2",
-                            [0.0, 12.0, 0.0],
-                            vec![
-                                j(
-                                    n.neck,
-                                    "neck",
-                                    [0.0, 12.0, 0.0],
-                                    vec![j(
-                                        n.head,
-                                        "head",
-                                        [0.0, 8.0, 0.0],
-                                        vec![],
-                                        Some([0.0, 12.0, 0.0]),
-                                    )],
-                                    None,
-                                ),
-                                arm(0, 1.0),
-                                arm(1, -1.0),
-                            ],
-                            None,
-                        )],
-                        None,
-                    )],
-                    None,
-                ),
-                leg(0, 1.0),
-                leg(1, -1.0),
-            ],
-            None,
-        )
+        j(n.hips, "hips", [0.0, 0.0, 0.0], vec![
+            j(n.spine[0], "sp0", [0.0, 10.0, 0.0], vec![
+                j(n.spine[1], "sp1", [0.0, 12.0, 0.0], vec![
+                    j(n.spine[2], "sp2", [0.0, 12.0, 0.0], vec![
+                        j(n.neck, "neck", [0.0, 12.0, 0.0], vec![j(n.head, "head", [0.0, 8.0, 0.0], vec![], Some([0.0, 12.0, 0.0]))], None),
+                        arm(0, 1.0),
+                        arm(1, -1.0),
+                    ], None),
+                ], None),
+            ], None),
+            leg(0, 1.0),
+            leg(1, -1.0),
+        ], None)
     }
 
     fn emit(n: &J, depth: usize, root: bool, out: &mut String, eol: &str) {
         let pad = "  ".repeat(depth);
-        out.push_str(&format!(
-            "{pad}{} {}{eol}{pad}{{{eol}",
-            if root { "ROOT" } else { "JOINT" },
-            n.name
-        ));
-        out.push_str(&format!(
-            "{pad}  OFFSET {} {} {}{eol}",
-            n.off[0], n.off[1], n.off[2]
-        ));
+        out.push_str(&format!("{pad}{} {}{eol}{pad}{{{eol}", if root { "ROOT" } else { "JOINT" }, n.name));
+        out.push_str(&format!("{pad}  OFFSET {} {} {}{eol}", n.off[0], n.off[1], n.off[2]));
         if root {
             out.push_str(&format!("{pad}  CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation{eol}"));
         } else {
-            out.push_str(&format!(
-                "{pad}  CHANNELS 3 Zrotation Xrotation Yrotation{eol}"
-            ));
+            out.push_str(&format!("{pad}  CHANNELS 3 Zrotation Xrotation Yrotation{eol}"));
         }
         for k in &n.kids {
             emit(k, depth + 1, false, out, eol);
         }
         if let Some(e) = n.end {
-            out.push_str(&format!(
-                "{pad}  End Site{eol}{pad}  {{{eol}{pad}    OFFSET {} {} {}{eol}{pad}  }}{eol}",
-                e[0], e[1], e[2]
-            ));
+            out.push_str(&format!("{pad}  End Site{eol}{pad}  {{{eol}{pad}    OFFSET {} {} {}{eol}{pad}  }}{eol}", e[0], e[1], e[2]));
         }
         out.push_str(&format!("{pad}}}{eol}"));
     }
@@ -2604,29 +1984,15 @@ mod tests {
 
     /// BVH text of `frames` frames of `dt` seconds; `rot(role, frame)` = (zrot, xrot, yrot) degrees,
     /// `pos(frame)` = hips position.
-    fn make_bvh(
-        n: &Names,
-        frames: usize,
-        dt: f64,
-        rot: &dyn Fn(&str, usize) -> [f64; 3],
-        pos: &dyn Fn(usize) -> V3,
-        eol: &str,
-    ) -> String {
+    fn make_bvh(n: &Names, frames: usize, dt: f64, rot: &dyn Fn(&str, usize) -> [f64; 3], pos: &dyn Fn(usize) -> V3, eol: &str) -> String {
         let fig = figure(n);
         let mut s = format!("HIERARCHY{eol}");
         emit(&fig, 0, true, &mut s, eol);
-        s.push_str(&format!(
-            "MOTION{eol}Frames: {frames}{eol}Frame Time: {dt}{eol}"
-        ));
+        s.push_str(&format!("MOTION{eol}Frames: {frames}{eol}Frame Time: {dt}{eol}"));
         for f in 0..frames {
             let mut r = Vec::new();
             row(&fig, &|role| rot(role, f), pos(f), true, &mut r);
-            s.push_str(
-                &r.iter()
-                    .map(|v| format!("{v}"))
-                    .collect::<Vec<_>>()
-                    .join(" "),
-            );
+            s.push_str(&r.iter().map(|v| format!("{v}")).collect::<Vec<_>>().join(" "));
             s.push_str(eol);
         }
         s
@@ -2686,46 +2052,26 @@ mod tests {
     /// Front-facing 2D rig (stage y down): character-left on +x. `k` scales all lengths.
     fn rig(n: &RigNames, k: f32) -> Project {
         let mut p = Project::new("rig", 800.0, 600.0, 30.0, 40);
-        let b = |name: &str, parent: Option<&str>, len: f32, off: (f32, f32), rest: f32| {
-            Bone::new(name, parent, len * k, Vec2::new(off.0 * k, off.1 * k), rest)
-        };
-        p.bones.push(Bone::new(
-            n.hips,
-            None,
-            15.0 * k,
-            Vec2::new(300.0, 300.0),
-            -90.0,
-        ));
-        p.bones
-            .push(b(n.spine[0], Some(n.hips), 30.0, (15.0, 0.0), 0.0));
-        p.bones
-            .push(b(n.spine[1], Some(n.spine[0]), 30.0, (30.0, 0.0), 0.0));
-        p.bones
-            .push(b(n.neck, Some(n.spine[1]), 10.0, (30.0, 0.0), 0.0));
-        p.bones
-            .push(b(n.head, Some(n.neck), 25.0, (10.0, 0.0), 0.0));
+        let b = |name: &str, parent: Option<&str>, len: f32, off: (f32, f32), rest: f32| Bone::new(name, parent, len * k, Vec2::new(off.0 * k, off.1 * k), rest);
+        p.bones.push(Bone::new(n.hips, None, 15.0 * k, Vec2::new(300.0, 300.0), -90.0));
+        p.bones.push(b(n.spine[0], Some(n.hips), 30.0, (15.0, 0.0), 0.0));
+        p.bones.push(b(n.spine[1], Some(n.spine[0]), 30.0, (30.0, 0.0), 0.0));
+        p.bones.push(b(n.neck, Some(n.spine[1]), 10.0, (30.0, 0.0), 0.0));
+        p.bones.push(b(n.head, Some(n.neck), 25.0, (10.0, 0.0), 0.0));
         for (s, sg) in [(0usize, 1.0f32), (1, -1.0)] {
-            p.bones
-                .push(b(n.clav[s], Some(n.spine[1]), 15.0, (25.0, 0.0), 90.0 * sg));
+            p.bones.push(b(n.clav[s], Some(n.spine[1]), 15.0, (25.0, 0.0), 90.0 * sg));
             let cl = p.bones.len() - 1;
             // left clavicle points to +x (world 0): local +90 under a -90 parent; right: world 180 -> local -90
             p.bones[cl].rest_angle = 90.0 * sg;
-            p.bones
-                .push(b(n.uarm[s], Some(n.clav[s]), 40.0, (15.0, 0.0), 0.0));
-            p.bones
-                .push(b(n.farm[s], Some(n.uarm[s]), 35.0, (40.0, 0.0), 0.0));
-            p.bones
-                .push(b(n.hand[s], Some(n.farm[s]), 15.0, (35.0, 0.0), 0.0));
+            p.bones.push(b(n.uarm[s], Some(n.clav[s]), 40.0, (15.0, 0.0), 0.0));
+            p.bones.push(b(n.farm[s], Some(n.uarm[s]), 35.0, (40.0, 0.0), 0.0));
+            p.bones.push(b(n.hand[s], Some(n.farm[s]), 15.0, (35.0, 0.0), 0.0));
         }
         for (s, sg) in [(0usize, 1.0f32), (1, -1.0)] {
-            p.bones
-                .push(b(n.thigh[s], Some(n.hips), 45.0, (0.0, 8.0 * sg), 180.0));
-            p.bones
-                .push(b(n.shin[s], Some(n.thigh[s]), 40.0, (45.0, 0.0), 0.0));
-            p.bones
-                .push(b(n.foot[s], Some(n.shin[s]), 8.0, (40.0, 0.0), 0.0));
-            p.bones
-                .push(b(n.toe[s], Some(n.foot[s]), 10.0, (8.0, 0.0), -90.0));
+            p.bones.push(b(n.thigh[s], Some(n.hips), 45.0, (0.0, 8.0 * sg), 180.0));
+            p.bones.push(b(n.shin[s], Some(n.thigh[s]), 40.0, (45.0, 0.0), 0.0));
+            p.bones.push(b(n.foot[s], Some(n.shin[s]), 8.0, (40.0, 0.0), 0.0));
+            p.bones.push(b(n.toe[s], Some(n.foot[s]), 10.0, (8.0, 0.0), -90.0));
         }
         p
     }
@@ -2740,29 +2086,18 @@ mod tests {
     }
 
     fn bone_idx(p: &Project, n: &str) -> usize {
-        p.bones
-            .iter()
-            .position(|b| b.name == n)
-            .unwrap_or_else(|| panic!("no bone {n}"))
+        p.bones.iter().position(|b| b.name == n).unwrap_or_else(|| panic!("no bone {n}"))
     }
 
     fn pair<'a>(m: &'a MatchResult, bvh: &str, rig: &str) -> &'a BoneMatch {
-        m.matches
-            .iter()
-            .find(|x| x.bvh_name == bvh)
-            .unwrap_or_else(|| panic!("{bvh} unmatched\n{}", format_table(m)))
-            .clone_ref(rig)
+        m.matches.iter().find(|x| x.bvh_name == bvh).unwrap_or_else(|| panic!("{bvh} unmatched\n{}", format_table(m))).clone_ref(rig)
     }
     trait CloneRef {
         fn clone_ref(&self, rig: &str) -> &Self;
     }
     impl CloneRef for BoneMatch {
         fn clone_ref(&self, rig: &str) -> &Self {
-            assert_eq!(
-                self.rig_name, rig,
-                "{} matched to {} (slot {})",
-                self.bvh_name, self.rig_name, self.slot
-            );
+            assert_eq!(self.rig_name, rig, "{} matched to {} (slot {})", self.bvh_name, self.rig_name, self.slot);
             self
         }
     }
@@ -2777,15 +2112,9 @@ mod tests {
         assert_eq!(b.num_channels, 6 + 21 * 3);
         assert!((b.fps() - 25.0).abs() < 1e-9);
         assert_eq!(b.joints[0].parent, None);
-        assert_eq!(
-            b.joints[b.joint_index("LeftHand").unwrap()].end_site,
-            Some([8.0, 0.0, 0.0])
-        );
+        assert_eq!(b.joints[b.joint_index("LeftHand").unwrap()].end_site, Some([8.0, 0.0, 0.0]));
         let s = b.summary();
-        assert!(
-            s.contains("22 joints") && s.contains("LeftForeArm") && s.contains("25.000 fps"),
-            "{s}"
-        );
+        assert!(s.contains("22 joints") && s.contains("LeftForeArm") && s.contains("25.000 fps"), "{s}");
     }
 
     #[test]
@@ -2796,11 +2125,7 @@ mod tests {
         assert_eq!(b.frames, 2);
         assert_eq!(b.data, vec![1.0, 2.0, 3.0, 90.0, 4.0, 5.0, 6.0, 0.0]);
         // glued label forms and a BOM
-        let src2 = format!(
-            "\u{feff}{}",
-            src.replace("Frames:\t2", "Frames:2")
-                .replace("Frame Time:\t0.5", "Frame Time :0.5")
-        );
+        let src2 = format!("\u{feff}{}", src.replace("Frames:\t2", "Frames:2").replace("Frame Time:\t0.5", "Frame Time :0.5"));
         assert_eq!(parse_bvh(&src2).unwrap().frames, 2);
     }
 
@@ -2812,17 +2137,11 @@ mod tests {
         // Rx * Ry applied to (1,0,0): Ry first -> (0,0,-1), then Rx(90) -> (0,1,0)
         let a = parse_bvh(&mk("Xrotation Yrotation")).unwrap().pose(Some(0));
         let q = a.pos[1];
-        assert!(
-            (q[0]).abs() < 1e-12 && (q[1] - 1.0).abs() < 1e-12 && (q[2]).abs() < 1e-12,
-            "{q:?}"
-        );
+        assert!((q[0]).abs() < 1e-12 && (q[1] - 1.0).abs() < 1e-12 && (q[2]).abs() < 1e-12, "{q:?}");
         // Ry * Rx: Rx leaves (1,0,0), Ry(90) sends it to (0,0,-1)
         let b = parse_bvh(&mk("Yrotation Xrotation")).unwrap().pose(Some(0));
         let q = b.pos[1];
-        assert!(
-            (q[0]).abs() < 1e-12 && (q[1]).abs() < 1e-12 && (q[2] + 1.0).abs() < 1e-12,
-            "{q:?}"
-        );
+        assert!((q[0]).abs() < 1e-12 && (q[1]).abs() < 1e-12 && (q[2] + 1.0).abs() < 1e-12, "{q:?}");
         // End Site follows the same transform: B is at (0,1,0), the end site adds Rx*Ry*(1,0,0)
         let e = a.end[1].unwrap();
         assert!((e[1] - 2.0).abs() < 1e-12, "{e:?}");
@@ -2830,11 +2149,7 @@ mod tests {
         let c = parse_bvh("HIERARCHY\nROOT A\n{\nOFFSET 0 0 0\nCHANNELS 4 Zrotation Xposition Zrotation Yposition\nJOINT B\n{\nOFFSET 1 0 0\nCHANNELS 0\nEnd Site\n{\nOFFSET 1 0 0\n}\n}\n}\nMOTION\nFrames: 1\nFrame Time: 1\n90 2 -90 5\n").unwrap().pose(Some(0));
         // M = Rz(90) T(2,0,0) Rz(-90) T(0,5,0); child at M*(1,0,0) = Rz(90)(T(2,0,0)(Rz(-90)(1,5,0)))
         // Rz(-90)(1,5,0) = (5,-1,0); +2 -> (7,-1,0); Rz(90) -> (1,7,0)
-        assert!(
-            (c.pos[1][0] - 1.0).abs() < 1e-12 && (c.pos[1][1] - 7.0).abs() < 1e-12,
-            "{:?}",
-            c.pos[1]
-        );
+        assert!((c.pos[1][0] - 1.0).abs() < 1e-12 && (c.pos[1][1] - 7.0).abs() < 1e-12, "{:?}", c.pos[1]);
     }
 
     #[test]
@@ -2859,24 +2174,15 @@ mod tests {
         // bad number in the data
         let bad = good.replacen("0 100 0", "0 abc 0", 1);
         let e = parse_bvh(&bad).unwrap_err();
-        assert!(
-            e.starts_with(&format!("line {}:", last - 1)) && e.contains("abc"),
-            "{e}"
-        );
+        assert!(e.starts_with(&format!("line {}:", last - 1)) && e.contains("abc"), "{e}");
         // short data
         let mut l2 = lines.clone();
         l2.pop();
         let e = parse_bvh(&l2.join("\n")).unwrap_err();
-        assert!(
-            e.contains("expected") && e.starts_with(&format!("line {}:", last - 1)),
-            "{e}"
-        );
+        assert!(e.contains("expected") && e.starts_with(&format!("line {}:", last - 1)), "{e}");
         // extra data
         let e = parse_bvh(&format!("{good}1 2 3\n")).unwrap_err();
-        assert!(
-            e.contains("extra data") && e.starts_with(&format!("line {}:", last + 1)),
-            "{e}"
-        );
+        assert!(e.contains("extra data") && e.starts_with(&format!("line {}:", last + 1)), "{e}");
         // missing closing brace -> end of file
         let e = parse_bvh("HIERARCHY\nROOT A\n{\nOFFSET 0 0 0\nCHANNELS 0\n").unwrap_err();
         assert!(e.starts_with("line 5:") && e.contains("end of file"), "{e}");
@@ -2884,21 +2190,13 @@ mod tests {
         let e = parse_bvh("HIERARCHY\nROOT A\n{\nOFFSET 0 0 0\nBANANA\n}\n").unwrap_err();
         assert!(e.starts_with("line 5:") && e.contains("BANANA"), "{e}");
         // missing OFFSET, bad frame time, no HIERARCHY, empty, zero channels count text
-        assert!(parse_bvh(
-            "HIERARCHY\nROOT A\n{\nCHANNELS 0\n}\nMOTION\nFrames: 0\nFrame Time: 1\n"
-        )
-        .unwrap_err()
-        .contains("no OFFSET"));
+        assert!(parse_bvh("HIERARCHY\nROOT A\n{\nCHANNELS 0\n}\nMOTION\nFrames: 0\nFrame Time: 1\n").unwrap_err().contains("no OFFSET"));
         let e = parse_bvh(&good.replace("Frame Time: 0.04", "Frame Time: 0")).unwrap_err();
         assert!(e.contains("frame time must be positive"), "{e}");
         assert!(parse_bvh("MOTION\n").unwrap_err().starts_with("line 1:"));
         assert!(parse_bvh("   \n").is_err());
-        assert!(parse_bvh("HIERARCHY\nROOT A\n{\nOFFSET 0 0 nan\n")
-            .unwrap_err()
-            .contains("finite"));
-        assert!(parse_bvh("HIERARCHY\nROOT\n{\n")
-            .unwrap_err()
-            .contains("no name"));
+        assert!(parse_bvh("HIERARCHY\nROOT A\n{\nOFFSET 0 0 nan\n").unwrap_err().contains("finite"));
+        assert!(parse_bvh("HIERARCHY\nROOT\n{\n").unwrap_err().contains("no name"));
         // absurd frame counts never allocate
         let e = parse_bvh(&good.replace("Frames: 2", "Frames: 99999999999")).unwrap_err();
         assert!(e.contains("exceeds"), "{e}");
@@ -2919,13 +2217,7 @@ mod tests {
     #[test]
     fn projected_angles_match_known_rotations() {
         // left upper arm rolled about Z by +40 degrees: points up-right, which is -40 on screen
-        let rot = |role: &str, f: usize| {
-            if role == "uarmL" {
-                [-(f as f64) * 10.0, 0.0, 0.0]
-            } else {
-                [0.0; 3]
-            }
-        };
+        let rot = |role: &str, f: usize| if role == "uarmL" { [-(f as f64) * 10.0, 0.0, 0.0] } else { [0.0; 3] };
         let b = parse_bvh(&make_bvh(&MIXAMO, 5, 0.04, &rot, &at_origin, "\n")).unwrap();
         let pr = project_motion(&b, View::Front);
         let ia = b.joint_index("LeftArm").unwrap();
@@ -2946,8 +2238,7 @@ mod tests {
             _ => [0.0; 3],
         };
         let b2 = parse_bvh(&make_bvh(&MIXAMO, 1, 0.04, &rot2, &at_origin, "\n")).unwrap();
-        let a =
-            project_motion(&b2, View::Front).angles[0][b2.joint_index("LeftArm").unwrap()].unwrap();
+        let a = project_motion(&b2, View::Front).angles[0][b2.joint_index("LeftArm").unwrap()].unwrap();
         assert!((a + 20.0).abs() < 1e-9, "{a}");
     }
 
@@ -3079,17 +2370,7 @@ mod tests {
         // both sides anonymous
         let b2 = parse_bvh(&make_bvh(&ANON, 1, 0.04, &still, &at_origin, "\n")).unwrap();
         let m2 = match_bones(&b2, &rig(&RIG_ANON, 1.0), None).unwrap();
-        for (a, r) in [
-            ("j07", "b06"),
-            ("j11", "b10"),
-            ("j14", "b13"),
-            ("j18", "b17"),
-            ("j09", "b08"),
-            ("j05", "b04"),
-            ("j00", "b00"),
-            ("j20", "b19"),
-            ("j06", "b05"),
-        ] {
+        for (a, r) in [("j07", "b06"), ("j11", "b10"), ("j14", "b13"), ("j18", "b17"), ("j09", "b08"), ("j05", "b04"), ("j00", "b00"), ("j20", "b19"), ("j06", "b05")] {
             pair(&m2, a, r);
         }
     }
@@ -3101,29 +2382,14 @@ mod tests {
         let m0 = match_bones(&b, &p, None).unwrap();
         let ua = m0.matches.iter().find(|x| x.slot == "upperarm.l").unwrap();
         let base = ua.confidence;
-        assert!(
-            (ua.length_ratio.unwrap() - 40.0 / 26.0).abs() < 1e-6,
-            "{:?}",
-            ua.length_ratio
-        );
+        assert!((ua.length_ratio.unwrap() - 40.0 / 26.0).abs() < 1e-6, "{:?}", ua.length_ratio);
         // make one forearm absurdly long
         let i = bone_idx(&p, "forearm.L");
         p.bones[i].length = 900.0;
         let m1 = match_bones(&b, &p, None).unwrap();
         let fa = m1.matches.iter().find(|x| x.slot == "forearm.l").unwrap();
-        assert!(
-            fa.confidence < 0.6 && fa.note.contains("off the median"),
-            "{:?}",
-            fa
-        );
-        assert_eq!(
-            m1.matches
-                .iter()
-                .find(|x| x.slot == "upperarm.l")
-                .unwrap()
-                .confidence,
-            base
-        );
+        assert!(fa.confidence < 0.6 && fa.note.contains("off the median"), "{:?}", fa);
+        assert_eq!(m1.matches.iter().find(|x| x.slot == "upperarm.l").unwrap().confidence, base);
         let t = format_table(&m1);
         assert!(t.contains("forearm.l") && t.contains("unmatched BVH joints"));
     }
@@ -3133,49 +2399,20 @@ mod tests {
         let b = parse_bvh(&make_bvh(&MIXAMO, 1, 0.04, &still, &at_origin, "\n")).unwrap();
         let p = rig(&BLENDER, 1.0);
         // swap the two upper arms and drop the left hand
-        let map =
-            parse_map(r#"{"LeftArm": "upper_arm.R", "RightArm": "upper_arm.L", "LeftHand": null}"#)
-                .unwrap();
+        let map = parse_map(r#"{"LeftArm": "upper_arm.R", "RightArm": "upper_arm.L", "LeftHand": null}"#).unwrap();
         let m = match_bones(&b, &p, Some(&map)).unwrap();
         let la = m.matches.iter().find(|x| x.bvh_name == "LeftArm").unwrap();
-        assert_eq!(
-            (la.rig_name.as_str(), la.via, la.confidence),
-            ("upper_arm.R", "manual", 1.0)
-        );
+        assert_eq!((la.rig_name.as_str(), la.via, la.confidence), ("upper_arm.R", "manual", 1.0));
         assert!(m.matches.iter().all(|x| x.bvh_name != "LeftHand"));
         assert!(m.matches.iter().any(|x| x.bvh_name == "RightHand"));
-        assert!(
-            m.matches
-                .iter()
-                .filter(|x| x.rig_name == "upper_arm.R")
-                .count()
-                == 1
-        );
+        assert!(m.matches.iter().filter(|x| x.rig_name == "upper_arm.R").count() == 1);
         // wrapped form
         assert_eq!(parse_map(r#"{"map": {"A": "b"}}"#).unwrap().len(), 1);
         // errors
-        assert!(
-            match_bones(&b, &p, Some(&parse_map(r#"{"Nope": "spine"}"#).unwrap()))
-                .unwrap_err()
-                .contains("no BVH joint 'Nope'")
-        );
-        assert!(
-            match_bones(&b, &p, Some(&parse_map(r#"{"Hips": "nope"}"#).unwrap()))
-                .unwrap_err()
-                .contains("no rig bone 'nope'")
-        );
-        assert!(match_bones(
-            &b,
-            &p,
-            Some(&parse_map(r#"{"Hips": "spine", "Spine": "spine"}"#).unwrap())
-        )
-        .unwrap_err()
-        .contains("both"));
-        assert!(
-            parse_map("[1]").is_err()
-                && parse_map(r#"{"A": 3}"#).is_err()
-                && parse_map("{").is_err()
-        );
+        assert!(match_bones(&b, &p, Some(&parse_map(r#"{"Nope": "spine"}"#).unwrap())).unwrap_err().contains("no BVH joint 'Nope'"));
+        assert!(match_bones(&b, &p, Some(&parse_map(r#"{"Hips": "nope"}"#).unwrap())).unwrap_err().contains("no rig bone 'nope'"));
+        assert!(match_bones(&b, &p, Some(&parse_map(r#"{"Hips": "spine", "Spine": "spine"}"#).unwrap())).unwrap_err().contains("both"));
+        assert!(parse_map("[1]").is_err() && parse_map(r#"{"A": 3}"#).is_err() && parse_map("{").is_err());
         assert!(match_bones(&b, &Project::new("e", 10.0, 10.0, 24.0, 5), None).is_err());
     }
 
@@ -3200,67 +2437,25 @@ mod tests {
 
     #[test]
     fn manual_hips_map_keeps_the_hips_slot_and_root_motion() {
-        let b = parse_bvh(&make_bvh(
-            &MIXAMO,
-            40,
-            1.0 / 30.0,
-            &walk_rot,
-            &walk_pos,
-            "\n",
-        ))
-        .unwrap();
-        let names = RigNames {
-            hips: "zz_root",
-            ..BLENDER
-        };
+        let b = parse_bvh(&make_bvh(&MIXAMO, 40, 1.0 / 30.0, &walk_rot, &walk_pos, "\n")).unwrap();
+        let names = RigNames { hips: "zz_root", ..BLENDER };
         let mut p = rig(&names, 1.0);
         p.frames = 40;
         let map = parse_map(r#"{"Hips":"zz_root"}"#).unwrap();
         let m = match_bones(&b, &p, Some(&map)).unwrap();
-        assert!(
-            m.matches
-                .iter()
-                .any(|x| x.slot == "hips" && x.rig_name == "zz_root"),
-            "{:?}",
-            m.matches
-                .iter()
-                .map(|x| (&x.slot, &x.rig_name))
-                .collect::<Vec<_>>()
-        );
-        assert!(
-            !m.warnings.iter().any(|w| w.contains("no hips match")),
-            "{:?}",
-            m.warnings
-        );
+        assert!(m.matches.iter().any(|x| x.slot == "hips" && x.rig_name == "zz_root"), "{:?}", m.matches.iter().map(|x| (&x.slot, &x.rig_name)).collect::<Vec<_>>());
+        assert!(!m.warnings.iter().any(|w| w.contains("no hips match")), "{:?}", m.warnings);
         let r = retarget(&p, &b, &m, &RetargetOptions::default()).unwrap();
         let root = bone_idx(&p, "zz_root");
-        let chans: Vec<_> = r
-            .channels
-            .iter()
-            .filter(|c| c.target == "zz_root")
-            .collect();
-        assert!(
-            chans.iter().any(|c| matches!(c.prop, Prop::BoneOffsetX)),
-            "no root travel"
-        );
-        assert!(
-            chans.iter().any(|c| matches!(c.prop, Prop::BoneOffsetY)),
-            "no root bob"
-        );
+        let chans: Vec<_> = r.channels.iter().filter(|c| c.target == "zz_root").collect();
+        assert!(chans.iter().any(|c| matches!(c.prop, Prop::BoneOffsetX)), "no root travel");
+        assert!(chans.iter().any(|c| matches!(c.prop, Prop::BoneOffsetY)), "no root bob");
         let _ = root;
     }
 
     #[test]
     fn retarget_front_view_reproduces_bvh_angles_and_root_motion() {
-        let b = parse_bvh(&make_bvh(
-            &MIXAMO,
-            40,
-            1.0 / 30.0,
-            &walk_rot,
-            &walk_pos,
-            "\n",
-        ))
-        .unwrap();
+        let b = parse_bvh(&make_bvh(&MIXAMO, 40, 1.0 / 30.0, &walk_rot, &walk_pos, "\n")).unwrap();
         let mut p = rig(&BLENDER, 1.0);
         p.frames = 40;
         let m = match_bones(&b, &p, None).unwrap();
@@ -3272,22 +2467,9 @@ mod tests {
         let e = Engine::new(q.clone()).unwrap();
         // expected world angle = rig rest world angle + 2D rest-relative angle, computed from 3D
         let proj = project_motion(&b, View::Front);
-        let rest = project_motion(
-            &parse_bvh(&make_bvh(&MIXAMO, 1, 1.0 / 30.0, &still, &at_origin, "\n")).unwrap(),
-            View::Front,
-        );
+        let rest = project_motion(&parse_bvh(&make_bvh(&MIXAMO, 1, 1.0 / 30.0, &still, &at_origin, "\n")).unwrap(), View::Front);
         let rw = crate::rigedit::rest_world(&p).unwrap();
-        for (bj, rb) in [
-            ("LeftArm", "upper_arm.L"),
-            ("LeftForeArm", "forearm.L"),
-            ("RightArm", "upper_arm.R"),
-            ("Head", "head"),
-            ("Spine", "spine"),
-            ("Hips", "pelvis"),
-            ("LeftUpLeg", "thigh.L"),
-            ("RightLeg", "shin.R"),
-            ("LeftFoot", "foot.L"),
-        ] {
+        for (bj, rb) in [("LeftArm", "upper_arm.L"), ("LeftForeArm", "forearm.L"), ("RightArm", "upper_arm.R"), ("Head", "head"), ("Spine", "spine"), ("Hips", "pelvis"), ("LeftUpLeg", "thigh.L"), ("RightLeg", "shin.R"), ("LeftFoot", "foot.L")] {
             let (ji, ri) = (b.joint_index(bj).unwrap(), bone_idx(&p, rb));
             // the hips/spine tips differ from the default tip only for hips (default: longest child)
             for f in [0usize, 7, 19, 39] {
@@ -3297,18 +2479,12 @@ mod tests {
                         let si = b.joint_index("Spine").unwrap();
                         let pose = b.pose(Some(f));
                         let rp = b.pose(None);
-                        norm360(
-                            angle_2d(pose.pos[0], pose.pos[si], View::Front, false).unwrap()
-                                - angle_2d(rp.pos[0], rp.pos[si], View::Front, false).unwrap(),
-                        )
+                        norm360(angle_2d(pose.pos[0], pose.pos[si], View::Front, false).unwrap() - angle_2d(rp.pos[0], rp.pos[si], View::Front, false).unwrap())
                     }
                     _ => norm360(proj.angles[f][ji].unwrap() - rest.angles[0][ji].unwrap()),
                 };
                 let got = world_angle(&e, f as f32, ri) - rw[ri].1 as f64;
-                assert!(
-                    ang_diff(got, want) < 0.02,
-                    "{bj} frame {f}: got {got} want {want}"
-                );
+                assert!(ang_diff(got, want) < 0.02, "{bj} frame {f}: got {got} want {want}");
             }
         }
         // root travel: +x moves right by scale*dx, bob up is smaller y
@@ -3316,18 +2492,10 @@ mod tests {
         let w0 = e.evaluate(0.0).world[hb];
         let w30 = e.evaluate(30.0).world[hb];
         let dx = 2.0 * 30.0 * r.scale;
-        assert!(
-            ((w30.tx - w0.tx) as f64 - dx).abs() < 0.01,
-            "{} vs {dx}",
-            w30.tx - w0.tx
-        );
+        assert!(((w30.tx - w0.tx) as f64 - dx).abs() < 0.01, "{} vs {dx}", w30.tx - w0.tx);
         let t30: f64 = 30.0 * 0.3;
         let dy = -(3.0 * t30.sin()) * r.scale;
-        assert!(
-            ((w30.ty - w0.ty) as f64 - dy).abs() < 0.01,
-            "{} vs {dy}",
-            w30.ty - w0.ty
-        );
+        assert!(((w30.ty - w0.ty) as f64 - dy).abs() < 0.01, "{} vs {dy}", w30.ty - w0.ty);
         // channels are appended, original data untouched
         assert_eq!(q.channels.len(), p.channels.len() + r.channels.len());
         assert_eq!(&q.bones, &p.bones);
@@ -3335,15 +2503,7 @@ mod tests {
 
     #[test]
     fn different_proportions_retarget_to_same_angles() {
-        let b = parse_bvh(&make_bvh(
-            &MIXAMO,
-            20,
-            1.0 / 30.0,
-            &walk_rot,
-            &walk_pos,
-            "\n",
-        ))
-        .unwrap();
+        let b = parse_bvh(&make_bvh(&MIXAMO, 20, 1.0 / 30.0, &walk_rot, &walk_pos, "\n")).unwrap();
         let mut angles = Vec::new();
         for k in [0.5f32, 1.0, 2.5] {
             let mut p = rig(&BLENDER, k);
@@ -3357,15 +2517,9 @@ mod tests {
             let hb = bone_idx(&p, "pelvis");
             let travel = e.evaluate(19.0).world[hb].tx - e.evaluate(0.0).world[hb].tx;
             let expect = 2.0 * 19.0 * (k as f64 * 85.0 / 82.0);
-            assert!(
-                ((travel as f64) - expect).abs() < 0.05 * expect.max(1.0),
-                "k={k}: {travel} vs {expect}"
-            );
+            assert!(((travel as f64) - expect).abs() < 0.05 * expect.max(1.0), "k={k}: {travel} vs {expect}");
         }
-        assert!(
-            ang_diff(angles[0], angles[1]) < 0.05 && ang_diff(angles[1], angles[2]) < 0.05,
-            "{angles:?}"
-        );
+        assert!(ang_diff(angles[0], angles[1]) < 0.05 && ang_diff(angles[1], angles[2]) < 0.05, "{angles:?}");
     }
 
     #[test]
@@ -3379,47 +2533,25 @@ mod tests {
         let mut p = rig(&BLENDER, 1.0);
         p.frames = 10;
         let m = match_bones(&b, &p, None).unwrap();
-        let o = RetargetOptions {
-            view: View::Side,
-            ..Default::default()
-        };
+        let o = RetargetOptions { view: View::Side, ..Default::default() };
         let r = retarget(&p, &b, &m, &o).unwrap();
         // arms point at the camera in the side view: reported, not a failure
-        assert!(
-            r.degenerate == 0,
-            "arms have a rest angle problem, not frame problem"
-        );
-        assert!(
-            r.notes
-                .iter()
-                .any(|n| n.contains("points along the view axis")),
-            "{:?}",
-            r.notes
-        );
+        assert!(r.degenerate == 0, "arms have a rest angle problem, not frame problem");
+        assert!(r.notes.iter().any(|n| n.contains("points along the view axis")), "{:?}", r.notes);
         bake(&mut p, &r);
         let e = Engine::new(p.clone()).unwrap();
         let (ti, si) = (bone_idx(&p, "thigh.L"), bone_idx(&p, "shin.L"));
         // thigh Delta = +5f (see derivation: side-view angle is 90 + alpha); shin world = thigh + (-3f)
         for f in [0usize, 4, 9] {
             assert!(ang_diff(world_angle(&e, f as f32, ti), 90.0 + 5.0 * f as f64) < 0.02);
-            assert!(
-                ang_diff(world_angle(&e, f as f32, si), 90.0 + 2.0 * f as f64) < 0.02,
-                "{}",
-                world_angle(&e, f as f32, si)
-            );
+            assert!(ang_diff(world_angle(&e, f as f32, si), 90.0 + 2.0 * f as f64) < 0.02, "{}", world_angle(&e, f as f32, si));
         }
     }
 
     #[test]
     fn resamples_to_project_rate_and_extends_project() {
         // 60 fps, 61 frames (1 s): arm sweeps linearly 0 -> -60 deg Z (screen +60)
-        let rot = |role: &str, f: usize| {
-            if role == "uarmL" {
-                [-(f as f64), 0.0, 0.0]
-            } else {
-                [0.0; 3]
-            }
-        };
+        let rot = |role: &str, f: usize| if role == "uarmL" { [-(f as f64), 0.0, 0.0] } else { [0.0; 3] };
         let b = parse_bvh(&make_bvh(&MIXAMO, 61, 1.0 / 60.0, &rot, &at_origin, "\n")).unwrap();
         let mut p = rig(&BLENDER, 1.0);
         p.fps = 24.0;
@@ -3428,74 +2560,37 @@ mod tests {
         let r = retarget(&p, &b, &m, &RetargetOptions::default()).unwrap();
         assert_eq!(r.out_frames, 25);
         assert_eq!(r.project_frames, 25);
-        let ch = r
-            .channels
-            .iter()
-            .find(|c| c.target == "upper_arm.L" && c.prop == Prop::BoneAngle)
-            .unwrap();
-        let crate::project::Source::Keys { track } = &ch.source else {
-            panic!()
-        };
+        let ch = r.channels.iter().find(|c| c.target == "upper_arm.L" && c.prop == Prop::BoneAngle).unwrap();
+        let crate::project::Source::Keys { track } = &ch.source else { panic!() };
         assert_eq!(track.keys.len(), 25);
         for (k, key) in track.keys.iter().enumerate() {
             // world delta = 60 * k/24; upper_arm.L parent chain is at rest so local delta = same
-            assert!(
-                (key.value as f64 - 60.0 * k as f64 / 24.0).abs() < 1e-3,
-                "{k}: {}",
-                key.value
-            );
+            assert!((key.value as f64 - 60.0 * k as f64 / 24.0).abs() < 1e-3, "{k}: {}", key.value);
             assert_eq!(key.frame, k as f32);
         }
         let mut q = p.clone();
         bake(&mut q, &r);
         assert_eq!(q.frames, 25);
         // explicit fps and sub-range
-        let o = RetargetOptions {
-            fps: Some(10.0),
-            start: Some(12),
-            end: Some(42),
-            ..Default::default()
-        };
+        let o = RetargetOptions { fps: Some(10.0), start: Some(12), end: Some(42), ..Default::default() };
         let r2 = retarget(&p, &b, &m, &o).unwrap();
         assert_eq!(r2.out_frames, 6); // 30 source intervals of 1/60 s = 0.5 s -> 0..0.5 s at 10 fps
     }
 
     #[test]
     fn smoothing_damps_jitter_and_keeps_endpoints() {
-        let rot = |role: &str, f: usize| {
-            if role == "uarmL" {
-                [if f.is_multiple_of(2) { 0.0 } else { -20.0 }, 0.0, 0.0]
-            } else {
-                [0.0; 3]
-            }
-        };
+        let rot = |role: &str, f: usize| if role == "uarmL" { [if f.is_multiple_of(2) { 0.0 } else { -20.0 }, 0.0, 0.0] } else { [0.0; 3] };
         let b = parse_bvh(&make_bvh(&MIXAMO, 21, 1.0 / 30.0, &rot, &at_origin, "\n")).unwrap();
         let mut p = rig(&BLENDER, 1.0);
         p.frames = 21;
         let m = match_bones(&b, &p, None).unwrap();
         let var = |smooth: usize| {
-            let o = RetargetOptions {
-                smooth,
-                ..Default::default()
-            };
+            let o = RetargetOptions { smooth, ..Default::default() };
             let r = retarget(&p, &b, &m, &o).unwrap();
-            let ch = r
-                .channels
-                .iter()
-                .find(|c| c.target == "upper_arm.L" && c.prop == Prop::BoneAngle)
-                .unwrap();
-            let crate::project::Source::Keys { track } = &ch.source else {
-                panic!()
-            };
+            let ch = r.channels.iter().find(|c| c.target == "upper_arm.L" && c.prop == Prop::BoneAngle).unwrap();
+            let crate::project::Source::Keys { track } = &ch.source else { panic!() };
             let v: Vec<f32> = track.keys.iter().map(|k| k.value).collect();
-            (
-                v[0],
-                v[20],
-                v[1..20]
-                    .iter()
-                    .map(|x| (x - 10.0).abs())
-                    .fold(0.0, f32::max),
-            )
+            (v[0], v[20], v[1..20].iter().map(|x| (x - 10.0).abs()).fold(0.0, f32::max))
         };
         let (a0, a20, j0) = var(0);
         let (b0, b20, j1) = var(1);
@@ -3505,37 +2600,17 @@ mod tests {
 
     #[test]
     fn deterministic_and_locks_respected() {
-        let b = parse_bvh(&make_bvh(
-            &MIXAMO,
-            30,
-            1.0 / 30.0,
-            &walk_rot,
-            &walk_pos,
-            "\n",
-        ))
-        .unwrap();
+        let b = parse_bvh(&make_bvh(&MIXAMO, 30, 1.0 / 30.0, &walk_rot, &walk_pos, "\n")).unwrap();
         let mut p = rig(&BLENDER, 1.0);
         let m1 = match_bones(&b, &p, None).unwrap();
         let m2 = match_bones(&b, &p, None).unwrap();
         assert_eq!(format_table(&m1), format_table(&m2));
         let r1 = retarget(&p, &b, &m1, &RetargetOptions::default()).unwrap();
         let r2 = retarget(&p, &b, &m2, &RetargetOptions::default()).unwrap();
-        assert_eq!(
-            serde_json::to_string(&r1.channels).unwrap(),
-            serde_json::to_string(&r2.channels).unwrap()
-        );
+        assert_eq!(serde_json::to_string(&r1.channels).unwrap(), serde_json::to_string(&r2.channels).unwrap());
         // lock one channel
-        p.channels.push(Channel::keys(
-            "upper_arm.L",
-            Prop::BoneAngle,
-            Track::with_keys(&[(0.0, 5.0, Ease::Linear)]),
-        ));
-        p.channel_meta.push(crate::chanmeta::ChannelMeta {
-            target: "upper_arm.L".into(),
-            prop: Some(Prop::BoneAngle),
-            lock: true,
-            ..Default::default()
-        });
+        p.channels.push(Channel::keys("upper_arm.L", Prop::BoneAngle, Track::with_keys(&[(0.0, 5.0, Ease::Linear)])));
+        p.channel_meta.push(crate::chanmeta::ChannelMeta { target: "upper_arm.L".into(), prop: Some(Prop::BoneAngle), lock: true, ..Default::default() });
         let r = retarget(&p, &b, &m1, &RetargetOptions::default()).unwrap();
         assert_eq!(r.blocked, vec!["upper_arm.L.BoneAngle".to_string()]);
         assert!(!r.channels.iter().any(|c| c.target == "upper_arm.L"));
@@ -3545,15 +2620,7 @@ mod tests {
 
     #[test]
     fn editor_undo_removes_the_whole_retarget() {
-        let b = parse_bvh(&make_bvh(
-            &MIXAMO,
-            50,
-            1.0 / 30.0,
-            &walk_rot,
-            &walk_pos,
-            "\n",
-        ))
-        .unwrap();
+        let b = parse_bvh(&make_bvh(&MIXAMO, 50, 1.0 / 30.0, &walk_rot, &walk_pos, "\n")).unwrap();
         let mut p = rig(&BLENDER, 1.0);
         p.frames = 20;
         let m = match_bones(&b, &p, None).unwrap();
@@ -3574,224 +2641,87 @@ mod tests {
 
     #[test]
     fn options_flags_and_validation() {
-        let b = parse_bvh(&make_bvh(
-            &MIXAMO,
-            10,
-            1.0 / 30.0,
-            &walk_rot,
-            &walk_pos,
-            "\n",
-        ))
-        .unwrap();
+        let b = parse_bvh(&make_bvh(&MIXAMO, 10, 1.0 / 30.0, &walk_rot, &walk_pos, "\n")).unwrap();
         let p = rig(&BLENDER, 1.0);
         let m = match_bones(&b, &p, None).unwrap();
-        let has = |r: &RetargetResult, t: &str, pr: Prop| {
-            r.channels.iter().any(|c| c.target == t && c.prop == pr)
-        };
+        let has = |r: &RetargetResult, t: &str, pr: Prop| r.channels.iter().any(|c| c.target == t && c.prop == pr);
         let base = retarget(&p, &b, &m, &RetargetOptions::default()).unwrap();
         assert!(has(&base, "pelvis", Prop::BoneOffsetX) && has(&base, "pelvis", Prop::BoneOffsetY));
-        let nr = retarget(
-            &p,
-            &b,
-            &m,
-            &RetargetOptions {
-                root_motion: false,
-                ..Default::default()
-            },
-        )
-        .unwrap();
+        let nr = retarget(&p, &b, &m, &RetargetOptions { root_motion: false, ..Default::default() }).unwrap();
         assert!(!has(&nr, "pelvis", Prop::BoneOffsetX));
         // in place: x travel zero, bob kept
-        let ip = retarget(
-            &p,
-            &b,
-            &m,
-            &RetargetOptions {
-                in_place: true,
-                ..Default::default()
-            },
-        )
-        .unwrap();
+        let ip = retarget(&p, &b, &m, &RetargetOptions { in_place: true, ..Default::default() }).unwrap();
         let get = |r: &RetargetResult, pr: Prop| {
-            let c = r
-                .channels
-                .iter()
-                .find(|c| c.target == "pelvis" && c.prop == pr)
-                .unwrap();
-            let crate::project::Source::Keys { track } = &c.source else {
-                panic!()
-            };
+            let c = r.channels.iter().find(|c| c.target == "pelvis" && c.prop == pr).unwrap();
+            let crate::project::Source::Keys { track } = &c.source else { panic!() };
             track.keys.iter().map(|k| k.value).collect::<Vec<f32>>()
         };
         assert!(get(&ip, Prop::BoneOffsetX).iter().all(|v| *v == 0.0));
         assert_eq!(get(&ip, Prop::BoneOffsetY), get(&base, Prop::BoneOffsetY));
         // fixed scale and weight
-        let fx = retarget(
-            &p,
-            &b,
-            &m,
-            &RetargetOptions {
-                scale: Scale::Fixed(2.0),
-                weight: 0.5,
-                ..Default::default()
-            },
-        )
-        .unwrap();
+        let fx = retarget(&p, &b, &m, &RetargetOptions { scale: Scale::Fixed(2.0), weight: 0.5, ..Default::default() }).unwrap();
         assert_eq!(fx.scale, 2.0);
         assert!(fx.channels.iter().all(|c| c.weight == 0.5));
         let x9 = get(&base, Prop::BoneOffsetX)[9];
         assert!((get(&fx, Prop::BoneOffsetX)[9] - x9 * 2.0 / base.scale as f32).abs() < 1e-3);
         // mirror flips the sign of root travel and of angle deltas
-        let mi = retarget(
-            &p,
-            &b,
-            &m,
-            &RetargetOptions {
-                mirror: true,
-                ..Default::default()
-            },
-        )
-        .unwrap();
+        let mi = retarget(&p, &b, &m, &RetargetOptions { mirror: true, ..Default::default() }).unwrap();
         assert!((get(&mi, Prop::BoneOffsetX)[9] + x9).abs() < 1e-3);
         // min confidence filters
-        let hi = retarget(
-            &p,
-            &b,
-            &m,
-            &RetargetOptions {
-                min_confidence: 0.99,
-                ..Default::default()
-            },
-        )
-        .unwrap();
+        let hi = retarget(&p, &b, &m, &RetargetOptions { min_confidence: 0.99, ..Default::default() }).unwrap();
         assert!(hi.bones_used < base.bones_used);
-        assert!(retarget(
-            &p,
-            &b,
-            &m,
-            &RetargetOptions {
-                min_confidence: 2.0,
-                ..Default::default()
-            }
-        )
-        .is_err());
+        assert!(retarget(&p, &b, &m, &RetargetOptions { min_confidence: 2.0, ..Default::default() }).is_err());
         // errors
         for o in [
-            RetargetOptions {
-                start: Some(5),
-                end: Some(2),
-                ..Default::default()
-            },
-            RetargetOptions {
-                end: Some(99),
-                ..Default::default()
-            },
-            RetargetOptions {
-                fps: Some(0.0),
-                ..Default::default()
-            },
-            RetargetOptions {
-                fps: Some(f64::NAN),
-                ..Default::default()
-            },
-            RetargetOptions {
-                scale: Scale::Fixed(-1.0),
-                ..Default::default()
-            },
-            RetargetOptions {
-                weight: 2.0,
-                ..Default::default()
-            },
-            RetargetOptions {
-                rest_frame: Some(50),
-                ..Default::default()
-            },
-            RetargetOptions {
-                smooth: 5000,
-                ..Default::default()
-            },
+            RetargetOptions { start: Some(5), end: Some(2), ..Default::default() },
+            RetargetOptions { end: Some(99), ..Default::default() },
+            RetargetOptions { fps: Some(0.0), ..Default::default() },
+            RetargetOptions { fps: Some(f64::NAN), ..Default::default() },
+            RetargetOptions { scale: Scale::Fixed(-1.0), ..Default::default() },
+            RetargetOptions { weight: 2.0, ..Default::default() },
+            RetargetOptions { rest_frame: Some(50), ..Default::default() },
+            RetargetOptions { smooth: 5000, ..Default::default() },
         ] {
             assert!(retarget(&p, &b, &m, &o).is_err(), "{o:?}");
         }
         let empty = parse_bvh("HIERARCHY\nROOT A\n{\nOFFSET 0 0 0\nCHANNELS 0\n}\nMOTION\nFrames: 0\nFrame Time: 0.1\n").unwrap();
-        assert!(retarget(&p, &empty, &m, &RetargetOptions::default())
-            .unwrap_err()
-            .contains("no frames"));
+        assert!(retarget(&p, &empty, &m, &RetargetOptions::default()).unwrap_err().contains("no frames"));
     }
 
     #[test]
     fn rest_frame_option_uses_that_pose_as_reference() {
         // frame 0 already has the arm raised 30 degrees; with rest_frame 0 the delta starts at zero
-        let rot = |role: &str, f: usize| {
-            if role == "uarmL" {
-                [-30.0 - f as f64, 0.0, 0.0]
-            } else {
-                [0.0; 3]
-            }
-        };
+        let rot = |role: &str, f: usize| if role == "uarmL" { [-30.0 - f as f64, 0.0, 0.0] } else { [0.0; 3] };
         let b = parse_bvh(&make_bvh(&MIXAMO, 5, 1.0 / 30.0, &rot, &at_origin, "\n")).unwrap();
         let mut p = rig(&BLENDER, 1.0);
         p.frames = 5;
         let m = match_bones(&b, &p, None).unwrap();
         let val = |o: &RetargetOptions| {
             let r = retarget(&p, &b, &m, o).unwrap();
-            let c = r
-                .channels
-                .iter()
-                .find(|c| c.target == "upper_arm.L" && c.prop == Prop::BoneAngle)
-                .unwrap();
-            let crate::project::Source::Keys { track } = &c.source else {
-                panic!()
-            };
+            let c = r.channels.iter().find(|c| c.target == "upper_arm.L" && c.prop == Prop::BoneAngle).unwrap();
+            let crate::project::Source::Keys { track } = &c.source else { panic!() };
             (track.keys[0].value, track.keys[4].value)
         };
         let (a, _) = val(&RetargetOptions::default());
         assert!((a - 30.0).abs() < 1e-4);
-        let (a, z) = val(&RetargetOptions {
-            rest_frame: Some(0),
-            ..Default::default()
-        });
+        let (a, z) = val(&RetargetOptions { rest_frame: Some(0), ..Default::default() });
         assert!(a.abs() < 1e-4 && (z - 4.0).abs() < 1e-4, "{a} {z}");
     }
 
     #[test]
     fn foot_lock_reuses_footlock_module() {
-        let b = parse_bvh(&make_bvh(
-            &MIXAMO,
-            12,
-            1.0 / 30.0,
-            &walk_rot,
-            &walk_pos,
-            "\n",
-        ))
-        .unwrap();
+        let b = parse_bvh(&make_bvh(&MIXAMO, 12, 1.0 / 30.0, &walk_rot, &walk_pos, "\n")).unwrap();
         let mut p = rig(&BLENDER, 1.0);
-        p.bones.push(Bone::new(
-            "footctl",
-            None,
-            5.0,
-            Vec2::new(100.0, 200.0),
-            0.0,
-        ));
+        p.bones.push(Bone::new("footctl", None, 5.0, Vec2::new(100.0, 200.0), 0.0));
         let m = match_bones(&b, &p, None).unwrap();
         let plain = retarget(&p, &b, &m, &RetargetOptions::default()).unwrap();
-        let o = RetargetOptions {
-            foot_lock: Some(("footctl".into(), 200.0)),
-            ..Default::default()
-        };
+        let o = RetargetOptions { foot_lock: Some(("footctl".into(), 200.0)), ..Default::default() };
         let r = retarget(&p, &b, &m, &o).unwrap();
         assert_eq!(r.channels.len(), plain.channels.len() + 2);
         // controller sits on the ground the whole time: no contact change is needed but the call ran
-        assert!(
-            r.notes.iter().any(|n| n.contains("foot lock")),
-            "{:?}",
-            r.notes
-        );
+        assert!(r.notes.iter().any(|n| n.contains("foot lock")), "{:?}", r.notes);
         // a child bone is not a valid controller
-        let bad = RetargetOptions {
-            foot_lock: Some(("shin.L".into(), 200.0)),
-            ..Default::default()
-        };
+        let bad = RetargetOptions { foot_lock: Some(("shin.L".into(), 200.0)), ..Default::default() };
         assert!(retarget(&p, &b, &m, &bad).is_err());
     }
 }

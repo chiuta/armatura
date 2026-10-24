@@ -5,13 +5,10 @@ use crate::math::{Affine2, Vec2};
 use crate::noise::{fbm1, noise1};
 use crate::path::{Polyline, VPath};
 use crate::project::{
-    compose_transform, ConstraintKind, Deformer, ImageSource, Layer, LayerKind, Mode, Project,
-    Prop, Source, TargetKind, Wobble,
+    compose_transform, ConstraintKind, Deformer, ImageSource, Layer, LayerKind, Mode, Project, Prop, Source,
+    TargetKind, Wobble,
 };
-use crate::rig::{
-    fk, resolve_parents, soft_distance, solve_fabrik, solve_two_bone_scaled, wrap_pi, BonePose,
-    SpringState,
-};
+use crate::rig::{fk, resolve_parents, soft_distance, solve_fabrik, solve_two_bone_scaled, wrap_pi, BonePose, SpringState};
 use crate::style::Blend;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -88,35 +85,13 @@ struct NodeGeo {
 }
 
 enum DefInfo {
-    Lattice {
-        cols: usize,
-        rows: usize,
-        rect: [f32; 4],
-        slots: Vec<[usize; 2]>,
-    },
-    Cloth {
-        cols: usize,
-        rows: usize,
-        rect: [f32; 4],
-        slots: Vec<[usize; 2]>,
-    },
-    Spine {
-        rest_pts: Vec<Vec2>,
-        rest_poly: Polyline,
-        slots: Vec<[usize; 2]>,
-        radius: Option<f32>,
-    },
-    Pin {
-        solver: crate::pinwarp::PinSolver,
-        slots: Vec<[usize; 2]>,
-    },
+    Lattice { cols: usize, rows: usize, rect: [f32; 4], slots: Vec<[usize; 2]> },
+    Cloth { cols: usize, rows: usize, rect: [f32; 4], slots: Vec<[usize; 2]> },
+    Spine { rest_pts: Vec<Vec2>, rest_poly: Polyline, slots: Vec<[usize; 2]>, radius: Option<f32> },
+    Pin { solver: crate::pinwarp::PinSolver, slots: Vec<[usize; 2]> },
     /// `mesh_w`: mean-value weights of every rest mesh vertex (empty list = outside the cage),
     /// cached here when the cage is the layer's first deformer on an image layer.
-    Cage {
-        solver: crate::cage::CageSolver,
-        slots: Vec<[usize; 2]>,
-        mesh_w: Vec<Vec<f64>>,
-    },
+    Cage { solver: crate::cage::CageSolver, slots: Vec<[usize; 2]>, mesh_w: Vec<Vec<f64>> },
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -270,12 +245,7 @@ pub struct ImageData {
 
 impl std::fmt::Debug for ImageData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "ImageData({}×{})",
-            self.pixmap.width(),
-            self.pixmap.height()
-        )
+        write!(f, "ImageData({}×{})", self.pixmap.width(), self.pixmap.height())
     }
 }
 
@@ -353,9 +323,7 @@ impl Frame {
 }
 
 fn aff_finite(m: &Affine2) -> bool {
-    [m.a, m.b, m.c, m.d, m.tx, m.ty]
-        .iter()
-        .all(|v| v.is_finite())
+    [m.a, m.b, m.c, m.d, m.tx, m.ty].iter().all(|v| v.is_finite())
 }
 
 /// Largest absolute value of any floating point number in a project (coordinates, scales, offsets, key values, ...).
@@ -363,15 +331,7 @@ pub const MAX_MAGNITUDE: f64 = 1.0e7;
 
 fn find_big(v: &serde_json::Value, path: &mut String) -> bool {
     match v {
-        serde_json::Value::Number(n) => {
-            n.is_f64()
-                && n.as_f64().is_some_and(|x| {
-                    !matches!(
-                        x.abs().partial_cmp(&MAX_MAGNITUDE),
-                        Some(std::cmp::Ordering::Less | std::cmp::Ordering::Equal)
-                    )
-                })
-        }
+        serde_json::Value::Number(n) => n.is_f64() && n.as_f64().is_some_and(|x| !matches!(x.abs().partial_cmp(&MAX_MAGNITUDE), Some(std::cmp::Ordering::Less | std::cmp::Ordering::Equal))),
         serde_json::Value::Array(a) => a.iter().enumerate().any(|(i, x)| {
             let keep = path.len();
             path.push_str(&format!("/{i}"));
@@ -480,19 +440,12 @@ fn build_nodes(
     errs: &mut Vec<String>,
 ) {
     for (i, l) in layers.iter().enumerate() {
-        let path = if prefix.is_empty() {
-            l.name.clone()
-        } else {
-            format!("{prefix}/{}", l.name)
-        };
+        let path = if prefix.is_empty() { l.name.clone() } else { format!("{prefix}/{}", l.name) };
         let id = nodes.len();
         let mut idx_path = idx_prefix.to_vec();
         idx_path.push(i);
         if l.name.is_empty() || l.name.contains('/') || l.name.contains("::") {
-            errs.push(format!(
-                "layer name '{}' must be non-empty and contain neither '/' nor '::'",
-                l.name
-            ));
+            errs.push(format!("layer name '{}' must be non-empty and contain neither '/' nor '::'", l.name));
         }
         if node_ix.insert(path.clone(), id).is_some() {
             errs.push(format!("duplicate layer path '{path}'"));
@@ -509,16 +462,7 @@ fn build_nodes(
         if let Some(p) = parent {
             nodes[p].children.push(id);
         }
-        build_nodes(
-            l.children(),
-            Some(id),
-            &path,
-            &idx_path,
-            Some(root.unwrap_or(id)),
-            nodes,
-            node_ix,
-            errs,
-        );
+        build_nodes(l.children(), Some(id), &path, &idx_path, Some(root.unwrap_or(id)), nodes, node_ix, errs);
     }
 }
 
@@ -530,24 +474,15 @@ fn validate_free_mesh(f: &crate::project::FreeMesh) -> Result<(), String> {
     if f.vertices.len() > 200_000 || f.triangles.len() > 400_000 {
         return Err("too large (max 200000 vertices / 400000 triangles)".into());
     }
-    if f.vertices
-        .iter()
-        .any(|v| !v.x.is_finite() || !v.y.is_finite())
-    {
+    if f.vertices.iter().any(|v| !v.x.is_finite() || !v.y.is_finite()) {
         return Err("vertex coordinates must be finite".into());
     }
-    if !f.uvs.is_empty()
-        && (f.uvs.len() != f.vertices.len()
-            || f.uvs.iter().any(|v| !v.x.is_finite() || !v.y.is_finite()))
-    {
+    if !f.uvs.is_empty() && (f.uvs.len() != f.vertices.len() || f.uvs.iter().any(|v| !v.x.is_finite() || !v.y.is_finite())) {
         return Err("uvs must be empty or one finite pair per vertex".into());
     }
     let n = f.vertices.len() as u32;
     if let Some(t) = f.triangles.iter().find(|t| t.iter().any(|&i| i >= n)) {
-        return Err(format!(
-            "triangle {:?} refers to a missing vertex (have {n})",
-            t
-        ));
+        return Err(format!("triangle {:?} refers to a missing vertex (have {n})", t));
     }
     Ok(())
 }
@@ -555,9 +490,7 @@ fn validate_free_mesh(f: &crate::project::FreeMesh) -> Result<(), String> {
 fn load_image(src: &ImageSource, asset_dir: &std::path::Path) -> Result<ImageData, String> {
     let png = match (&src.png_base64, &src.file) {
         (Some(b64), _) => crate::base64::decode(b64)?,
-        (None, Some(f)) => {
-            crate::assets::read(asset_dir, f, crate::assets::MAX_IMAGE_BYTES, "image")?
-        }
+        (None, Some(f)) => crate::assets::read(asset_dir, f, crate::assets::MAX_IMAGE_BYTES, "image")?,
         (None, None) => return Err("image has neither 'png_base64' nor 'file'".into()),
     };
     let pixmap = crate::assets::decode_png_checked(&png)?;
@@ -592,10 +525,7 @@ impl Engine {
     }
 
     /// Validate and compile. Returns every problem found, not just the first.
-    pub fn with_asset_dir(
-        mut project: Project,
-        asset_dir: &std::path::Path,
-    ) -> Result<Engine, Vec<String>> {
+    pub fn with_asset_dir(mut project: Project, asset_dir: &std::path::Path) -> Result<Engine, Vec<String>> {
         let mut errs: Vec<String> = Vec::new();
 
         if !(project.fps > 0.0 && project.fps <= 1000.0) {
@@ -612,10 +542,7 @@ impl Engine {
         } else if project.width > MAX_STAGE || project.height > MAX_STAGE {
             errs.push(format!("width and height must be at most {MAX_STAGE}"));
         }
-        if !project.camera.focus.is_finite()
-            || !project.camera.blur.is_finite()
-            || project.camera.blur < 0.0
-        {
+        if !project.camera.focus.is_finite() || !project.camera.blur.is_finite() || project.camera.blur < 0.0 {
             errs.push("camera focus must be finite and camera blur a finite number >= 0".into());
         }
         errs.extend(crate::soundtrack::validate(&project));
@@ -645,48 +572,24 @@ impl Engine {
                 errs.push(format!("bone '{}' has invalid length", b.name));
             }
             if let Some([lo, hi]) = b.angle_limits {
-                if !matches!(
-                    lo.partial_cmp(&hi),
-                    Some(std::cmp::Ordering::Less | std::cmp::Ordering::Equal)
-                ) {
-                    errs.push(format!(
-                        "bone '{}': angle_limits min must be <= max",
-                        b.name
-                    ));
+                if !matches!(lo.partial_cmp(&hi), Some(std::cmp::Ordering::Less | std::cmp::Ordering::Equal)) {
+                    errs.push(format!("bone '{}': angle_limits min must be <= max", b.name));
                 }
             }
             if let Some([lo, hi]) = b.scale_limits {
                 if !(lo <= hi && lo > 0.0) {
-                    errs.push(format!(
-                        "bone '{}': scale_limits must satisfy 0 < min <= max",
-                        b.name
-                    ));
+                    errs.push(format!("bone '{}': scale_limits must satisfy 0 < min <= max", b.name));
                 }
             }
         }
-        let bone_ix: HashMap<String, usize> = project
-            .bones
-            .iter()
-            .enumerate()
-            .map(|(i, b)| (b.name.clone(), i))
-            .collect();
+        let bone_ix: HashMap<String, usize> =
+            project.bones.iter().enumerate().map(|(i, b)| (b.name.clone(), i)).collect();
 
         // Layer tree → arena (preorder).
         let mut nodes: Vec<NodeInfo> = Vec::new();
         let mut node_ix: HashMap<String, usize> = HashMap::new();
-        build_nodes(
-            &project.layers,
-            None,
-            "",
-            &[],
-            None,
-            &mut nodes,
-            &mut node_ix,
-            &mut errs,
-        );
-        let roots: Vec<usize> = (0..nodes.len())
-            .filter(|&i| nodes[i].parent.is_none())
-            .collect();
+        build_nodes(&project.layers, None, "", &[], None, &mut nodes, &mut node_ix, &mut errs);
+        let roots: Vec<usize> = (0..nodes.len()).filter(|&i| nodes[i].parent.is_none()).collect();
 
         // Per-layer references: bone attachment, masks.
         // the index is a coordinate/identifier used beyond one slice (parallel arrays, offsets, neighbours); an iterator would obscure it
@@ -703,10 +606,7 @@ impl Engine {
                 match node_ix.get(&m.layer) {
                     Some(&mi) if mi != id => nodes[id].mask = Some((mi, m.invert)),
                     Some(_) => errs.push(format!("layer '{}' cannot mask itself", nodes[id].path)),
-                    None => errs.push(format!(
-                        "layer '{}': unknown mask layer '{}'",
-                        nodes[id].path, m.layer
-                    )),
+                    None => errs.push(format!("layer '{}': unknown mask layer '{}'", nodes[id].path, m.layer)),
                 }
             }
         }
@@ -732,69 +632,35 @@ impl Engine {
                 }
             }
             if !(0.0..=0.9).contains(&c.soft) || !(1.0..=4.0).contains(&c.stretch) {
-                errs.push(format!(
-                    "ik '{}': soft must be within 0..0.9 and stretch within 1..4",
-                    c.name
-                ));
+                errs.push(format!("ik '{}': soft must be within 0..0.9 and stretch within 1..4", c.name));
             }
             let target = bone_ix.get(&c.target).copied();
             if target.is_none() {
-                errs.push(format!(
-                    "ik '{}': unknown target bone '{}'",
-                    c.name, c.target
-                ));
+                errs.push(format!("ik '{}': unknown target bone '{}'", c.name, c.target));
             }
             if ids.len() == c.bones.len() {
                 if ids.len() < 2 {
                     errs.push(format!("ik '{}': needs at least two bones", c.name));
                 } else if ids.windows(2).any(|w| parent[w[1]] != Some(w[0])) {
-                    errs.push(format!(
-                        "ik '{}': each bone must be a direct child of the previous one",
-                        c.name
-                    ));
+                    errs.push(format!("ik '{}': each bone must be a direct child of the previous one", c.name));
                 } else if target.map(|t| ids.contains(&t)).unwrap_or(false) {
-                    errs.push(format!(
-                        "ik '{}': target must not be part of the chain",
-                        c.name
-                    ));
+                    errs.push(format!("ik '{}': target must not be part of the chain", c.name));
                 } else if let Some(target) = target {
-                    ik.push(IkResolved {
-                        bones: ids,
-                        target,
-                        bend: c.bend,
-                        iterations: c.iterations.max(1),
-                        soft: c.soft,
-                        stretch: c.stretch,
-                    });
+                    ik.push(IkResolved { bones: ids, target, bend: c.bend, iterations: c.iterations.max(1), soft: c.soft, stretch: c.stretch });
                     continue;
                 }
             }
             // keep indices aligned with project.ik even on error (we return Err below anyway)
-            ik.push(IkResolved {
-                bones: vec![],
-                target: 0,
-                bend: 1.0,
-                iterations: 1,
-                soft: 0.0,
-                stretch: 1.0,
-            });
+            ik.push(IkResolved { bones: vec![], target: 0, bend: 1.0, iterations: 1, soft: 0.0, stretch: 1.0 });
         }
-        let ik_ix: HashMap<&str, usize> = project
-            .ik
-            .iter()
-            .enumerate()
-            .map(|(i, c)| (c.name.as_str(), i))
-            .collect();
+        let ik_ix: HashMap<&str, usize> = project.ik.iter().enumerate().map(|(i, c)| (c.name.as_str(), i)).collect();
 
         // Constraints
         let mut constraints = Vec::new();
         for c in &project.constraints {
             let b = bone_ix.get(&c.bone).copied();
             if b.is_none() {
-                errs.push(format!(
-                    "constraint '{}': unknown bone '{}'",
-                    c.name, c.bone
-                ));
+                errs.push(format!("constraint '{}': unknown bone '{}'", c.name, c.bone));
             }
             let other = |n: &str, errs: &mut Vec<String>| {
                 let r = bone_ix.get(n).copied();
@@ -805,17 +671,12 @@ impl Engine {
             };
             let kind = match &c.kind {
                 ConstraintKind::Aim { target, offset } => {
-                    other(target, &mut errs).map(|t| CKind::Aim {
-                        target: t,
-                        offset: *offset,
-                    })
+                    other(target, &mut errs).map(|t| CKind::Aim { target: t, offset: *offset })
                 }
                 ConstraintKind::CopyRotation { source } => {
                     other(source, &mut errs).map(|s| CKind::CopyRotation { source: s })
                 }
-                ConstraintKind::Pin { target } => {
-                    other(target, &mut errs).map(|t| CKind::Pin { target: t })
-                }
+                ConstraintKind::Pin { target } => other(target, &mut errs).map(|t| CKind::Pin { target: t }),
             };
             if let (Some(bone), Some(kind)) = (b, kind) {
                 let partner = match kind {
@@ -823,48 +684,28 @@ impl Engine {
                     CKind::CopyRotation { source } => source,
                 };
                 if partner == bone {
-                    errs.push(format!(
-                        "constraint '{}': bone cannot constrain itself",
-                        c.name
-                    ));
+                    errs.push(format!("constraint '{}': bone cannot constrain itself", c.name));
                 }
                 constraints.push(ConstraintResolved { bone, kind });
             } else {
-                constraints.push(ConstraintResolved {
-                    bone: 0,
-                    kind: CKind::Pin { target: 0 },
-                });
+                constraints.push(ConstraintResolved { bone: 0, kind: CKind::Pin { target: 0 } });
             }
         }
-        let cons_ix: HashMap<&str, usize> = project
-            .constraints
-            .iter()
-            .enumerate()
-            .map(|(i, c)| (c.name.as_str(), i))
-            .collect();
+        let cons_ix: HashMap<&str, usize> =
+            project.constraints.iter().enumerate().map(|(i, c)| (c.name.as_str(), i)).collect();
 
         // Springs
         let mut springs = Vec::new();
         for s in &project.springs {
             match bone_ix.get(&s.bone) {
                 Some(&b) => {
-                    if !(s.frequency > 0.0 && s.frequency <= 30.0)
-                        || !(s.damping >= 0.0 && s.damping.is_finite())
-                    {
-                        errs.push(format!(
-                            "spring on '{}': frequency must be in (0, 30] Hz and damping >= 0",
-                            s.bone
-                        ));
+                    if !(s.frequency > 0.0 && s.frequency <= 30.0) || !(s.damping >= 0.0 && s.damping.is_finite()) {
+                        errs.push(format!("spring on '{}': frequency must be in (0, 30] Hz and damping >= 0", s.bone));
                     }
                     if springs.iter().any(|x: &SpringResolved| x.bone == b) {
                         errs.push(format!("spring on '{}': bone already has a spring", s.bone));
                     }
-                    springs.push(SpringResolved {
-                        bone: b,
-                        frequency: s.frequency,
-                        damping: s.damping,
-                        warmup: s.warmup,
-                    });
+                    springs.push(SpringResolved { bone: b, frequency: s.frequency, damping: s.damping, warmup: s.warmup });
                 }
                 None => errs.push(format!("spring: unknown bone '{}'", s.bone)),
             }
@@ -884,23 +725,15 @@ impl Engine {
             let i = pslot_init.len();
             pslot_init.push(init);
             if slot_ix.insert(key.clone(), i).is_some() {
-                errs.push(format!(
-                    "duplicate animatable target '{}' ({:?})",
-                    key.0, key.1
-                ));
+                errs.push(format!("duplicate animatable target '{}' ({:?})", key.0, key.1));
             }
             i
         };
-        let normalise = |ws: &[crate::path::BoneWeight],
-                         what: &str,
-                         errs: &mut Vec<String>|
-         -> Vec<(usize, f32)> {
+        let normalise = |ws: &[crate::path::BoneWeight], what: &str, errs: &mut Vec<String>| -> Vec<(usize, f32)> {
             let mut out: Vec<(usize, f32)> = Vec::new();
             for w in ws {
                 match bone_ix.get(w.bone.as_str()) {
-                    Some(&bi) if w.weight.is_finite() && w.weight >= 0.0 => {
-                        out.push((bi, w.weight))
-                    }
+                    Some(&bi) if w.weight.is_finite() && w.weight >= 0.0 => out.push((bi, w.weight)),
                     Some(_) => errs.push(format!("{what}: invalid weight for '{}'", w.bone)),
                     None => errs.push(format!("{what}: unknown bone '{}'", w.bone)),
                 }
@@ -927,27 +760,16 @@ impl Engine {
                 LayerKind::Vector { paths } => {
                     let mut seen_paths = HashSet::new();
                     for (pi, p) in paths.iter().enumerate() {
-                        let pname = if p.name.is_empty() {
-                            format!("path{pi}")
-                        } else {
-                            p.name.clone()
-                        };
+                        let pname = if p.name.is_empty() { format!("path{pi}") } else { p.name.clone() };
                         if p.name.contains("::") {
-                            errs.push(format!(
-                                "layer '{}': path name '{}' must not contain '::'",
-                                node.path, p.name
-                            ));
+                            errs.push(format!("layer '{}': path name '{}' must not contain '::'", node.path, p.name));
                         }
                         if !seen_paths.insert(pname.clone()) {
-                            errs.push(format!(
-                                "layer '{}': duplicate path name '{}'",
-                                node.path, pname
-                            ));
+                            errs.push(format!("layer '{}': duplicate path name '{}'", node.path, pname));
                         }
                         let mut pa = Vec::new();
                         for (ai, a) in p.anchors.iter().enumerate() {
-                            let what =
-                                format!("layer '{}' path '{}' anchor {}", node.path, pname, ai);
+                            let what = format!("layer '{}' path '{}' anchor {}", node.path, pname, ai);
                             pa.push(normalise(&a.weights, &what, &mut errs));
                         }
                         lp.push(pa);
@@ -965,10 +787,7 @@ impl Engine {
                                 ));
                             }
                             mslots.push(new_slot(
-                                (
-                                    format!("{}::{}::{}", node.path, pname, m.name),
-                                    Prop::PathMorph,
-                                ),
+                                (format!("{}::{}::{}", node.path, pname, m.name), Prop::PathMorph),
                                 0.0,
                                 &mut errs,
                             ));
@@ -983,28 +802,8 @@ impl Engine {
                         }
                         g.point_slots.push(pslots);
                         let mut gs: [Option<[usize; 2]>; 4] = [None; 4];
-                        let is_grad = |pt: &crate::style::Paint| {
-                            matches!(
-                                pt,
-                                crate::style::Paint::Linear { .. }
-                                    | crate::style::Paint::Radial { .. }
-                            )
-                        };
-                        for (k, (has, name)) in [
-                            (p.fill.as_ref().is_some_and(is_grad), "fill.from"),
-                            (p.fill.as_ref().is_some_and(is_grad), "fill.to"),
-                            (
-                                p.stroke.as_ref().is_some_and(|s| is_grad(&s.paint)),
-                                "stroke.from",
-                            ),
-                            (
-                                p.stroke.as_ref().is_some_and(|s| is_grad(&s.paint)),
-                                "stroke.to",
-                            ),
-                        ]
-                        .into_iter()
-                        .enumerate()
-                        {
+                        let is_grad = |pt: &crate::style::Paint| matches!(pt, crate::style::Paint::Linear { .. } | crate::style::Paint::Radial { .. });
+                        for (k, (has, name)) in [(p.fill.as_ref().is_some_and(is_grad), "fill.from"), (p.fill.as_ref().is_some_and(is_grad), "fill.to"), (p.stroke.as_ref().is_some_and(|s| is_grad(&s.paint)), "stroke.from"), (p.stroke.as_ref().is_some_and(|s| is_grad(&s.paint)), "stroke.to")].into_iter().enumerate() {
                             if has {
                                 let key = format!("{}::{}::{}", node.path, pname, name);
                                 let dx = new_slot((key.clone(), Prop::GradDx), 0.0, &mut errs);
@@ -1025,10 +824,7 @@ impl Engine {
                                 }
                             }
                             if m.free.is_none() && (m.cols == 0 || m.rows == 0) {
-                                errs.push(format!(
-                                    "layer '{}': mesh needs cols >= 1 and rows >= 1",
-                                    node.path
-                                ));
+                                errs.push(format!("layer '{}': mesh needs cols >= 1 and rows >= 1", node.path));
                             } else if !m.weights.is_empty() && m.weights.len() != n {
                                 errs.push(format!(
                                     "layer '{}': mesh has {} weight lists, expected {}",
@@ -1047,28 +843,12 @@ impl Engine {
                     }
                     Err(e) => errs.push(format!("layer '{}': {e}", node.path)),
                 },
-                LayerKind::Liquid {
-                    blobs,
-                    threshold,
-                    cell,
-                    ..
-                } => {
+                LayerKind::Liquid { blobs, threshold, cell, .. } => {
                     if blobs.is_empty() {
-                        errs.push(format!(
-                            "layer '{}': liquid needs at least one blob",
-                            node.path
-                        ));
+                        errs.push(format!("layer '{}': liquid needs at least one blob", node.path));
                     }
-                    if ((*threshold).partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater))
-                        || !matches!(
-                            (*cell).partial_cmp(&0.25),
-                            Some(std::cmp::Ordering::Greater | std::cmp::Ordering::Equal)
-                        )
-                    {
-                        errs.push(format!(
-                            "layer '{}': liquid needs threshold > 0 and cell >= 0.25",
-                            node.path
-                        ));
+                    if ((*threshold).partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater)) || !matches!((*cell).partial_cmp(&0.25), Some(std::cmp::Ordering::Greater | std::cmp::Ordering::Equal)) {
+                        errs.push(format!("layer '{}': liquid needs threshold > 0 and cell >= 0.25", node.path));
                     }
                     for b in blobs {
                         if b.radius.partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater) {
@@ -1076,20 +856,14 @@ impl Engine {
                         }
                         if let Some(n) = &b.bone {
                             if !bone_ix.contains_key(n) {
-                                errs.push(format!(
-                                    "layer '{}': blob bound to unknown bone '{n}'",
-                                    node.path
-                                ));
+                                errs.push(format!("layer '{}': blob bound to unknown bone '{n}'", node.path));
                             }
                         }
                     }
                 }
                 LayerKind::Boolean { paths, .. } => {
                     if paths.len() < 2 {
-                        errs.push(format!(
-                            "layer '{}': boolean needs at least two paths",
-                            node.path
-                        ));
+                        errs.push(format!("layer '{}': boolean needs at least two paths", node.path));
                     }
                 }
                 LayerKind::Emitter { spec } => {
@@ -1098,10 +872,7 @@ impl Engine {
                     }
                     if let Some(n) = &spec.bone {
                         if !bone_ix.contains_key(n) {
-                            errs.push(format!(
-                                "layer '{}': emitter bound to unknown bone '{n}'",
-                                node.path
-                            ));
+                            errs.push(format!("layer '{}': emitter bound to unknown bone '{n}'", node.path));
                         }
                     }
                 }
@@ -1112,34 +883,13 @@ impl Engine {
             let mut seen_def = HashSet::new();
             for d in &l.deformers {
                 if !seen_def.insert(d.name().to_string()) {
-                    errs.push(format!(
-                        "layer '{}': duplicate deformer name '{}'",
-                        node.path,
-                        d.name()
-                    ));
+                    errs.push(format!("layer '{}': duplicate deformer name '{}'", node.path, d.name()));
                 }
                 if d.name().contains("::") {
-                    errs.push(format!(
-                        "layer '{}': deformer name '{}' must not contain '::'",
-                        node.path,
-                        d.name()
-                    ));
+                    errs.push(format!("layer '{}': deformer name '{}' must not contain '::'", node.path, d.name()));
                 }
                 match d {
-                    Deformer::Lattice {
-                        name,
-                        cols,
-                        rows,
-                        rect,
-                        offsets,
-                    }
-                    | Deformer::Cloth {
-                        name,
-                        cols,
-                        rows,
-                        rect,
-                        offsets,
-                    } => {
+                    Deformer::Lattice { name, cols, rows, rect, offsets } | Deformer::Cloth { name, cols, rows, rect, offsets } => {
                         let is_cloth = matches!(d, Deformer::Cloth { .. });
                         let (cols, rows) = (*cols, *rows);
                         let n = (cols + 1) * (rows + 1);
@@ -1151,19 +901,13 @@ impl Engine {
                             continue;
                         }
                         if !offsets.is_empty() && offsets.len() != n {
-                            errs.push(format!(
-                                "layer '{}' lattice '{}': offsets must have {} entries",
-                                node.path, name, n
-                            ));
+                            errs.push(format!("layer '{}' lattice '{}': offsets must have {} entries", node.path, name, n));
                             continue;
                         }
                         let mut slots = Vec::with_capacity(n);
                         for r in 0..=rows {
                             for c in 0..=cols {
-                                let off = offsets
-                                    .get(r * (cols + 1) + c)
-                                    .copied()
-                                    .unwrap_or(Vec2::ZERO);
+                                let off = offsets.get(r * (cols + 1) + c).copied().unwrap_or(Vec2::ZERO);
                                 let key = format!("{}::{}::{},{}", node.path, name, c, r);
                                 let dx = new_slot((key.clone(), Prop::LatticeDx), off.x, &mut errs);
                                 let dy = new_slot((key, Prop::LatticeDy), off.y, &mut errs);
@@ -1171,39 +915,18 @@ impl Engine {
                             }
                         }
                         g.deformers.push(if is_cloth {
-                            DefInfo::Cloth {
-                                cols,
-                                rows,
-                                rect: *rect,
-                                slots,
-                            }
+                            DefInfo::Cloth { cols, rows, rect: *rect, slots }
                         } else {
-                            DefInfo::Lattice {
-                                cols,
-                                rows,
-                                rect: *rect,
-                                slots,
-                            }
+                            DefInfo::Lattice { cols, rows, rect: *rect, slots }
                         });
                     }
-                    Deformer::Spine {
-                        name,
-                        rest,
-                        offsets,
-                        radius,
-                    } => {
+                    Deformer::Spine { name, rest, offsets, radius } => {
                         if rest.len() < 2 {
-                            errs.push(format!(
-                                "layer '{}' spine '{}': needs at least two points",
-                                node.path, name
-                            ));
+                            errs.push(format!("layer '{}' spine '{}': needs at least two points", node.path, name));
                             continue;
                         }
                         if !offsets.is_empty() && offsets.len() != rest.len() {
-                            errs.push(format!(
-                                "layer '{}' spine '{}': offsets must match the point count",
-                                node.path, name
-                            ));
+                            errs.push(format!("layer '{}' spine '{}': offsets must match the point count", node.path, name));
                             continue;
                         }
                         let mut slots = Vec::with_capacity(rest.len());
@@ -1215,33 +938,17 @@ impl Engine {
                             slots.push([dx, dy]);
                         }
                         let rest_poly = VPath::smooth_through("", rest, false, 1.0).polyline(0.5);
-                        g.deformers.push(DefInfo::Spine {
-                            rest_pts: rest.clone(),
-                            rest_poly,
-                            slots,
-                            radius: *radius,
-                        });
+                        g.deformers.push(DefInfo::Spine { rest_pts: rest.clone(), rest_poly, slots, radius: *radius });
                     }
-                    Deformer::Pin {
-                        name,
-                        pins,
-                        offsets,
-                        radius,
-                    } => {
+                    Deformer::Pin { name, pins, offsets, radius } => {
                         if !offsets.is_empty() && offsets.len() != pins.len() {
-                            errs.push(format!(
-                                "layer '{}' pin warp '{}': offsets must match the pin count",
-                                node.path, name
-                            ));
+                            errs.push(format!("layer '{}' pin warp '{}': offsets must match the pin count", node.path, name));
                             continue;
                         }
                         let solver = match crate::pinwarp::PinSolver::new(pins, *radius) {
                             Ok(s) => s,
                             Err(m) => {
-                                errs.push(format!(
-                                    "layer '{}' pin warp '{}': {m}",
-                                    node.path, name
-                                ));
+                                errs.push(format!("layer '{}' pin warp '{}': {m}", node.path, name));
                                 continue;
                             }
                         };
@@ -1255,16 +962,9 @@ impl Engine {
                         }
                         g.deformers.push(DefInfo::Pin { solver, slots });
                     }
-                    Deformer::Cage {
-                        name,
-                        rest,
-                        offsets,
-                    } => {
+                    Deformer::Cage { name, rest, offsets } => {
                         if !offsets.is_empty() && offsets.len() != rest.len() {
-                            errs.push(format!(
-                                "layer '{}' cage '{}': offsets must match the vertex count",
-                                node.path, name
-                            ));
+                            errs.push(format!("layer '{}' cage '{}': offsets must match the vertex count", node.path, name));
                             continue;
                         }
                         let solver = match crate::cage::CageSolver::new(rest) {
@@ -1286,13 +986,7 @@ impl Engine {
                         // because later deformers see already displaced points)
                         let mut mesh_w = Vec::new();
                         if g.deformers.is_empty() {
-                            if let (
-                                LayerKind::Image {
-                                    origin, size, mesh, ..
-                                },
-                                Some(d),
-                            ) = (&l.kind, &img)
-                            {
+                            if let (LayerKind::Image { origin, size, mesh, .. }, Some(d)) = (&l.kind, &img) {
                                 let (pw, ph) = (d.pixmap.width() as f32, d.pixmap.height() as f32);
                                 let sz = size.unwrap_or(Vec2::new(pw, ph));
                                 let (c, r) = match mesh {
@@ -1306,36 +1000,20 @@ impl Engine {
                                 if rest_v.len() * rest.len() <= 4_000_000 {
                                     let mut w = Vec::new();
                                     for v in rest_v {
-                                        mesh_w.push(if solver.weights(v, &mut w) {
-                                            w.clone()
-                                        } else {
-                                            Vec::new()
-                                        });
+                                        mesh_w.push(if solver.weights(v, &mut w) { w.clone() } else { Vec::new() });
                                     }
                                 }
                             }
                         }
-                        g.deformers.push(DefInfo::Cage {
-                            solver,
-                            slots,
-                            mesh_w,
-                        });
+                        g.deformers.push(DefInfo::Cage { solver, slots, mesh_w });
                     }
                 }
             }
-            if !l.deformers.is_empty()
-                && !matches!(l.kind, LayerKind::Vector { .. } | LayerKind::Image { .. })
-            {
-                errs.push(format!(
-                    "layer '{}': deformers only apply to vector and image layers",
-                    node.path
-                ));
+            if !l.deformers.is_empty() && !matches!(l.kind, LayerKind::Vector { .. } | LayerKind::Image { .. }) {
+                errs.push(format!("layer '{}': deformers only apply to vector and image layers", node.path));
             }
 
-            errs.extend(crate::layerfx::validate_list(
-                &format!("layer '{}'", node.path),
-                &l.effects,
-            ));
+            errs.extend(crate::layerfx::validate_list(&format!("layer '{}'", node.path), &l.effects));
             let mut fxs = Vec::new();
             for (ei, e) in l.effects.iter().enumerate() {
                 let key = crate::layerfx::target(&node.path, ei);
@@ -1368,19 +1046,13 @@ impl Engine {
         let mut chans = Vec::new();
         for (ci, c) in project.channels.iter().enumerate() {
             let Some(slot) = resolve(&c.target, c.prop) else {
-                errs.push(format!(
-                    "channel {ci}: unknown target '{}' for {:?}",
-                    c.target, c.prop
-                ));
+                errs.push(format!("channel {ci}: unknown target '{}' for {:?}", c.target, c.prop));
                 continue;
             };
             if c.prop == Prop::LayerSwitch {
                 let l = layer_at(&project, &nodes[slot].idx_path);
                 if !matches!(l.kind, LayerKind::Switch { .. }) {
-                    errs.push(format!(
-                        "channel {ci}: layer_switch needs a switch layer, '{}' is not one",
-                        c.target
-                    ));
+                    errs.push(format!("channel {ci}: layer_switch needs a switch layer, '{}' is not one", c.target));
                 }
             }
             if !c.weight.is_finite() {
@@ -1388,15 +1060,9 @@ impl Engine {
             }
             let check_track = |t: &crate::anim::Track, errs: &mut Vec<String>| {
                 let sorted = t.keys.windows(2).all(|w| w[0].frame < w[1].frame);
-                let finite = t
-                    .keys
-                    .iter()
-                    .all(|k| k.frame.is_finite() && k.value.is_finite());
+                let finite = t.keys.iter().all(|k| k.frame.is_finite() && k.value.is_finite());
                 if !sorted || !finite {
-                    errs.push(format!(
-                        "channel {ci} ('{}'): keys must be finite and strictly increasing in frame",
-                        c.target
-                    ));
+                    errs.push(format!("channel {ci} ('{}'): keys must be finite and strictly increasing in frame", c.target));
                 }
             };
             let (mut parsed, mut input) = (None, None);
@@ -1409,62 +1075,36 @@ impl Engine {
                         for (t, p) in gets {
                             match Prop::parse(&p) {
                                 Some(pp) if resolve(&t, pp).is_some() => {}
-                                Some(_) => errs.push(format!(
-                                    "channel {ci}: get(\"{t}\", \"{p}\"): unknown target"
-                                )),
-                                None => errs.push(format!(
-                                    "channel {ci}: get(\"{t}\", \"{p}\"): unknown property"
-                                )),
+                                Some(_) => errs.push(format!("channel {ci}: get(\"{t}\", \"{p}\"): unknown target")),
+                                None => errs.push(format!("channel {ci}: get(\"{t}\", \"{p}\"): unknown property")),
                             }
                         }
                         parsed = Some(e);
                     }
-                    Err(m) => errs.push(format!(
-                        "channel {ci} ('{}'): expression error: {m}",
-                        c.target
-                    )),
+                    Err(m) => errs.push(format!("channel {ci} ('{}'): expression error: {m}", c.target)),
                 },
                 Source::Noise { amp, freq, .. } => {
                     if !(amp.is_finite() && freq.is_finite()) {
                         errs.push(format!("channel {ci}: noise amp/freq must be finite"));
                     }
                 }
-                Source::Driven {
-                    input: it,
-                    input_prop,
-                    curve,
-                } => {
+                Source::Driven { input: it, input_prop, curve } => {
                     check_track(curve, &mut errs);
                     match resolve(it, *input_prop) {
                         Some(s) => input = Some((*input_prop, s)),
-                        None => errs.push(format!(
-                            "channel {ci}: unknown driver input '{it}' for {input_prop:?}"
-                        )),
+                        None => errs.push(format!("channel {ci}: unknown driver input '{it}' for {input_prop:?}")),
                     }
                 }
             }
-            chans.push(ChanResolved {
-                prop: c.prop,
-                slot,
-                chan: ci,
-                expr: parsed,
-                input,
-            });
+            chans.push(ChanResolved { prop: c.prop, slot, chan: ci, expr: parsed, input });
         }
 
         if !errs.is_empty() {
             return Err(errs);
         }
 
-        let rest = fk(
-            &project.bones,
-            &parent,
-            &vec![BonePose::default(); project.bones.len()],
-        );
-        let inv_rest = rest
-            .iter()
-            .map(|m| m.inverse().unwrap_or(Affine2::IDENTITY))
-            .collect();
+        let rest = fk(&project.bones, &parent, &vec![BonePose::default(); project.bones.len()]);
+        let inv_rest = rest.iter().map(|m| m.inverse().unwrap_or(Affine2::IDENTITY)).collect();
 
         let trial = crate::machine::trial_errors(&project, asset_dir);
         if !trial.is_empty() {
@@ -1555,35 +1195,20 @@ impl Engine {
         match &layer.kind {
             LayerKind::Vector { paths } => Some(crate::links::UnitRest {
                 stage,
-                paths: paths
-                    .iter()
-                    .map(|p| p.anchors.iter().map(|a| a.pos).collect())
-                    .collect(),
+                paths: paths.iter().map(|p| p.anchors.iter().map(|a| a.pos).collect()).collect(),
                 closed: paths.iter().map(|p| p.closed).collect(),
                 tris: Vec::new(),
                 is_image: false,
                 has_mesh: true,
             }),
-            LayerKind::Image {
-                origin, size, mesh, ..
-            } => {
+            LayerKind::Image { origin, size, mesh, .. } => {
                 let data = self.images[id].as_ref()?;
-                let size = size.unwrap_or(Vec2::new(
-                    data.pixmap.width() as f32,
-                    data.pixmap.height() as f32,
-                ));
+                let size = size.unwrap_or(Vec2::new(data.pixmap.width() as f32, data.pixmap.height() as f32));
                 let (verts, tris) = match mesh {
                     Some(m) => (m.rest_vertices(*origin, size), m.tri_indices()),
                     None => (Vec::new(), Vec::new()),
                 };
-                Some(crate::links::UnitRest {
-                    stage,
-                    paths: vec![verts],
-                    closed: vec![false],
-                    tris,
-                    is_image: true,
-                    has_mesh: mesh.is_some(),
-                })
+                Some(crate::links::UnitRest { stage, paths: vec![verts], closed: vec![false], tris, is_image: true, has_mesh: mesh.is_some() })
             }
             _ => None,
         }
@@ -1593,12 +1218,7 @@ impl Engine {
     }
 
     /// Enabled effects of node `id` with channel-driven values filled in.
-    fn node_effects(
-        &self,
-        id: usize,
-        layer: &Layer,
-        st: &State,
-    ) -> Vec<crate::layerfx::LayerEffect> {
+    fn node_effects(&self, id: usize, layer: &Layer, st: &State) -> Vec<crate::layerfx::LayerEffect> {
         let mut out = Vec::new();
         for (ei, e) in layer.effects.iter().enumerate() {
             if !e.enabled {
@@ -1645,39 +1265,22 @@ impl Engine {
         State {
             bones: vec![BonePose::default(); p.bones.len()],
             layers,
-            cam: CamProps {
-                x: pos.x,
-                y: pos.y,
-                zoom: p.camera.zoom.max(0.01),
-                rot: p.camera.rotation,
-                focus: p.camera.focus,
-                blur: p.camera.blur.max(0.0),
-            },
+            cam: CamProps { x: pos.x, y: pos.y, zoom: p.camera.zoom.max(0.01), rot: p.camera.rotation, focus: p.camera.focus, blur: p.camera.blur.max(0.0) },
             ik_mix: p.ik.iter().map(|c| c.mix.clamp(0.0, 1.0)).collect(),
-            cweight: p
-                .constraints
-                .iter()
-                .map(|c| c.weight.clamp(0.0, 1.0))
-                .collect(),
+            cweight: p.constraints.iter().map(|c| c.weight.clamp(0.0, 1.0)).collect(),
             pvals: self.pslot_init.clone(),
         }
     }
 
     /// Current value of `target.prop` (used by expressions); 0 if unknown.
     fn lookup(&self, st: &State, target: &str, prop: &str) -> f32 {
-        let Some(prop) = Prop::parse(prop) else {
-            return 0.0;
-        };
+        let Some(prop) = Prop::parse(prop) else { return 0.0 };
         let slot = match prop.target_kind() {
             TargetKind::Bone => self.bone_ix.get(target).copied(),
             TargetKind::Layer => self.node_ix.get(target).copied(),
             TargetKind::Camera => Some(0),
             TargetKind::Ik => self.project.ik.iter().position(|c| c.name == target),
-            TargetKind::Constraint => self
-                .project
-                .constraints
-                .iter()
-                .position(|c| c.name == target),
+            TargetKind::Constraint => self.project.constraints.iter().position(|c| c.name == target),
             TargetKind::Sub => self.slot_ix.get(&(target.to_string(), prop)).copied(),
         };
         slot.map(|s| st.read(prop, s)).unwrap_or(0.0)
@@ -1691,20 +1294,10 @@ impl Engine {
                 Source::Keys { track } => track.eval(frame),
                 Source::Expr { .. } => {
                     let get = |t: &str, pr: &str| self.lookup(st, t, pr);
-                    let ctx = Ctx {
-                        frame,
-                        fps: p.fps,
-                        frames: p.frames as f32,
-                        get: &get,
-                    };
+                    let ctx = Ctx { frame, fps: p.fps, frames: p.frames as f32, get: &get };
                     c.expr.as_ref().map(|e| e.eval(&ctx))
                 }
-                Source::Noise {
-                    amp,
-                    freq,
-                    seed,
-                    octaves,
-                } => Some(amp * fbm1(frame / p.fps * freq, *seed, *octaves)),
+                Source::Noise { amp, freq, seed, octaves } => Some(amp * fbm1(frame / p.fps * freq, *seed, *octaves)),
                 Source::Driven { curve, .. } => {
                     let (ip, is) = c.input.expect("resolved at compile time");
                     curve.eval(st.read(ip, is))
@@ -1754,11 +1347,7 @@ impl Engine {
         let raw_target = world[chain.target].apply(Vec2::ZERO);
         let root_head = world[chain.bones[0]].apply(Vec2::ZERO);
         let last = *chain.bones.last().unwrap();
-        let mut joints: Vec<Vec2> = chain
-            .bones
-            .iter()
-            .map(|&b| world[b].apply(Vec2::ZERO))
-            .collect();
+        let mut joints: Vec<Vec2> = chain.bones.iter().map(|&b| world[b].apply(Vec2::ZERO)).collect();
         joints.push(world[last].apply(Vec2::new(bones[last].length, 0.0)));
         let n = chain.bones.len();
         let lengths: Vec<f32> = (0..n).map(|i| joints[i].distance(joints[i + 1])).collect();
@@ -1782,16 +1371,7 @@ impl Engine {
         }
         let old: Vec<f32> = chain.bones.iter().map(|&b| poses[b].angle).collect();
         let new: Vec<f32> = if n == 2 {
-            match solve_two_bone_scaled(
-                bones,
-                &self.parent,
-                world,
-                chain.bones[0],
-                chain.bones[1],
-                target,
-                chain.bend,
-                scale,
-            ) {
+            match solve_two_bone_scaled(bones, &self.parent, world, chain.bones[0], chain.bones[1], target, chain.bend, scale) {
                 Some((a, b)) => vec![a, b],
                 None => return,
             }
@@ -1800,17 +1380,9 @@ impl Engine {
                 return;
             }
             let scaled: Vec<f32> = lengths.iter().map(|l| l * scale).collect();
-            solve_fabrik(
-                &mut joints,
-                &scaled,
-                target,
-                (chain.iterations as usize).max(crate::rig::FABRIK_MAX_ITERS),
-                crate::rig::FABRIK_TOLERANCE,
-            );
+            solve_fabrik(&mut joints, &scaled, target, (chain.iterations as usize).max(crate::rig::FABRIK_MAX_ITERS), crate::rig::FABRIK_TOLERANCE);
             let root = chain.bones[0];
-            let mut parent_rot = self.parent[root]
-                .map(|p| world[p].rotation())
-                .unwrap_or(0.0);
+            let mut parent_rot = self.parent[root].map(|p| world[p].rotation()).unwrap_or(0.0);
             let mut out = Vec::with_capacity(n);
             for i in 0..n {
                 let d = joints[i + 1] - joints[i];
@@ -1828,13 +1400,7 @@ impl Engine {
         }
     }
 
-    fn apply_constraint(
-        &self,
-        c: &ConstraintResolved,
-        weight: f32,
-        poses: &mut [BonePose],
-        world: &[Affine2],
-    ) {
+    fn apply_constraint(&self, c: &ConstraintResolved, weight: f32, poses: &mut [BonePose], world: &[Affine2]) {
         let head = world[c.bone].apply(Vec2::ZERO);
         match c.kind {
             CKind::Aim { target, offset } => {
@@ -1897,11 +1463,7 @@ impl Engine {
         }
         let n = self.project.frames as usize;
         let dt = 1.0 / self.project.fps;
-        let passes = if self.springs.iter().any(|s| s.warmup) {
-            2
-        } else {
-            1
-        };
+        let passes = if self.springs.iter().any(|s| s.warmup) { 2 } else { 1 };
         let mut sim = vec![SpringState::default(); self.springs.len()];
         let mut baked = vec![vec![0.0f32; self.springs.len()]; n];
         for pass in 0..passes {
@@ -1917,8 +1479,7 @@ impl Engine {
                     }
                     sim[k].step(target, sp.frequency, sp.damping, dt, 8);
                     let parent_rot = self.parent[bi].map(|p| world[p].rotation()).unwrap_or(0.0);
-                    st.bones[bi].angle =
-                        sim[k].x - parent_rot - self.project.bones[bi].rest_angle.to_radians();
+                    st.bones[bi].angle = sim[k].x - parent_rot - self.project.bones[bi].rest_angle.to_radians();
                     world = fk(&self.project.bones, &self.parent, &st.bones);
                     if pass == passes - 1 {
                         baked[f][k] = st.bones[bi].angle;
@@ -1960,10 +1521,7 @@ impl Engine {
     fn cloth_disp(rect: [f32; 4], cols: usize, rows: usize, offs: &[Vec2], p: Vec2) -> Vec2 {
         let u = ((p.x - rect[0]) / rect[2]).clamp(0.0, 1.0) * cols as f32;
         let v = ((p.y - rect[1]) / rect[3]).clamp(0.0, 1.0) * rows as f32;
-        let (c, r) = (
-            (u.floor() as usize).min(cols - 1),
-            (v.floor() as usize).min(rows - 1),
-        );
+        let (c, r) = ((u.floor() as usize).min(cols - 1), (v.floor() as usize).min(rows - 1));
         let (fu, fv) = (u - c as f32, v - r as f32);
         let at = |cc: usize, rr: usize| offs[rr * (cols + 1) + cc];
         let top = at(c, r) * (1.0 - fu) + at(c + 1, r) * fu;
@@ -1971,13 +1529,7 @@ impl Engine {
         top * (1.0 - fv) + bot * fv
     }
 
-    fn spine_disp(
-        rest_pts: &[Vec2],
-        rest_poly: &Polyline,
-        offs: &[Vec2],
-        radius: Option<f32>,
-        p: Vec2,
-    ) -> Vec2 {
+    fn spine_disp(rest_pts: &[Vec2], rest_poly: &Polyline, offs: &[Vec2], radius: Option<f32>, p: Vec2) -> Vec2 {
         let def_pts: Vec<Vec2> = rest_pts.iter().zip(offs).map(|(&r, &o)| r + o).collect();
         let def_poly = VPath::smooth_through("", &def_pts, false, 1.0).polyline(0.5);
         let (rest_len, def_len) = (rest_poly.length(), def_poly.length());
@@ -2000,73 +1552,29 @@ impl Engine {
     }
 
     /// Apply all deformers, then wobble, to a point (rest space).
-    fn deform_point(
-        &self,
-        id: usize,
-        st: &State,
-        tick: f32,
-        p: Vec2,
-        mesh_vertex: Option<usize>,
-    ) -> Vec2 {
+    fn deform_point(&self, id: usize, st: &State, tick: f32, p: Vec2, mesh_vertex: Option<usize>) -> Vec2 {
         let mut out = p;
         for (di, d) in self.geo[id].deformers.iter().enumerate() {
             let disp = match d {
-                DefInfo::Lattice {
-                    cols,
-                    rows,
-                    rect,
-                    slots,
-                } => {
-                    let offs: Vec<Vec2> = slots
-                        .iter()
-                        .map(|s| Vec2::new(st.pvals[s[0]], st.pvals[s[1]]))
-                        .collect();
+                DefInfo::Lattice { cols, rows, rect, slots } => {
+                    let offs: Vec<Vec2> = slots.iter().map(|s| Vec2::new(st.pvals[s[0]], st.pvals[s[1]])).collect();
                     Self::lattice_disp(*rect, *cols, *rows, &offs, out)
                 }
-                DefInfo::Cloth {
-                    cols,
-                    rows,
-                    rect,
-                    slots,
-                } => {
-                    let offs: Vec<Vec2> = slots
-                        .iter()
-                        .map(|s| Vec2::new(st.pvals[s[0]], st.pvals[s[1]]))
-                        .collect();
+                DefInfo::Cloth { cols, rows, rect, slots } => {
+                    let offs: Vec<Vec2> = slots.iter().map(|s| Vec2::new(st.pvals[s[0]], st.pvals[s[1]])).collect();
                     Self::cloth_disp(*rect, *cols, *rows, &offs, out)
                 }
-                DefInfo::Spine {
-                    rest_pts,
-                    rest_poly,
-                    slots,
-                    radius,
-                } => {
-                    let offs: Vec<Vec2> = slots
-                        .iter()
-                        .map(|s| Vec2::new(st.pvals[s[0]], st.pvals[s[1]]))
-                        .collect();
+                DefInfo::Spine { rest_pts, rest_poly, slots, radius } => {
+                    let offs: Vec<Vec2> = slots.iter().map(|s| Vec2::new(st.pvals[s[0]], st.pvals[s[1]])).collect();
                     Self::spine_disp(rest_pts, rest_poly, &offs, *radius, out)
                 }
                 DefInfo::Pin { solver, slots } => {
-                    let offs: Vec<Vec2> = slots
-                        .iter()
-                        .map(|s| Vec2::new(st.pvals[s[0]], st.pvals[s[1]]))
-                        .collect();
+                    let offs: Vec<Vec2> = slots.iter().map(|s| Vec2::new(st.pvals[s[0]], st.pvals[s[1]])).collect();
                     solver.displacement(&offs, out)
                 }
-                DefInfo::Cage {
-                    solver,
-                    slots,
-                    mesh_w,
-                } => {
-                    let offs: Vec<Vec2> = slots
-                        .iter()
-                        .map(|s| Vec2::new(st.pvals[s[0]], st.pvals[s[1]]))
-                        .collect();
-                    match mesh_vertex
-                        .filter(|_| di == 0)
-                        .and_then(|vi| mesh_w.get(vi))
-                    {
+                DefInfo::Cage { solver, slots, mesh_w } => {
+                    let offs: Vec<Vec2> = slots.iter().map(|s| Vec2::new(st.pvals[s[0]], st.pvals[s[1]])).collect();
+                    match mesh_vertex.filter(|_| di == 0).and_then(|vi| mesh_w.get(vi)) {
                         Some(w) => crate::cage::CageSolver::apply_weights(w, &offs),
                         None => solver.displacement(&offs, out),
                     }
@@ -2083,16 +1591,8 @@ impl Engine {
         out
     }
 
-    fn vector_geometry(
-        &self,
-        id: usize,
-        st: &State,
-        skin_mats: &[Affine2],
-        tick: f32,
-    ) -> Vec<VPath> {
-        let LayerKind::Vector { paths } = &self.layer_ref(id).kind else {
-            return Vec::new();
-        };
+    fn vector_geometry(&self, id: usize, st: &State, skin_mats: &[Affine2], tick: f32) -> Vec<VPath> {
+        let LayerKind::Vector { paths } = &self.layer_ref(id).kind else { return Vec::new() };
         let has_deform = !self.geo[id].deformers.is_empty() || st.layers[id].wobble != 0.0;
         paths
             .iter()
@@ -2108,10 +1608,7 @@ impl Engine {
                     let m = &path.morphs[mi];
                     for (ai, a) in o.anchors.iter_mut().enumerate() {
                         let (b, t) = (&path.anchors[ai], &m.anchors[ai]);
-                        let (hin, hout) = (
-                            a.hin() + (t.hin() - b.hin()) * w,
-                            a.hout() + (t.hout() - b.hout()) * w,
-                        );
+                        let (hin, hout) = (a.hin() + (t.hin() - b.hin()) * w, a.hout() + (t.hout() - b.hout()) * w);
                         a.pos += (t.pos - b.pos) * w;
                         if b.handle_in.is_some() || t.handle_in.is_some() {
                             a.handle_in = Some(hin);
@@ -2131,11 +1628,7 @@ impl Engine {
                 }
                 // animated gradient handles
                 if let Some(gs) = self.geo[id].grad_slots.get(pi) {
-                    let d = |k: usize| {
-                        gs[k]
-                            .map(|s| Vec2::new(st.pvals[s[0]], st.pvals[s[1]]))
-                            .unwrap_or(Vec2::ZERO)
-                    };
+                    let d = |k: usize| gs[k].map(|s| Vec2::new(st.pvals[s[0]], st.pvals[s[1]])).unwrap_or(Vec2::ZERO);
                     if let Some(f) = &mut o.fill {
                         shift_gradient(f, d(0), d(1));
                     }
@@ -2169,20 +1662,9 @@ impl Engine {
             .collect()
     }
 
-    fn image_draw(
-        &self,
-        id: usize,
-        st: &State,
-        skin_mats: &[Affine2],
-        tick: f32,
-    ) -> Option<ImageDraw> {
+    fn image_draw(&self, id: usize, st: &State, skin_mats: &[Affine2], tick: f32) -> Option<ImageDraw> {
         let data = self.images[id].clone()?;
-        let LayerKind::Image {
-            origin, size, mesh, ..
-        } = &self.layer_ref(id).kind
-        else {
-            return None;
-        };
+        let LayerKind::Image { origin, size, mesh, .. } = &self.layer_ref(id).kind else { return None };
         let (pw, ph) = (data.pixmap.width() as f32, data.pixmap.height() as f32);
         let size = size.unwrap_or(Vec2::new(pw, ph));
         let has_deform = !self.geo[id].deformers.is_empty() || st.layers[id].wobble != 0.0;
@@ -2198,15 +1680,7 @@ impl Engine {
             };
             let uvs: Vec<Vec2> = match free {
                 Some(f) if f.uvs.len() == f.vertices.len() => f.uvs.clone(),
-                _ => rest
-                    .iter()
-                    .map(|v| {
-                        Vec2::new(
-                            (v.x - origin.x) / size.x * pw,
-                            (v.y - origin.y) / size.y * ph,
-                        )
-                    })
-                    .collect(),
+                _ => rest.iter().map(|v| Vec2::new((v.x - origin.x) / size.x * pw, (v.y - origin.y) / size.y * ph)).collect(),
             };
             let positions: Vec<Vec2> = rest
                 .iter()
@@ -2240,20 +1714,11 @@ impl Engine {
                     tris
                 }
             };
-            Some(MeshOut {
-                positions,
-                uvs,
-                tris,
-            })
+            Some(MeshOut { positions, uvs, tris })
         } else {
             None
         };
-        Some(ImageDraw {
-            data,
-            origin: *origin,
-            size,
-            mesh: mesh_out,
-        })
+        Some(ImageDraw { data, origin: *origin, size, mesh: mesh_out })
     }
 
     /// Pose, solve IK, skin and return everything drawable at `frame`.
@@ -2268,15 +1733,7 @@ impl Engine {
     /// (empty for layers that are not vector layers). Used by exporters that keep morphs as targets.
     pub fn morph_weights(&self, frame: f32) -> Vec<Vec<Vec<f32>>> {
         let (st, _) = self.pose_pipeline(frame);
-        self.geo
-            .iter()
-            .map(|g| {
-                g.morph_slots
-                    .iter()
-                    .map(|ms| ms.iter().map(|&s| st.pvals[s]).collect())
-                    .collect()
-            })
-            .collect()
+        self.geo.iter().map(|g| g.morph_slots.iter().map(|ms| ms.iter().map(|&s| st.pvals[s]).collect()).collect()).collect()
     }
 
     pub fn evaluate(&self, frame: f32) -> Frame {
@@ -2298,17 +1755,10 @@ impl Engine {
             }
             world = fk(&p.bones, &self.parent, &st.bones);
         }
-        let skin_mats: Vec<Affine2> = world
-            .iter()
-            .zip(&self.inv_rest)
-            .map(|(w, inv)| w.mul(*inv))
-            .collect();
+        let skin_mats: Vec<Affine2> = world.iter().zip(&self.inv_rest).map(|(w, inv)| w.mul(*inv)).collect();
 
-        let cams: HashMap<usize, Affine2> = self
-            .roots
-            .iter()
-            .map(|&r| (r, self.camera_matrix(&st.cam, self.layer_ref(r).parallax)))
-            .collect();
+        let cams: HashMap<usize, Affine2> =
+            self.roots.iter().map(|&r| (r, self.camera_matrix(&st.cam, self.layer_ref(r).parallax))).collect();
 
         let mut stage: Vec<Affine2> = Vec::with_capacity(self.nodes.len());
         let mut eff_attach: Vec<Affine2> = Vec::with_capacity(self.nodes.len());
@@ -2317,23 +1767,14 @@ impl Engine {
         for (id, info) in self.nodes.iter().enumerate() {
             let layer = self.layer_ref(id);
             let lp = &st.layers[id];
-            let local = compose_transform(
-                Vec2::new(lp.x, lp.y),
-                lp.rot,
-                Vec2::new(lp.sx, lp.sy),
-                lp.skew,
-                layer.transform.anchor,
-            );
+            let local =
+                compose_transform(Vec2::new(lp.x, lp.y), lp.rot, Vec2::new(lp.sx, lp.sy), lp.skew, layer.transform.anchor);
             // The skin matrix of a bone is a STAGE-space motion (bone world * inverse rest), so it is applied after the
             // layer's whole parent chain: `world = skin * chain * local`. Applying it inside a scaled parent group (the
             // old `parent_stage * skin * local`) scaled the posed travel by the group's scale (L-71). A layer without a
             // bone of its own follows the bone of its nearest bone-attached ancestor; its own bone replaces that of an
             // ancestor (the two motions are not stacked).
-            let eff = info
-                .bone
-                .map(|b| skin_mats[b])
-                .or_else(|| info.parent.map(|pa| eff_attach[pa]))
-                .unwrap_or(Affine2::IDENTITY);
+            let eff = info.bone.map(|b| skin_mats[b]).or_else(|| info.parent.map(|pa| eff_attach[pa])).unwrap_or(Affine2::IDENTITY);
             let chain = match info.parent {
                 Some(pa) => chain_no_bone[pa].mul(local),
                 None => local,
@@ -2350,58 +1791,32 @@ impl Engine {
 
             let mut image = None;
             let (kind, paths, children) = match &layer.kind {
-                LayerKind::Vector { .. } => (
-                    NodeKind::Vector,
-                    self.vector_geometry(id, &st, &skin_mats, layer_tick),
-                    Vec::new(),
-                ),
+                LayerKind::Vector { .. } => {
+                    (NodeKind::Vector, self.vector_geometry(id, &st, &skin_mats, layer_tick), Vec::new())
+                }
                 LayerKind::Group { .. } => (NodeKind::Group, Vec::new(), info.children.clone()),
                 LayerKind::Switch { .. } => {
                     let n = info.children.len();
-                    let sel = if n == 0 {
-                        None
-                    } else {
-                        Some((lp.switch.round().max(0.0) as usize).min(n - 1))
-                    };
-                    (
-                        NodeKind::Switch,
-                        Vec::new(),
-                        sel.map(|s| vec![info.children[s]]).unwrap_or_default(),
-                    )
+                    let sel = if n == 0 { None } else { Some((lp.switch.round().max(0.0) as usize).min(n - 1)) };
+                    (NodeKind::Switch, Vec::new(), sel.map(|s| vec![info.children[s]]).unwrap_or_default())
                 }
                 LayerKind::Image { .. } => {
                     image = self.image_draw(id, &st, &skin_mats, layer_tick);
                     (NodeKind::Image, Vec::new(), Vec::new())
                 }
-                LayerKind::Liquid {
-                    blobs,
-                    threshold,
-                    cell,
-                    fill,
-                    stroke,
-                } => {
+                LayerKind::Liquid { blobs, threshold, cell, fill, stroke } => {
                     let pts: Vec<(Vec2, f32)> = blobs
                         .iter()
-                        .map(
-                            |b| match b.bone.as_ref().and_then(|n| self.bone_ix.get(n)) {
-                                Some(&bi) => {
-                                    (world[bi].apply(b.pos), b.radius * world[bi].x_scale().abs())
-                                }
-                                None => (b.pos, b.radius),
-                            },
-                        )
+                        .map(|b| match b.bone.as_ref().and_then(|n| self.bone_ix.get(n)) {
+                            Some(&bi) => (world[bi].apply(b.pos), b.radius * world[bi].x_scale().abs()),
+                            None => (b.pos, b.radius),
+                        })
                         .collect();
-                    (
-                        NodeKind::Vector,
-                        crate::fx::liquid_paths(&pts, *threshold, *cell, fill, stroke),
-                        Vec::new(),
-                    )
+                    (NodeKind::Vector, crate::fx::liquid_paths(&pts, *threshold, *cell, fill, stroke), Vec::new())
                 }
-                LayerKind::Boolean { op, paths } => (
-                    NodeKind::Vector,
-                    crate::fx::boolean_paths(paths, *op, 0.25),
-                    Vec::new(),
-                ),
+                LayerKind::Boolean { op, paths } => {
+                    (NodeKind::Vector, crate::fx::boolean_paths(paths, *op, 0.25), Vec::new())
+                }
                 LayerKind::Emitter { spec } => {
                     let origin = match spec.bone.as_ref().and_then(|n| self.bone_ix.get(n)) {
                         Some(&bi) => world[bi].apply(spec.pos),
@@ -2432,13 +1847,7 @@ impl Engine {
             l.apply(&mut out, &stage);
         }
         let camera = self.camera_matrix(&st.cam, 1.0);
-        let mut f = Frame {
-            world,
-            camera,
-            nodes: out,
-            roots: self.roots.clone(),
-            nonfinite: None,
-        };
+        let mut f = Frame { world, camera, nodes: out, roots: self.roots.clone(), nonfinite: None };
         self.repair_nonfinite(&mut f);
         f
     }
@@ -2448,16 +1857,7 @@ impl Engine {
         let mut first: Option<String> = None;
         for (i, w) in f.world.iter_mut().enumerate() {
             if !aff_finite(w) {
-                first.get_or_insert_with(|| {
-                    format!(
-                        "bone '{}' (transform)",
-                        self.project
-                            .bones
-                            .get(i)
-                            .map(|b| b.name.as_str())
-                            .unwrap_or("?")
-                    )
-                });
+                first.get_or_insert_with(|| format!("bone '{}' (transform)", self.project.bones.get(i).map(|b| b.name.as_str()).unwrap_or("?")));
                 *w = Affine2::IDENTITY;
             }
         }
@@ -2466,11 +1866,7 @@ impl Engine {
             f.camera = Affine2::IDENTITY;
         }
         for n in f.nodes.iter_mut() {
-            let bad_geometry = n.paths.iter().any(|p| {
-                p.anchors
-                    .iter()
-                    .any(|a| !(a.pos.x.is_finite() && a.pos.y.is_finite()))
-            });
+            let bad_geometry = n.paths.iter().any(|p| p.anchors.iter().any(|a| !(a.pos.x.is_finite() && a.pos.y.is_finite())));
             let what = if !aff_finite(&n.world) {
                 Some("transform")
             } else if !n.opacity.is_finite() {
@@ -2495,8 +1891,7 @@ impl Engine {
     /// Evaluate the frame and refuse it if a number overflowed (see [`Frame::nonfinite`]).
     pub fn evaluate_checked(&self, frame: f32) -> Result<Frame, String> {
         let f = self.evaluate(frame);
-        f.check_finite()
-            .map_err(|e| format!("{e} at frame {frame}"))?;
+        f.check_finite().map_err(|e| format!("{e} at frame {frame}"))?;
         Ok(f)
     }
 
@@ -2552,10 +1947,7 @@ mod tests {
         let e = Engine::new(arm_with_target(120.0, 80.0)).unwrap();
         let f = e.evaluate(0.0);
         let tip = tip_of(&e, &f, "b");
-        assert!(
-            tip.distance(Vec2::new(120.0, 80.0)) < 0.05,
-            "tip at {tip:?}"
-        );
+        assert!(tip.distance(Vec2::new(120.0, 80.0)) < 0.05, "tip at {tip:?}");
         let joint = f.world[1].apply(Vec2::ZERO);
         assert!((joint.length() - 100.0).abs() < 0.05);
     }
@@ -2572,13 +1964,9 @@ mod tests {
     fn ik_bend_flips_the_joint_side() {
         let mut p = arm_with_target(120.0, 0.0);
         p.ik[0].bend = -1.0;
-        let down = Engine::new(p.clone()).unwrap().evaluate(0.0).world[1]
-            .apply(Vec2::ZERO)
-            .y;
+        let down = Engine::new(p.clone()).unwrap().evaluate(0.0).world[1].apply(Vec2::ZERO).y;
         p.ik[0].bend = 1.0;
-        let up = Engine::new(p).unwrap().evaluate(0.0).world[1]
-            .apply(Vec2::ZERO)
-            .y;
+        let up = Engine::new(p).unwrap().evaluate(0.0).world[1].apply(Vec2::ZERO).y;
         assert!(down * up < 0.0, "elbows on opposite sides: {down} vs {up}");
     }
 
@@ -2587,14 +1975,8 @@ mod tests {
         let mut p = empty_project();
         p.bones = vec![bone("a", None, 50.0, Vec2::new(10.0, 10.0), 0.0)];
         let mut anchor = Anchor::corner(Vec2::new(60.0, 10.0));
-        anchor.weights = vec![BoneWeight {
-            bone: "a".into(),
-            weight: 3.0,
-        }];
-        p.layers = vec![Layer::vector(
-            "L",
-            vec![VPath::new("p", false, vec![anchor])],
-        )];
+        anchor.weights = vec![BoneWeight { bone: "a".into(), weight: 3.0 }];
+        p.layers = vec![Layer::vector("L", vec![VPath::new("p", false, vec![anchor])])];
         p.channels = vec![Channel::keys("a", Prop::BoneAngle, two(0.0, 90.0))];
         let e = Engine::new(p).unwrap();
         let rest = e.evaluate(0.0).nodes[0].paths[0].anchors[0].pos;
@@ -2612,22 +1994,11 @@ mod tests {
         ];
         p.layers = vec![Layer::group(
             "G",
-            vec![Layer::vector(
-                "L",
-                vec![VPath::new(
-                    "p",
-                    false,
-                    vec![Anchor::corner(Vec2::new(20.0, 2.0))],
-                )],
-            )],
+            vec![Layer::vector("L", vec![VPath::new("p", false, vec![Anchor::corner(Vec2::new(20.0, 2.0))])])],
         )];
         p.auto_skin("G", 2).unwrap();
-        let LayerKind::Group { layers } = &p.layers[0].kind else {
-            panic!()
-        };
-        let LayerKind::Vector { paths } = &layers[0].kind else {
-            panic!()
-        };
+        let LayerKind::Group { layers } = &p.layers[0].kind else { panic!() };
+        let LayerKind::Vector { paths } = &layers[0].kind else { panic!() };
         let w = &paths[0].anchors[0].weights;
         assert_eq!(w.len(), 2);
         assert_eq!(w[0].bone, "left");
@@ -2649,10 +2020,7 @@ mod tests {
     #[test]
     fn child_listed_before_parent_is_rejected() {
         let mut p = empty_project();
-        p.bones = vec![
-            bone("c", Some("p"), 1.0, Vec2::ZERO, 0.0),
-            bone("p", None, 1.0, Vec2::ZERO, 0.0),
-        ];
+        p.bones = vec![bone("c", Some("p"), 1.0, Vec2::ZERO, 0.0), bone("p", None, 1.0, Vec2::ZERO, 0.0)];
         assert!(Engine::new(p).is_err());
     }
 
@@ -2660,10 +2028,7 @@ mod tests {
     fn bad_layer_references_are_rejected() {
         let mut p = empty_project();
         let mut a = Layer::vector("a", vec![]);
-        a.mask = Some(MaskRef {
-            layer: "missing".into(),
-            invert: false,
-        });
+        a.mask = Some(MaskRef { layer: "missing".into(), invert: false });
         let mut b = Layer::vector("b", vec![]);
         b.bone = Some("nobone".into());
         p.layers = vec![a, b, Layer::vector("b", vec![])];
@@ -2677,20 +2042,11 @@ mod tests {
     fn mask_cycles_and_self_masks_are_rejected() {
         let mut p = empty_project();
         let mut a = Layer::vector("a", vec![]);
-        a.mask = Some(MaskRef {
-            layer: "b".into(),
-            invert: false,
-        });
+        a.mask = Some(MaskRef { layer: "b".into(), invert: false });
         let mut b = Layer::vector("b", vec![]);
-        b.mask = Some(MaskRef {
-            layer: "a".into(),
-            invert: false,
-        });
+        b.mask = Some(MaskRef { layer: "a".into(), invert: false });
         let mut c = Layer::vector("c", vec![]);
-        c.mask = Some(MaskRef {
-            layer: "c".into(),
-            invert: false,
-        });
+        c.mask = Some(MaskRef { layer: "c".into(), invert: false });
         p.layers = vec![a, b, c];
         let errs = Engine::new(p).err().unwrap();
         assert!(errs.iter().any(|e| e.contains("cycle")), "{errs:?}");
@@ -2710,18 +2066,8 @@ mod tests {
         let mut p = arm_with_target(0.0, 0.0);
         p.channels = vec![
             Channel::expr("a", Prop::BoneAngle, "1 +", Mode::Replace),
-            Channel::expr(
-                "a",
-                Prop::BoneAngle,
-                "get(\"zzz\", \"bone_angle\")",
-                Mode::Replace,
-            ),
-            Channel::expr(
-                "a",
-                Prop::BoneAngle,
-                "get(\"a\", \"nonsense\")",
-                Mode::Replace,
-            ),
+            Channel::expr("a", Prop::BoneAngle, "get(\"zzz\", \"bone_angle\")", Mode::Replace),
+            Channel::expr("a", Prop::BoneAngle, "get(\"a\", \"nonsense\")", Mode::Replace),
         ];
         let errs = Engine::new(p).err().unwrap();
         assert_eq!(errs.len(), 3, "{errs:?}");
@@ -2737,22 +2083,12 @@ mod tests {
     fn group_transform_is_inherited_by_children() {
         let mut p = empty_project();
         let mut g = Layer::group("g", vec![rect_layer("c")]);
-        g.transform = Transform2D {
-            position: Vec2::new(30.0, 0.0),
-            scale: Vec2::new(2.0, 2.0),
-            ..Default::default()
-        };
+        g.transform = Transform2D { position: Vec2::new(30.0, 0.0), scale: Vec2::new(2.0, 2.0), ..Default::default() };
         p.layers = vec![g];
         let e = Engine::new(p).unwrap();
         let f = e.evaluate(0.0);
         let child = &f.nodes[e.node_index("g/c").unwrap()];
-        assert!(
-            child
-                .world
-                .apply(Vec2::new(5.0, 5.0))
-                .distance(Vec2::new(40.0, 10.0))
-                < 1e-4
-        );
+        assert!(child.world.apply(Vec2::new(5.0, 5.0)).distance(Vec2::new(40.0, 10.0)) < 1e-4);
     }
 
     #[test]
@@ -2770,13 +2106,7 @@ mod tests {
         assert!((n.opacity - 0.5).abs() < 1e-5);
         // rotate 45° then move +25 in x: (1,0) -> (cos45, sin45) + (25,0)
         let w = n.world.apply(Vec2::new(1.0, 0.0));
-        assert!(
-            w.distance(Vec2::new(
-                25.0 + std::f32::consts::FRAC_1_SQRT_2,
-                std::f32::consts::FRAC_1_SQRT_2
-            )) < 1e-3,
-            "{w:?}"
-        );
+        assert!(w.distance(Vec2::new(25.0 + std::f32::consts::FRAC_1_SQRT_2, std::f32::consts::FRAC_1_SQRT_2)) < 1e-3, "{w:?}");
     }
 
     #[test]
@@ -2815,50 +2145,25 @@ mod tests {
         };
         let (with, without) = (build(true), build(false));
         let q = Vec2::new(60.0, 10.0);
-        let node = |e: &Engine, f: f32| {
-            e.evaluate(f)
-                .nodes
-                .iter()
-                .find(|n| n.name == "g/c")
-                .unwrap()
-                .world
-        };
+        let node = |e: &Engine, f: f32| e.evaluate(f).nodes.iter().find(|n| n.name == "g/c").unwrap().world;
         // at rest: identical (the bone adds nothing)
-        assert!(
-            node(&with, 0.0)
-                .apply(q)
-                .distance(node(&without, 0.0).apply(q))
-                < 1e-4
-        );
+        assert!(node(&with, 0.0).apply(q).distance(node(&without, 0.0).apply(q)) < 1e-4);
         // posed: the skin matrix is applied to the child's stage position, once
         let skin = with.evaluate(10.0).world[0].mul(with.inv_rest[0]);
         let group = node(&without, 10.0);
         let expected = skin.apply(group.apply(q));
-        assert!(
-            node(&with, 10.0).apply(q).distance(expected) < 1e-3,
-            "world = skin * parent_stage * local"
-        );
+        assert!(node(&with, 10.0).apply(q).distance(expected) < 1e-3, "world = skin * parent_stage * local");
         // the travel equals the travel of the same point attached with an identity group: not doubled
-        let travel = node(&with, 10.0)
-            .apply(q)
-            .distance(node(&with, 0.0).apply(q));
-        let direct = skin
-            .apply(node(&with, 0.0).apply(q))
-            .distance(node(&with, 0.0).apply(q));
-        assert!(
-            (travel - direct).abs() < 1e-3,
-            "travel {travel} vs bone motion {direct}"
-        );
+        let travel = node(&with, 10.0).apply(q).distance(node(&with, 0.0).apply(q));
+        let direct = skin.apply(node(&with, 0.0).apply(q)).distance(node(&with, 0.0).apply(q));
+        assert!((travel - direct).abs() < 1e-3, "travel {travel} vs bone motion {direct}");
     }
 
     /// A layer without a bone follows its bone-attached ancestor; a layer's own bone replaces the ancestor's.
     #[test]
     fn bone_attach_is_inherited_and_a_child_bone_replaces_the_parents() {
         let mut p = empty_project();
-        p.bones = vec![
-            bone("a", None, 50.0, Vec2::new(10.0, 10.0), 0.0),
-            bone("b", None, 50.0, Vec2::new(10.0, 80.0), 0.0),
-        ];
+        p.bones = vec![bone("a", None, 50.0, Vec2::new(10.0, 10.0), 0.0), bone("b", None, 50.0, Vec2::new(10.0, 80.0), 0.0)];
         let mut inner = Layer::group("inner", vec![rect_layer("x")]);
         inner.bone = Some("b".into());
         let plain = rect_layer("y");
@@ -2867,47 +2172,23 @@ mod tests {
         p.layers = vec![outer];
         p.channels = vec![Channel::keys("a", Prop::BoneAngle, two(0.0, 90.0))];
         let e = Engine::new(p).unwrap();
-        let w = |name: &str, f: f32| {
-            e.evaluate(f)
-                .nodes
-                .iter()
-                .find(|n| n.name == name)
-                .unwrap()
-                .world
-        };
+        let w = |name: &str, f: f32| e.evaluate(f).nodes.iter().find(|n| n.name == name).unwrap().world;
         let q = Vec2::new(60.0, 10.0);
         let skin_a = e.evaluate(10.0).world[0].mul(e.inv_rest[0]);
         // y has no bone of its own: follows a
-        assert!(
-            w("outer/y", 10.0)
-                .apply(q)
-                .distance(skin_a.apply(w("outer/y", 0.0).apply(q)))
-                < 1e-3
-        );
+        assert!(w("outer/y", 10.0).apply(q).distance(skin_a.apply(w("outer/y", 0.0).apply(q))) < 1e-3);
         // x sits under inner (bone b, which does not move): it does not also take a's motion
-        assert!(
-            w("outer/inner/x", 10.0)
-                .apply(q)
-                .distance(w("outer/inner/x", 0.0).apply(q))
-                < 1e-3
-        );
+        assert!(w("outer/inner/x", 10.0).apply(q).distance(w("outer/inner/x", 0.0).apply(q)) < 1e-3);
     }
 
     #[test]
     fn switch_layer_selects_one_child_with_step_keys() {
         let mut p = empty_project();
-        p.layers = vec![Layer::switch(
-            "mouth",
-            vec![rect_layer("a"), rect_layer("b"), rect_layer("c")],
-        )];
+        p.layers = vec![Layer::switch("mouth", vec![rect_layer("a"), rect_layer("b"), rect_layer("c")])];
         p.channels = vec![Channel::keys(
             "mouth",
             Prop::LayerSwitch,
-            Track::with_keys(&[
-                (0.0, 0.0, Ease::Step),
-                (4.0, 2.0, Ease::Step),
-                (8.0, 1.0, Ease::Step),
-            ]),
+            Track::with_keys(&[(0.0, 0.0, Ease::Step), (4.0, 2.0, Ease::Step), (8.0, 1.0, Ease::Step)]),
         )];
         let e = Engine::new(p).unwrap();
         let shown = |f: f32| {
@@ -2933,21 +2214,10 @@ mod tests {
         p.channels = vec![Channel::keys("", Prop::CameraX, two(50.0, 70.0))];
         let e = Engine::new(p).unwrap();
         let f = e.evaluate(10.0); // camera moved +20 in x
-        let sx = |name: &str| {
-            f.nodes[e.node_index(name).unwrap()]
-                .world
-                .apply(Vec2::ZERO)
-                .x
-        };
+        let sx = |name: &str| f.nodes[e.node_index(name).unwrap()].world.apply(Vec2::ZERO).x;
         assert!((sx("near") - -20.0).abs() < 1e-4, "near scrolls fully");
-        assert!(
-            (sx("far") - -10.0).abs() < 1e-4,
-            "far scrolls at half speed"
-        );
-        assert!(
-            (sx("hud") - 0.0).abs() < 1e-4,
-            "hud is pinned to the screen"
-        );
+        assert!((sx("far") - -10.0).abs() < 1e-4, "far scrolls at half speed");
+        assert!((sx("hud") - 0.0).abs() < 1e-4, "hud is pinned to the screen");
 
         let mut p2 = empty_project();
         p2.layers = vec![rect_layer("r")];
@@ -2955,11 +2225,7 @@ mod tests {
         let e2 = Engine::new(p2).unwrap();
         // zoom about the stage centre: stage centre stays put, origin goes to -50
         let w = &e2.evaluate(0.0).nodes[0].world;
-        assert!(
-            w.apply(Vec2::new(50.0, 50.0))
-                .distance(Vec2::new(50.0, 50.0))
-                < 1e-4
-        );
+        assert!(w.apply(Vec2::new(50.0, 50.0)).distance(Vec2::new(50.0, 50.0)) < 1e-4);
         assert!(w.apply(Vec2::ZERO).distance(Vec2::new(-50.0, -50.0)) < 1e-4);
     }
 
@@ -2972,22 +2238,14 @@ mod tests {
         p.channels = vec![
             Channel::keys("a", Prop::BoneAngle, two(0.0, 40.0)),
             // b mirrors a at half strength, driven by an expression reading a's current angle
-            Channel::expr(
-                "b",
-                Prop::BoneAngle,
-                "get(\"a\", \"bone_angle\") * -0.5",
-                Mode::Replace,
-            ),
+            Channel::expr("b", Prop::BoneAngle, "get(\"a\", \"bone_angle\") * -0.5", Mode::Replace),
             Channel::expr("t", Prop::BoneOffsetY, "10 * sin(pi * t)", Mode::Replace),
         ];
         let e = Engine::new(p).unwrap();
         let f = e.evaluate(10.0);
         assert!((f.world[1].rotation().to_degrees() - (40.0 - 20.0)).abs() < 1e-3);
         let f5 = e.evaluate(1.0); // 10 frames → t = 0.1 → sin(0.1π)·10
-        assert!(
-            (f5.world[2].apply(Vec2::ZERO).y - 10.0 * (0.1f32 * std::f32::consts::PI).sin()).abs()
-                < 1e-3
-        );
+        assert!((f5.world[2].apply(Vec2::ZERO).y - 10.0 * (0.1f32 * std::f32::consts::PI).sin()).abs() < 1e-3);
     }
 
     #[test]
@@ -3000,18 +2258,10 @@ mod tests {
         ];
         let e = Engine::new(p.clone()).unwrap();
         let ang = |f: f32| e.evaluate(f).world[0].rotation().to_degrees();
-        assert!(
-            (0..10).any(|f| ang(f as f32).abs() > 0.5),
-            "noise moves the bone"
-        );
+        assert!((0..10).any(|f| ang(f as f32).abs() > 0.5), "noise moves the bone");
         assert!((0..10).all(|f| ang(f as f32).abs() <= 10.0 + 1e-3));
         assert_eq!(ang(3.0), ang(3.0));
-        assert_eq!(
-            ang(3.0),
-            Engine::new(p).unwrap().evaluate(3.0).world[0]
-                .rotation()
-                .to_degrees()
-        );
+        assert_eq!(ang(3.0), Engine::new(p).unwrap().evaluate(3.0).world[0].rotation().to_degrees());
     }
 
     #[test]
@@ -3050,10 +2300,7 @@ mod tests {
         let e = Engine::new(p).unwrap();
         let f = e.evaluate(0.0);
         assert!((f.world[0].x_scale() - 6.0).abs() < 1e-4, "2 × 3");
-        assert!(
-            (f.world[0].apply(Vec2::ZERO).x - 9.0).abs() < 1e-4,
-            "0→5 (50% toward 10) then +4"
-        );
+        assert!((f.world[0].apply(Vec2::ZERO).x - 9.0).abs() < 1e-4, "0→5 (50% toward 10) then +4");
     }
 
     #[test]
@@ -3071,14 +2318,7 @@ mod tests {
 
     fn one_anchor_project() -> Project {
         let mut p = empty_project();
-        p.layers = vec![Layer::vector(
-            "L",
-            vec![VPath::new(
-                "p",
-                false,
-                vec![Anchor::corner(Vec2::new(5.0, 5.0))],
-            )],
-        )];
+        p.layers = vec![Layer::vector("L", vec![VPath::new("p", false, vec![Anchor::corner(Vec2::new(5.0, 5.0))])])];
         p
     }
 
@@ -3086,18 +2326,8 @@ mod tests {
     fn channel_expressions_with_absurd_nesting_are_rejected_not_fatal() {
         let mut p = arm_with_target(0.0, 0.0);
         p.channels = vec![
-            Channel::expr(
-                "a",
-                Prop::BoneAngle,
-                &format!("{}1{}", "(".repeat(20_000), ")".repeat(20_000)),
-                Mode::Replace,
-            ),
-            Channel::expr(
-                "a",
-                Prop::BoneAngle,
-                &format!("{}1", "-".repeat(200_000)),
-                Mode::Replace,
-            ),
+            Channel::expr("a", Prop::BoneAngle, &format!("{}1{}", "(".repeat(20_000), ")".repeat(20_000)), Mode::Replace),
+            Channel::expr("a", Prop::BoneAngle, &format!("{}1", "-".repeat(200_000)), Mode::Replace),
         ];
         let errs = Engine::new(p).err().unwrap();
         assert_eq!(errs.len(), 2, "{errs:?}");
@@ -3109,10 +2339,7 @@ mod tests {
         let mut p = empty_project();
         p.camera.zoom = 3.0e38;
         let err = Engine::new(p).err().unwrap().join("; ");
-        assert!(
-            err.contains("/camera/zoom") && err.contains("outside the supported range"),
-            "{err}"
-        );
+        assert!(err.contains("/camera/zoom") && err.contains("outside the supported range"), "{err}");
 
         let mut p = one_anchor_project();
         p.layers[0].transform.scale = Vec2::new(3.0e38, 1.0);
@@ -3123,14 +2350,7 @@ mod tests {
         assert!(Engine::new(p).is_err());
 
         let mut p = empty_project();
-        p.layers = vec![Layer::vector(
-            "L",
-            vec![VPath::new(
-                "p",
-                false,
-                vec![Anchor::corner(Vec2::new(3.0e38, 0.0))],
-            )],
-        )];
+        p.layers = vec![Layer::vector("L", vec![VPath::new("p", false, vec![Anchor::corner(Vec2::new(3.0e38, 0.0))])])];
         let err = Engine::new(p).err().unwrap().join("; ");
         assert!(err.contains("anchors"), "{err}");
 
@@ -3146,14 +2366,8 @@ mod tests {
         let cases: [(&str, serde_json::Value); 4] = [
             ("/camera/zoom", serde_json::json!(1e300)),
             ("/layers/0/transform/scale", serde_json::json!([1e300, 1.0])),
-            (
-                "/layers/0/paths/0/anchors/0/pos",
-                serde_json::json!([1e300, 0.0]),
-            ),
-            (
-                "/bones",
-                serde_json::json!([{"name": "a", "parent": null, "length": 5.0, "rest_offset": [1e308, 0.0], "rest_angle": 0.0}]),
-            ),
+            ("/layers/0/paths/0/anchors/0/pos", serde_json::json!([1e300, 0.0])),
+            ("/bones", serde_json::json!([{"name": "a", "parent": null, "length": 5.0, "rest_offset": [1e308, 0.0], "rest_angle": 0.0}])),
         ];
         for (ptr, val) in cases {
             let mut v = base.clone();
@@ -3162,14 +2376,10 @@ mod tests {
                 Some(t) => t["bones"] = val,
                 None => {
                     // layers/0/paths is only valid for vector layers: set through the pointer
-                    *v.pointer_mut(ptr)
-                        .unwrap_or_else(|| panic!("{ptr} missing in {base}")) = val;
+                    *v.pointer_mut(ptr).unwrap_or_else(|| panic!("{ptr} missing in {base}")) = val;
                 }
             }
-            let err = Project::from_json(&v.to_string())
-                .err()
-                .unwrap_or_else(|| panic!("{ptr} was accepted"))
-                .to_string();
+            let err = Project::from_json(&v.to_string()).err().unwrap_or_else(|| panic!("{ptr} was accepted")).to_string();
             assert!(err.contains("outside the supported range"), "{ptr}: {err}");
         }
         assert!(Project::from_json(&serde_json::to_string(&base).unwrap()).is_ok());
@@ -3186,14 +2396,7 @@ mod tests {
     #[test]
     fn overflow_through_nested_scales_is_reported_not_exported_as_nan() {
         // every number is within range, the product of six nested scales is not an f32
-        let mut inner = Layer::vector(
-            "L",
-            vec![VPath::new(
-                "p",
-                false,
-                vec![Anchor::corner(Vec2::new(5.0, 5.0))],
-            )],
-        );
+        let mut inner = Layer::vector("L", vec![VPath::new("p", false, vec![Anchor::corner(Vec2::new(5.0, 5.0))])]);
         inner.transform.scale = Vec2::new(1e7, 1e7);
         let mut cur = inner;
         for i in 0..6 {
@@ -3208,27 +2411,13 @@ mod tests {
         assert!(f.nonfinite.is_some());
         for n in &f.nodes {
             let m = n.world;
-            assert!(
-                [m.a, m.b, m.c, m.d, m.tx, m.ty]
-                    .iter()
-                    .all(|v| v.is_finite()),
-                "repaired frames carry no NaN"
-            );
+            assert!([m.a, m.b, m.c, m.d, m.tx, m.ty].iter().all(|v| v.is_finite()), "repaired frames carry no NaN");
         }
         let err = e.evaluate_checked(0.0).err().unwrap();
-        assert!(
-            err.starts_with("non-finite value in ") && err.contains("at frame 0"),
-            "{err}"
-        );
-        assert!(e
-            .check_all_frames_finite()
-            .unwrap_err()
-            .starts_with("non-finite value in "));
+        assert!(err.starts_with("non-finite value in ") && err.contains("at frame 0"), "{err}");
+        assert!(e.check_all_frames_finite().unwrap_err().starts_with("non-finite value in "));
         // a normal project passes
-        assert!(Engine::new(one_anchor_project())
-            .unwrap()
-            .check_all_frames_finite()
-            .is_ok());
+        assert!(Engine::new(one_anchor_project()).unwrap().check_all_frames_finite().is_ok());
     }
 }
 
@@ -3241,10 +2430,7 @@ mod reference_tests {
     #[test]
     fn reference_layers_are_hidden_unless_the_editor_asks() {
         let mut p = Project::new("r", 50.0, 50.0, 24.0, 2);
-        let mut l = Layer::vector(
-            "sketch",
-            vec![VPath::rect("r", 0.0, 0.0, 10.0, 10.0).with_fill("#ff0000")],
-        );
+        let mut l = Layer::vector("sketch", vec![VPath::rect("r", 0.0, 0.0, 10.0, 10.0).with_fill("#ff0000")]);
         l.reference = true;
         p.layers = vec![l];
         let mut e = Engine::new(p.clone()).unwrap();
@@ -3253,11 +2439,6 @@ mod reference_tests {
         assert!(e.evaluate(0.0).nodes[0].visible);
         let j = p.to_json_pretty();
         assert!(j.contains("\"reference\": true"));
-        assert!(
-            !Project::new("x", 1.0, 1.0, 24.0, 1)
-                .to_json_pretty()
-                .contains("reference"),
-            "default is not serialised"
-        );
+        assert!(!Project::new("x", 1.0, 1.0, 24.0, 1).to_json_pretty().contains("reference"), "default is not serialised");
     }
 }

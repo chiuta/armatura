@@ -24,11 +24,7 @@ impl Drop for Studio {
 /// The `osatura` executable next to this one.
 fn engine_path() -> Result<PathBuf, String> {
     let me = std::env::current_exe().map_err(|e| format!("cannot find myself: {e}"))?;
-    let name = if cfg!(windows) {
-        "osatura.exe"
-    } else {
-        "osatura"
-    };
+    let name = if cfg!(windows) { "osatura.exe" } else { "osatura" };
     let p = me.parent().ok_or("no parent folder")?.join(name);
     if p.exists() {
         Ok(p)
@@ -51,22 +47,15 @@ fn hide_console(c: &mut Command) {
 
 /// `<Documents>/OSATURA/first-rig.json`, created from the built-in demo when missing (an existing file is never touched).
 pub fn default_project(engine: &Path) -> Result<PathBuf, String> {
-    let home = std::env::var_os("USERPROFILE")
-        .or_else(|| std::env::var_os("HOME"))
-        .ok_or("no home folder")?;
+    let home = std::env::var_os("USERPROFILE").or_else(|| std::env::var_os("HOME")).ok_or("no home folder")?;
     let dir = PathBuf::from(home).join("Documents").join("OSATURA");
     std::fs::create_dir_all(&dir).map_err(|e| format!("cannot create {}: {e}", dir.display()))?;
     let p = dir.join("first-rig.json");
     if !p.exists() {
         let mut c = Command::new(engine);
-        c.arg("demo")
-            .arg(&p)
-            .stdout(Stdio::null())
-            .stderr(Stdio::null());
+        c.arg("demo").arg(&p).stdout(Stdio::null()).stderr(Stdio::null());
         hide_console(&mut c);
-        let st = c
-            .status()
-            .map_err(|e| format!("cannot run the engine: {e}"))?;
+        let st = c.status().map_err(|e| format!("cannot run the engine: {e}"))?;
         if !st.success() {
             return Err("the engine could not write the first project".into());
         }
@@ -88,30 +77,15 @@ pub fn start(project: Option<PathBuf>) -> Result<Studio, String> {
     };
     let port = free_port()?;
     let mut c = Command::new(&engine);
-    c.arg("studio")
-        .arg(&project)
-        .arg("--port")
-        .arg(port.to_string())
-        .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null());
+    c.arg("studio").arg(&project).arg("--port").arg(port.to_string()).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
     hide_console(&mut c);
-    let child = c
-        .spawn()
-        .map_err(|e| format!("cannot start the engine: {e}"))?;
-    let mut s = Studio {
-        child,
-        url: format!("http://127.0.0.1:{port}"),
-        project,
-    };
+    let child = c.spawn().map_err(|e| format!("cannot start the engine: {e}"))?;
+    let mut s = Studio { child, url: format!("http://127.0.0.1:{port}"), project };
     let addr: SocketAddr = ([127, 0, 0, 1], port).into();
     let t0 = Instant::now();
     loop {
         if let Some(st) = s.child.try_wait().map_err(|e| e.to_string())? {
-            return Err(format!(
-                "the studio server stopped at start-up ({st}); is the project file valid? {}",
-                s.project.display()
-            ));
+            return Err(format!("the studio server stopped at start-up ({st}); is the project file valid? {}", s.project.display()));
         }
         if TcpStream::connect_timeout(&addr, Duration::from_millis(200)).is_ok() {
             return Ok(s);
@@ -126,15 +100,8 @@ pub fn start(project: Option<PathBuf>) -> Result<Studio, String> {
 /// One HTTP request to the server's page; `true` when it answers 200.
 pub fn page_ok(s: &Studio) -> bool {
     use std::io::{Read, Write};
-    let port: u16 = s
-        .url
-        .rsplit(':')
-        .next()
-        .and_then(|p| p.parse().ok())
-        .unwrap_or(0);
-    let Ok(mut t) = TcpStream::connect(("127.0.0.1", port)) else {
-        return false;
-    };
+    let port: u16 = s.url.rsplit(':').next().and_then(|p| p.parse().ok()).unwrap_or(0);
+    let Ok(mut t) = TcpStream::connect(("127.0.0.1", port)) else { return false };
     let _ = t.set_read_timeout(Some(Duration::from_secs(5)));
     let req = format!("GET / HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\n\r\n");
     if t.write_all(req.as_bytes()).is_err() {

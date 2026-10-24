@@ -44,23 +44,12 @@ fn is_zero(v: &f32) -> bool {
 
 impl SoundTrack {
     pub fn new(name: &str, file: &str, start: f32, gain: f32) -> SoundTrack {
-        SoundTrack {
-            name: name.into(),
-            file: file.into(),
-            start,
-            gain,
-            trim_in: 0.0,
-            trim_out: None,
-            fade_in: 0.0,
-            fade_out: 0.0,
-        }
+        SoundTrack { name: name.into(), file: file.into(), start, gain, trim_in: 0.0, trim_out: None, fade_in: 0.0, fade_out: 0.0 }
     }
 
     /// Length of the clip after trimming, when known (`file_len` is the whole file's length).
     pub fn clip_len(&self, file_len: Option<f32>) -> Option<f32> {
-        self.trim_out
-            .or(file_len)
-            .map(|end| (end - self.trim_in).max(0.0))
+        self.trim_out.or(file_len).map(|end| (end - self.trim_in).max(0.0))
     }
 }
 
@@ -70,38 +59,25 @@ pub fn check_track(s: &SoundTrack) -> Result<(), String> {
     if s.name.trim().is_empty() || s.file.trim().is_empty() {
         return Err("sound needs a name and a file".into());
     }
-    if !s.start.is_finite()
-        || s.start < 0.0
-        || !s.gain.is_finite()
-        || !(0.0..=4.0).contains(&s.gain)
-    {
+    if !s.start.is_finite() || s.start < 0.0 || !s.gain.is_finite() || !(0.0..=4.0).contains(&s.gain) {
         return Err("start must be >= 0 and gain within 0..4".into());
     }
     if !s.trim_in.is_finite() || s.trim_in < 0.0 || s.trim_in > 86_400.0 {
-        return Err(format!(
-            "sound '{n}': trim in must be within 0..86400 seconds"
-        ));
+        return Err(format!("sound '{n}': trim in must be within 0..86400 seconds"));
     }
     if let Some(o) = s.trim_out {
         if !o.is_finite() || o <= s.trim_in || o > 86_400.0 {
-            return Err(format!(
-                "sound '{n}': trim out must be greater than trim in"
-            ));
+            return Err(format!("sound '{n}': trim out must be greater than trim in"));
         }
     }
     for (what, v) in [("fade in", s.fade_in), ("fade out", s.fade_out)] {
         if !v.is_finite() || !(0.0..=86_400.0).contains(&v) {
-            return Err(format!(
-                "sound '{n}': {what} must be a number of seconds >= 0"
-            ));
+            return Err(format!("sound '{n}': {what} must be a number of seconds >= 0"));
         }
     }
     if let Some(len) = s.clip_len(None) {
         if s.fade_in + s.fade_out > len + 1e-4 {
-            return Err(format!(
-                "sound '{n}': fade in + fade out ({}s) is longer than the trimmed clip ({len}s)",
-                s.fade_in + s.fade_out
-            ));
+            return Err(format!("sound '{n}': fade in + fade out ({}s) is longer than the trimmed clip ({len}s)", s.fade_in + s.fade_out));
         }
     }
     Ok(())
@@ -158,14 +134,7 @@ fn fnum(v: f32) -> String {
 /// Filter chain for one track: `[idx:a]` -> trim -> fades -> (delay to `start`) -> gain -> `[label]`.
 /// `placed = false` leaves out the start delay (clip-local audio, e.g. for a waveform).
 /// `file_len` (seconds) is only needed for a fade-out when no trim-out is set.
-pub fn track_chain(
-    s: &SoundTrack,
-    fps: f32,
-    idx: usize,
-    label: &str,
-    file_len: Option<f32>,
-    placed: bool,
-) -> Result<String, String> {
+pub fn track_chain(s: &SoundTrack, fps: f32, idx: usize, label: &str, file_len: Option<f32>, placed: bool) -> Result<String, String> {
     check_track(s)?;
     let mut f: Vec<String> = Vec::new();
     if s.trim_in > 0.0 || s.trim_out.is_some() {
@@ -182,18 +151,9 @@ pub fn track_chain(
     if s.fade_out > 0.0 {
         let len = s.clip_len(file_len).ok_or_else(|| format!("sound '{}': the length of '{}' is needed for a fade-out (set a trim out, or install ffprobe)", s.name, s.file))?;
         if s.fade_out > len + 1e-4 {
-            return Err(format!(
-                "sound '{}': fade out ({}s) is longer than the clip ({}s)",
-                s.name,
-                s.fade_out,
-                fnum(len)
-            ));
+            return Err(format!("sound '{}': fade out ({}s) is longer than the clip ({}s)", s.name, s.fade_out, fnum(len)));
         }
-        f.push(format!(
-            "afade=t=out:st={}:d={}",
-            fnum((len - s.fade_out).max(0.0)),
-            fnum(s.fade_out)
-        ));
+        f.push(format!("afade=t=out:st={}:d={}", fnum((len - s.fade_out).max(0.0)), fnum(s.fade_out)));
     }
     if placed {
         let ms = (s.start / fps * 1000.0).round().max(0.0) as u64;
@@ -209,13 +169,7 @@ pub fn track_chain(
 /// The whole mix as a pure function. `first_input` is the ffmpeg input number of the first audio
 /// file (1 when a video input comes first, 0 for audio only). `file_lens[i]` is the length of
 /// track i's file if known. `pad_to` (seconds) pads the result with silence to at least that length.
-pub fn mux_plan(
-    p: &Project,
-    base_dir: &std::path::Path,
-    first_input: usize,
-    file_lens: &[Option<f32>],
-    pad_to: Option<f32>,
-) -> Result<Option<Mux>, String> {
+pub fn mux_plan(p: &Project, base_dir: &std::path::Path, first_input: usize, file_lens: &[Option<f32>], pad_to: Option<f32>) -> Result<Option<Mux>, String> {
     if p.sounds.is_empty() {
         return Ok(None);
     }
@@ -228,14 +182,7 @@ pub fn mux_plan(
         inputs.push("file".to_string());
         inputs.push("-i".to_string());
         inputs.push(path.to_string_lossy().into_owned());
-        parts.push(track_chain(
-            s,
-            p.fps,
-            first_input + i,
-            &format!("a{i}"),
-            file_lens.get(i).copied().flatten(),
-            true,
-        )?);
+        parts.push(track_chain(s, p.fps, first_input + i, &format!("a{i}"), file_lens.get(i).copied().flatten(), true)?);
     }
     let n = p.sounds.len();
     let labels: String = (0..n).map(|i| format!("[a{i}]")).collect();
@@ -246,10 +193,7 @@ pub fn mux_plan(
     let filter = if n == 1 {
         format!("{};[a0]{tail}[aout]", parts[0])
     } else {
-        format!(
-            "{};{labels}amix=inputs={n}:normalize=0,{tail}[aout]",
-            parts.join(";")
-        )
+        format!("{};{labels}amix=inputs={n}:normalize=0,{tail}[aout]", parts.join(";"))
     };
     Ok(Some(Mux { inputs, filter }))
 }
@@ -263,31 +207,13 @@ pub fn file_duration(path: &std::path::Path) -> Option<f32> {
         return Some(r.duration() as f32 / sp.sample_rate.max(1) as f32);
     }
     // an absolute or ./-prefixed path never reads as a URL; only the file protocol is allowed
-    let path = if path.is_absolute() || path.starts_with(".") {
-        path.to_path_buf()
-    } else {
-        std::path::Path::new(".").join(path)
-    };
+    let path = if path.is_absolute() || path.starts_with(".") { path.to_path_buf() } else { std::path::Path::new(".").join(path) };
     let out = std::process::Command::new("ffprobe")
-        .args([
-            "-v",
-            "error",
-            "-protocol_whitelist",
-            "file",
-            "-show_entries",
-            "format=duration",
-            "-of",
-            "default=nw=1:nk=1",
-            "-i",
-        ])
+        .args(["-v", "error", "-protocol_whitelist", "file", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1", "-i"])
         .arg(&path)
         .output()
         .ok()?;
-    String::from_utf8_lossy(&out.stdout)
-        .trim()
-        .parse::<f32>()
-        .ok()
-        .filter(|d| d.is_finite() && *d >= 0.0)
+    String::from_utf8_lossy(&out.stdout).trim().parse::<f32>().ok().filter(|d| d.is_finite() && *d >= 0.0)
 }
 
 /// Check that the file of a sound track exists, is a regular readable file within the audio cap and is audio:
@@ -296,45 +222,19 @@ pub fn file_duration(path: &std::path::Path) -> Option<f32> {
 pub fn check_file(base_dir: &std::path::Path, file: &str) -> Result<(), String> {
     let path = resolve(base_dir, file)?;
     crate::assets::check_regular(&path, crate::assets::MAX_AUDIO_BYTES, "sound file")?;
-    std::fs::File::open(&path)
-        .map_err(|e| format!("cannot read sound file {}: {e}", path.display()))?;
+    std::fs::File::open(&path).map_err(|e| format!("cannot read sound file {}: {e}", path.display()))?;
     if hound::WavReader::open(&path).is_ok() {
         return Ok(());
     }
-    let arg = if path.is_absolute() || path.starts_with(".") {
-        path.clone()
-    } else {
-        std::path::Path::new(".").join(&path)
-    };
+    let arg = if path.is_absolute() || path.starts_with(".") { path.clone() } else { std::path::Path::new(".").join(&path) };
     match std::process::Command::new("ffprobe")
-        .args([
-            "-v",
-            "error",
-            "-protocol_whitelist",
-            "file",
-            "-show_entries",
-            "format=duration",
-            "-of",
-            "default=nw=1:nk=1",
-            "-i",
-        ])
+        .args(["-v", "error", "-protocol_whitelist", "file", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1", "-i"])
         .arg(&arg)
         .output()
     {
         Err(_) => Ok(()), // no ffprobe: existence only
-        Ok(o)
-            if o.status.success()
-                && String::from_utf8_lossy(&o.stdout)
-                    .trim()
-                    .parse::<f32>()
-                    .is_ok() =>
-        {
-            Ok(())
-        }
-        Ok(_) => Err(format!(
-            "{} is not an audio file that ffmpeg can read",
-            path.display()
-        )),
+        Ok(o) if o.status.success() && String::from_utf8_lossy(&o.stdout).trim().parse::<f32>().is_ok() => Ok(()),
+        Ok(_) => Err(format!("{} is not an audio file that ffmpeg can read", path.display())),
     }
 }
 
@@ -344,33 +244,17 @@ fn resolve(base_dir: &std::path::Path, file: &str) -> Result<std::path::PathBuf,
 }
 
 /// Like `mux_plan`, probing file lengths only for tracks that need one (fade-out without trim-out).
-pub fn mux_args(
-    p: &Project,
-    base_dir: &std::path::Path,
-    first_input: usize,
-    pad_to: Option<f32>,
-) -> Result<Option<Mux>, String> {
+pub fn mux_args(p: &Project, base_dir: &std::path::Path, first_input: usize, pad_to: Option<f32>) -> Result<Option<Mux>, String> {
     let lens: Vec<Option<f32>> = p
         .sounds
         .iter()
-        .map(|s| {
-            if s.fade_out > 0.0 && s.trim_out.is_none() {
-                resolve(base_dir, &s.file)
-                    .ok()
-                    .and_then(|f| file_duration(&f))
-            } else {
-                None
-            }
-        })
+        .map(|s| if s.fade_out > 0.0 && s.trim_out.is_none() { resolve(base_dir, &s.file).ok().and_then(|f| file_duration(&f)) } else { None })
         .collect();
     mux_plan(p, base_dir, first_input, &lens, pad_to)
 }
 
 /// Resolved path of a track's file.
-pub fn track_path(
-    base_dir: &std::path::Path,
-    s: &SoundTrack,
-) -> Result<std::path::PathBuf, String> {
+pub fn track_path(base_dir: &std::path::Path, s: &SoundTrack) -> Result<std::path::PathBuf, String> {
     resolve(base_dir, &s.file)
 }
 
@@ -383,25 +267,14 @@ mod tests {
     fn check_file_flags_missing_and_non_audio_files() {
         let dir = crate::fsutil::private_temp_dir("osatura-snd-test").unwrap();
         let d = dir.path();
-        assert!(check_file(d, "nope.wav")
-            .unwrap_err()
-            .contains("cannot read"));
+        assert!(check_file(d, "nope.wav").unwrap_err().contains("cannot read"));
         std::fs::write(d.join("junk.wav"), b"this is not audio at all").unwrap();
         // a text file named .wav is not WAV; with ffprobe installed it is refused, without it only existence is known
         let r = check_file(d, "junk.wav");
-        if std::process::Command::new("ffprobe")
-            .arg("-version")
-            .output()
-            .is_ok()
-        {
+        if std::process::Command::new("ffprobe").arg("-version").output().is_ok() {
             assert!(r.unwrap_err().contains("not an audio file"));
         }
-        let spec = hound::WavSpec {
-            channels: 1,
-            sample_rate: 8000,
-            bits_per_sample: 16,
-            sample_format: hound::SampleFormat::Int,
-        };
+        let spec = hound::WavSpec { channels: 1, sample_rate: 8000, bits_per_sample: 16, sample_format: hound::SampleFormat::Int };
         let mut w = hound::WavWriter::create(d.join("ok.wav"), spec).unwrap();
         for _ in 0..80 {
             w.write_sample(0i16).unwrap();
@@ -428,26 +301,13 @@ mod tests {
     #[test]
     fn filter_graph() {
         let mut p = Project::new("s", 10.0, 10.0, 24.0, 48);
-        assert!(mux_plan(&p, Path::new("."), 1, &[], None)
-            .unwrap()
-            .is_none());
+        assert!(mux_plan(&p, Path::new("."), 1, &[], None).unwrap().is_none());
         add(&mut p, "a", "x.wav", 12.0, 0.5).unwrap();
-        let m = mux_plan(&p, Path::new("/d"), 1, &[], None)
-            .unwrap()
-            .unwrap();
-        assert_eq!(
-            m.inputs,
-            vec!["-protocol_whitelist", "file", "-i", "/d/x.wav"]
-        );
-        assert!(
-            m.filter.contains("adelay=500|500")
-                && m.filter.contains("volume=0.5")
-                && m.filter.ends_with("[aout]")
-        );
+        let m = mux_plan(&p, Path::new("/d"), 1, &[], None).unwrap().unwrap();
+        assert_eq!(m.inputs, vec!["-protocol_whitelist", "file", "-i", "/d/x.wav"]);
+        assert!(m.filter.contains("adelay=500|500") && m.filter.contains("volume=0.5") && m.filter.ends_with("[aout]"));
         add(&mut p, "b", "sub/y.wav", 0.0, 1.0).unwrap();
-        let m = mux_plan(&p, Path::new("/d"), 1, &[], None)
-            .unwrap()
-            .unwrap();
+        let m = mux_plan(&p, Path::new("/d"), 1, &[], None).unwrap().unwrap();
         assert!(m.filter.contains("amix=inputs=2") && m.inputs[7] == "/d/sub/y.wav");
     }
 
@@ -459,9 +319,7 @@ mod tests {
         let e = mux_plan(&p, Path::new("/d"), 1, &[], None).unwrap_err();
         assert!(e.contains("absolute"), "{e}");
         p.sounds[0].file = "../x.wav".into();
-        assert!(mux_plan(&p, Path::new("/d"), 1, &[], None)
-            .unwrap_err()
-            .contains("'..'"));
+        assert!(mux_plan(&p, Path::new("/d"), 1, &[], None).unwrap_err().contains("'..'"));
         // a project given as `p.json` has an empty parent: the URL must not reach ffmpeg as a bare string
         p.sounds[0].file = "http://example.invalid/a.wav".into();
         let m = mux_plan(&p, Path::new(""), 1, &[], None).unwrap().unwrap();
@@ -483,24 +341,11 @@ mod tests {
         assert!(!local.contains("adelay") && local.starts_with("[0:a]atrim"));
         // no trim-out: fade-out needs the file length
         t.trim_out = None;
-        assert!(track_chain(&t, 24.0, 1, "a0", None, true)
-            .unwrap_err()
-            .contains("length"));
+        assert!(track_chain(&t, 24.0, 1, "a0", None, true).unwrap_err().contains("length"));
         let c = track_chain(&t, 24.0, 1, "a0", Some(10.0), true).unwrap();
-        assert!(
-            c.contains("atrim=start=1.5,") && c.contains("afade=t=out:st=7.5:d=1"),
-            "{c}"
-        );
+        assert!(c.contains("atrim=start=1.5,") && c.contains("afade=t=out:st=7.5:d=1"), "{c}");
         // untouched track keeps the plain chain
-        let plain = track_chain(
-            &SoundTrack::new("p", "p.wav", 0.0, 1.0),
-            24.0,
-            1,
-            "a0",
-            None,
-            true,
-        )
-        .unwrap();
+        let plain = track_chain(&SoundTrack::new("p", "p.wav", 0.0, 1.0), 24.0, 1, "a0", None, true).unwrap();
         assert_eq!(plain, "[1:a]adelay=0|0,asetpts=N/SR/TB,volume=1[a0]");
     }
 
@@ -545,15 +390,7 @@ mod tests {
         let mut p = Project::new("s", 10.0, 10.0, 24.0, 48);
         add(&mut p, "a", "x.wav", 0.0, 1.0).unwrap();
         add(&mut p, "b", "y.wav", 24.0, 1.0).unwrap();
-        let m = mux_plan(&p, Path::new("."), 0, &[], Some(2.0))
-            .unwrap()
-            .unwrap();
-        assert!(
-            m.filter.starts_with("[0:a]")
-                && m.filter.contains(";[1:a]")
-                && m.filter.ends_with("apad=whole_dur=2[aout]"),
-            "{}",
-            m.filter
-        );
+        let m = mux_plan(&p, Path::new("."), 0, &[], Some(2.0)).unwrap().unwrap();
+        assert!(m.filter.starts_with("[0:a]") && m.filter.contains(";[1:a]") && m.filter.ends_with("apad=whole_dur=2[aout]"), "{}", m.filter);
     }
 }

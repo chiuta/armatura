@@ -31,7 +31,6 @@
 //! panic message still goes to stderr.
 
 use crate::anim::{Ease, Track};
-use crate::clock::Stamp;
 use crate::engine::{Engine, Frame, NodeKind};
 use crate::math::{Affine2, Vec2};
 use crate::posesuggest::{PoseDb, PoseSpace};
@@ -40,6 +39,7 @@ use serde::Serialize;
 use std::collections::BTreeMap;
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::path::Path;
+use crate::clock::Stamp;
 
 // ---------------------------------------------------------------------------------------------
 // random numbers and low-discrepancy sequences
@@ -81,11 +81,7 @@ pub fn first_primes(n: usize) -> Vec<u32> {
     let mut out: Vec<u32> = Vec::with_capacity(n);
     let mut c = 2u32;
     while out.len() < n {
-        if out
-            .iter()
-            .take_while(|p| *p * *p <= c)
-            .all(|p| !c.is_multiple_of(*p))
-        {
+        if out.iter().take_while(|p| *p * *p <= c).all(|p| !c.is_multiple_of(*p)) {
             out.push(c);
         }
         c += 1;
@@ -107,10 +103,7 @@ pub fn radical_inverse(mut i: u64, base: u32) -> f64 {
 
 /// Halton point `index` (starting at 1) in `dim` dimensions: coordinate `k` is the radical inverse in the `k`-th prime.
 pub fn halton_point(index: u64, dim: usize) -> Vec<f32> {
-    first_primes(dim)
-        .iter()
-        .map(|&p| radical_inverse(index, p) as f32)
-        .collect()
+    first_primes(dim).iter().map(|&p| radical_inverse(index, p) as f32).collect()
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -177,27 +170,15 @@ impl Default for ParamOptions {
 /// All parameters of a project, in a stable order.
 pub fn enumerate_params(p: &Project, o: &ParamOptions) -> Vec<Param> {
     // outputs of driven keys are derived values: not probed (the driver stays alive)
-    let driven_out: Vec<(&str, Prop)> = p
-        .channels
-        .iter()
-        .filter(|c| matches!(c.source, Source::Driven { .. }))
-        .map(|c| (c.target.as_str(), c.prop))
-        .collect();
+    let driven_out: Vec<(&str, Prop)> =
+        p.channels.iter().filter(|c| matches!(c.source, Source::Driven { .. })).map(|c| (c.target.as_str(), c.prop)).collect();
     // key range of curves that read a bone property: the natural range of a driver input
-    let mut input_range: std::collections::HashMap<(String, Prop), (f32, f32)> =
-        std::collections::HashMap::new();
+    let mut input_range: std::collections::HashMap<(String, Prop), (f32, f32)> = std::collections::HashMap::new();
     for c in &p.channels {
-        if let Source::Driven {
-            input,
-            input_prop,
-            curve,
-        } = &c.source
-        {
+        if let Source::Driven { input, input_prop, curve } = &c.source {
             if let (Some(a), Some(b)) = (curve.first_frame(), curve.last_frame()) {
                 let m = 0.1 * (b - a).abs();
-                let e = input_range
-                    .entry((input.clone(), *input_prop))
-                    .or_insert((a - m, b + m));
+                let e = input_range.entry((input.clone(), *input_prop)).or_insert((a - m, b + m));
                 e.0 = e.0.min(a - m);
                 e.1 = e.1.max(b + m);
             }
@@ -210,73 +191,28 @@ pub fn enumerate_params(p: &Project, o: &ParamOptions) -> Vec<Param> {
         if !o.only_bones.is_empty() && !o.only_bones.contains(&b.name) {
             continue;
         }
-        let mut push =
-            |suffix: &str, prop: Prop, lo: f32, hi: f32, rest: f32, limit: Option<[f32; 2]>| {
-                if skip(&b.name, prop)
-                    || !(o.bone_props.is_empty() || o.bone_props.iter().any(|x| x == suffix))
-                    || (lo.partial_cmp(&hi) != Some(std::cmp::Ordering::Less))
-                    || !lo.is_finite()
-                    || !hi.is_finite()
-                {
-                    return;
-                }
-                let (lo, hi) = match input_range.get(&(b.name.clone(), prop)) {
-                    Some(&(a, c)) if limit.is_none() => (a, c),
-                    _ => (lo, hi),
-                };
-                out.push(Param {
-                    id: format!("bone:{}:{}", b.name, suffix),
-                    target: b.name.clone(),
-                    prop,
-                    lo,
-                    hi,
-                    rest,
-                    limit,
-                });
+        let mut push = |suffix: &str, prop: Prop, lo: f32, hi: f32, rest: f32, limit: Option<[f32; 2]>| {
+            if skip(&b.name, prop) || !(o.bone_props.is_empty() || o.bone_props.iter().any(|x| x == suffix)) || (lo.partial_cmp(&hi) != Some(std::cmp::Ordering::Less)) || !lo.is_finite() || !hi.is_finite() {
+                return;
+            }
+            let (lo, hi) = match input_range.get(&(b.name.clone(), prop)) {
+                Some(&(a, c)) if limit.is_none() => (a, c),
+                _ => (lo, hi),
             };
+            out.push(Param { id: format!("bone:{}:{}", b.name, suffix), target: b.name.clone(), prop, lo, hi, rest, limit });
+        };
         match b.angle_limits {
-            Some([a, c]) => push(
-                "angle",
-                Prop::BoneAngle,
-                a - o.limit_margin,
-                c + o.limit_margin,
-                0.0f32.clamp(a, c),
-                Some([a, c]),
-            ),
-            None => push(
-                "angle",
-                Prop::BoneAngle,
-                -o.angle_range,
-                o.angle_range,
-                0.0,
-                None,
-            ),
+            Some([a, c]) => push("angle", Prop::BoneAngle, a - o.limit_margin, c + o.limit_margin, 0.0f32.clamp(a, c), Some([a, c])),
+            None => push("angle", Prop::BoneAngle, -o.angle_range, o.angle_range, 0.0, None),
         }
         match b.scale_limits {
             Some([a, c]) => {
                 let m = o.limit_margin / 180.0;
-                push(
-                    "scale",
-                    Prop::BoneScale,
-                    (a - m).max(0.01),
-                    c + m,
-                    1.0f32.clamp(a, c),
-                    Some([a, c]),
-                )
+                push("scale", Prop::BoneScale, (a - m).max(0.01), c + m, 1.0f32.clamp(a, c), Some([a, c]))
             }
-            None => push(
-                "scale",
-                Prop::BoneScale,
-                o.scale_range[0],
-                o.scale_range[1],
-                1.0,
-                None,
-            ),
+            None => push("scale", Prop::BoneScale, o.scale_range[0], o.scale_range[1], 1.0, None),
         }
-        let r = o
-            .offset_range
-            .unwrap_or_else(|| (0.5 * b.length).max(0.1 * side))
-            .abs();
+        let r = o.offset_range.unwrap_or_else(|| (0.5 * b.length).max(0.1 * side)).abs();
         push("offx", Prop::BoneOffsetX, -r, r, 0.0, None);
         push("offy", Prop::BoneOffsetY, -r, r, 0.0, None);
     }
@@ -286,19 +222,8 @@ pub fn enumerate_params(p: &Project, o: &ParamOptions) -> Vec<Param> {
     let restrict_props = !o.bone_props.is_empty();
     let in_only = |n: &str| o.only_bones.is_empty() || o.only_bones.iter().any(|b| b == n);
     if o.ik_mix && !restrict_props {
-        for c in
-            p.ik.iter()
-                .filter(|c| in_only(&c.target) || c.bones.iter().any(|b| in_only(b)))
-        {
-            out.push(Param {
-                id: format!("ik:{}:mix", c.name),
-                target: c.name.clone(),
-                prop: Prop::IkMix,
-                lo: 0.0,
-                hi: 1.0,
-                rest: c.mix,
-                limit: None,
-            });
+        for c in p.ik.iter().filter(|c| in_only(&c.target) || c.bones.iter().any(|b| in_only(b))) {
+            out.push(Param { id: format!("ik:{}:mix", c.name), target: c.name.clone(), prop: Prop::IkMix, lo: 0.0, hi: 1.0, rest: c.mix, limit: None });
         }
     }
     if o.constraint_weight && !restrict_props {
@@ -316,87 +241,27 @@ pub fn enumerate_params(p: &Project, o: &ParamOptions) -> Vec<Param> {
     }
     if o.deformers && o.only_bones.is_empty() && !restrict_props {
         let mut dp: Vec<Param> = Vec::new();
-        fn walk(
-            layers: &[crate::project::Layer],
-            prefix: &str,
-            o: &ParamOptions,
-            dp: &mut Vec<Param>,
-        ) {
+        fn walk(layers: &[crate::project::Layer], prefix: &str, o: &ParamOptions, dp: &mut Vec<Param>) {
             for l in layers {
-                let path = if prefix.is_empty() {
-                    l.name.clone()
-                } else {
-                    format!("{prefix}/{}", l.name)
-                };
+                let path = if prefix.is_empty() { l.name.clone() } else { format!("{prefix}/{}", l.name) };
                 for d in &l.deformers {
                     let (n, ctl, props, offs): (usize, bool, (Prop, Prop), &Vec<Vec2>) = match d {
-                        Deformer::Lattice {
-                            cols,
-                            rows,
-                            offsets,
-                            ..
-                        } => (
-                            (cols + 1) * (rows + 1),
-                            true,
-                            (Prop::LatticeDx, Prop::LatticeDy),
-                            offsets,
-                        ),
-                        Deformer::Cloth {
-                            cols,
-                            rows,
-                            offsets,
-                            ..
-                        } => (
-                            (cols + 1) * (rows + 1),
-                            true,
-                            (Prop::LatticeDx, Prop::LatticeDy),
-                            offsets,
-                        ),
-                        Deformer::Spine { rest, offsets, .. } => {
-                            (rest.len(), false, (Prop::SpineDx, Prop::SpineDy), offsets)
-                        }
-                        Deformer::Pin { pins, offsets, .. } => {
-                            (pins.len(), false, (Prop::PinDx, Prop::PinDy), offsets)
-                        }
-                        Deformer::Cage { rest, offsets, .. } => {
-                            (rest.len(), false, (Prop::CageDx, Prop::CageDy), offsets)
-                        }
+                        Deformer::Lattice { cols, rows, offsets, .. } => ((cols + 1) * (rows + 1), true, (Prop::LatticeDx, Prop::LatticeDy), offsets),
+                        Deformer::Cloth { cols, rows, offsets, .. } => ((cols + 1) * (rows + 1), true, (Prop::LatticeDx, Prop::LatticeDy), offsets),
+                        Deformer::Spine { rest, offsets, .. } => (rest.len(), false, (Prop::SpineDx, Prop::SpineDy), offsets),
+                        Deformer::Pin { pins, offsets, .. } => (pins.len(), false, (Prop::PinDx, Prop::PinDy), offsets),
+                        Deformer::Cage { rest, offsets, .. } => (rest.len(), false, (Prop::CageDx, Prop::CageDy), offsets),
                     };
                     let cols = match d {
                         Deformer::Lattice { cols, .. } | Deformer::Cloth { cols, .. } => *cols,
                         _ => 0,
                     };
                     for i in 0..n {
-                        let key = if ctl {
-                            format!(
-                                "{path}::{}::{},{}",
-                                d.name(),
-                                i % (cols + 1),
-                                i / (cols + 1)
-                            )
-                        } else {
-                            format!("{path}::{}::{i}", d.name())
-                        };
+                        let key = if ctl { format!("{path}::{}::{},{}", d.name(), i % (cols + 1), i / (cols + 1)) } else { format!("{path}::{}::{i}", d.name()) };
                         let off = offs.get(i).copied().unwrap_or(Vec2::ZERO);
                         let r = o.deformer_range;
-                        dp.push(Param {
-                            id: format!("deform:{key}:dx"),
-                            target: key.clone(),
-                            prop: props.0,
-                            lo: off.x - r,
-                            hi: off.x + r,
-                            rest: off.x,
-                            limit: None,
-                        });
-                        dp.push(Param {
-                            id: format!("deform:{key}:dy"),
-                            target: key,
-                            prop: props.1,
-                            lo: off.y - r,
-                            hi: off.y + r,
-                            rest: off.y,
-                            limit: None,
-                        });
+                        dp.push(Param { id: format!("deform:{key}:dx"), target: key.clone(), prop: props.0, lo: off.x - r, hi: off.x + r, rest: off.x, limit: None });
+                        dp.push(Param { id: format!("deform:{key}:dy"), target: key, prop: props.1, lo: off.y - r, hi: off.y + r, rest: off.y, limit: None });
                     }
                 }
                 walk(l.children(), &path, o, dp);
@@ -437,11 +302,7 @@ impl Strategy {
             "sweep" => Strategy::Sweep,
             "corners" => Strategy::Corners,
             "pca" => Strategy::Pca,
-            _ => {
-                return Err(format!(
-                    "unknown strategy '{s}' (random, lhs, halton, sweep, corners, pca)"
-                ))
-            }
+            _ => return Err(format!("unknown strategy '{s}' (random, lhs, halton, sweep, corners, pca)")),
         })
     }
     pub fn name(self) -> &'static str {
@@ -484,10 +345,7 @@ impl PcaSampler {
         let mut cols = Vec::new();
         let mut src = Vec::new();
         for (j, b) in db.bones.iter().enumerate() {
-            if let Some(pi) = params
-                .iter()
-                .position(|p| p.id == format!("bone:{b}:angle"))
-            {
+            if let Some(pi) = params.iter().position(|p| p.id == format!("bone:{b}:angle")) {
                 cols.push(pi);
                 src.push(j);
             }
@@ -495,11 +353,7 @@ impl PcaSampler {
         if cols.is_empty() {
             return Err("the pose database shares no bone with the rig's angle parameters".into());
         }
-        let poses: Vec<Vec<f32>> = db
-            .poses
-            .iter()
-            .map(|p| src.iter().map(|&j| p[j]).collect())
-            .collect();
+        let poses: Vec<Vec<f32>> = db.poses.iter().map(|p| src.iter().map(|&j| p[j]).collect()).collect();
         let space = PoseSpace::fit(&poses, 0.95, 8)?;
         Ok(PcaSampler { space, cols })
     }
@@ -515,13 +369,7 @@ pub const MAX_SAMPLE_VALUES: usize = 50_000_000;
 
 /// Parameter vectors for a strategy. `n` is the requested number of samples (sweep and corners may return
 /// a different count, see their notes). Deterministic for a given `seed`.
-pub fn generate(
-    params: &[Param],
-    strategy: Strategy,
-    n: usize,
-    seed: u64,
-    pca: Option<&PcaSampler>,
-) -> Result<Vec<Vec<f32>>, String> {
+pub fn generate(params: &[Param], strategy: Strategy, n: usize, seed: u64, pca: Option<&PcaSampler>) -> Result<Vec<Vec<f32>>, String> {
     let d = params.len();
     if d == 0 {
         return Err("the rig has no parameters to fuzz".into());
@@ -530,29 +378,16 @@ pub fn generate(
         return Err("--samples must be at least 1".into());
     }
     if n > MAX_SAMPLES {
-        return Err(format!(
-            "--samples {n} is more than the limit of {MAX_SAMPLES}"
-        ));
+        return Err(format!("--samples {n} is more than the limit of {MAX_SAMPLES}"));
     }
     if n.saturating_mul(d) > MAX_SAMPLE_VALUES {
         return Err(format!("--samples {n} x {d} parameters = {} numbers, more than the limit of {MAX_SAMPLE_VALUES}; use fewer samples", n.saturating_mul(d)));
     }
     let mut rng = Rng::new(seed);
-    let map = |u: &[f32]| -> Vec<f32> {
-        params
-            .iter()
-            .zip(u)
-            .map(|(p, &u)| p.lo + u * (p.hi - p.lo))
-            .collect()
-    };
+    let map = |u: &[f32]| -> Vec<f32> { params.iter().zip(u).map(|(p, &u)| p.lo + u * (p.hi - p.lo)).collect() };
     Ok(match strategy {
-        Strategy::Random => (0..n)
-            .map(|_| map(&(0..d).map(|_| rng.unit()).collect::<Vec<_>>()))
-            .collect(),
-        Strategy::Lhs => latin_hypercube(n, d, &mut rng)
-            .iter()
-            .map(|u| map(u))
-            .collect(),
+        Strategy::Random => (0..n).map(|_| map(&(0..d).map(|_| rng.unit()).collect::<Vec<_>>())).collect(),
+        Strategy::Lhs => latin_hypercube(n, d, &mut rng).iter().map(|u| map(u)).collect(),
         Strategy::Halton => (1..=n as u64).map(|i| map(&halton_point(i, d))).collect(),
         Strategy::Sweep => {
             // one axis at a time, others at rest; both ends of the range included
@@ -570,24 +405,9 @@ pub fn generate(
         Strategy::Corners => {
             // all 2^d corners when they fit into n, else n random corners
             if d <= 20 && (1usize << d) <= n {
-                (0..1usize << d)
-                    .map(|m| {
-                        params
-                            .iter()
-                            .enumerate()
-                            .map(|(k, p)| if m >> k & 1 == 1 { p.hi } else { p.lo })
-                            .collect()
-                    })
-                    .collect()
+                (0..1usize << d).map(|m| params.iter().enumerate().map(|(k, p)| if m >> k & 1 == 1 { p.hi } else { p.lo }).collect()).collect()
             } else {
-                (0..n)
-                    .map(|_| {
-                        params
-                            .iter()
-                            .map(|p| if rng.next_u64() & 1 == 1 { p.hi } else { p.lo })
-                            .collect()
-                    })
-                    .collect()
+                (0..n).map(|_| params.iter().map(|p| if rng.next_u64() & 1 == 1 { p.hi } else { p.lo }).collect()).collect()
             }
         }
         Strategy::Pca => {
@@ -595,9 +415,7 @@ pub fn generate(
             let k = s.space.k();
             (0..n)
                 .map(|_| {
-                    let z: Vec<f32> = (0..k)
-                        .map(|i| (rng.gauss() * 2.0).clamp(-3.0, 3.0) * s.space.eig[i].sqrt())
-                        .collect();
+                    let z: Vec<f32> = (0..k).map(|i| (rng.gauss() * 2.0).clamp(-3.0, 3.0) * s.space.eig[i].sqrt()).collect();
                     let x = s.space.reconstruct(&z);
                     let mut v: Vec<f32> = params.iter().map(|q| q.rest).collect();
                     for (c, &pi) in s.cols.iter().enumerate() {
@@ -637,16 +455,7 @@ pub struct Thresholds {
 
 impl Default for Thresholds {
     fn default() -> Self {
-        Thresholds {
-            min_det: 0.0,
-            max_stretch: 3.0,
-            max_shear: 2.0,
-            max_area: 6.0,
-            max_spike: 1.0,
-            ik_error: 0.03,
-            canvas_margin: 0.0,
-            max_extent: 20.0,
-        }
+        Thresholds { min_det: 0.0, max_stretch: 3.0, max_shear: 2.0, max_area: 6.0, max_spike: 1.0, ik_error: 0.03, canvas_margin: 0.0, max_extent: 20.0 }
     }
 }
 
@@ -675,25 +484,10 @@ fn det2(a: Vec2, b: Vec2) -> f32 {
 
 /// Deformation-gradient metrics of a triangle mesh against its rest shape. `edges` may add extra edges
 /// (open or closed paths use them instead of triangles). Triangles whose rest area is ~0 are skipped.
-pub fn mesh_metrics(
-    rest: &[Vec2],
-    def: &[Vec2],
-    tris: &[[usize; 3]],
-    edges: &[[usize; 2]],
-    th: &Thresholds,
-) -> MeshMetrics {
+pub fn mesh_metrics(rest: &[Vec2], def: &[Vec2], tris: &[[usize; 3]], edges: &[[usize; 2]], th: &Thresholds) -> MeshMetrics {
     let n = rest.len().min(def.len());
     let mut stress = vec![0.0f32; n];
-    let mut m = MeshMetrics {
-        triangles: 0,
-        min_det: f32::INFINITY,
-        max_det: f32::NEG_INFINITY,
-        flips: 0,
-        max_stretch: 1.0,
-        max_shear: 0.0,
-        max_spike: 0.0,
-        stress: vec![],
-    };
+    let mut m = MeshMetrics { triangles: 0, min_det: f32::INFINITY, max_det: f32::NEG_INFINITY, flips: 0, max_stretch: 1.0, max_shear: 0.0, max_spike: 0.0, stress: vec![] };
     let mut all_edges: Vec<[usize; 2]> = edges.to_vec();
     for t in tris {
         all_edges.extend([[t[0], t[1]], [t[1], t[2]], [t[2], t[0]]]);
@@ -706,11 +500,7 @@ pub fn mesh_metrics(
                 c += 1;
             }
         }
-        if c == 0 {
-            0.0
-        } else {
-            s / c as f32
-        }
+        if c == 0 { 0.0 } else { s / c as f32 }
     };
     for t in tris {
         if t.iter().any(|&i| i >= n) {
@@ -725,31 +515,13 @@ pub fn mesh_metrics(
         let (d1, d2) = (def[t[1]] - def[t[0]], def[t[2]] - def[t[0]]);
         let det = det2(d1, d2) / a_rest;
         // F = [d1 d2] [e1 e2]^-1
-        let inv = [
-            [e2.y / a_rest, -e2.x / a_rest],
-            [-e1.y / a_rest, e1.x / a_rest],
-        ];
-        let f = [
-            [
-                d1.x * inv[0][0] + d2.x * inv[1][0],
-                d1.x * inv[0][1] + d2.x * inv[1][1],
-            ],
-            [
-                d1.y * inv[0][0] + d2.y * inv[1][0],
-                d1.y * inv[0][1] + d2.y * inv[1][1],
-            ],
-        ];
+        let inv = [[e2.y / a_rest, -e2.x / a_rest], [-e1.y / a_rest, e1.x / a_rest]];
+        let f = [[d1.x * inv[0][0] + d2.x * inv[1][0], d1.x * inv[0][1] + d2.x * inv[1][1]], [d1.y * inv[0][0] + d2.y * inv[1][0], d1.y * inv[0][1] + d2.y * inv[1][1]]];
         let s1 = f[0][0] * f[0][0] + f[0][1] * f[0][1] + f[1][0] * f[1][0] + f[1][1] * f[1][1];
         let disc = (s1 * s1 - 4.0 * det * det).max(0.0).sqrt();
         let smax = ((s1 + disc) * 0.5).sqrt();
         let smin = if smax > 1e-12 { det.abs() / smax } else { 0.0 };
-        let shear = if det <= th.min_det {
-            0.0
-        } else if smin > 1e-9 {
-            smax / smin - 1.0
-        } else {
-            1e3
-        };
+        let shear = if det <= th.min_det { 0.0 } else if smin > 1e-9 { smax / smin - 1.0 } else { 1e3 };
         m.triangles += 1;
         m.min_det = m.min_det.min(det);
         m.max_det = m.max_det.max(det);
@@ -757,17 +529,8 @@ pub fn mesh_metrics(
             m.flips += 1;
         }
         m.max_shear = m.max_shear.max(shear);
-        let n_fold = if det <= th.min_det {
-            1.0 + (th.min_det - det)
-        } else {
-            (1.0 - det) / (1.0 - th.min_det)
-        }
-        .max(0.0);
-        let n_area = if det > 1.0 {
-            (det - 1.0) / (th.max_area - 1.0)
-        } else {
-            0.0
-        };
+        let n_fold = if det <= th.min_det { 1.0 + (th.min_det - det) } else { (1.0 - det) / (1.0 - th.min_det) }.max(0.0);
+        let n_area = if det > 1.0 { (det - 1.0) / (th.max_area - 1.0) } else { 0.0 };
         let n_shear = shear / th.max_shear;
         let s = n_fold.max(n_area).max(n_shear).min(CAP);
         for &i in t {
@@ -814,10 +577,7 @@ pub fn mesh_metrics(
             lr += rest[i].distance(rest[j]);
             ld += def[i].distance(def[j]);
         }
-        let (lap_r, lap_d) = (
-            (cr * (1.0 / k) - rest[i]).length(),
-            (cd * (1.0 / k) - def[i]).length(),
-        );
+        let (lap_r, lap_d) = ((cr * (1.0 / k) - rest[i]).length(), (cd * (1.0 / k) - def[i]).length());
         let (er, ed) = (lr / k, ld / k);
         if er < 1e-6 {
             continue;
@@ -840,12 +600,7 @@ fn orient(a: Vec2, b: Vec2, c: Vec2) -> f32 {
 
 /// Do segments `ab` and `cd` cross properly (interiors intersect, not merely touch)?
 pub fn segments_cross(a: Vec2, b: Vec2, c: Vec2, d: Vec2) -> bool {
-    let (o1, o2, o3, o4) = (
-        orient(a, b, c),
-        orient(a, b, d),
-        orient(c, d, a),
-        orient(c, d, b),
-    );
+    let (o1, o2, o3, o4) = (orient(a, b, c), orient(a, b, d), orient(c, d, a), orient(c, d, b));
     o1 * o2 < 0.0 && o3 * o4 < 0.0
 }
 
@@ -950,69 +705,21 @@ fn snapshot(frame: &Frame) -> Vec<Snap> {
                         loops.push((0, k));
                     }
                     let fl = p.flatten_t(1.0);
-                    let outline = (
-                        fl.iter().map(|f| f.0).collect::<Vec<_>>(),
-                        fl.iter().map(|f| f.1.min(k - 1)).collect::<Vec<_>>(),
-                        p.closed,
-                    );
-                    out.push(Snap {
-                        name: format!(
-                            "{}#{}",
-                            n.name,
-                            if p.name.is_empty() {
-                                pi.to_string()
-                            } else {
-                                p.name.clone()
-                            }
-                        ),
-                        kind: GeoKind::Path,
-                        pts,
-                        tris: vec![],
-                        edges,
-                        outlines: vec![outline],
-                        loops,
-                        world: n.world,
-                    });
+                    let outline = (fl.iter().map(|f| f.0).collect::<Vec<_>>(), fl.iter().map(|f| f.1.min(k - 1)).collect::<Vec<_>>(), p.closed);
+                    out.push(Snap { name: format!("{}#{}", n.name, if p.name.is_empty() { pi.to_string() } else { p.name.clone() }), kind: GeoKind::Path, pts, tris: vec![], edges, outlines: vec![outline], loops, world: n.world });
                 }
             }
             NodeKind::Image => {
                 if let Some(img) = &n.image {
                     match &img.mesh {
                         Some(m) => {
-                            let tris = m
-                                .tris
-                                .iter()
-                                .map(|t| [t[0] as usize, t[1] as usize, t[2] as usize])
-                                .collect();
-                            out.push(Snap {
-                                name: format!("{}#mesh", n.name),
-                                kind: GeoKind::Mesh,
-                                pts: m.positions.clone(),
-                                tris,
-                                edges: vec![],
-                                outlines: vec![],
-                                loops: vec![],
-                                world: n.world,
-                            });
+                            let tris = m.tris.iter().map(|t| [t[0] as usize, t[1] as usize, t[2] as usize]).collect();
+                            out.push(Snap { name: format!("{}#mesh", n.name), kind: GeoKind::Mesh, pts: m.positions.clone(), tris, edges: vec![], outlines: vec![], loops: vec![], world: n.world });
                         }
                         None => {
                             let (o, s) = (img.origin, img.size);
-                            let pts = vec![
-                                o,
-                                Vec2::new(o.x + s.x, o.y),
-                                o + s,
-                                Vec2::new(o.x, o.y + s.y),
-                            ];
-                            out.push(Snap {
-                                name: format!("{}#quad", n.name),
-                                kind: GeoKind::Quad,
-                                pts,
-                                tris: vec![[0, 1, 2], [0, 2, 3]],
-                                edges: vec![],
-                                outlines: vec![],
-                                loops: vec![],
-                                world: n.world,
-                            });
+                            let pts = vec![o, Vec2::new(o.x + s.x, o.y), o + s, Vec2::new(o.x, o.y + s.y)];
+                            out.push(Snap { name: format!("{}#quad", n.name), kind: GeoKind::Quad, pts, tris: vec![[0, 1, 2], [0, 2, 3]], edges: vec![], outlines: vec![], loops: vec![], world: n.world });
                         }
                     }
                 }
@@ -1144,13 +851,7 @@ fn engine_for(p: Project, asset_dir: Option<&Path>) -> Result<Engine, String> {
 }
 
 impl Fuzzer {
-    pub fn new(
-        project: &Project,
-        asset_dir: Option<&Path>,
-        popts: &ParamOptions,
-        th: Thresholds,
-        frame: f32,
-    ) -> Result<Fuzzer, String> {
+    pub fn new(project: &Project, asset_dir: Option<&Path>, popts: &ParamOptions, th: Thresholds, frame: f32) -> Result<Fuzzer, String> {
         let params = enumerate_params(project, popts);
         if params.is_empty() {
             return Err("the rig has no parameters to fuzz".into());
@@ -1158,13 +859,7 @@ impl Fuzzer {
         Fuzzer::with_params(project, asset_dir, params, th, frame)
     }
 
-    pub fn with_params(
-        project: &Project,
-        asset_dir: Option<&Path>,
-        params: Vec<Param>,
-        th: Thresholds,
-        frame: f32,
-    ) -> Result<Fuzzer, String> {
+    pub fn with_params(project: &Project, asset_dir: Option<&Path>, params: Vec<Param>, th: Thresholds, frame: f32) -> Result<Fuzzer, String> {
         if !frame.is_finite() {
             return Err("frame must be a number".into());
         }
@@ -1180,71 +875,30 @@ impl Fuzzer {
         let geos: Vec<Geo> = snaps
             .into_iter()
             .map(|s| {
-                let rest_self = s
-                    .outlines
-                    .iter()
-                    .map(|(p, _, c)| self_intersections(p, *c, 1000).len())
-                    .collect();
-                let rest_area = s
-                    .loops
-                    .iter()
-                    .map(|&(a, b)| signed_area(&s.pts[a..b]))
-                    .collect();
-                let rest_inside = bbox(&s.pts, &s.world)
-                    .is_some_and(|(lo, hi)| hi.x >= 0.0 && lo.x <= w && hi.y >= 0.0 && lo.y <= h);
-                Geo {
-                    snap: s,
-                    rest_self,
-                    rest_area,
-                    rest_inside,
-                }
+                let rest_self = s.outlines.iter().map(|(p, _, c)| self_intersections(p, *c, 1000).len()).collect();
+                let rest_area = s.loops.iter().map(|&(a, b)| signed_area(&s.pts[a..b])).collect();
+                let rest_inside = bbox(&s.pts, &s.world).is_some_and(|(lo, hi)| hi.x >= 0.0 && lo.x <= w && hi.y >= 0.0 && lo.y <= h);
+                Geo { snap: s, rest_self, rest_area, rest_inside }
             })
             .collect();
         let rest_bones = project
             .bones
             .iter()
             .zip(&rest_frame.world)
-            .map(|(b, m)| {
-                (
-                    b.name.clone(),
-                    m.apply(Vec2::ZERO),
-                    m.apply(Vec2::new(b.length, 0.0)),
-                )
-            })
+            .map(|(b, m)| (b.name.clone(), m.apply(Vec2::ZERO), m.apply(Vec2::new(b.length, 0.0))))
             .collect();
         // probe engine
         let mut pp = project.clone();
         pp.channel_meta.clear();
-        pp.channels.retain(|c| {
-            !params
-                .iter()
-                .any(|q| q.target == c.target && q.prop == c.prop)
-        });
+        pp.channels.retain(|c| !params.iter().any(|q| q.target == c.target && q.prop == c.prop));
         let mut probes: Vec<Channel> = params
             .iter()
-            .map(|q| {
-                Channel::keys(
-                    &q.target,
-                    q.prop,
-                    Track::with_keys(&[(0.0, q.rest, Ease::Step)]),
-                )
-                .with_mode(Mode::Replace)
-            })
+            .map(|q| Channel::keys(&q.target, q.prop, Track::with_keys(&[(0.0, q.rest, Ease::Step)])).with_mode(Mode::Replace))
             .collect();
         probes.append(&mut pp.channels);
         pp.channels = probes;
         let engine = engine_for(pp, asset_dir)?;
-        Ok(Fuzzer {
-            params,
-            thresholds: th,
-            frame,
-            ignore: vec![],
-            engine,
-            geos,
-            canvas: (w, h),
-            rest_bones,
-            evals: 0,
-        })
+        Ok(Fuzzer { params, thresholds: th, frame, ignore: vec![], engine, geos, canvas: (w, h), rest_bones, evals: 0 })
     }
 
     pub fn rest_values(&self) -> Vec<f32> {
@@ -1264,17 +918,8 @@ impl Fuzzer {
         self.evals += 1;
         let n_geo = self.geos.len();
         let mut norm = Norm::default();
-        let mut mt = SampleMetrics {
-            min_det: 1.0,
-            max_area_ratio: 1.0,
-            max_edge_stretch: 1.0,
-            ..Default::default()
-        };
-        let mut stress: Vec<Vec<f32>> = self
-            .geos
-            .iter()
-            .map(|g| vec![0.0; g.snap.pts.len()])
-            .collect();
+        let mut mt = SampleMetrics { min_det: 1.0, max_area_ratio: 1.0, max_edge_stretch: 1.0, ..Default::default() };
+        let mut stress: Vec<Vec<f32>> = self.geos.iter().map(|g| vec![0.0; g.snap.pts.len()]).collect();
         // set probes
         for (i, v) in values.iter().enumerate().take(self.params.len()) {
             if let Source::Keys { track } = &mut self.engine.project.channels[i].source {
@@ -1304,33 +949,18 @@ impl Fuzzer {
                 return self.finish(index, values, mt, norm, stress);
             }
         };
-        if fr.world.iter().any(|m| {
-            ![m.a, m.b, m.c, m.d, m.tx, m.ty]
-                .iter()
-                .all(|x| x.is_finite())
-        }) {
+        if fr.world.iter().any(|m| ![m.a, m.b, m.c, m.d, m.tx, m.ty].iter().all(|x| x.is_finite())) {
             mt.non_finite = true;
         }
         // IK
         let p = &self.engine.project;
         for c in &p.ik {
-            let mix = self
-                .params
-                .iter()
-                .zip(values)
-                .find(|(q, _)| q.prop == Prop::IkMix && q.target == c.name)
-                .map_or(c.mix, |(_, v)| *v);
+            let mix = self.params.iter().zip(values).find(|(q, _)| q.prop == Prop::IkMix && q.target == c.name).map_or(c.mix, |(_, v)| *v);
             if mix < 0.05 {
                 continue;
             }
             let ix = |n: &str| p.bones.iter().position(|b| b.name == n);
-            let (Some(first), Some(last), Some(tg)) = (
-                c.bones.first().and_then(|n| ix(n)),
-                c.bones.last().and_then(|n| ix(n)),
-                ix(&c.target),
-            ) else {
-                continue;
-            };
+            let (Some(first), Some(last), Some(tg)) = (c.bones.first().and_then(|n| ix(n)), c.bones.last().and_then(|n| ix(n)), ix(&c.target)) else { continue };
             if first >= fr.world.len() || last >= fr.world.len() || tg >= fr.world.len() {
                 continue;
             }
@@ -1340,9 +970,7 @@ impl Fuzzer {
             let mut reach = 0.0;
             for n in &c.bones {
                 if let Some(bi) = ix(n) {
-                    reach += (fr.world[bi].apply(Vec2::new(p.bones[bi].length, 0.0))
-                        - fr.world[bi].apply(Vec2::ZERO))
-                    .length();
+                    reach += (fr.world[bi].apply(Vec2::new(p.bones[bi].length, 0.0)) - fr.world[bi].apply(Vec2::ZERO)).length();
                 }
             }
             let err = tip.distance(target);
@@ -1367,9 +995,7 @@ impl Fuzzer {
         }
         let (mut min_det, mut max_det) = (f32::INFINITY, f32::NEG_INFINITY);
         for s in &snaps {
-            let Some(&gi) = by_name.get(s.name.as_str()) else {
-                continue;
-            };
+            let Some(&gi) = by_name.get(s.name.as_str()) else { continue };
             let g = &self.geos[gi];
             if g.snap.pts.len() != s.pts.len() {
                 continue; // topology changed (generated geometry): not comparable
@@ -1380,8 +1006,7 @@ impl Fuzzer {
             }
             if let Some((lo, hi)) = bbox(&s.pts, &s.world) {
                 let mx = th.canvas_margin * cw.max(chh);
-                if g.rest_inside && (hi.x < -mx || lo.x > cw + mx || hi.y < -mx || lo.y > chh + mx)
-                {
+                if g.rest_inside && (hi.x < -mx || lo.x > cw + mx || hi.y < -mx || lo.y > chh + mx) {
                     mt.layers_off_canvas += 1;
                 }
                 if (hi - lo).length() > th.max_extent * diag {
@@ -1411,8 +1036,7 @@ impl Fuzzer {
                         for sg in [*i, *j] {
                             if let Some(&a) = anchor_of.get(sg) {
                                 if a < st.len() {
-                                    st[a] =
-                                        st[a].max(1.0 + 0.1 * (hits.len() - rest_n).min(50) as f32);
+                                    st[a] = st[a].max(1.0 + 0.1 * (hits.len() - rest_n).min(50) as f32);
                                 }
                             }
                         }
@@ -1438,32 +1062,17 @@ impl Fuzzer {
             mt.min_det = min_det;
             mt.max_area_ratio = max_det.max(1.0);
         }
-        norm.fold = if mt.min_det <= th.min_det {
-            1.0 + (th.min_det - mt.min_det)
-        } else {
-            ((1.0 - mt.min_det) / (1.0 - th.min_det)).max(0.0)
-        }
-        .min(CAP);
+        norm.fold = if mt.min_det <= th.min_det { 1.0 + (th.min_det - mt.min_det) } else { ((1.0 - mt.min_det) / (1.0 - th.min_det)).max(0.0) }.min(CAP);
         norm.stretch = ((mt.max_edge_stretch - 1.0) / (th.max_stretch - 1.0)).min(CAP);
         norm.shear = (mt.max_shear / th.max_shear).min(CAP);
         // not `clamp`: `f32::max/min` map a NaN ratio (0/0 area threshold) to a bound, `clamp` would keep NaN
         #[allow(clippy::manual_clamp)]
         {
-            norm.area = ((mt.max_area_ratio - 1.0) / (th.max_area - 1.0))
-                .max(0.0)
-                .min(CAP);
+            norm.area = ((mt.max_area_ratio - 1.0) / (th.max_area - 1.0)).max(0.0).min(CAP);
         }
         norm.spike = (mt.max_spike / th.max_spike).min(CAP);
-        norm.self_intersection = if mt.new_self_intersections > 0 {
-            1.0 + 0.1 * mt.new_self_intersections.min(50) as f32
-        } else {
-            0.0
-        };
-        norm.off_canvas = if mt.layers_off_canvas + mt.layers_exploded > 0 {
-            1.0
-        } else {
-            0.0
-        };
+        norm.self_intersection = if mt.new_self_intersections > 0 { 1.0 + 0.1 * mt.new_self_intersections.min(50) as f32 } else { 0.0 };
+        norm.off_canvas = if mt.layers_off_canvas + mt.layers_exploded > 0 { 1.0 } else { 0.0 };
         if mt.non_finite {
             norm.non_finite = CAP;
         }
@@ -1471,14 +1080,7 @@ impl Fuzzer {
         self.finish(index, values, mt, norm, stress)
     }
 
-    fn finish(
-        &mut self,
-        index: usize,
-        values: &[f32],
-        mut mt: SampleMetrics,
-        norm: Norm,
-        stress: Vec<Vec<f32>>,
-    ) -> EvalOut {
+    fn finish(&mut self, index: usize, values: &[f32], mut mt: SampleMetrics, norm: Norm, stress: Vec<Vec<f32>>) -> EvalOut {
         let mut items: Vec<(&'static str, f32)> = norm.items().to_vec();
         items.retain(|x| !self.ignore.iter().any(|i| i == x.0));
         let severity = items.iter().map(|x| x.1).fold(0.0f32, f32::max);
@@ -1486,18 +1088,7 @@ impl Fuzzer {
         items.sort_by(|a, b| b.1.total_cmp(&a.1));
         let kinds = items.iter().map(|x| x.0.to_string()).collect();
         mt.norm = norm;
-        EvalOut {
-            result: SampleResult {
-                index,
-                values: values.to_vec(),
-                severity,
-                failed: severity >= 1.0,
-                kinds,
-                metrics: mt,
-            },
-            stress,
-            _pad: (),
-        }
+        EvalOut { result: SampleResult { index, values: values.to_vec(), severity, failed: severity >= 1.0, kinds, metrics: mt }, stress, _pad: () }
     }
 }
 
@@ -1605,17 +1196,10 @@ pub fn minimize(f: &mut Fuzzer, values: &[f32], want: Option<&str>) -> Result<Mi
     }
     let kind = match want {
         Some(k) if orig.kinds.iter().any(|x| x == k) => k.to_string(),
-        Some(k) => {
-            return Err(format!(
-                "the pose does not fail with kind '{k}' (it fails with: {})",
-                orig.kinds.join(", ")
-            ))
-        }
+        Some(k) => return Err(format!("the pose does not fail with kind '{k}' (it fails with: {})", orig.kinds.join(", "))),
         None => orig.kinds.first().cloned().unwrap_or_default(),
     };
-    let moved: Vec<usize> = (0..values.len())
-        .filter(|&i| (values[i] - rest[i]).abs() > 1e-6)
-        .collect();
+    let moved: Vec<usize> = (0..values.len()).filter(|&i| (values[i] - rest[i]).abs() > 1e-6).collect();
     let with = |set: &[usize], vals: &[f32]| -> Vec<f32> {
         let mut v = rest.clone();
         for &i in set {
@@ -1628,13 +1212,7 @@ pub fn minimize(f: &mut Fuzzer, values: &[f32], want: Option<&str>) -> Result<Mi
         r.failed && r.kinds.contains(&kind)
     };
     if fails_kind(f, &rest) {
-        return Ok(Minimal {
-            kind,
-            severity: 0.0,
-            params: vec![],
-            evaluations: f.evaluations() - start,
-            verified: true,
-        });
+        return Ok(Minimal { kind, severity: 0.0, params: vec![], evaluations: f.evaluations() - start, verified: true });
     }
     let mut set = {
         let mut pred = |s: &[usize]| fails_kind(f, &with(s, values));
@@ -1673,14 +1251,7 @@ pub fn minimize(f: &mut Fuzzer, values: &[f32], want: Option<&str>) -> Result<Mi
     Ok(Minimal {
         kind,
         severity: fin.severity,
-        params: set
-            .iter()
-            .map(|&i| MinimalParam {
-                id: f.params[i].id.clone(),
-                value: cur[i],
-                rest: rest[i],
-            })
-            .collect(),
+        params: set.iter().map(|&i| MinimalParam { id: f.params[i].id.clone(), value: cur[i], rest: rest[i] }).collect(),
         evaluations: f.evaluations() - start,
         verified: fin.failed,
     })
@@ -1709,18 +1280,7 @@ pub struct FuzzOptions {
 
 impl Default for FuzzOptions {
     fn default() -> Self {
-        FuzzOptions {
-            samples: 200,
-            seed: 1,
-            strategy: Strategy::Random,
-            frame: 0.0,
-            params: ParamOptions::default(),
-            thresholds: Thresholds::default(),
-            minimize: false,
-            db: None,
-            keep_worst: 20,
-            ignore: vec![],
-        }
+        FuzzOptions { samples: 200, seed: 1, strategy: Strategy::Random, frame: 0.0, params: ParamOptions::default(), thresholds: Thresholds::default(), minimize: false, db: None, keep_worst: 20, ignore: vec![] }
     }
 }
 
@@ -1821,11 +1381,7 @@ impl FuzzReport {
 }
 
 /// Run a fuzz campaign. The project is only read.
-pub fn run(
-    project: &Project,
-    asset_dir: Option<&Path>,
-    o: &FuzzOptions,
-) -> Result<FuzzReport, String> {
+pub fn run(project: &Project, asset_dir: Option<&Path>, o: &FuzzOptions) -> Result<FuzzReport, String> {
     let mut f = Fuzzer::new(project, asset_dir, &o.params, o.thresholds.clone(), o.frame)?;
     for k in &o.ignore {
         if !Norm::default().items().iter().any(|i| i.0 == k) {
@@ -1836,8 +1392,7 @@ pub fn run(
     let pca = if o.strategy == Strategy::Pca {
         let db = match &o.db {
             Some(d) => d.clone(),
-            None => crate::posesuggest::build_db(Some(project), None, None)
-                .map_err(|e| format!("pca strategy: {e}"))?,
+            None => crate::posesuggest::build_db(Some(project), None, None).map_err(|e| format!("pca strategy: {e}"))?,
         };
         Some(PcaSampler::new(&db, &f.params)?)
     } else {
@@ -1884,17 +1439,8 @@ pub fn run(
     let (marginals, per_bone) = marginals(&f.params, &results, 5);
     let pairs = pair_scores(&f.params, &results, &marginals, 10, 10);
     let mut order: Vec<usize> = (0..n).collect();
-    order.sort_by(|&a, &b| {
-        results[b]
-            .severity
-            .total_cmp(&results[a].severity)
-            .then(a.cmp(&b))
-    });
-    let worst: Vec<SampleResult> = order
-        .iter()
-        .take(o.keep_worst)
-        .map(|&i| results[i].clone())
-        .collect();
+    order.sort_by(|&a, &b| results[b].severity.total_cmp(&results[a].severity).then(a.cmp(&b)));
+    let worst: Vec<SampleResult> = order.iter().take(o.keep_worst).map(|&i| results[i].clone()).collect();
     let minimal = if o.minimize {
         match order.first().map(|&i| &results[i]) {
             Some(r) if r.failed => Some(minimize(&mut f, &r.values, None)?),
@@ -1913,26 +1459,17 @@ pub fn run(
             .map(|(gi, g)| HeatGeo {
                 name: g.snap.name.clone(),
                 kind: g.snap.kind,
-                pts: g
-                    .snap
-                    .pts
-                    .iter()
-                    .map(|p| {
-                        let q = g.snap.world.apply(*p);
-                        [q.x, q.y]
-                    })
-                    .collect(),
+                pts: g.snap.pts.iter().map(|p| {
+                    let q = g.snap.world.apply(*p);
+                    [q.x, q.y]
+                }).collect(),
                 tris: g.snap.tris.clone(),
                 edges: g.snap.edges.clone(),
                 max_stress: maxs[gi].clone(),
                 fail_fraction: fails[gi].iter().map(|c| c / n.max(1) as f32).collect(),
             })
             .collect(),
-        bones: f
-            .rest_bones
-            .iter()
-            .map(|(nm, a, b)| (nm.clone(), [a.x, a.y], [b.x, b.y]))
-            .collect(),
+        bones: f.rest_bones.iter().map(|(nm, a, b)| (nm.clone(), [a.x, a.y], [b.x, b.y])).collect(),
     };
     Ok(FuzzReport {
         schema: "osatura-fuzz-report".into(),
@@ -1956,21 +1493,12 @@ pub fn run(
 /// Per-parameter failure rate in `nbins` equal bins of the parameter range, plus per-bone bars (the worst
 /// increase of the failure rate at the extremes of its range - outer 40% minus inner 60% - among the bone's parameters; this isolates
 /// the parameters that cause failures from those that merely co-occur with them).
-pub fn marginals(
-    params: &[Param],
-    results: &[SampleResult],
-    nbins: usize,
-) -> (Vec<Marginal>, Vec<BoneBar>) {
+pub fn marginals(params: &[Param], results: &[SampleResult], nbins: usize) -> (Vec<Marginal>, Vec<BoneBar>) {
     let nbins = nbins.max(3);
     let mut out = Vec::new();
     for (k, p) in params.iter().enumerate() {
         let mut bins: Vec<Bin> = (0..nbins)
-            .map(|b| Bin {
-                lo: p.lo + (p.hi - p.lo) * b as f32 / nbins as f32,
-                hi: p.lo + (p.hi - p.lo) * (b + 1) as f32 / nbins as f32,
-                n: 0,
-                failures: 0,
-            })
+            .map(|b| Bin { lo: p.lo + (p.hi - p.lo) * b as f32 / nbins as f32, hi: p.lo + (p.hi - p.lo) * (b + 1) as f32 / nbins as f32, n: 0, failures: 0 })
             .collect();
         for r in results {
             let b = bin_of(r.values[k], p.lo, p.hi, nbins);
@@ -1980,39 +1508,15 @@ pub fn marginals(
             }
         }
         let rate = |idx: &[usize]| {
-            let (n, f) = idx
-                .iter()
-                .fold((0, 0), |(n, f), &i| (n + bins[i].n, f + bins[i].failures));
-            if n == 0 {
-                0.0
-            } else {
-                f as f32 / n as f32
-            }
+            let (n, f) = idx.iter().fold((0, 0), |(n, f), &i| (n + bins[i].n, f + bins[i].failures));
+            if n == 0 { 0.0 } else { f as f32 / n as f32 }
         };
         let outer = [0, nbins - 1];
         let inner: Vec<usize> = (1..nbins - 1).collect();
-        let rates: Vec<f32> = bins
-            .iter()
-            .filter(|b| b.n >= 3)
-            .map(|b| b.failures as f32 / b.n as f32)
-            .collect();
-        let spread = if rates.is_empty() {
-            0.0
-        } else {
-            rates.iter().cloned().fold(0.0, f32::max) - rates.iter().cloned().fold(1.0, f32::min)
-        };
-        let bone =
-            p.id.strip_prefix("bone:")
-                .and_then(|s| s.rsplit_once(':'))
-                .map(|x| x.0.to_string());
-        out.push(Marginal {
-            id: p.id.clone(),
-            bone,
-            rate_outer: rate(&outer),
-            rate_inner: rate(&inner),
-            spread,
-            bins,
-        });
+        let rates: Vec<f32> = bins.iter().filter(|b| b.n >= 3).map(|b| b.failures as f32 / b.n as f32).collect();
+        let spread = if rates.is_empty() { 0.0 } else { rates.iter().cloned().fold(0.0, f32::max) - rates.iter().cloned().fold(1.0, f32::min) };
+        let bone = p.id.strip_prefix("bone:").and_then(|s| s.rsplit_once(':')).map(|x| x.0.to_string());
+        out.push(Marginal { id: p.id.clone(), bone, rate_outer: rate(&outer), rate_inner: rate(&inner), spread, bins });
     }
     let mut bars: BTreeMap<String, f32> = BTreeMap::new();
     for m in &out {
@@ -2020,30 +1524,18 @@ pub fn marginals(
         let e = bars.entry(name).or_insert(0.0);
         *e = e.max((m.rate_outer - m.rate_inner).max(0.0));
     }
-    let mut bars: Vec<BoneBar> = bars
-        .into_iter()
-        .map(|(name, rate)| BoneBar { name, rate })
-        .collect();
+    let mut bars: Vec<BoneBar> = bars.into_iter().map(|(name, rate)| BoneBar { name, rate }).collect();
     bars.sort_by(|a, b| b.rate.total_cmp(&a.rate).then(a.name.cmp(&b.name)));
     (out, bars)
 }
 
 fn bin_of(v: f32, lo: f32, hi: f32, n: usize) -> usize {
-    (((v - lo) / (hi - lo).max(1e-12) * n as f32)
-        .floor()
-        .max(0.0) as usize)
-        .min(n - 1)
+    (((v - lo) / (hi - lo).max(1e-12) * n as f32).floor().max(0.0) as usize).min(n - 1)
 }
 
 /// Pairwise interaction: for the `top_k` most influential parameters, how much worse than either single-parameter
 /// bin is the worst tertile cell of the pair?
-pub fn pair_scores(
-    params: &[Param],
-    results: &[SampleResult],
-    marg: &[Marginal],
-    top_k: usize,
-    keep: usize,
-) -> Vec<PairScore> {
+pub fn pair_scores(params: &[Param], results: &[SampleResult], marg: &[Marginal], top_k: usize, keep: usize) -> Vec<PairScore> {
     let mut idx: Vec<usize> = (0..params.len()).collect();
     idx.sort_by(|&a, &b| marg[b].spread.total_cmp(&marg[a].spread).then(a.cmp(&b)));
     idx.truncate(top_k);
@@ -2057,20 +1549,13 @@ pub fn pair_scores(
                 f += r.failed as usize;
             }
         }
-        if n == 0 {
-            0.0
-        } else {
-            f as f32 / n as f32
-        }
+        if n == 0 { 0.0 } else { f as f32 / n as f32 }
     };
     for (x, &a) in idx.iter().enumerate() {
         for &b in &idx[x + 1..] {
             let mut cells = [[(0usize, 0usize); 3]; 3];
             for r in results {
-                let (i, j) = (
-                    bin_of(r.values[a], params[a].lo, params[a].hi, 3),
-                    bin_of(r.values[b], params[b].lo, params[b].hi, 3),
-                );
+                let (i, j) = (bin_of(r.values[a], params[a].lo, params[a].hi, 3), bin_of(r.values[b], params[b].lo, params[b].hi, 3));
                 cells[i][j].0 += 1;
                 cells[i][j].1 += r.failed as usize;
             }
@@ -2093,22 +1578,11 @@ pub fn pair_scores(
                 }
             }
             if let Some((s, rate, n)) = best {
-                out.push(PairScore {
-                    a: params[a].id.clone(),
-                    b: params[b].id.clone(),
-                    synergy: s,
-                    cell_rate: rate,
-                    cell_samples: n,
-                });
+                out.push(PairScore { a: params[a].id.clone(), b: params[b].id.clone(), synergy: s, cell_rate: rate, cell_samples: n });
             }
         }
     }
-    out.sort_by(|p, q| {
-        q.synergy
-            .total_cmp(&p.synergy)
-            .then(p.a.cmp(&q.a))
-            .then(p.b.cmp(&q.b))
-    });
+    out.sort_by(|p, q| q.synergy.total_cmp(&p.synergy).then(p.a.cmp(&q.a)).then(p.b.cmp(&q.b)));
     out.truncate(keep);
     out
 }
@@ -2132,41 +1606,18 @@ pub struct GridResult {
 /// Sweep two parameters over their full ranges (others at rest). Ids as in [`Param::id`].
 // public entry point with a stable signature.
 #[allow(clippy::too_many_arguments)]
-pub fn grid(
-    project: &Project,
-    asset_dir: Option<&Path>,
-    popts: &ParamOptions,
-    th: Thresholds,
-    frame: f32,
-    xid: &str,
-    yid: &str,
-    res: usize,
-) -> Result<GridResult, String> {
+pub fn grid(project: &Project, asset_dir: Option<&Path>, popts: &ParamOptions, th: Thresholds, frame: f32, xid: &str, yid: &str, res: usize) -> Result<GridResult, String> {
     if !(2..=512).contains(&res) {
         return Err("--res must be between 2 and 512".into());
     }
     let all = enumerate_params(project, popts);
-    let find = |id: &str| {
-        all.iter().find(|p| p.id == id).cloned().ok_or_else(|| {
-            format!(
-                "unknown parameter '{id}' (examples: {})",
-                all.iter()
-                    .take(4)
-                    .map(|p| p.id.clone())
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            )
-        })
-    };
+    let find = |id: &str| all.iter().find(|p| p.id == id).cloned().ok_or_else(|| format!("unknown parameter '{id}' (examples: {})", all.iter().take(4).map(|p| p.id.clone()).collect::<Vec<_>>().join(", ")));
     let (px, py) = (find(xid)?, find(yid)?);
     if px.id == py.id {
         return Err("--x and --y must be different parameters".into());
     }
     let mut f = Fuzzer::with_params(project, asset_dir, all.clone(), th, frame)?;
-    let (ix, iy) = (
-        all.iter().position(|p| p.id == px.id).unwrap(),
-        all.iter().position(|p| p.id == py.id).unwrap(),
-    );
+    let (ix, iy) = (all.iter().position(|p| p.id == px.id).unwrap(), all.iter().position(|p| p.id == py.id).unwrap());
     let mut sev = Vec::with_capacity(res * res);
     let mut kind = Vec::with_capacity(res * res);
     let mut bad = 0;
@@ -2178,21 +1629,10 @@ pub fn grid(
             let r = f.eval(0, &v);
             bad += r.failed as usize;
             sev.push(r.severity);
-            kind.push(if r.failed {
-                r.kinds.first().cloned().unwrap_or_default()
-            } else {
-                String::new()
-            });
+            kind.push(if r.failed { r.kinds.first().cloned().unwrap_or_default() } else { String::new() });
         }
     }
-    Ok(GridResult {
-        x: px,
-        y: py,
-        res,
-        severity: sev,
-        kind,
-        failure_rate: bad as f32 / (res * res) as f32,
-    })
+    Ok(GridResult { x: px, y: py, res, severity: sev, kind, failure_rate: bad as f32 / (res * res) as f32 })
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -2200,10 +1640,7 @@ pub fn grid(
 // ---------------------------------------------------------------------------------------------
 
 fn esc(s: &str) -> String {
-    s.replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
+    s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;")
 }
 
 /// Blue-to-orange ramp (own table): `t` in 0..1; the middle (near white) corresponds to the failure threshold
@@ -2217,11 +1654,7 @@ pub fn ramp(t: f32) -> [u8; 3] {
         (0.85, [224.0, 100.0, 28.0]),
         (1.0, [125.0, 26.0, 12.0]),
     ];
-    let t = if t.is_finite() {
-        t.clamp(0.0, 1.0)
-    } else {
-        0.0
-    };
+    let t = if t.is_finite() { t.clamp(0.0, 1.0) } else { 0.0 };
     for w in STOPS.windows(2) {
         if t <= w[1].0 {
             let u = (t - w[0].0) / (w[1].0 - w[0].0);
@@ -2262,25 +1695,12 @@ fn legend(out: &mut String, x: f32, y: f32, w: f32, label: &str) {
     let n = 24;
     for i in 0..n {
         let sv = 4.0 * i as f32 / (n - 1) as f32;
-        out.push_str(&format!(
-            "<rect x=\"{:.1}\" y=\"{:.1}\" width=\"{:.1}\" height=\"10\" fill=\"{}\"/>\n",
-            x + w * i as f32 / n as f32,
-            y,
-            w / n as f32 + 0.5,
-            stress_color(sv)
-        ));
+        out.push_str(&format!("<rect x=\"{:.1}\" y=\"{:.1}\" width=\"{:.1}\" height=\"10\" fill=\"{}\"/>\n", x + w * i as f32 / n as f32, y, w / n as f32 + 0.5, stress_color(sv)));
     }
-    out.push_str(&format!(
-        "<text x=\"{x:.1}\" y=\"{:.1}\" font-size=\"10\" fill=\"#333\">0</text>\n",
-        y + 22.0
-    ));
+    out.push_str(&format!("<text x=\"{x:.1}\" y=\"{:.1}\" font-size=\"10\" fill=\"#333\">0</text>\n", y + 22.0));
     out.push_str(&format!("<text x=\"{:.1}\" y=\"{:.1}\" font-size=\"10\" fill=\"#333\" text-anchor=\"middle\">1 = threshold</text>\n", x + w / 4.0, y + 22.0));
     out.push_str(&format!("<text x=\"{:.1}\" y=\"{:.1}\" font-size=\"10\" fill=\"#333\" text-anchor=\"end\">4+</text>\n", x + w, y + 22.0));
-    out.push_str(&format!(
-        "<text x=\"{x:.1}\" y=\"{:.1}\" font-size=\"10\" fill=\"#333\">{}</text>\n",
-        y - 4.0,
-        esc(label)
-    ));
+    out.push_str(&format!("<text x=\"{x:.1}\" y=\"{:.1}\" font-size=\"10\" fill=\"#333\">{}</text>\n", y - 4.0, esc(label)));
 }
 
 /// SVG with the stress overlay on the rest pose (worst case over all samples), the legend and per-bone failure bars.
@@ -2291,10 +1711,7 @@ pub fn heatmap_svg(rep: &FuzzReport) -> String {
     let total_h = h + 60.0 + 18.0 * nb as f32 + 30.0;
     let mut s = String::new();
     s.push_str(&format!("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 {w} {total_h}\" width=\"{w}\" height=\"{total_h}\" font-family=\"sans-serif\">\n"));
-    s.push_str(&format!(
-        "<title>Stress heat-map: {}</title>\n",
-        esc(&rep.project)
-    ));
+    s.push_str(&format!("<title>Stress heat-map: {}</title>\n", esc(&rep.project)));
     s.push_str(&format!(
         "<desc>{} samples ({}, seed {}), {} failures ({:.1}%). Colour = worst normalised stress per vertex over all samples; 1 = failure threshold.</desc>\n",
         rep.summary.samples, rep.strategy, rep.seed, rep.summary.failures, 100.0 * rep.summary.failure_rate
@@ -2308,14 +1725,7 @@ pub fn heatmap_svg(rep: &FuzzReport) -> String {
             }
             let m = (col(t[0]) + col(t[1]) + col(t[2])) / 3.0;
             let p = |i: usize| format!("{:.2},{:.2}", g.pts[t[i]][0], g.pts[t[i]][1]);
-            s.push_str(&format!(
-                "<polygon points=\"{} {} {}\" fill=\"{}\" stroke=\"{}\" stroke-width=\"0.3\"/>\n",
-                p(0),
-                p(1),
-                p(2),
-                stress_color(m),
-                stress_color(m)
-            ));
+            s.push_str(&format!("<polygon points=\"{} {} {}\" fill=\"{}\" stroke=\"{}\" stroke-width=\"0.3\"/>\n", p(0), p(1), p(2), stress_color(m), stress_color(m)));
         }
         for e in &g.edges {
             if e.iter().any(|&i| i >= g.pts.len()) {
@@ -2336,36 +1746,15 @@ pub fn heatmap_svg(rep: &FuzzReport) -> String {
     for (name, a, b) in &rep.heat.bones {
         s.push_str(&format!("<line x1=\"{:.1}\" y1=\"{:.1}\" x2=\"{:.1}\" y2=\"{:.1}\" stroke=\"#222\" stroke-width=\"1\" stroke-dasharray=\"4 2\"><title>{}</title></line>\n", a[0], a[1], b[0], b[1], esc(name)));
     }
-    legend(
-        &mut s,
-        10.0,
-        h + 22.0,
-        (w - 20.0).min(320.0),
-        "worst-case stress over all samples",
-    );
+    legend(&mut s, 10.0, h + 22.0, (w - 20.0).min(320.0), "worst-case stress over all samples");
     s.push_str(&format!("<text x=\"10\" y=\"{:.1}\" font-size=\"12\" font-weight=\"bold\" fill=\"#222\">Extra failure rate at the extremes of each bone's range (outer 40% minus inner 60%)</text>\n", h + 62.0));
     let bw = (w - 170.0).max(40.0);
     for (i, b) in bars.iter().take(nb).enumerate() {
         let y = h + 72.0 + 18.0 * i as f32;
-        s.push_str(&format!(
-            "<text x=\"10\" y=\"{:.1}\" font-size=\"11\" fill=\"#222\">{}</text>\n",
-            y + 11.0,
-            esc(&b.name)
-        ));
-        s.push_str(&format!(
-            "<rect x=\"150\" y=\"{y:.1}\" width=\"{bw:.1}\" height=\"12\" fill=\"#eeeeee\"/>\n"
-        ));
-        s.push_str(&format!(
-            "<rect x=\"150\" y=\"{y:.1}\" width=\"{:.1}\" height=\"12\" fill=\"{}\"/>\n",
-            bw * b.rate.clamp(0.0, 1.0),
-            hex(ramp(0.62 + 0.38 * b.rate.clamp(0.0, 1.0)))
-        ));
-        s.push_str(&format!(
-            "<text x=\"{:.1}\" y=\"{:.1}\" font-size=\"10\" fill=\"#222\">{:.0}%</text>\n",
-            154.0 + bw * b.rate.clamp(0.0, 1.0),
-            y + 10.0,
-            100.0 * b.rate
-        ));
+        s.push_str(&format!("<text x=\"10\" y=\"{:.1}\" font-size=\"11\" fill=\"#222\">{}</text>\n", y + 11.0, esc(&b.name)));
+        s.push_str(&format!("<rect x=\"150\" y=\"{y:.1}\" width=\"{bw:.1}\" height=\"12\" fill=\"#eeeeee\"/>\n"));
+        s.push_str(&format!("<rect x=\"150\" y=\"{y:.1}\" width=\"{:.1}\" height=\"12\" fill=\"{}\"/>\n", bw * b.rate.clamp(0.0, 1.0), hex(ramp(0.62 + 0.38 * b.rate.clamp(0.0, 1.0)))));
+        s.push_str(&format!("<text x=\"{:.1}\" y=\"{:.1}\" font-size=\"10\" fill=\"#222\">{:.0}%</text>\n", 154.0 + bw * b.rate.clamp(0.0, 1.0), y + 10.0, 100.0 * b.rate));
     }
     s.push_str("</svg>\n");
     s
@@ -2379,20 +1768,9 @@ pub fn grid_svg(g: &GridResult) -> String {
     let (w, h) = (ox + side + 30.0, oy + side + 90.0);
     let mut s = String::new();
     s.push_str(&format!("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 {w:.0} {h:.0}\" width=\"{w:.0}\" height=\"{h:.0}\" font-family=\"sans-serif\">\n"));
-    s.push_str(&format!(
-        "<title>Severity grid {} x {}</title>\n",
-        esc(&g.x.id),
-        esc(&g.y.id)
-    ));
-    s.push_str(&format!(
-        "<desc>{}x{} cells, {:.1}% failing. Colour = severity, 1 = failure threshold.</desc>\n",
-        g.res,
-        g.res,
-        100.0 * g.failure_rate
-    ));
-    s.push_str(&format!(
-        "<rect width=\"{w:.0}\" height=\"{h:.0}\" fill=\"#ffffff\"/>\n"
-    ));
+    s.push_str(&format!("<title>Severity grid {} x {}</title>\n", esc(&g.x.id), esc(&g.y.id)));
+    s.push_str(&format!("<desc>{}x{} cells, {:.1}% failing. Colour = severity, 1 = failure threshold.</desc>\n", g.res, g.res, 100.0 * g.failure_rate));
+    s.push_str(&format!("<rect width=\"{w:.0}\" height=\"{h:.0}\" fill=\"#ffffff\"/>\n"));
     s.push_str(&format!("<text x=\"{ox}\" y=\"20\" font-size=\"12\" font-weight=\"bold\" fill=\"#222\">{} (x) vs {} (y), {:.1}% of cells fail</text>\n", esc(&g.x.id), esc(&g.y.id), 100.0 * g.failure_rate));
     for j in 0..g.res {
         for i in 0..g.res {
@@ -2436,8 +1814,8 @@ pub fn grid_svg(g: &GridResult) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::path::{BoneWeight, VPath};
     use crate::project::{Bone, IkChain, Layer, LayerKind, MeshSpec};
+    use crate::path::{BoneWeight, VPath};
 
     fn v(x: f32, y: f32) -> Vec2 {
         Vec2::new(x, y)
@@ -2447,52 +1825,27 @@ mod tests {
     /// Mesh spans x 360..440, y 180..220; the joint (head of b) is at (400, 200). The truth function below uses the same shape translated to (100, 100).
     fn fold_rig() -> Project {
         let mut p = Project::new("fold", 600.0, 400.0, 24.0, 10);
-        p.bones = vec![
-            Bone::new("a", None, 100.0, v(300.0, 200.0), 0.0),
-            Bone::new("b", Some("a"), 100.0, v(100.0, 0.0), 0.0),
-        ];
+        p.bones = vec![Bone::new("a", None, 100.0, v(300.0, 200.0), 0.0), Bone::new("b", Some("a"), 100.0, v(100.0, 0.0), 0.0)];
         let mut pm = tiny_skia::Pixmap::new(4, 4).unwrap();
         pm.fill(tiny_skia::Color::from_rgba8(200, 30, 30, 255));
         let mut l = Layer::image_from_png("quad", &pm.encode_png().unwrap(), v(360.0, 180.0));
         if let LayerKind::Image { size, mesh, .. } = &mut l.kind {
             *size = Some(v(80.0, 40.0));
-            let w = |b: &str| {
-                vec![BoneWeight {
-                    bone: b.into(),
-                    weight: 1.0,
-                }]
-            };
-            *mesh = Some(MeshSpec {
-                cols: 1,
-                rows: 1,
-                weights: vec![w("a"), w("b"), w("a"), w("b")],
-                free: None,
-            });
+            let w = |b: &str| vec![BoneWeight { bone: b.into(), weight: 1.0 }];
+            *mesh = Some(MeshSpec { cols: 1, rows: 1, weights: vec![w("a"), w("b"), w("a"), w("b")], free: None });
         }
         p.layers = vec![l];
         p
     }
 
     fn opts_only(bone: &str, prop_suffix: &str) -> (ParamOptions, String) {
-        (
-            ParamOptions {
-                only_bones: vec![bone.into()],
-                deformers: false,
-                ..Default::default()
-            },
-            format!("bone:{bone}:{prop_suffix}"),
-        )
+        (ParamOptions { only_bones: vec![bone.into()], deformers: false, ..Default::default() }, format!("bone:{bone}:{prop_suffix}"))
     }
 
     /// Independent ground truth: signed areas of the two triangles after rotating the right edge about the joint.
     fn truth_folded(angle_deg: f32) -> bool {
         let (c, s) = (angle_deg.to_radians().cos(), angle_deg.to_radians().sin());
-        let rot = |p: Vec2| {
-            v(
-                100.0 + c * (p.x - 100.0) - s * (p.y - 100.0),
-                100.0 + s * (p.x - 100.0) + c * (p.y - 100.0),
-            )
-        };
+        let rot = |p: Vec2| v(100.0 + c * (p.x - 100.0) - s * (p.y - 100.0), 100.0 + s * (p.x - 100.0) + c * (p.y - 100.0));
         let (tl, bl) = (v(60.0, 80.0), v(60.0, 120.0));
         let (tr, br) = (rot(v(140.0, 80.0)), rot(v(140.0, 120.0)));
         let area = |a: Vec2, b: Vec2, c: Vec2| det2(b - a, c - a);
@@ -2515,22 +1868,14 @@ mod tests {
             let folded = r.metrics.min_det <= 0.0;
             // away from the exact boundary the engine must agree with the independent calculation
             if !(truth_folded(a - 0.6) != truth_folded(a + 0.6)) {
-                assert_eq!(
-                    folded,
-                    truth_folded(a),
-                    "angle {a}: min_det {}",
-                    r.metrics.min_det
-                );
+                assert_eq!(folded, truth_folded(a), "angle {a}: min_det {}", r.metrics.min_det);
                 checked += 1;
             }
             if folded && first_fold.is_none() {
                 first_fold = Some(a);
             }
             if folded {
-                assert!(
-                    r.failed && r.kinds.contains(&"fold".to_string()),
-                    "angle {a}"
-                );
+                assert!(r.failed && r.kinds.contains(&"fold".to_string()), "angle {a}");
             }
         }
         assert!(checked > 150);
@@ -2547,26 +1892,11 @@ mod tests {
     fn project_is_not_modified() {
         let p = fold_rig();
         let before = p.clone();
-        let o = FuzzOptions {
-            samples: 30,
-            strategy: Strategy::Lhs,
-            minimize: true,
-            ..Default::default()
-        };
+        let o = FuzzOptions { samples: 30, strategy: Strategy::Lhs, minimize: true, ..Default::default() };
         let rep = run(&p, None, &o).unwrap();
         assert_eq!(p, before);
         assert!(rep.summary.failures > 0);
-        let _ = grid(
-            &p,
-            None,
-            &ParamOptions::default(),
-            Thresholds::default(),
-            0.0,
-            "bone:a:angle",
-            "bone:b:angle",
-            4,
-        )
-        .unwrap();
+        let _ = grid(&p, None, &ParamOptions::default(), Thresholds::default(), 0.0, "bone:a:angle", "bone:b:angle", 4).unwrap();
         assert_eq!(p, before);
     }
 
@@ -2596,31 +1926,16 @@ mod tests {
         // rotation by 90 degrees changes nothing
         let def: Vec<Vec2> = rest.iter().map(|p| v(-p.y, p.x)).collect();
         let m = mesh_metrics(&rest, &def, &[[0, 1, 2]], &[], &th);
-        assert!(
-            (m.max_stretch - 1.0).abs() < 1e-5
-                && m.max_shear.abs() < 1e-4
-                && (m.min_det - 1.0).abs() < 1e-5
-        );
+        assert!((m.max_stretch - 1.0).abs() < 1e-5 && m.max_shear.abs() < 1e-4 && (m.min_det - 1.0).abs() < 1e-5);
         assert!(m.stress.iter().all(|s| *s < 1e-3));
         // shear x += 0.5 y: det 1, smax/smin - 1 from the shear matrix [[1,.5],[0,1]]
         let def: Vec<Vec2> = rest.iter().map(|p| v(p.x + 0.5 * p.y, p.y)).collect();
         let m = mesh_metrics(&rest, &def, &[[0, 1, 2]], &[], &th);
         let (s1, det) = (1.0 + 0.25 + 1.0, 1.0f32);
         let smax = ((s1 + (s1 * s1 - 4.0 * det * det).sqrt()) * 0.5).sqrt();
-        assert!(
-            (m.max_shear - (smax * smax - 1.0)).abs() < 1e-4,
-            "{} vs {}",
-            m.max_shear,
-            smax * smax - 1.0
-        );
+        assert!((m.max_shear - (smax * smax - 1.0)).abs() < 1e-4, "{} vs {}", m.max_shear, smax * smax - 1.0);
         // degenerate rest triangles are ignored
-        let m = mesh_metrics(
-            &[v(0.0, 0.0), v(1.0, 0.0), v(2.0, 0.0)],
-            &[v(0.0, 0.0), v(1.0, 0.0), v(2.0, 5.0)],
-            &[[0, 1, 2]],
-            &[],
-            &th,
-        );
+        let m = mesh_metrics(&[v(0.0, 0.0), v(1.0, 0.0), v(2.0, 0.0)], &[v(0.0, 0.0), v(1.0, 0.0), v(2.0, 5.0)], &[[0, 1, 2]], &[], &th);
         assert_eq!(m.triangles, 0);
     }
 
@@ -2652,9 +1967,7 @@ mod tests {
         assert!(self_intersections(&sq, true, 100).is_empty());
         let mut rng = Rng::new(7);
         for _ in 0..30 {
-            let pts: Vec<Vec2> = (0..12)
-                .map(|_| v(rng.unit() * 20.0, rng.unit() * 20.0))
-                .collect();
+            let pts: Vec<Vec2> = (0..12).map(|_| v(rng.unit() * 20.0, rng.unit() * 20.0)).collect();
             let n = pts.len();
             let mut brute = 0;
             for i in 0..n {
@@ -2675,11 +1988,7 @@ mod tests {
     #[test]
     fn nan_inputs_are_flagged() {
         let p = fold_rig();
-        let po = ParamOptions {
-            only_bones: vec!["b".into()],
-            deformers: false,
-            ..Default::default()
-        };
+        let po = ParamOptions { only_bones: vec!["b".into()], deformers: false, ..Default::default() };
         let mut f = Fuzzer::new(&p, None, &po, Thresholds::default(), 0.0).unwrap();
         let mut vals = f.rest_values();
         vals[0] = f32::NAN;
@@ -2690,15 +1999,7 @@ mod tests {
         let def = [v(f32::NAN, 0.0), v(1.0, 0.0), v(0.0, 1.0)];
         let _ = mesh_metrics(&rest, &def, &[[0, 1, 2]], &[], &Thresholds::default());
         // report JSON never contains NaN (not valid JSON)
-        let rep = run(
-            &p,
-            None,
-            &FuzzOptions {
-                samples: 5,
-                ..Default::default()
-            },
-        )
-        .unwrap();
+        let rep = run(&p, None, &FuzzOptions { samples: 5, ..Default::default() }).unwrap();
         assert!(!rep.to_json().contains("NaN"));
     }
 
@@ -2708,57 +2009,27 @@ mod tests {
         let b2: Vec<f64> = (1..=7).map(|i| radical_inverse(i, 2)).collect();
         assert_eq!(b2, vec![0.5, 0.25, 0.75, 0.125, 0.625, 0.375, 0.875]);
         let b3: Vec<f64> = (1..=5).map(|i| radical_inverse(i, 3)).collect();
-        for (a, b) in b3
-            .iter()
-            .zip([1.0 / 3.0, 2.0 / 3.0, 1.0 / 9.0, 4.0 / 9.0, 7.0 / 9.0])
-        {
+        for (a, b) in b3.iter().zip([1.0 / 3.0, 2.0 / 3.0, 1.0 / 9.0, 4.0 / 9.0, 7.0 / 9.0]) {
             assert!((a - b).abs() < 1e-12);
         }
         let h = halton_point(4, 3);
-        assert!(
-            (h[0] - 0.125).abs() < 1e-6
-                && (h[1] - 4.0 / 9.0).abs() < 1e-6
-                && (h[2] - 0.8).abs() < 1e-6
-        );
+        assert!((h[0] - 0.125).abs() < 1e-6 && (h[1] - 4.0 / 9.0).abs() < 1e-6 && (h[2] - 0.8).abs() < 1e-6);
     }
 
     fn unit_params(d: usize) -> Vec<Param> {
-        (0..d)
-            .map(|i| Param {
-                id: format!("bone:b{i}:angle"),
-                target: format!("b{i}"),
-                prop: Prop::BoneAngle,
-                lo: 0.0,
-                hi: 1.0,
-                rest: 0.5,
-                limit: None,
-            })
-            .collect()
+        (0..d).map(|i| Param { id: format!("bone:b{i}:angle"), target: format!("b{i}"), prop: Prop::BoneAngle, lo: 0.0, hi: 1.0, rest: 0.5, limit: None }).collect()
     }
 
     #[test]
     fn strategies_are_deterministic_and_cover() {
         let ps = unit_params(4);
-        for s in [
-            Strategy::Random,
-            Strategy::Lhs,
-            Strategy::Halton,
-            Strategy::Sweep,
-            Strategy::Corners,
-        ] {
+        for s in [Strategy::Random, Strategy::Lhs, Strategy::Halton, Strategy::Sweep, Strategy::Corners] {
             let a = generate(&ps, s, 64, 5, None).unwrap();
             let b = generate(&ps, s, 64, 5, None).unwrap();
             assert_eq!(a, b, "{s:?}");
-            assert!(
-                a.iter()
-                    .all(|x| x.len() == 4 && x.iter().all(|y| (0.0..=1.0).contains(y))),
-                "{s:?} out of range"
-            );
+            assert!(a.iter().all(|x| x.len() == 4 && x.iter().all(|y| (0.0..=1.0).contains(y))), "{s:?} out of range");
         }
-        assert_ne!(
-            generate(&ps, Strategy::Random, 8, 1, None).unwrap(),
-            generate(&ps, Strategy::Random, 8, 2, None).unwrap()
-        );
+        assert_ne!(generate(&ps, Strategy::Random, 8, 1, None).unwrap(), generate(&ps, Strategy::Random, 8, 2, None).unwrap());
         // LHS: exactly one point in every stratum of every dimension
         let n = 50;
         let l = generate(&ps, Strategy::Lhs, n, 3, None).unwrap();
@@ -2786,9 +2057,7 @@ mod tests {
         // error paths
         assert!(generate(&[], Strategy::Random, 4, 0, None).is_err());
         assert!(generate(&ps, Strategy::Random, 0, 0, None).is_err());
-        assert!(generate(&ps, Strategy::Pca, 4, 0, None)
-            .unwrap_err()
-            .contains("pose database"));
+        assert!(generate(&ps, Strategy::Pca, 4, 0, None).unwrap_err().contains("pose database"));
         assert!(Strategy::parse("nope").is_err());
         // low discrepancy beats chance on coverage: every 4x4 cell of the first two Halton dims is hit by 64 points
         let h = generate(&unit_params(2), Strategy::Halton, 64, 0, None).unwrap();
@@ -2802,44 +2071,16 @@ mod tests {
     #[test]
     fn pca_samples_follow_the_database() {
         let ps = vec![
-            Param {
-                id: "bone:a:angle".into(),
-                target: "a".into(),
-                prop: Prop::BoneAngle,
-                lo: -90.0,
-                hi: 90.0,
-                rest: 0.0,
-                limit: None,
-            },
-            Param {
-                id: "bone:b:angle".into(),
-                target: "b".into(),
-                prop: Prop::BoneAngle,
-                lo: -90.0,
-                hi: 90.0,
-                rest: 0.0,
-                limit: None,
-            },
+            Param { id: "bone:a:angle".into(), target: "a".into(), prop: Prop::BoneAngle, lo: -90.0, hi: 90.0, rest: 0.0, limit: None },
+            Param { id: "bone:b:angle".into(), target: "b".into(), prop: Prop::BoneAngle, lo: -90.0, hi: 90.0, rest: 0.0, limit: None },
         ];
         // poses on a line b = 2a
         let db = crate::posesuggest::synthetic_db(1, 2, 20, 2);
         let mut db = db;
         db.bones = vec!["a".into(), "b".into()];
-        db.poses = (0..40)
-            .map(|i| vec![(i as f32 - 20.0) * 1.5, (i as f32 - 20.0) * 3.0])
-            .collect();
-        db.meta = (0..40)
-            .map(|i| crate::posesuggest::PoseMeta {
-                seq: 0,
-                idx: i,
-                frame: i as f32,
-            })
-            .collect();
-        db.sequences = vec![crate::posesuggest::SeqInfo {
-            name: "s".into(),
-            source: "project".into(),
-            poses: 40,
-        }];
+        db.poses = (0..40).map(|i| vec![(i as f32 - 20.0) * 1.5, (i as f32 - 20.0) * 3.0]).collect();
+        db.meta = (0..40).map(|i| crate::posesuggest::PoseMeta { seq: 0, idx: i, frame: i as f32 }).collect();
+        db.sequences = vec![crate::posesuggest::SeqInfo { name: "s".into(), source: "project".into(), poses: 40 }];
         let s = PcaSampler::new(&db, &ps).unwrap();
         assert_eq!(s.components(), 1);
         let pts = generate(&ps, Strategy::Pca, 50, 9, Some(&s)).unwrap();
@@ -2880,18 +2121,10 @@ mod tests {
     #[test]
     fn minimizer_reduces_to_the_failing_parameter() {
         let mut p = fold_rig();
-        p.bones
-            .push(Bone::new("noise", None, 20.0, v(550.0, 20.0), 0.0));
-        let po = ParamOptions {
-            deformers: false,
-            ..Default::default()
-        };
+        p.bones.push(Bone::new("noise", None, 20.0, v(550.0, 20.0), 0.0));
+        let po = ParamOptions { deformers: false, ..Default::default() };
         let mut f = Fuzzer::new(&p, None, &po, Thresholds::default(), 0.0).unwrap();
-        let kb = f
-            .params
-            .iter()
-            .position(|q| q.id == "bone:b:angle")
-            .unwrap();
+        let kb = f.params.iter().position(|q| q.id == "bone:b:angle").unwrap();
         let mut vals = f.rest_values();
         for (i, q) in f.params.iter().enumerate() {
             vals[i] = q.rest + 0.4 * (q.hi - q.rest);
@@ -2903,15 +2136,8 @@ mod tests {
         assert_eq!(m.params.len(), 1, "{:?}", m.params);
         assert_eq!(m.params[0].id, "bone:b:angle");
         // the minimal angle sits at the true fold boundary
-        let boundary = (0..180)
-            .map(|a| a as f32)
-            .find(|a| truth_folded(*a))
-            .unwrap();
-        assert!(
-            (m.params[0].value - boundary).abs() < 3.0,
-            "{} vs {boundary}",
-            m.params[0].value
-        );
+        let boundary = (0..180).map(|a| a as f32).find(|a| truth_folded(*a)).unwrap();
+        assert!((m.params[0].value - boundary).abs() < 3.0, "{} vs {boundary}", m.params[0].value);
         assert_eq!(m.kind, "fold");
         // a passing pose cannot be minimised
         let rv = f.rest_values();
@@ -2921,28 +2147,11 @@ mod tests {
     #[test]
     fn marginals_and_pairs_point_at_the_culprits() {
         let p = fold_rig();
-        let o = FuzzOptions {
-            samples: 120,
-            strategy: Strategy::Halton,
-            params: ParamOptions {
-                deformers: false,
-                bone_props: vec!["angle".into()],
-                ..Default::default()
-            },
-            ..Default::default()
-        };
+        let o = FuzzOptions { samples: 120, strategy: Strategy::Halton, params: ParamOptions { deformers: false, bone_props: vec!["angle".into()], ..Default::default() }, ..Default::default() };
         let rep = run(&p, None, &o).unwrap();
-        let top = rep
-            .marginals
-            .iter()
-            .max_by(|a, b| a.spread.total_cmp(&b.spread))
-            .unwrap();
+        let top = rep.marginals.iter().max_by(|a, b| a.spread.total_cmp(&b.spread)).unwrap();
         assert_eq!(top.id, "bone:b:angle");
-        let angle = rep
-            .marginals
-            .iter()
-            .find(|m| m.id == "bone:b:angle")
-            .unwrap();
+        let angle = rep.marginals.iter().find(|m| m.id == "bone:b:angle").unwrap();
         assert!(angle.rate_outer > angle.rate_inner);
         assert_eq!(rep.per_bone[0].name, "b");
         assert!(!rep.pairs.is_empty());
@@ -2960,43 +2169,16 @@ mod tests {
             Bone::new("arm_up", None, 10.0, v(10.0, 10.0), 0.0),
         ];
         p.ik = vec![IkChain::two_bone("leg", "up", "lo", "tgt", 1.0)];
-        let ids = |po: &ParamOptions| {
-            enumerate_params(&p, po)
-                .into_iter()
-                .map(|q| q.id)
-                .collect::<Vec<_>>()
-        };
+        let ids = |po: &ParamOptions| enumerate_params(&p, po).into_iter().map(|q| q.id).collect::<Vec<_>>();
         assert!(ids(&ParamOptions::default()).contains(&"ik:leg:mix".to_string()));
-        let only = ids(&ParamOptions {
-            only_bones: vec!["arm_up".into()],
-            bone_props: vec!["angle".into()],
-            ..Default::default()
-        });
-        assert_eq!(
-            only,
-            vec!["bone:arm_up:angle".to_string()],
-            "no IK mix, constraint or deformer parameter may be sampled"
-        );
-        let only_bone = ids(&ParamOptions {
-            only_bones: vec!["arm_up".into()],
-            ..Default::default()
-        });
-        assert!(
-            only_bone.iter().all(|i| i.starts_with("bone:arm_up:")),
-            "{only_bone:?}"
-        );
+        let only = ids(&ParamOptions { only_bones: vec!["arm_up".into()], bone_props: vec!["angle".into()], ..Default::default() });
+        assert_eq!(only, vec!["bone:arm_up:angle".to_string()], "no IK mix, constraint or deformer parameter may be sampled");
+        let only_bone = ids(&ParamOptions { only_bones: vec!["arm_up".into()], ..Default::default() });
+        assert!(only_bone.iter().all(|i| i.starts_with("bone:arm_up:")), "{only_bone:?}");
         // an IK chain whose bones are selected keeps its mix when no property filter is given
-        let chain = ids(&ParamOptions {
-            only_bones: vec!["up".into()],
-            ..Default::default()
-        });
+        let chain = ids(&ParamOptions { only_bones: vec!["up".into()], ..Default::default() });
         assert!(chain.contains(&"ik:leg:mix".to_string()));
-        assert!(!ids(&ParamOptions {
-            only_bones: vec!["up".into()],
-            bone_props: vec!["angle".into()],
-            ..Default::default()
-        })
-        .contains(&"ik:leg:mix".to_string()));
+        assert!(!ids(&ParamOptions { only_bones: vec!["up".into()], bone_props: vec!["angle".into()], ..Default::default() }).contains(&"ik:leg:mix".to_string()));
     }
 
     #[test]
@@ -3008,53 +2190,30 @@ mod tests {
             Bone::new("tgt", None, 10.0, v(180.0, 150.0), 0.0),
         ];
         p.ik = vec![IkChain::two_bone("leg", "up", "lo", "tgt", 1.0)];
-        let po = ParamOptions {
-            deformers: false,
-            offset_range: Some(150.0),
-            ..Default::default()
-        };
+        let po = ParamOptions { deformers: false, offset_range: Some(150.0), ..Default::default() };
         let mut f = Fuzzer::new(&p, None, &po, Thresholds::default(), 0.0).unwrap();
         let rv = f.rest_values();
         let r = f.eval(0, &rv);
         assert!(!r.failed, "{:?} {:?}", r.kinds, r.metrics.ik_error_fraction);
-        let kx = f
-            .params
-            .iter()
-            .position(|q| q.id == "bone:tgt:offx")
-            .unwrap();
+        let kx = f.params.iter().position(|q| q.id == "bone:tgt:offx").unwrap();
         let mut vals = f.rest_values();
         vals[kx] = 120.0; // target 220 px away, reach 100
         let r = f.eval(0, &vals);
-        assert!(
-            r.kinds.contains(&"ik_unreachable".to_string()),
-            "{:?}",
-            r.metrics
-        );
+        assert!(r.kinds.contains(&"ik_unreachable".to_string()), "{:?}", r.metrics);
         assert_eq!(r.metrics.ik_worst_chain.as_deref(), Some("leg"));
         // ik mix 0 turns the chain off, so the target no longer matters
         let km = f.params.iter().position(|q| q.id == "ik:leg:mix").unwrap();
         vals[km] = 0.0;
-        assert!(!f
-            .eval(0, &vals)
-            .kinds
-            .contains(&"ik_unreachable".to_string()));
+        assert!(!f.eval(0, &vals).kinds.contains(&"ik_unreachable".to_string()));
         // limits: inside is fine, a margin makes the sampler ask for more than the rig allows
-        let ka = f
-            .params
-            .iter()
-            .position(|q| q.id == "bone:up:angle")
-            .unwrap();
+        let ka = f.params.iter().position(|q| q.id == "bone:up:angle").unwrap();
         assert_eq!((f.params[ka].lo, f.params[ka].hi), (-45.0, 45.0));
         let mut v2 = f.rest_values();
         v2[ka] = 60.0;
         let r = f.eval(0, &v2);
         assert_eq!(r.metrics.limit_violations, 1);
         assert!(r.kinds.contains(&"limit".to_string()));
-        let wide = ParamOptions {
-            limit_margin: 30.0,
-            deformers: false,
-            ..Default::default()
-        };
+        let wide = ParamOptions { limit_margin: 30.0, deformers: false, ..Default::default() };
         let ps = enumerate_params(&p, &wide);
         let a = ps.iter().find(|q| q.id == "bone:up:angle").unwrap();
         assert_eq!((a.lo, a.hi, a.limit), (-75.0, 75.0, Some([-45.0, 45.0])));
@@ -3063,33 +2222,18 @@ mod tests {
     #[test]
     fn canvas_escape_and_param_enumeration() {
         let mut p = Project::new("c", 200.0, 200.0, 24.0, 4);
-        p.bones = vec![
-            Bone::new("root", None, 40.0, v(100.0, 100.0), 0.0),
-            Bone::new("arm", Some("root"), 40.0, v(40.0, 0.0), 0.0),
-        ];
+        p.bones = vec![Bone::new("root", None, 40.0, v(100.0, 100.0), 0.0), Bone::new("arm", Some("root"), 40.0, v(40.0, 0.0), 0.0)];
         let mut l = Layer::vector("blob", vec![VPath::rect("r", -10.0, -10.0, 20.0, 20.0)]);
         l.bone = Some("root".into());
         p.layers = vec![l];
-        let po = ParamOptions {
-            offset_range: Some(500.0),
-            deformers: false,
-            ..Default::default()
-        };
+        let po = ParamOptions { offset_range: Some(500.0), deformers: false, ..Default::default() };
         let mut f = Fuzzer::new(&p, None, &po, Thresholds::default(), 0.0).unwrap();
-        let kx = f
-            .params
-            .iter()
-            .position(|q| q.id == "bone:root:offx")
-            .unwrap();
+        let kx = f.params.iter().position(|q| q.id == "bone:root:offx").unwrap();
         let mut vals = f.rest_values();
         assert!(!f.eval(0, &vals).failed);
         vals[kx] = 450.0;
         let r = f.eval(0, &vals);
-        assert!(
-            r.kinds.contains(&"off_canvas".to_string()),
-            "{:?}",
-            r.metrics
-        );
+        assert!(r.kinds.contains(&"off_canvas".to_string()), "{:?}", r.metrics);
         // enumeration: 4 params per bone, stable order, ids unique
         let ps = enumerate_params(&p, &po);
         assert_eq!(ps.len(), 8);
@@ -3105,50 +2249,16 @@ mod tests {
     #[test]
     fn driven_outputs_are_not_probed_and_inputs_use_the_curve_range() {
         let mut p = Project::new("d", 200.0, 200.0, 24.0, 4);
-        p.bones = vec![
-            Bone::new("ctrl", None, 10.0, v(20.0, 20.0), 0.0),
-            Bone::new("bulge", None, 10.0, v(100.0, 100.0), 0.0),
-        ];
+        p.bones = vec![Bone::new("ctrl", None, 10.0, v(20.0, 20.0), 0.0), Bone::new("bulge", None, 10.0, v(100.0, 100.0), 0.0)];
         let curve = Track::with_keys(&[(0.0, 1.0, Ease::Linear), (10.0, 2.0, Ease::Linear)]);
-        p.channels = vec![Channel::driven(
-            "bulge",
-            Prop::BoneScale,
-            "ctrl",
-            Prop::BoneOffsetX,
-            curve,
-        )];
-        let ps = enumerate_params(
-            &p,
-            &ParamOptions {
-                deformers: false,
-                ..Default::default()
-            },
-        );
+        p.channels = vec![Channel::driven("bulge", Prop::BoneScale, "ctrl", Prop::BoneOffsetX, curve)];
+        let ps = enumerate_params(&p, &ParamOptions { deformers: false, ..Default::default() });
         assert!(ps.iter().all(|q| q.id != "bone:bulge:scale"));
         let x = ps.iter().find(|q| q.id == "bone:ctrl:offx").unwrap();
-        assert!(
-            (x.lo + 1.0).abs() < 1e-5 && (x.hi - 11.0).abs() < 1e-5,
-            "{} {}",
-            x.lo,
-            x.hi
-        );
+        assert!((x.lo + 1.0).abs() < 1e-5 && (x.hi - 11.0).abs() < 1e-5, "{} {}", x.lo, x.hi);
         // the driver still works inside the fuzzer: ctrl offset 10 -> bulge scale 2 (check through the bone's world scale)
-        let mut f = Fuzzer::new(
-            &p,
-            None,
-            &ParamOptions {
-                deformers: false,
-                ..Default::default()
-            },
-            Thresholds::default(),
-            0.0,
-        )
-        .unwrap();
-        let kx = f
-            .params
-            .iter()
-            .position(|q| q.id == "bone:ctrl:offx")
-            .unwrap();
+        let mut f = Fuzzer::new(&p, None, &ParamOptions { deformers: false, ..Default::default() }, Thresholds::default(), 0.0).unwrap();
+        let kx = f.params.iter().position(|q| q.id == "bone:ctrl:offx").unwrap();
         let mut vals = f.rest_values();
         vals[kx] = 10.0;
         assert!(!f.eval(0, &vals).metrics.non_finite);
@@ -3157,55 +2267,21 @@ mod tests {
     #[test]
     fn report_schema_and_heatmap_svg() {
         let p = fold_rig();
-        let o = FuzzOptions {
-            samples: 60,
-            strategy: Strategy::Random,
-            minimize: true,
-            params: ParamOptions {
-                deformers: false,
-                ..Default::default()
-            },
-            ..Default::default()
-        };
+        let o = FuzzOptions { samples: 60, strategy: Strategy::Random, minimize: true, params: ParamOptions { deformers: false, ..Default::default() }, ..Default::default() };
         let rep = run(&p, None, &o).unwrap();
         let j: serde_json::Value = serde_json::from_str(&rep.to_json()).unwrap();
         assert_eq!(j["schema"], "osatura-fuzz-report");
         assert_eq!(j["version"], 1);
-        for k in [
-            "project",
-            "strategy",
-            "seed",
-            "frame",
-            "thresholds",
-            "params",
-            "summary",
-            "marginals",
-            "per_bone",
-            "pairs",
-            "worst",
-            "minimal",
-            "heat",
-        ] {
+        for k in ["project", "strategy", "seed", "frame", "thresholds", "params", "summary", "marginals", "per_bone", "pairs", "worst", "minimal", "heat"] {
             assert!(j.get(k).is_some(), "missing {k}");
         }
         let s = &j["summary"];
         assert_eq!(s["samples"], 60);
-        for k in [
-            "failures",
-            "failure_rate",
-            "by_kind",
-            "max_severity",
-            "seconds",
-            "ms_per_sample",
-            "baseline_severity",
-        ] {
+        for k in ["failures", "failure_rate", "by_kind", "max_severity", "seconds", "ms_per_sample", "baseline_severity"] {
             assert!(s.get(k).is_some(), "missing summary.{k}");
         }
         assert!(j["worst"].as_array().unwrap().len() <= 20);
-        assert!(
-            j["worst"][0]["severity"].as_f64().unwrap()
-                >= j["worst"][1]["severity"].as_f64().unwrap()
-        );
+        assert!(j["worst"][0]["severity"].as_f64().unwrap() >= j["worst"][1]["severity"].as_f64().unwrap());
         assert!(j["minimal"]["verified"].as_bool().unwrap());
         assert!(j["heat"]["geos"][0]["max_stress"].as_array().unwrap().len() == 4);
         // same seed, same report (apart from timings)
@@ -3217,98 +2293,31 @@ mod tests {
         well_formed(&svg);
         assert!(svg.contains("<polygon") && svg.contains("Extra failure rate"));
         // worst-case stress is at the threshold or above somewhere, so a warm colour must appear
-        assert!(
-            rep.heat.geos[0]
-                .max_stress
-                .iter()
-                .cloned()
-                .fold(0.0, f32::max)
-                >= 1.0
-        );
-        let g = grid(
-            &p,
-            None,
-            &ParamOptions {
-                deformers: false,
-                ..Default::default()
-            },
-            Thresholds::default(),
-            0.0,
-            "bone:b:angle",
-            "bone:b:scale",
-            9,
-        )
-        .unwrap();
+        assert!(rep.heat.geos[0].max_stress.iter().cloned().fold(0.0, f32::max) >= 1.0);
+        let g = grid(&p, None, &ParamOptions { deformers: false, ..Default::default() }, Thresholds::default(), 0.0, "bone:b:angle", "bone:b:scale", 9).unwrap();
         assert_eq!(g.severity.len(), 81);
         let gs = grid_svg(&g);
         well_formed(&gs);
         assert_eq!(gs.matches("<rect").count(), 81 + 24 + 1);
         // errors
-        assert!(grid(
-            &p,
-            None,
-            &ParamOptions::default(),
-            Thresholds::default(),
-            0.0,
-            "bone:zz:angle",
-            "bone:b:angle",
-            4
-        )
-        .is_err());
-        assert!(grid(
-            &p,
-            None,
-            &ParamOptions::default(),
-            Thresholds::default(),
-            0.0,
-            "bone:b:angle",
-            "bone:b:angle",
-            4
-        )
-        .is_err());
-        assert!(grid(
-            &p,
-            None,
-            &ParamOptions::default(),
-            Thresholds::default(),
-            0.0,
-            "bone:a:angle",
-            "bone:b:angle",
-            1
-        )
-        .is_err());
+        assert!(grid(&p, None, &ParamOptions::default(), Thresholds::default(), 0.0, "bone:zz:angle", "bone:b:angle", 4).is_err());
+        assert!(grid(&p, None, &ParamOptions::default(), Thresholds::default(), 0.0, "bone:b:angle", "bone:b:angle", 4).is_err());
+        assert!(grid(&p, None, &ParamOptions::default(), Thresholds::default(), 0.0, "bone:a:angle", "bone:b:angle", 1).is_err());
     }
 
     #[test]
     fn ignored_kinds_do_not_count() {
         let mut p = Project::new("ik", 400.0, 300.0, 24.0, 4);
-        p.bones = vec![
-            Bone::new("up", None, 50.0, v(100.0, 150.0), 0.0),
-            Bone::new("lo", Some("up"), 50.0, v(50.0, 0.0), 0.0),
-            Bone::new("tgt", None, 10.0, v(180.0, 150.0), 0.0),
-        ];
+        p.bones = vec![Bone::new("up", None, 50.0, v(100.0, 150.0), 0.0), Bone::new("lo", Some("up"), 50.0, v(50.0, 0.0), 0.0), Bone::new("tgt", None, 10.0, v(180.0, 150.0), 0.0)];
         p.ik = vec![IkChain::two_bone("leg", "up", "lo", "tgt", 1.0)];
-        let mut o = FuzzOptions {
-            samples: 80,
-            strategy: Strategy::Halton,
-            params: ParamOptions {
-                deformers: false,
-                offset_range: Some(200.0),
-                bone_props: vec!["offx".into()],
-                only_bones: vec!["tgt".into()],
-                ..Default::default()
-            },
-            ..Default::default()
-        };
+        let mut o = FuzzOptions { samples: 80, strategy: Strategy::Halton, params: ParamOptions { deformers: false, offset_range: Some(200.0), bone_props: vec!["offx".into()], only_bones: vec!["tgt".into()], ..Default::default() }, ..Default::default() };
         let a = run(&p, None, &o).unwrap();
         assert!(a.summary.by_kind.contains_key("ik_unreachable"));
         o.ignore = vec!["ik_unreachable".into()];
         let b = run(&p, None, &o).unwrap();
         assert_eq!(b.summary.failures, 0);
         o.ignore = vec!["bogus".into()];
-        assert!(run(&p, None, &o)
-            .unwrap_err()
-            .contains("unknown failure kind"));
+        assert!(run(&p, None, &o).unwrap_err().contains("unknown failure kind"));
     }
 
     #[test]
@@ -3322,12 +2331,7 @@ mod tests {
         // below the threshold: blue side; at the threshold and above: warm side; monotone in between
         let warm = |c: [u8; 3]| c[0] > c[2];
         assert!(!warm(stress_rgb(0.99)) && warm(stress_rgb(1.0)) && warm(stress_rgb(10.0)));
-        assert!(
-            stress_t(0.5) < stress_t(0.9)
-                && stress_t(0.9) < stress_t(1.0)
-                && stress_t(1.0) < stress_t(2.0)
-                && stress_t(2.0) < stress_t(3.9)
-        );
+        assert!(stress_t(0.5) < stress_t(0.9) && stress_t(0.9) < stress_t(1.0) && stress_t(1.0) < stress_t(2.0) && stress_t(2.0) < stress_t(3.9));
         assert_eq!(stress_t(f32::NAN), 0.0);
     }
 
@@ -3342,19 +2346,10 @@ mod tests {
                 let tag = &s[i + 1..end];
                 assert!(!tag.contains('<'), "stray '<' in {tag}");
                 if let Some(name) = tag.strip_prefix('/') {
-                    assert_eq!(
-                        stack.pop().as_deref(),
-                        Some(name.trim()),
-                        "mismatched close {name}"
-                    );
+                    assert_eq!(stack.pop().as_deref(), Some(name.trim()), "mismatched close {name}");
                 } else if !tag.starts_with('?') && !tag.starts_with('!') {
                     let selfc = tag.ends_with('/');
-                    let name = tag
-                        .split_whitespace()
-                        .next()
-                        .unwrap()
-                        .trim_end_matches('/')
-                        .to_string();
+                    let name = tag.split_whitespace().next().unwrap().trim_end_matches('/').to_string();
                     assert_eq!(tag.matches('"').count() % 2, 0, "odd quotes in {tag}");
                     if !selfc {
                         stack.push(name);
@@ -3364,11 +2359,7 @@ mod tests {
             } else {
                 if b[i] == b'&' {
                     let semi = s[i..].find(';').expect("bare &");
-                    assert!(
-                        ["&amp;", "&lt;", "&gt;", "&quot;"].contains(&&s[i..i + semi + 1]),
-                        "bad entity {}",
-                        &s[i..i + semi + 1]
-                    );
+                    assert!(["&amp;", "&lt;", "&gt;", "&quot;"].contains(&&s[i..i + semi + 1]), "bad entity {}", &s[i..i + semi + 1]);
                 }
                 i += 1;
             }
@@ -3380,19 +2371,7 @@ mod tests {
     fn svg_escapes_names() {
         let mut p = fold_rig();
         p.name = "a<b>&\"c".into();
-        let rep = run(
-            &p,
-            None,
-            &FuzzOptions {
-                samples: 4,
-                params: ParamOptions {
-                    deformers: false,
-                    ..Default::default()
-                },
-                ..Default::default()
-            },
-        )
-        .unwrap();
+        let rep = run(&p, None, &FuzzOptions { samples: 4, params: ParamOptions { deformers: false, ..Default::default() }, ..Default::default() }).unwrap();
         well_formed(&heatmap_svg(&rep));
     }
 
@@ -3400,46 +2379,19 @@ mod tests {
     fn path_layers_get_edge_metrics_and_self_intersection() {
         // a ribbon outline that crosses itself once the tip bone bends far enough
         let mut p = Project::new("ribbon", 300.0, 200.0, 24.0, 4);
-        p.bones = vec![
-            Bone::new("a", None, 80.0, v(40.0, 100.0), 0.0),
-            Bone::new("b", Some("a"), 80.0, v(80.0, 0.0), 0.0),
-        ];
-        let pts = [
-            v(40.0, 90.0),
-            v(120.0, 90.0),
-            v(200.0, 90.0),
-            v(200.0, 110.0),
-            v(120.0, 110.0),
-            v(40.0, 110.0),
-        ];
+        p.bones = vec![Bone::new("a", None, 80.0, v(40.0, 100.0), 0.0), Bone::new("b", Some("a"), 80.0, v(80.0, 0.0), 0.0)];
+        let pts = [v(40.0, 90.0), v(120.0, 90.0), v(200.0, 90.0), v(200.0, 110.0), v(120.0, 110.0), v(40.0, 110.0)];
         let mut path = VPath::polygon("ribbon", &pts);
         for (i, a) in path.anchors.iter_mut().enumerate() {
-            let bone = if i == 1 || i == 4 {
-                None
-            } else if pts[i].x > 120.0 {
-                Some("b")
-            } else {
-                Some("a")
-            };
+            let bone = if i == 1 || i == 4 { None } else if pts[i].x > 120.0 { Some("b") } else { Some("a") };
             if let Some(b) = bone {
-                a.weights = vec![BoneWeight {
-                    bone: b.into(),
-                    weight: 1.0,
-                }];
+                a.weights = vec![BoneWeight { bone: b.into(), weight: 1.0 }];
             }
         }
         p.layers = vec![Layer::vector("rib", vec![path])];
-        let po = ParamOptions {
-            only_bones: vec!["b".into()],
-            deformers: false,
-            ..Default::default()
-        };
+        let po = ParamOptions { only_bones: vec!["b".into()], deformers: false, ..Default::default() };
         let mut f = Fuzzer::new(&p, None, &po, Thresholds::default(), 0.0).unwrap();
-        let k = f
-            .params
-            .iter()
-            .position(|q| q.id == "bone:b:angle")
-            .unwrap();
+        let k = f.params.iter().position(|q| q.id == "bone:b:angle").unwrap();
         let rv = f.rest_values();
         assert!(!f.eval(0, &rv).failed);
         let mut seen_cross = false;

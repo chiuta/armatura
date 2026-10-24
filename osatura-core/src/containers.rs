@@ -148,14 +148,7 @@ pub enum RectRule {
 impl Default for RectRule {
     /// The whole canvas.
     fn default() -> Self {
-        RectRule::Pin {
-            left: None,
-            top: None,
-            right: None,
-            bottom: None,
-            width: None,
-            height: None,
-        }
+        RectRule::Pin { left: None, top: None, right: None, bottom: None, width: None, height: None }
     }
 }
 
@@ -225,23 +218,13 @@ impl Member {
         }
     }
     pub fn layer(path: &str) -> Member {
-        Member {
-            layer: Some(path.into()),
-            ..Member::blank()
-        }
+        Member { layer: Some(path.into()), ..Member::blank() }
     }
     pub fn nested(id: &str) -> Member {
-        Member {
-            container: Some(id.into()),
-            ..Member::blank()
-        }
+        Member { container: Some(id.into()), ..Member::blank() }
     }
     pub fn spacer(grow: f32) -> Member {
-        Member {
-            spacer: true,
-            grow,
-            ..Member::blank()
-        }
+        Member { spacer: true, grow, ..Member::blank() }
     }
     fn label(&self) -> String {
         match (&self.layer, &self.container) {
@@ -251,18 +234,10 @@ impl Member {
         }
     }
     fn fixed(&self, axis: usize) -> Option<f32> {
-        if axis == 0 {
-            self.width
-        } else {
-            self.height
-        }
+        if axis == 0 { self.width } else { self.height }
     }
     fn limits(&self, axis: usize) -> (f32, f32) {
-        let (lo, hi) = if axis == 0 {
-            (self.min_w, self.max_w)
-        } else {
-            (self.min_h, self.max_h)
-        };
+        let (lo, hi) = if axis == 0 { (self.min_w, self.max_w) } else { (self.min_h, self.max_h) };
         (lo.unwrap_or(0.0), hi.unwrap_or(f32::INFINITY))
     }
     fn clamp(&self, axis: usize, v: f32) -> f32 {
@@ -456,22 +431,8 @@ fn check_rule(r: &RectRule, who: &str, errs: &mut Vec<String>) {
                 errs.push(format!("{who}: fixed rect needs w > 0 and h > 0"));
             }
         }
-        RectRule::Pin {
-            left,
-            top,
-            right,
-            bottom,
-            width,
-            height,
-        } => {
-            for (n, v) in [
-                ("left", left),
-                ("top", top),
-                ("right", right),
-                ("bottom", bottom),
-                ("width", width),
-                ("height", height),
-            ] {
+        RectRule::Pin { left, top, right, bottom, width, height } => {
+            for (n, v) in [("left", left), ("top", top), ("right", right), ("bottom", bottom), ("width", width), ("height", height)] {
                 if let Some(v) = v {
                     if !finite(*v) {
                         errs.push(format!("{who}: {n} must be finite"));
@@ -481,31 +442,20 @@ fn check_rule(r: &RectRule, who: &str, errs: &mut Vec<String>) {
                 }
             }
             if left.is_some() && right.is_some() && width.is_some() {
-                errs.push(format!(
-                    "{who}: left, right and width are all set (over-constrained)"
-                ));
+                errs.push(format!("{who}: left, right and width are all set (over-constrained)"));
             }
             if top.is_some() && bottom.is_some() && height.is_some() {
-                errs.push(format!(
-                    "{who}: top, bottom and height are all set (over-constrained)"
-                ));
+                errs.push(format!("{who}: top, bottom and height are all set (over-constrained)"));
             }
         }
-        RectRule::Aspect {
-            ratio,
-            margin,
-            ax,
-            ay,
-            ..
-        } => {
+        RectRule::Aspect { ratio, margin, ax, ay, .. } => {
             if !(finite(*ratio) && *ratio > 0.0) {
                 errs.push(format!("{who}: aspect ratio must be a finite number > 0"));
             }
             if !(finite(*margin) && *margin >= 0.0) {
                 errs.push(format!("{who}: margin must be >= 0"));
             }
-            if !(finite(*ax) && finite(*ay) && (0.0..=1.0).contains(ax) && (0.0..=1.0).contains(ay))
-            {
+            if !(finite(*ax) && finite(*ay) && (0.0..=1.0).contains(ax) && (0.0..=1.0).contains(ay)) {
                 errs.push(format!("{who}: ax and ay must be within 0..1"));
             }
         }
@@ -560,16 +510,12 @@ pub fn validate(p: &Project) -> Vec<String> {
         for m in &c.members {
             let kinds = m.layer.is_some() as u8 + m.container.is_some() as u8 + m.spacer as u8;
             if kinds != 1 {
-                errs.push(format!(
-                    "{who}: a member needs exactly one of layer, container, spacer"
-                ));
+                errs.push(format!("{who}: a member needs exactly one of layer, container, spacer"));
                 continue;
             }
             let ml = m.label();
             if !(finite(m.grow) && m.grow >= 0.0) || !(finite(m.shrink) && m.shrink >= 0.0) {
-                errs.push(format!(
-                    "{who}: {ml}: grow and shrink must be finite numbers >= 0"
-                ));
+                errs.push(format!("{who}: {ml}: grow and shrink must be finite numbers >= 0"));
             }
             for (n, v) in [("width", m.width), ("height", m.height)] {
                 if let Some(v) = v {
@@ -601,10 +547,7 @@ pub fn validate(p: &Project) -> Vec<String> {
                     None => errs.push(format!("{who}: unknown layer '{path}'")),
                     Some(l) => {
                         if let Some(prev) = layer_owner.insert(path.as_str(), c.id.as_str()) {
-                            errs.push(format!(
-                                "layer '{path}' is a member of both container '{prev}' and '{}'",
-                                c.id
-                            ));
+                            errs.push(format!("layer '{path}' is a member of both container '{prev}' and '{}'", c.id));
                         }
                         let measurable = layer_bounds(l).is_some();
                         if !measurable && (m.width.is_none() || m.height.is_none()) {
@@ -620,23 +563,14 @@ pub fn validate(p: &Project) -> Vec<String> {
                 if !ids.contains_key(id.as_str()) {
                     errs.push(format!("{who}: unknown container '{id}'"));
                 } else if let Some(prev) = cont_owner.insert(id.as_str(), c.id.as_str()) {
-                    errs.push(format!(
-                        "container '{id}' is nested in both '{prev}' and '{}'",
-                        c.id
-                    ));
+                    errs.push(format!("container '{id}' is nested in both '{prev}' and '{}'", c.id));
                 }
             }
         }
     }
     // Cycles in nesting (including self-nesting).
     let mut state: HashMap<&str, u8> = HashMap::new();
-    fn visit<'a>(
-        p: &'a Project,
-        ids: &HashMap<&str, usize>,
-        id: &'a str,
-        state: &mut HashMap<&'a str, u8>,
-        errs: &mut Vec<String>,
-    ) {
+    fn visit<'a>(p: &'a Project, ids: &HashMap<&str, usize>, id: &'a str, state: &mut HashMap<&'a str, u8>, errs: &mut Vec<String>) {
         match state.get(id) {
             Some(2) => return,
             Some(1) => {
@@ -683,16 +617,10 @@ pub fn validate(p: &Project) -> Vec<String> {
             errs.push(format!("{who}: unknown content container '{}'", s.content));
         } else {
             if cont_owner.contains_key(s.content.as_str()) {
-                errs.push(format!(
-                    "{who}: content container '{}' is nested in another container",
-                    s.content
-                ));
+                errs.push(format!("{who}: content container '{}' is nested in another container", s.content));
             }
             if let Some(prev) = contents.insert(s.content.as_str(), s.id.as_str()) {
-                errs.push(format!(
-                    "container '{}' is the content of both scroll '{prev}' and '{}'",
-                    s.content, s.id
-                ));
+                errs.push(format!("container '{}' is the content of both scroll '{prev}' and '{}'", s.content, s.id));
             }
         }
         if !s.offset.iter().all(|v| finite(*v)) {
@@ -702,16 +630,8 @@ pub fn validate(p: &Project) -> Vec<String> {
             errs.push(format!("{who}: fling must be a finite number >= 0"));
         }
         if let Some(e) = &s.elastic {
-            if !(finite(e.limit)
-                && e.limit > 0.0
-                && finite(e.stiffness)
-                && e.stiffness > 0.0
-                && finite(e.damping_ratio)
-                && e.damping_ratio > 0.0)
-            {
-                errs.push(format!(
-                    "{who}: elastic limit, stiffness and damping_ratio must be finite numbers > 0"
-                ));
+            if !(finite(e.limit) && e.limit > 0.0 && finite(e.stiffness) && e.stiffness > 0.0 && finite(e.damping_ratio) && e.damping_ratio > 0.0) {
+                errs.push(format!("{who}: elastic limit, stiffness and damping_ratio must be finite numbers > 0"));
             }
         }
         if !s.snap_x.iter().chain(&s.snap_y).all(|v| finite(*v)) {
@@ -725,9 +645,7 @@ pub fn validate(p: &Project) -> Vec<String> {
                         errs.push(format!("{who}: clip layer '{cl}' needs measurable geometry and no rotation or skew"));
                     }
                     if layer_owner.contains_key(cl.as_str()) {
-                        errs.push(format!(
-                            "{who}: clip layer '{cl}' must not be a container member"
-                        ));
+                        errs.push(format!("{who}: clip layer '{cl}' must not be a container member"));
                     }
                 }
             }
@@ -739,23 +657,13 @@ pub fn validate(p: &Project) -> Vec<String> {
             collect_layers(p, &ids, &s.content, &mut members, 0);
             for path in members {
                 if let Some(l) = p.find_layer(path) {
-                    let already = s
-                        .clip_layer
-                        .as_ref()
-                        .map(|c| {
-                            l.mask.as_ref().map(|m| &m.layer) == Some(c)
-                                && !l.mask.as_ref().unwrap().invert
-                        })
-                        .unwrap_or(false);
+                    let already = s.clip_layer.as_ref().map(|c| l.mask.as_ref().map(|m| &m.layer) == Some(c) && !l.mask.as_ref().unwrap().invert).unwrap_or(false);
                     if s.clip_layer.is_some() && l.mask.is_some() && !already {
                         errs.push(format!("scroll '{}': layer '{path}' already has a mask, so it cannot be clipped", s.id));
                     }
                 }
                 if Some(path) == s.clip_layer.as_deref() {
-                    errs.push(format!(
-                        "scroll '{}': the clip layer is part of its own content",
-                        s.id
-                    ));
+                    errs.push(format!("scroll '{}': the clip layer is part of its own content", s.id));
                 }
             }
         }
@@ -766,13 +674,7 @@ pub fn validate(p: &Project) -> Vec<String> {
 }
 
 /// Layer paths of a container and everything nested in it.
-fn collect_layers<'a>(
-    p: &'a Project,
-    ids: &HashMap<&str, usize>,
-    id: &str,
-    out: &mut Vec<&'a str>,
-    depth: usize,
-) {
+fn collect_layers<'a>(p: &'a Project, ids: &HashMap<&str, usize>, id: &str, out: &mut Vec<&'a str>, depth: usize) {
     if depth > MAX_DEPTH {
         return;
     }
@@ -807,25 +709,12 @@ fn pin_axis(lo: Option<f32>, hi: Option<f32>, size: Option<f32>, total: f32) -> 
 pub fn resolve_rule(rule: &RectRule, cw: f32, ch: f32, hug: [f32; 2]) -> [f32; 4] {
     match rule {
         RectRule::Fixed { x, y, w, h } => [*x, *y, *w, *h],
-        RectRule::Pin {
-            left,
-            top,
-            right,
-            bottom,
-            width,
-            height,
-        } => {
+        RectRule::Pin { left, top, right, bottom, width, height } => {
             let (x, w) = pin_axis(*left, *right, *width, cw);
             let (y, h) = pin_axis(*top, *bottom, *height, ch);
             [x, y, w, h]
         }
-        RectRule::Aspect {
-            ratio,
-            mode,
-            margin,
-            ax,
-            ay,
-        } => {
+        RectRule::Aspect { ratio, mode, margin, ax, ay } => {
             let (aw, ah) = ((cw - 2.0 * margin).max(0.0), (ch - 2.0 * margin).max(0.0));
             let wider = ah > 0.0 && aw / ah > *ratio;
             let (w, h) = match (mode, wider) {
@@ -858,23 +747,12 @@ struct Prep<'a> {
 }
 
 fn dirx(d: Dir) -> usize {
-    if d == Dir::Row {
-        0
-    } else {
-        1
-    }
+    if d == Dir::Row { 0 } else { 1 }
 }
 
 /// Share `avail` over items: grow when there is room, shrink (weighted by basis) when there is
 /// not; members at their min / max are frozen and the remainder is re-shared.
-fn distribute(
-    basis: &[f32],
-    grow: &[f32],
-    shrink: &[f32],
-    lo: &[f32],
-    hi: &[f32],
-    avail: f32,
-) -> Vec<f32> {
+fn distribute(basis: &[f32], grow: &[f32], shrink: &[f32], lo: &[f32], hi: &[f32], avail: f32) -> Vec<f32> {
     let n = basis.len();
     let mut size: Vec<f32> = basis.to_vec();
     let total: f32 = basis.iter().sum();
@@ -882,20 +760,10 @@ fn distribute(
     if !growing && avail >= total {
         return size;
     }
-    let weight: Vec<f32> = (0..n)
-        .map(|i| {
-            if growing {
-                grow[i]
-            } else {
-                shrink[i] * basis[i]
-            }
-        })
-        .collect();
+    let weight: Vec<f32> = (0..n).map(|i| if growing { grow[i] } else { shrink[i] * basis[i] }).collect();
     let mut frozen: Vec<bool> = weight.iter().map(|w| *w <= 0.0).collect();
     for _ in 0..=n {
-        let used: f32 = (0..n)
-            .map(|i| if frozen[i] { size[i] } else { basis[i] })
-            .sum();
+        let used: f32 = (0..n).map(|i| if frozen[i] { size[i] } else { basis[i] }).sum();
         let free = avail - used;
         let wsum: f32 = (0..n).filter(|&i| !frozen[i]).map(|i| weight[i]).sum();
         if wsum <= 0.0 || free.abs() < 1e-6 {
@@ -943,24 +811,9 @@ fn distribute(
 
 impl<'a> Solver<'a> {
     fn new(p: &'a Project) -> Solver<'a> {
-        let ids = p
-            .containers
-            .iter()
-            .enumerate()
-            .map(|(i, c)| (c.id.as_str(), i))
-            .collect();
-        let scroll_of = p
-            .scrolls
-            .iter()
-            .enumerate()
-            .map(|(i, s)| (s.content.as_str(), i))
-            .collect();
-        Solver {
-            p,
-            ids,
-            scroll_of,
-            sol: Solution::default(),
-        }
+        let ids = p.containers.iter().enumerate().map(|(i, c)| (c.id.as_str(), i)).collect();
+        let scroll_of = p.scrolls.iter().enumerate().map(|(i, s)| (s.content.as_str(), i)).collect();
+        Solver { p, ids, scroll_of, sol: Solution::default() }
     }
 
     fn prep(&self, c: &'a Container, depth: usize) -> Vec<Prep<'a>> {
@@ -996,13 +849,7 @@ impl<'a> Solver<'a> {
         let m = dirx(c.axis);
         let limit = match (c.wrap, inner_main) {
             (Wrap::Wrap, Some(l)) => l,
-            _ => {
-                return if preps.is_empty() {
-                    vec![]
-                } else {
-                    vec![(0..preps.len()).collect()]
-                }
-            }
+            _ => return if preps.is_empty() { vec![] } else { vec![(0..preps.len()).collect()] },
         };
         let mut lines: Vec<Vec<usize>> = Vec::new();
         let mut cur: Vec<usize> = Vec::new();
@@ -1031,16 +878,8 @@ impl<'a> Solver<'a> {
         let c = &self.p.containers[ci];
         let m = dirx(c.axis);
         let x = 1 - m;
-        let pad_main = if m == 0 {
-            c.padding[0] + c.padding[2]
-        } else {
-            c.padding[1] + c.padding[3]
-        };
-        let pad_cross = if m == 0 {
-            c.padding[1] + c.padding[3]
-        } else {
-            c.padding[0] + c.padding[2]
-        };
+        let pad_main = if m == 0 { c.padding[0] + c.padding[2] } else { c.padding[1] + c.padding[3] };
+        let pad_cross = if m == 0 { c.padding[1] + c.padding[3] } else { c.padding[0] + c.padding[2] };
         let preps = self.prep(c, depth);
         let inner_main = avail[m].map(|a| (a - pad_main).max(0.0));
         let lines = self.lines(c, &preps, inner_main);
@@ -1063,10 +902,7 @@ impl<'a> Solver<'a> {
     }
 
     fn place(&mut self, path: &str, pr: &Prep, slot: [f32; 4]) -> Result<(), String> {
-        let l = self
-            .p
-            .find_layer(path)
-            .ok_or_else(|| format!("unknown layer '{path}'"))?;
+        let l = self.p.find_layer(path).ok_or_else(|| format!("unknown layer '{path}'"))?;
         let pl = placement(path, l, pr.bounds, slot, pr.m.resize)?;
         self.sol.layers.push(pl);
         Ok(())
@@ -1094,14 +930,9 @@ impl<'a> Solver<'a> {
             let line_cross = if single {
                 inner[x]
             } else {
-                line.iter()
-                    .map(|&i| preps[i].m.clamp(x, preps[i].nat[x]))
-                    .fold(0.0f32, f32::max)
+                line.iter().map(|&i| preps[i].m.clamp(x, preps[i].nat[x])).fold(0.0f32, f32::max)
             };
-            let basis: Vec<f32> = line
-                .iter()
-                .map(|&i| preps[i].m.clamp(m, preps[i].nat[m]))
-                .collect();
+            let basis: Vec<f32> = line.iter().map(|&i| preps[i].m.clamp(m, preps[i].nat[m])).collect();
             let grow: Vec<f32> = line.iter().map(|&i| preps[i].m.grow).collect();
             let shrink: Vec<f32> = line.iter().map(|&i| preps[i].m.shrink).collect();
             let lo: Vec<f32> = line.iter().map(|&i| preps[i].m.limits(m).0).collect();
@@ -1154,57 +985,24 @@ impl<'a> Solver<'a> {
 
 /// Offset / scale of a layer so that its rest bounding box lands in `slot` (resize) or at the
 /// slot origin (no resize).
-fn placement(
-    path: &str,
-    l: &Layer,
-    bounds: Option<(Vec2, Vec2)>,
-    slot: [f32; 4],
-    resize: bool,
-) -> Result<Placement, String> {
+fn placement(path: &str, l: &Layer, bounds: Option<(Vec2, Vec2)>, slot: [f32; 4], resize: bool) -> Result<Placement, String> {
     let t = &l.transform;
     match bounds {
         Some((lo, hi)) => {
             if resize {
-                let (cl, ch) = content_bounds(l)
-                    .ok_or_else(|| format!("layer '{path}' has no measurable geometry"))?;
+                let (cl, ch) = content_bounds(l).ok_or_else(|| format!("layer '{path}' has no measurable geometry"))?;
                 let (w, h) = (hi.x - lo.x, hi.y - lo.y);
-                let kx = if w > 1e-6 {
-                    (slot[2] / w).max(1e-4)
-                } else {
-                    1.0
-                };
-                let ky = if h > 1e-6 {
-                    (slot[3] / h).max(1e-4)
-                } else {
-                    1.0
-                };
+                let kx = if w > 1e-6 { (slot[2] / w).max(1e-4) } else { 1.0 };
+                let ky = if h > 1e-6 { (slot[3] / h).max(1e-4) } else { 1.0 };
                 let (sx, sy) = (t.scale.x * kx, t.scale.y * ky);
                 let minx = (sx * (cl.x - t.anchor.x)).min(sx * (ch.x - t.anchor.x));
                 let miny = (sy * (cl.y - t.anchor.y)).min(sy * (ch.y - t.anchor.y));
-                Ok(Placement {
-                    layer: path.into(),
-                    dx: slot[0] - minx - t.position.x,
-                    dy: slot[1] - miny - t.position.y,
-                    kx,
-                    ky,
-                })
+                Ok(Placement { layer: path.into(), dx: slot[0] - minx - t.position.x, dy: slot[1] - miny - t.position.y, kx, ky })
             } else {
-                Ok(Placement {
-                    layer: path.into(),
-                    dx: slot[0] - lo.x,
-                    dy: slot[1] - lo.y,
-                    kx: 1.0,
-                    ky: 1.0,
-                })
+                Ok(Placement { layer: path.into(), dx: slot[0] - lo.x, dy: slot[1] - lo.y, kx: 1.0, ky: 1.0 })
             }
         }
-        None => Ok(Placement {
-            layer: path.into(),
-            dx: slot[0] - t.position.x,
-            dy: slot[1] - t.position.y,
-            kx: 1.0,
-            ky: 1.0,
-        }),
+        None => Ok(Placement { layer: path.into(), dx: slot[0] - t.position.x, dy: slot[1] - t.position.y, kx: 1.0, ky: 1.0 }),
     }
 }
 
@@ -1251,11 +1049,7 @@ pub fn solve(p: &Project, w: f32, h: f32) -> Result<Solution, String> {
     }
     let mut s = Solver::new(p);
     s.sol.canvas = (w, h);
-    let members: HashSet<&str> = p
-        .containers
-        .iter()
-        .flat_map(|c| c.members.iter().filter_map(|m| m.container.as_deref()))
-        .collect();
+    let members: HashSet<&str> = p.containers.iter().flat_map(|c| c.members.iter().filter_map(|m| m.container.as_deref())).collect();
     let mut infos: Vec<(usize, ScrollInfo)> = Vec::new();
     for (ci, c) in p.containers.iter().enumerate() {
         if members.contains(c.id.as_str()) {
@@ -1264,10 +1058,7 @@ pub fn solve(p: &Project, w: f32, h: f32) -> Result<Solution, String> {
         if let Some(&si) = s.scroll_of.get(c.id.as_str()) {
             let sc = &p.scrolls[si];
             let vp = resolve_rule(&sc.viewport, w, h, [0.0, 0.0]);
-            let avail = [
-                if sc.scrolls(0) { None } else { Some(vp[2]) },
-                if sc.scrolls(1) { None } else { Some(vp[3]) },
-            ];
+            let avail = [if sc.scrolls(0) { None } else { Some(vp[2]) }, if sc.scrolls(1) { None } else { Some(vp[3]) }];
             let intr = s.measure(ci, avail, 0);
             let mut size = [vp[2], vp[3]];
             let mut max = [0.0f32; 2];
@@ -1281,20 +1072,9 @@ pub fn solve(p: &Project, w: f32, h: f32) -> Result<Solution, String> {
             }
             let rect = [vp[0] - off[0], vp[1] - off[1], size[0], size[1]];
             s.layout(ci, rect, 0)?;
-            infos.push((
-                si,
-                ScrollInfo {
-                    id: sc.id.clone(),
-                    viewport: vp,
-                    content: rect,
-                    max,
-                    offset: off,
-                },
-            ));
+            infos.push((si, ScrollInfo { id: sc.id.clone(), viewport: vp, content: rect, max, offset: off }));
             if let Some(cl) = &sc.clip_layer {
-                let l = p
-                    .find_layer(cl)
-                    .ok_or_else(|| format!("unknown clip layer '{cl}'"))?;
+                let l = p.find_layer(cl).ok_or_else(|| format!("unknown clip layer '{cl}'"))?;
                 let pl = placement(cl, l, layer_bounds(l), vp, true)?;
                 s.sol.layers.push(pl);
             }
@@ -1312,16 +1092,7 @@ pub fn solve(p: &Project, w: f32, h: f32) -> Result<Solution, String> {
         }
     }
     for sc in &s.sol.scrolls {
-        if ![
-            sc.viewport.as_slice(),
-            sc.content.as_slice(),
-            sc.max.as_slice(),
-            sc.offset.as_slice(),
-        ]
-        .concat()
-        .iter()
-        .all(|v| v.is_finite())
-        {
+        if ![sc.viewport.as_slice(), sc.content.as_slice(), sc.max.as_slice(), sc.offset.as_slice()].concat().iter().all(|v| v.is_finite()) {
             return Err(format!("non-finite value in the layout of scroll '{}' (a size, padding or gap is too large)", sc.id));
         }
     }
@@ -1334,15 +1105,11 @@ pub fn solve_project(p: &Project) -> Result<Solution, String> {
 }
 
 /// Layout offsets per engine node id (`[dx, dy, kx, ky]`), for the project's own canvas.
-pub(crate) fn node_offsets(
-    engine: &crate::engine::Engine,
-) -> Result<Vec<Option<[f32; 4]>>, String> {
+pub(crate) fn node_offsets(engine: &crate::engine::Engine) -> Result<Vec<Option<[f32; 4]>>, String> {
     let sol = solve_project(&engine.project)?;
     let mut out = vec![None; engine.node_count()];
     for pl in &sol.layers {
-        let id = engine
-            .node_index(&pl.layer)
-            .ok_or_else(|| format!("unknown layer '{}'", pl.layer))?;
+        let id = engine.node_index(&pl.layer).ok_or_else(|| format!("unknown layer '{}'", pl.layer))?;
         out[id] = Some([pl.dx, pl.dy, pl.kx, pl.ky]);
     }
     Ok(out)
@@ -1351,12 +1118,7 @@ pub(crate) fn node_offsets(
 /// Add the clip mask to every content layer of a scroll that names a `clip_layer`.
 /// Call after [`validate`] succeeded.
 pub fn apply_clip_masks(p: &mut Project) {
-    let ids: HashMap<&str, usize> = p
-        .containers
-        .iter()
-        .enumerate()
-        .map(|(i, c)| (c.id.as_str(), i))
-        .collect();
+    let ids: HashMap<&str, usize> = p.containers.iter().enumerate().map(|(i, c)| (c.id.as_str(), i)).collect();
     let mut todo: Vec<(String, String)> = Vec::new();
     for s in &p.scrolls {
         if let Some(cl) = &s.clip_layer {
@@ -1367,10 +1129,7 @@ pub fn apply_clip_masks(p: &mut Project) {
     }
     for (path, clip) in todo {
         if let Some(l) = p.find_layer_mut(&path) {
-            l.mask = Some(MaskRef {
-                layer: clip,
-                invert: false,
-            });
+            l.mask = Some(MaskRef { layer: clip, invert: false });
         }
     }
 }
@@ -1397,17 +1156,9 @@ pub fn responsive(p: &Project, w: f32, h: f32) -> Result<Project, String> {
 /// Parse `WxH` (also `W×H`, `W,H`).
 pub fn parse_size(s: &str) -> Result<(f32, f32), String> {
     let t = s.replace(['X', '×', ','], "x");
-    let (a, b) = t
-        .split_once(['x'])
-        .ok_or_else(|| format!("size must look like 800x600, got '{s}'"))?;
-    let w: f32 = a
-        .trim()
-        .parse()
-        .map_err(|_| format!("bad width in '{s}'"))?;
-    let h: f32 = b
-        .trim()
-        .parse()
-        .map_err(|_| format!("bad height in '{s}'"))?;
+    let (a, b) = t.split_once(['x']).ok_or_else(|| format!("size must look like 800x600, got '{s}'"))?;
+    let w: f32 = a.trim().parse().map_err(|_| format!("bad width in '{s}'"))?;
+    let h: f32 = b.trim().parse().map_err(|_| format!("bad height in '{s}'"))?;
     if !(w.is_finite() && h.is_finite() && w > 0.0 && h > 0.0) {
         return Err(format!("size must be positive, got '{s}'"));
     }
@@ -1436,11 +1187,7 @@ pub fn set_offset(p: &mut Project, id: &str, offset: [f32; 2]) -> Result<(), Str
     if !offset.iter().all(|v| v.is_finite()) {
         return Err("offset must be finite".into());
     }
-    let s = p
-        .scrolls
-        .iter_mut()
-        .find(|s| s.id == id)
-        .ok_or_else(|| format!("no scroll '{id}'"))?;
+    let s = p.scrolls.iter_mut().find(|s| s.id == id).ok_or_else(|| format!("no scroll '{id}'"))?;
     s.offset = offset;
     Ok(())
 }
@@ -1478,13 +1225,7 @@ pub struct ScrollRuntime {
 impl ScrollRuntime {
     /// `max` is the largest useful offset per axis (see [`ScrollInfo::max`]).
     pub fn new(scroll: &Scroll, max: [f32; 2]) -> ScrollRuntime {
-        let mut r = ScrollRuntime {
-            pos: [0.0; 2],
-            vel: [0.0; 2],
-            target: None,
-            max,
-            scroll: scroll.clone(),
-        };
+        let mut r = ScrollRuntime { pos: [0.0; 2], vel: [0.0; 2], target: None, max, scroll: scroll.clone() };
         r.drag_to(scroll.offset);
         r
     }
@@ -1496,8 +1237,7 @@ impl ScrollRuntime {
     /// Replace the largest useful offset (after the canvas or the content changed). The current
     /// position is re-clamped (or left in its rubber band) accordingly.
     pub fn set_max(&mut self, max: [f32; 2]) {
-        let raw =
-            [0, 1].map(|a| raw_offset_for(self.pos[a], self.max[a], self.scroll.elastic.as_ref()));
+        let raw = [0, 1].map(|a| raw_offset_for(self.pos[a], self.max[a], self.scroll.elastic.as_ref()));
         self.max = max;
         if self.target.is_none() {
             self.drag_to(raw);
@@ -1523,11 +1263,7 @@ impl ScrollRuntime {
         #[allow(clippy::needless_range_loop)]
         for a in 0..2 {
             self.pos[a] = if self.scroll.scrolls(a) {
-                effective_offset(
-                    if raw[a].is_finite() { raw[a] } else { 0.0 },
-                    self.max[a],
-                    self.scroll.elastic.as_ref(),
-                )
+                effective_offset(if raw[a].is_finite() { raw[a] } else { 0.0 }, self.max[a], self.scroll.elastic.as_ref())
             } else {
                 0.0
             };
@@ -1544,17 +1280,9 @@ impl ScrollRuntime {
             if !self.scroll.scrolls(a) {
                 continue;
             }
-            let v = if velocity[a].is_finite() {
-                velocity[a]
-            } else {
-                0.0
-            };
+            let v = if velocity[a].is_finite() { velocity[a] } else { 0.0 };
             let proj = self.pos[a] + v * self.scroll.fling;
-            let pts = if a == 0 {
-                &self.scroll.snap_x
-            } else {
-                &self.scroll.snap_y
-            };
+            let pts = if a == 0 { &self.scroll.snap_x } else { &self.scroll.snap_y };
             t[a] = snap_to(proj, pts, self.max[a]);
         }
         self.vel = [0.0; 2];
@@ -1597,15 +1325,9 @@ impl ScrollRuntime {
 fn vec_op<T: Serialize>(field: &str, present: bool, v: &T) -> Result<crate::edit::Op, String> {
     let value = serde_json::to_value(v).map_err(|e| e.to_string())?;
     Ok(if present {
-        crate::edit::Op::Insert {
-            path: format!("/{field}/-"),
-            value,
-        }
+        crate::edit::Op::Insert { path: format!("/{field}/-"), value }
     } else {
-        crate::edit::Op::Set {
-            path: format!("/{field}"),
-            value: serde_json::json!([value]),
-        }
+        crate::edit::Op::Set { path: format!("/{field}"), value: serde_json::json!([value]) }
     })
 }
 
@@ -1631,11 +1353,7 @@ pub fn add_container(p: &mut Project, c: Container) -> Result<(), String> {
 
 /// Remove a container; refused while something still refers to it.
 pub fn remove_container(p: &mut Project, id: &str) -> Result<(), String> {
-    let i = p
-        .containers
-        .iter()
-        .position(|c| c.id == id)
-        .ok_or_else(|| format!("no container '{id}'"))?;
+    let i = p.containers.iter().position(|c| c.id == id).ok_or_else(|| format!("no container '{id}'"))?;
     let mut t = p.clone();
     t.containers.remove(i);
     check_trial(&t)?;
@@ -1655,11 +1373,7 @@ pub fn add_scroll(p: &mut Project, s: Scroll) -> Result<(), String> {
 }
 
 pub fn remove_scroll(p: &mut Project, id: &str) -> Result<(), String> {
-    let i = p
-        .scrolls
-        .iter()
-        .position(|s| s.id == id)
-        .ok_or_else(|| format!("no scroll '{id}'"))?;
+    let i = p.scrolls.iter().position(|s| s.id == id).ok_or_else(|| format!("no scroll '{id}'"))?;
     p.scrolls.remove(i);
     Ok(())
 }
@@ -1672,16 +1386,10 @@ pub fn add_container_op(p: &Project, c: Container) -> Result<crate::edit::Op, St
 }
 
 pub fn remove_container_op(p: &Project, id: &str) -> Result<crate::edit::Op, String> {
-    let i = p
-        .containers
-        .iter()
-        .position(|c| c.id == id)
-        .ok_or_else(|| format!("no container '{id}'"))?;
+    let i = p.containers.iter().position(|c| c.id == id).ok_or_else(|| format!("no container '{id}'"))?;
     let mut t = p.clone();
     remove_container(&mut t, id)?;
-    Ok(crate::edit::Op::Remove {
-        path: format!("/containers/{i}"),
-    })
+    Ok(crate::edit::Op::Remove { path: format!("/containers/{i}") })
 }
 
 pub fn add_scroll_op(p: &Project, s: Scroll) -> Result<crate::edit::Op, String> {
@@ -1691,21 +1399,13 @@ pub fn add_scroll_op(p: &Project, s: Scroll) -> Result<crate::edit::Op, String> 
 }
 
 pub fn remove_scroll_op(p: &Project, id: &str) -> Result<crate::edit::Op, String> {
-    let i = p
-        .scrolls
-        .iter()
-        .position(|s| s.id == id)
-        .ok_or_else(|| format!("no scroll '{id}'"))?;
-    Ok(crate::edit::Op::Remove {
-        path: format!("/scrolls/{i}"),
-    })
+    let i = p.scrolls.iter().position(|s| s.id == id).ok_or_else(|| format!("no scroll '{id}'"))?;
+    Ok(crate::edit::Op::Remove { path: format!("/scrolls/{i}") })
 }
 
 /// SVG overlay (outlines of every container and viewport) for previews.
 pub fn overlay_svg(sol: &Solution) -> String {
-    let mut s = String::from(
-        "<g fill=\"none\" stroke-width=\"1\" font-family=\"monospace\" font-size=\"10\">",
-    );
+    let mut s = String::from("<g fill=\"none\" stroke-width=\"1\" font-family=\"monospace\" font-size=\"10\">");
     for (id, r) in &sol.rects {
         s.push_str(&format!(
             "<rect x=\"{:.2}\" y=\"{:.2}\" width=\"{:.2}\" height=\"{:.2}\" stroke=\"#e0409a\" stroke-dasharray=\"4 3\"/><text x=\"{:.2}\" y=\"{:.2}\" fill=\"#e0409a\">{}</text>",
@@ -1741,32 +1441,21 @@ mod tests {
     use crate::project::{Channel, Prop};
 
     fn rect_layer(n: &str, w: f32, h: f32) -> Layer {
-        Layer::vector(
-            n,
-            vec![VPath::rect("r", 0.0, 0.0, w, h).with_fill("#ff0000")],
-        )
+        Layer::vector(n, vec![VPath::rect("r", 0.0, 0.0, w, h).with_fill("#ff0000")])
     }
 
     fn proj(sizes: &[(f32, f32)]) -> Project {
         let mut p = Project::new("c", 400.0, 200.0, 24.0, 5);
-        p.layers = sizes
-            .iter()
-            .enumerate()
-            .map(|(i, (w, h))| rect_layer(&format!("l{i}"), *w, *h))
-            .collect();
+        p.layers = sizes.iter().enumerate().map(|(i, (w, h))| rect_layer(&format!("l{i}"), *w, *h)).collect();
         p
     }
 
     fn row(p: &Project, n: usize) -> Container {
-        Container::new(
-            "c",
-            Dir::Row,
-            (0..n).map(|i| Member::layer(&format!("l{i}"))).collect(),
-        )
-        .tap(|c| {
-            let _ = p;
-            c.rect = RectRule::default();
-        })
+        Container::new("c", Dir::Row, (0..n).map(|i| Member::layer(&format!("l{i}"))).collect())
+            .tap(|c| {
+                let _ = p;
+                c.rect = RectRule::default();
+            })
     }
 
     trait Tap: Sized {
@@ -1829,14 +1518,7 @@ mod tests {
         near(&mk(Justify::End), &[220.0, 270.0, 330.0]);
         near(&mk(Justify::SpaceBetween), &[0.0, 160.0, 330.0]);
         let third = 220.0 / 3.0;
-        near(
-            &mk(Justify::SpaceAround),
-            &[
-                third / 2.0,
-                third / 2.0 + 50.0 + third,
-                third / 2.0 + 110.0 + 2.0 * third,
-            ],
-        );
+        near(&mk(Justify::SpaceAround), &[third / 2.0, third / 2.0 + 50.0 + third, third / 2.0 + 110.0 + 2.0 * third]);
         // one item: space_between falls back to start
         let mut p = proj(&[(50.0, 20.0)]);
         let mut c = row(&p, 1);
@@ -1888,10 +1570,7 @@ mod tests {
         let w0 = 50.0 + 220.0 / 3.0;
         let w2 = 70.0 + 440.0 / 3.0;
         near(&xs(&s), &[0.0, w0, w0 + 60.0]);
-        near(
-            &s.layers.iter().map(|l| l.kx).collect::<Vec<_>>(),
-            &[w0 / 50.0, 1.0, w2 / 70.0],
-        );
+        near(&s.layers.iter().map(|l| l.kx).collect::<Vec<_>>(), &[w0 / 50.0, 1.0, w2 / 70.0]);
     }
 
     #[test]
@@ -1907,10 +1586,7 @@ mod tests {
         p.containers.push(c);
         let s = solve_project(&p).unwrap();
         near(&xs(&s), &[0.0, 100.0]);
-        near(
-            &s.layers.iter().map(|l| l.kx).collect::<Vec<_>>(),
-            &[2.0, 4.0],
-        );
+        near(&s.layers.iter().map(|l| l.kx).collect::<Vec<_>>(), &[2.0, 4.0]);
     }
 
     #[test]
@@ -1924,10 +1600,7 @@ mod tests {
         p.containers.push(c.clone());
         let s = solve_project(&p).unwrap();
         let k = 100.0 / 180.0;
-        near(
-            &s.layers.iter().map(|l| l.kx).collect::<Vec<_>>(),
-            &[k, k, k],
-        );
+        near(&s.layers.iter().map(|l| l.kx).collect::<Vec<_>>(), &[k, k, k]);
         near(&xs(&s), &[0.0, 50.0 * k, 110.0 * k]);
         // middle member refuses to shrink below 55
         p.containers[0].members[1].min_w = Some(55.0);
@@ -1960,26 +1633,15 @@ mod tests {
     #[test]
     fn nested_containers() {
         let mut p = proj(&[(50.0, 20.0), (50.0, 20.0), (30.0, 40.0)]);
-        let mut inner = Container::new(
-            "in",
-            Dir::Row,
-            vec![Member::layer("l0"), Member::layer("l1")],
-        );
+        let mut inner = Container::new("in", Dir::Row, vec![Member::layer("l0"), Member::layer("l1")]);
         inner.gap = 5.0;
-        let mut outer = Container::new(
-            "out",
-            Dir::Column,
-            vec![Member::nested("in"), Member::layer("l2")],
-        );
+        let mut outer = Container::new("out", Dir::Column, vec![Member::nested("in"), Member::layer("l2")]);
         outer.gap = 10.0;
         p.containers = vec![inner, outer.clone()];
         let s = solve_project(&p).unwrap();
         near(&xs(&s), &[0.0, 55.0, 0.0]);
         near(&ys(&s), &[0.0, 0.0, 30.0]);
-        assert_eq!(
-            s.rects.iter().find(|r| r.0 == "in").unwrap().1,
-            [0.0, 0.0, 105.0, 20.0]
-        );
+        assert_eq!(s.rects.iter().find(|r| r.0 == "in").unwrap().1, [0.0, 0.0, 105.0, 20.0]);
         // centred: the intrinsic nested box is centred in the outer width
         p.containers[1].align = Align::Center;
         let s = solve_project(&p).unwrap();
@@ -2002,92 +1664,23 @@ mod tests {
 
     #[test]
     fn rect_rules_follow_the_canvas() {
-        let pin = RectRule::Pin {
-            left: Some(10.0),
-            top: Some(20.0),
-            right: Some(30.0),
-            bottom: None,
-            width: None,
-            height: Some(50.0),
-        };
-        assert_eq!(
-            resolve_rule(&pin, 400.0, 200.0, [0.0; 2]),
-            [10.0, 20.0, 360.0, 50.0]
-        );
-        assert_eq!(
-            resolve_rule(&pin, 800.0, 600.0, [0.0; 2]),
-            [10.0, 20.0, 760.0, 50.0]
-        );
-        let br = RectRule::Pin {
-            left: None,
-            top: None,
-            right: Some(10.0),
-            bottom: Some(10.0),
-            width: Some(100.0),
-            height: Some(40.0),
-        };
-        assert_eq!(
-            resolve_rule(&br, 400.0, 200.0, [0.0; 2]),
-            [290.0, 150.0, 100.0, 40.0]
-        );
-        let ctr = RectRule::Pin {
-            left: None,
-            top: None,
-            right: None,
-            bottom: None,
-            width: Some(100.0),
-            height: Some(100.0),
-        };
-        assert_eq!(
-            resolve_rule(&ctr, 400.0, 200.0, [0.0; 2]),
-            [150.0, 50.0, 100.0, 100.0]
-        );
-        let fit = RectRule::Aspect {
-            ratio: 16.0 / 9.0,
-            mode: AspectMode::Fit,
-            margin: 0.0,
-            ax: 0.5,
-            ay: 0.5,
-        };
+        let pin = RectRule::Pin { left: Some(10.0), top: Some(20.0), right: Some(30.0), bottom: None, width: None, height: Some(50.0) };
+        assert_eq!(resolve_rule(&pin, 400.0, 200.0, [0.0; 2]), [10.0, 20.0, 360.0, 50.0]);
+        assert_eq!(resolve_rule(&pin, 800.0, 600.0, [0.0; 2]), [10.0, 20.0, 760.0, 50.0]);
+        let br = RectRule::Pin { left: None, top: None, right: Some(10.0), bottom: Some(10.0), width: Some(100.0), height: Some(40.0) };
+        assert_eq!(resolve_rule(&br, 400.0, 200.0, [0.0; 2]), [290.0, 150.0, 100.0, 40.0]);
+        let ctr = RectRule::Pin { left: None, top: None, right: None, bottom: None, width: Some(100.0), height: Some(100.0) };
+        assert_eq!(resolve_rule(&ctr, 400.0, 200.0, [0.0; 2]), [150.0, 50.0, 100.0, 100.0]);
+        let fit = RectRule::Aspect { ratio: 16.0 / 9.0, mode: AspectMode::Fit, margin: 0.0, ax: 0.5, ay: 0.5 };
         let r = resolve_rule(&fit, 400.0, 400.0, [0.0; 2]);
-        assert!(
-            (r[2] - 400.0).abs() < 1e-3
-                && (r[3] - 225.0).abs() < 1e-3
-                && (r[1] - 87.5).abs() < 1e-3
-        );
-        let fill = RectRule::Aspect {
-            ratio: 16.0 / 9.0,
-            mode: AspectMode::Fill,
-            margin: 0.0,
-            ax: 0.5,
-            ay: 0.5,
-        };
+        assert!((r[2] - 400.0).abs() < 1e-3 && (r[3] - 225.0).abs() < 1e-3 && (r[1] - 87.5).abs() < 1e-3);
+        let fill = RectRule::Aspect { ratio: 16.0 / 9.0, mode: AspectMode::Fill, margin: 0.0, ax: 0.5, ay: 0.5 };
         let r = resolve_rule(&fill, 400.0, 400.0, [0.0; 2]);
-        assert!(
-            (r[3] - 400.0).abs() < 1e-3
-                && (r[2] - 711.111).abs() < 1e-2
-                && (r[0] + 155.5555).abs() < 1e-2
-        );
-        let m = RectRule::Aspect {
-            ratio: 1.0,
-            mode: AspectMode::Fit,
-            margin: 10.0,
-            ax: 0.0,
-            ay: 0.0,
-        };
-        assert_eq!(
-            resolve_rule(&m, 400.0, 200.0, [0.0; 2]),
-            [10.0, 10.0, 180.0, 180.0]
-        );
+        assert!((r[3] - 400.0).abs() < 1e-3 && (r[2] - 711.111).abs() < 1e-2 && (r[0] + 155.5555).abs() < 1e-2);
+        let m = RectRule::Aspect { ratio: 1.0, mode: AspectMode::Fit, margin: 10.0, ax: 0.0, ay: 0.0 };
+        assert_eq!(resolve_rule(&m, 400.0, 200.0, [0.0; 2]), [10.0, 10.0, 180.0, 180.0]);
         // margins larger than the canvas clamp to zero size
-        let big = RectRule::Pin {
-            left: Some(300.0),
-            top: None,
-            right: Some(300.0),
-            bottom: None,
-            width: None,
-            height: None,
-        };
+        let big = RectRule::Pin { left: Some(300.0), top: None, right: Some(300.0), bottom: None, width: None, height: None };
         assert_eq!(resolve_rule(&big, 400.0, 200.0, [0.0; 2])[2], 0.0);
     }
 
@@ -2097,14 +1690,7 @@ mod tests {
         let mut c = row(&p, 2);
         c.justify = Justify::SpaceBetween;
         c.align = Align::End;
-        c.rect = RectRule::Pin {
-            left: Some(10.0),
-            right: Some(10.0),
-            top: None,
-            bottom: Some(10.0),
-            width: None,
-            height: Some(40.0),
-        };
+        c.rect = RectRule::Pin { left: Some(10.0), right: Some(10.0), top: None, bottom: Some(10.0), width: None, height: Some(40.0) };
         p.containers.push(c);
         let a = solve_project(&p).unwrap();
         near(&xs(&a), &[10.0, 340.0]);
@@ -2117,22 +1703,15 @@ mod tests {
         assert_eq!((p.width, p.height), (400.0, 200.0));
         assert!(responsive(&p, 0.0, 10.0).is_err() && responsive(&p, f32::NAN, 10.0).is_err());
         assert_eq!(parse_size("800x600").unwrap(), (800.0, 600.0));
-        assert!(
-            parse_size("800").is_err() && parse_size("0x5").is_err() && parse_size("axb").is_err()
-        );
+        assert!(parse_size("800").is_err() && parse_size("0x5").is_err() && parse_size("axb").is_err());
         // an engine compiled from the responsive copy renders members at the new place
         let e = Engine::new(q).unwrap();
         let f = e.evaluate(0.0);
         let id = e.node_index("l1").unwrap();
         let o = f.nodes[id].world.apply(Vec2::ZERO);
         let e0 = Engine::new(p.clone()).unwrap();
-        let o0 = e0.evaluate(0.0).nodes[e0.node_index("l1").unwrap()]
-            .world
-            .apply(Vec2::ZERO);
-        assert!(
-            (o.x - o0.x - 400.0).abs() < 1e-2 && (o.y - o0.y - 400.0).abs() < 1e-2,
-            "{o:?} {o0:?}"
-        );
+        let o0 = e0.evaluate(0.0).nodes[e0.node_index("l1").unwrap()].world.apply(Vec2::ZERO);
+        assert!((o.x - o0.x - 400.0).abs() < 1e-2 && (o.y - o0.y - 400.0).abs() < 1e-2, "{o:?} {o0:?}");
     }
 
     #[test]
@@ -2143,36 +1722,17 @@ mod tests {
             f(&mut p);
             validate(&p).join("\n")
         };
-        assert!(bad(&|p| p.containers.push(Container::new(
-            "c",
-            Dir::Row,
-            vec![Member::layer("ghost")]
-        )))
-        .contains("unknown layer"));
+        assert!(bad(&|p| p.containers.push(Container::new("c", Dir::Row, vec![Member::layer("ghost")]))).contains("unknown layer"));
         assert!(bad(&|p| {
-            p.containers
-                .push(Container::new("a", Dir::Row, vec![Member::layer("l0")]));
-            p.containers
-                .push(Container::new("b", Dir::Row, vec![Member::layer("l0")]));
+            p.containers.push(Container::new("a", Dir::Row, vec![Member::layer("l0")]));
+            p.containers.push(Container::new("b", Dir::Row, vec![Member::layer("l0")]));
         })
         .contains("both container"));
-        assert!(bad(&|p| p.containers.push(Container::new(
-            "a",
-            Dir::Row,
-            vec![Member::layer("l0"), Member::layer("l0")]
-        )))
-        .contains("both container"));
-        assert!(bad(&|p| p.containers.push(Container::new(
-            "a",
-            Dir::Row,
-            vec![Member::nested("a")]
-        )))
-        .contains("cycle"));
+        assert!(bad(&|p| p.containers.push(Container::new("a", Dir::Row, vec![Member::layer("l0"), Member::layer("l0")]))).contains("both container"));
+        assert!(bad(&|p| p.containers.push(Container::new("a", Dir::Row, vec![Member::nested("a")]))).contains("cycle"));
         assert!(bad(&|p| {
-            p.containers
-                .push(Container::new("a", Dir::Row, vec![Member::nested("b")]));
-            p.containers
-                .push(Container::new("b", Dir::Row, vec![Member::nested("a")]));
+            p.containers.push(Container::new("a", Dir::Row, vec![Member::nested("b")]));
+            p.containers.push(Container::new("b", Dir::Row, vec![Member::nested("a")]));
         })
         .contains("cycle"));
         assert!(bad(&|p| {
@@ -2182,29 +1742,17 @@ mod tests {
         .contains("duplicate container"));
         let mut m = Member::layer("l0");
         m.width = Some(0.0);
-        assert!(bad(&|p| p
-            .containers
-            .push(Container::new("a", Dir::Row, vec![m.clone()])))
-        .contains("width must be"));
+        assert!(bad(&|p| p.containers.push(Container::new("a", Dir::Row, vec![m.clone()]))).contains("width must be"));
         let mut m = Member::layer("l0");
         m.height = Some(-3.0);
-        assert!(bad(&|p| p
-            .containers
-            .push(Container::new("a", Dir::Row, vec![m.clone()])))
-        .contains("height must be"));
+        assert!(bad(&|p| p.containers.push(Container::new("a", Dir::Row, vec![m.clone()]))).contains("height must be"));
         let mut m = Member::layer("l0");
         m.grow = f32::NAN;
-        assert!(bad(&|p| p
-            .containers
-            .push(Container::new("a", Dir::Row, vec![m.clone()])))
-        .contains("grow"));
+        assert!(bad(&|p| p.containers.push(Container::new("a", Dir::Row, vec![m.clone()]))).contains("grow"));
         let mut m = Member::layer("l0");
         m.min_w = Some(10.0);
         m.max_w = Some(5.0);
-        assert!(bad(&|p| p
-            .containers
-            .push(Container::new("a", Dir::Row, vec![m.clone()])))
-        .contains("larger than max"));
+        assert!(bad(&|p| p.containers.push(Container::new("a", Dir::Row, vec![m.clone()]))).contains("larger than max"));
         assert!(bad(&|p| {
             let mut c = Container::new("a", Dir::Row, vec![]);
             c.gap = f32::NAN;
@@ -2219,55 +1767,27 @@ mod tests {
         .contains("padding"));
         assert!(bad(&|p| {
             let mut c = Container::new("a", Dir::Row, vec![]);
-            c.rect = RectRule::Fixed {
-                x: 0.0,
-                y: 0.0,
-                w: 0.0,
-                h: 10.0,
-            };
+            c.rect = RectRule::Fixed { x: 0.0, y: 0.0, w: 0.0, h: 10.0 };
             p.containers.push(c);
         })
         .contains("fixed rect"));
         assert!(bad(&|p| {
             let mut c = Container::new("a", Dir::Row, vec![]);
-            c.rect = RectRule::Pin {
-                left: Some(1.0),
-                right: Some(1.0),
-                width: Some(5.0),
-                top: None,
-                bottom: None,
-                height: None,
-            };
+            c.rect = RectRule::Pin { left: Some(1.0), right: Some(1.0), width: Some(5.0), top: None, bottom: None, height: None };
             p.containers.push(c);
         })
         .contains("over-constrained"));
         assert!(bad(&|p| {
             let mut c = Container::new("a", Dir::Row, vec![]);
-            c.rect = RectRule::Aspect {
-                ratio: 0.0,
-                mode: AspectMode::Fit,
-                margin: 0.0,
-                ax: 0.5,
-                ay: 0.5,
-            };
+            c.rect = RectRule::Aspect { ratio: 0.0, mode: AspectMode::Fit, margin: 0.0, ax: 0.5, ay: 0.5 };
             p.containers.push(c);
         })
         .contains("aspect ratio"));
-        assert!(bad(&|p| p.containers.push(Container::new(
-            "a",
-            Dir::Row,
-            vec![Member {
-                layer: None,
-                ..Member::spacer(0.0)
-            }
-            .tap_none()]
-        )))
-        .contains("exactly one"));
+        assert!(bad(&|p| p.containers.push(Container::new("a", Dir::Row, vec![Member { layer: None, ..Member::spacer(0.0) }.tap_none()]))).contains("exactly one"));
         // unmeasurable layer needs an explicit size
         assert!(bad(&|p| {
             p.layers.push(Layer::group("g", vec![]));
-            p.containers
-                .push(Container::new("a", Dir::Row, vec![Member::layer("g")]));
+            p.containers.push(Container::new("a", Dir::Row, vec![Member::layer("g")]));
         })
         .contains("no measurable geometry"));
         // resize on a rotated layer
@@ -2280,8 +1800,7 @@ mod tests {
         .contains("resize needs"));
         // solve refuses invalid input rather than panicking
         let mut p = base.clone();
-        p.containers
-            .push(Container::new("a", Dir::Row, vec![Member::nested("a")]));
+        p.containers.push(Container::new("a", Dir::Row, vec![Member::nested("a")]));
         assert!(solve_project(&p).is_err());
         assert!(solve(&base, f32::NAN, 5.0).is_err());
         // the engine refuses it too
@@ -2304,12 +1823,7 @@ mod tests {
         c.axis = Dir::Column;
         p.containers.push(c);
         let mut s = Scroll::new("s", "c");
-        s.viewport = RectRule::Fixed {
-            x: 0.0,
-            y: 0.0,
-            w: 100.0,
-            h: 50.0,
-        };
+        s.viewport = RectRule::Fixed { x: 0.0, y: 0.0, w: 100.0, h: 50.0 };
         p.scrolls.push(s);
         p
     }
@@ -2322,30 +1836,18 @@ mod tests {
         near(&ys(&s)[..3], &[0.0, 20.0, 40.0]);
         set_offset(&mut p, "s", [30.0, 80.0]).unwrap();
         let s = solve_project(&p).unwrap();
-        assert_eq!(
-            s.scrolls[0].offset,
-            [0.0, 80.0],
-            "x does not scroll on a vertical region"
-        );
+        assert_eq!(s.scrolls[0].offset, [0.0, 80.0], "x does not scroll on a vertical region");
         near(&ys(&s)[..3], &[-80.0, -60.0, -40.0]);
         set_offset(&mut p, "s", [0.0, 500.0]).unwrap();
         assert!((solve_project(&p).unwrap().scrolls[0].offset[1] - 150.0).abs() < 1e-3);
         set_offset(&mut p, "s", [0.0, -20.0]).unwrap();
         assert_eq!(solve_project(&p).unwrap().scrolls[0].offset, [0.0, 0.0]);
-        assert!(
-            set_offset(&mut p, "s", [f32::NAN, 0.0]).is_err()
-                && set_offset(&mut p, "zz", [0.0; 2]).is_err()
-        );
+        assert!(set_offset(&mut p, "s", [f32::NAN, 0.0]).is_err() && set_offset(&mut p, "zz", [0.0; 2]).is_err());
         // content shorter than the viewport cannot scroll
         let mut q = proj(&[(100.0, 20.0)]);
         q.containers.push(row(&q, 1));
         let mut sc = Scroll::new("s", "c");
-        sc.viewport = RectRule::Fixed {
-            x: 0.0,
-            y: 0.0,
-            w: 100.0,
-            h: 50.0,
-        };
+        sc.viewport = RectRule::Fixed { x: 0.0, y: 0.0, w: 100.0, h: 50.0 };
         sc.offset = [0.0, 40.0];
         q.scrolls.push(sc);
         assert_eq!(solve_project(&q).unwrap().scrolls[0].max, [0.0, 0.0]);
@@ -2357,34 +1859,17 @@ mod tests {
         p.containers.push(row(&p, 4));
         let mut s = Scroll::new("s", "c");
         s.axis = ScrollAxis::X;
-        s.viewport = RectRule::Fixed {
-            x: 10.0,
-            y: 5.0,
-            w: 150.0,
-            h: 50.0,
-        };
+        s.viewport = RectRule::Fixed { x: 10.0, y: 5.0, w: 150.0, h: 50.0 };
         s.offset = [60.0, 99.0];
         p.scrolls.push(s);
         let r = solve_project(&p).unwrap();
         assert_eq!(r.scrolls[0].max, [250.0, 0.0]);
-        near(
-            &xs(&r),
-            &[10.0 - 60.0, 50.0, 150.0, 250.0]
-                .map(|v: f32| v - 0.0)
-                .iter()
-                .enumerate()
-                .map(|(i, _)| 10.0 - 60.0 + 100.0 * i as f32)
-                .collect::<Vec<_>>(),
-        );
+        near(&xs(&r), &[10.0 - 60.0, 50.0, 150.0, 250.0].map(|v: f32| v - 0.0).iter().enumerate().map(|(i, _)| 10.0 - 60.0 + 100.0 * i as f32).collect::<Vec<_>>());
         near(&ys(&r), &[5.0; 4]);
         p.scrolls[0].axis = ScrollAxis::Both;
         p.scrolls[0].offset = [60.0, 99.0];
         let r = solve_project(&p).unwrap();
-        assert_eq!(
-            r.scrolls[0].offset,
-            [60.0, 0.0],
-            "content is not taller than the viewport"
-        );
+        assert_eq!(r.scrolls[0].offset, [60.0, 0.0], "content is not taller than the viewport");
     }
 
     #[test]
@@ -2395,12 +1880,7 @@ mod tests {
         c.gap = 10.0;
         p.containers.push(c);
         let mut s = Scroll::new("s", "c");
-        s.viewport = RectRule::Fixed {
-            x: 0.0,
-            y: 0.0,
-            w: 100.0,
-            h: 40.0,
-        };
+        s.viewport = RectRule::Fixed { x: 0.0, y: 0.0, w: 100.0, h: 40.0 };
         p.scrolls.push(s);
         let r = solve_project(&p).unwrap();
         // two per line, three lines of 20 with gaps of 10: height 80, so max offset 40
@@ -2411,11 +1891,7 @@ mod tests {
     #[test]
     fn scroll_elastic_overscroll_and_runtime() {
         let mut p = scroll_project();
-        p.scrolls[0].elastic = Some(Elastic {
-            limit: 40.0,
-            stiffness: 180.0,
-            damping_ratio: 0.9,
-        });
+        p.scrolls[0].elastic = Some(Elastic { limit: 40.0, stiffness: 180.0, damping_ratio: 0.9 });
         set_offset(&mut p, "s", [0.0, 250.0]).unwrap();
         let o = solve_project(&p).unwrap().scrolls[0].offset[1];
         let want = 150.0 + 40.0 * (1.0 - (-100.0f32 / 40.0).exp());
@@ -2459,18 +1935,11 @@ mod tests {
 
     #[test]
     fn raw_offset_inverts_effective_offset_and_set_max_reclamps() {
-        let el = Elastic {
-            limit: 40.0,
-            stiffness: 180.0,
-            damping_ratio: 0.9,
-        };
+        let el = Elastic { limit: 40.0, stiffness: 180.0, damping_ratio: 0.9 };
         for raw in [-90.0f32, -5.0, 0.0, 70.0, 150.0, 151.0, 260.0, 400.0] {
             let shown = effective_offset(raw, 150.0, Some(&el));
             let back = raw_offset_for(shown, 150.0, Some(&el));
-            assert!(
-                (back - raw).abs() < 0.05 * (1.0 + raw.abs()),
-                "{raw} -> {shown} -> {back}"
-            );
+            assert!((back - raw).abs() < 0.05 * (1.0 + raw.abs()), "{raw} -> {shown} -> {back}");
         }
         assert_eq!(raw_offset_for(-3.0, 150.0, None), 0.0);
         assert_eq!(raw_offset_for(500.0, 150.0, None), 150.0);
@@ -2492,11 +1961,7 @@ mod tests {
         p.scrolls[0].snap_y = vec![0.0, 50.0, 100.0, 400.0];
         assert_eq!(snap_to(70.0, &p.scrolls[0].snap_y, 150.0), 50.0);
         assert_eq!(snap_to(80.0, &p.scrolls[0].snap_y, 150.0), 100.0);
-        assert_eq!(
-            snap_to(140.0, &p.scrolls[0].snap_y, 150.0),
-            150.0,
-            "out of range snap points clamp to the end"
-        );
+        assert_eq!(snap_to(140.0, &p.scrolls[0].snap_y, 150.0), 150.0, "out of range snap points clamp to the end");
         assert_eq!(snap_to(33.0, &[], 150.0), 33.0);
         let mut rt = ScrollRuntime::new(&p.scrolls[0], [0.0, 150.0]);
         rt.drag_to([0.0, 70.0]);
@@ -2524,14 +1989,7 @@ mod tests {
         clip.visible = false;
         p.layers.push(clip);
         p.scrolls[0].clip_layer = Some("clip".into());
-        p.scrolls[0].viewport = RectRule::Pin {
-            left: Some(20.0),
-            right: Some(20.0),
-            top: Some(10.0),
-            bottom: None,
-            width: None,
-            height: Some(50.0),
-        };
+        p.scrolls[0].viewport = RectRule::Pin { left: Some(20.0), right: Some(20.0), top: Some(10.0), bottom: None, width: None, height: Some(50.0) };
         let e = Engine::new(p.clone()).unwrap();
         let f = e.evaluate(0.0);
         let cid = e.node_index("clip").unwrap();
@@ -2546,10 +2004,7 @@ mod tests {
         // a content layer that is already masked is rejected
         let mut q = p.clone();
         q.layers.push(rect_layer("other", 5.0, 5.0));
-        q.layers[0].mask = Some(MaskRef {
-            layer: "other".into(),
-            invert: false,
-        });
+        q.layers[0].mask = Some(MaskRef { layer: "other".into(), invert: false });
         assert!(validate(&q).join("\n").contains("already has a mask"));
         // the clip layer must not be a container member or part of the content
         let mut q = p.clone();
@@ -2569,15 +2024,10 @@ mod tests {
         p.scrolls.push(Scroll::new("t", "c"));
         assert!(validate(&p).join("\n").contains("content of both"));
         let mut p = scroll_project();
-        p.containers
-            .push(Container::new("o", Dir::Row, vec![Member::nested("c")]));
+        p.containers.push(Container::new("o", Dir::Row, vec![Member::nested("c")]));
         assert!(validate(&p).join("\n").contains("nested in another"));
         let mut p = scroll_project();
-        p.scrolls[0].elastic = Some(Elastic {
-            limit: 0.0,
-            stiffness: 1.0,
-            damping_ratio: 1.0,
-        });
+        p.scrolls[0].elastic = Some(Elastic { limit: 0.0, stiffness: 1.0, damping_ratio: 1.0 });
         assert!(validate(&p).join("\n").contains("elastic"));
         let mut p = scroll_project();
         p.scrolls[0].offset = [f32::INFINITY, 0.0];
@@ -2613,42 +2063,26 @@ mod tests {
         let mut c = row(&p, 2);
         c.justify = Justify::End;
         p.containers.push(c);
-        p.channels.push(Channel::keys(
-            "l0",
-            Prop::LayerX,
-            Track::with_keys(&[(0.0, 0.0, Ease::Linear), (4.0, 40.0, Ease::Linear)]),
-        ));
+        p.channels.push(Channel::keys("l0", Prop::LayerX, Track::with_keys(&[(0.0, 0.0, Ease::Linear), (4.0, 40.0, Ease::Linear)])));
         let e = Engine::new(p.clone()).unwrap();
         let at = |f: f32, name: &str| {
             let fr = e.evaluate(f);
-            fr.nodes[e.node_index(name).unwrap()]
-                .world
-                .apply(Vec2::ZERO)
+            fr.nodes[e.node_index(name).unwrap()].world.apply(Vec2::ZERO)
         };
         // reference: same animation without containers
         let mut plain = p.clone();
         plain.containers.clear();
         let ep = Engine::new(plain).unwrap();
-        let atp = |f: f32, name: &str| {
-            ep.evaluate(f).nodes[ep.node_index(name).unwrap()]
-                .world
-                .apply(Vec2::ZERO)
-        };
+        let atp = |f: f32, name: &str| ep.evaluate(f).nodes[ep.node_index(name).unwrap()].world.apply(Vec2::ZERO);
         for f in [0.0, 2.0, 4.0] {
             let (a, b) = (at(f, "l0"), atp(f, "l0"));
-            assert!(
-                (a.x - b.x - 300.0).abs() < 1e-3 && (a.y - b.y).abs() < 1e-3,
-                "frame {f}: {a:?} {b:?}"
-            );
+            assert!((a.x - b.x - 300.0).abs() < 1e-3 && (a.y - b.y).abs() < 1e-3, "frame {f}: {a:?} {b:?}");
             let (a, b) = (at(f, "l1"), atp(f, "l1"));
             assert!((a.x - b.x - 350.0).abs() < 1e-3);
         }
         // determinism of the compiled result
         let e2 = Engine::new(p).unwrap();
-        assert_eq!(
-            e2.evaluate(3.0).nodes[0].world,
-            e.evaluate(3.0).nodes[0].world
-        );
+        assert_eq!(e2.evaluate(3.0).nodes[0].world, e.evaluate(3.0).nodes[0].world);
     }
 
     #[test]
@@ -2669,14 +2103,8 @@ mod tests {
         let n = &f.nodes[e.node_index("l0").unwrap()];
         let a = n.world.apply(Vec2::new(0.0, 0.0));
         let b = n.world.apply(Vec2::new(50.0, 20.0));
-        assert!(
-            (a.x - 10.0).abs() < 1e-2 && (a.y - 10.0).abs() < 1e-2,
-            "{a:?}"
-        );
-        assert!(
-            (b.x - 390.0).abs() < 1e-2 && (b.y - 190.0).abs() < 1e-2,
-            "{b:?}"
-        );
+        assert!((a.x - 10.0).abs() < 1e-2 && (a.y - 10.0).abs() < 1e-2, "{a:?}");
+        assert!((b.x - 390.0).abs() < 1e-2 && (b.y - 190.0).abs() < 1e-2, "{b:?}");
     }
 
     #[test]
@@ -2687,8 +2115,7 @@ mod tests {
         let mut m = Member::layer("g");
         m.width = Some(30.0);
         m.height = Some(10.0);
-        p.containers
-            .push(Container::new("c", Dir::Row, vec![Member::layer("l0"), m]));
+        p.containers.push(Container::new("c", Dir::Row, vec![Member::layer("l0"), m]));
         let s = solve_project(&p).unwrap();
         near(&xs(&s), &[0.0, 50.0 - 7.0]);
         near(&ys(&s), &[0.0, -3.0]);
@@ -2698,18 +2125,13 @@ mod tests {
     fn editor_ops_are_undoable_and_atomic() {
         let p = proj(&[(50.0, 20.0), (50.0, 20.0)]);
         let mut ed = Editor::new(p).unwrap();
-        let c = Container::new(
-            "c",
-            Dir::Row,
-            vec![Member::layer("l0"), Member::layer("l1")],
-        );
+        let c = Container::new("c", Dir::Row, vec![Member::layer("l0"), Member::layer("l1")]);
         let op = add_container_op(ed.project(), c.clone()).unwrap();
         ed.apply(op).unwrap();
         assert_eq!(ed.project().containers.len(), 1);
         // second container goes through the append path
         let d = Container::new("d", Dir::Row, vec![]);
-        ed.apply(add_container_op(ed.project(), d).unwrap())
-            .unwrap();
+        ed.apply(add_container_op(ed.project(), d).unwrap()).unwrap();
         assert_eq!(ed.project().containers.len(), 2);
         assert!(ed.undo());
         assert_eq!(ed.project().containers.len(), 1);
@@ -2719,24 +2141,15 @@ mod tests {
         assert_eq!(ed.project().containers[0], c);
         // duplicates and invalid containers never reach the editor
         assert!(add_container_op(ed.project(), c.clone()).is_err());
-        assert!(add_container_op(
-            ed.project(),
-            Container::new("z", Dir::Row, vec![Member::layer("ghost")])
-        )
-        .is_err());
+        assert!(add_container_op(ed.project(), Container::new("z", Dir::Row, vec![Member::layer("ghost")])).is_err());
         // an op that would leave a scroll dangling is rolled back by the engine check
-        ed.apply(add_scroll_op(ed.project(), Scroll::new("s", "c")).unwrap())
-            .unwrap();
+        ed.apply(add_scroll_op(ed.project(), Scroll::new("s", "c")).unwrap()).unwrap();
         assert!(remove_container_op(ed.project(), "c").is_err());
-        let dangling = crate::edit::Op::Remove {
-            path: "/containers/0".into(),
-        };
+        let dangling = crate::edit::Op::Remove { path: "/containers/0".into() };
         assert!(ed.apply(dangling).is_err());
         assert_eq!(ed.project().containers.len(), 1);
-        ed.apply(remove_scroll_op(ed.project(), "s").unwrap())
-            .unwrap();
-        ed.apply(remove_container_op(ed.project(), "c").unwrap())
-            .unwrap();
+        ed.apply(remove_scroll_op(ed.project(), "s").unwrap()).unwrap();
+        ed.apply(remove_container_op(ed.project(), "c").unwrap()).unwrap();
         assert!(ed.project().containers.is_empty());
         assert!(remove_container_op(ed.project(), "c").is_err());
         assert!(remove_scroll_op(ed.project(), "s").is_err());
@@ -2756,10 +2169,7 @@ mod tests {
         let c: Container = serde_json::from_str(r#"{"id":"x","members":[{"layer":"a","grow":1}],"justify":"space_between","rect":{"kind":"aspect","ratio":1.5}}"#).unwrap();
         assert_eq!(c.members[0].shrink, 1.0);
         assert_eq!(c.justify, Justify::SpaceBetween);
-        assert!(serde_json::from_str::<Container>(
-            r#"{"id":"x","members":[],"justify":"sideways"}"#
-        )
-        .is_err());
+        assert!(serde_json::from_str::<Container>(r#"{"id":"x","members":[],"justify":"sideways"}"#).is_err());
     }
 
     #[test]

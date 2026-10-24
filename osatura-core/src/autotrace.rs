@@ -134,8 +134,7 @@ impl TraceOptions {
         if self.smooth > 50 || self.denoise > 5 || self.prune > 1000 {
             return Err("smooth <= 50, denoise <= 5, prune <= 1000".into());
         }
-        if !self.corner_angle.is_finite() || self.corner_angle <= 5.0 || self.corner_angle >= 175.0
-        {
+        if !self.corner_angle.is_finite() || self.corner_angle <= 5.0 || self.corner_angle >= 175.0 {
             return Err("corner angle must be in (5, 175) degrees".into());
         }
         if self.corner_window < 2 || self.corner_window > 40 {
@@ -198,22 +197,11 @@ pub struct TraceResult {
 
 impl TraceResult {
     pub fn path_count(&self) -> usize {
-        self.regions
-            .iter()
-            .map(|r| 1 + r.holes.len())
-            .sum::<usize>()
-            + self.strokes.len()
+        self.regions.iter().map(|r| 1 + r.holes.len()).sum::<usize>() + self.strokes.len()
     }
     pub fn anchor_count(&self) -> usize {
-        self.regions
-            .iter()
-            .map(|r| r.outer.anchors.len() + r.holes.iter().map(|h| h.anchors.len()).sum::<usize>())
-            .sum::<usize>()
-            + self
-                .strokes
-                .iter()
-                .map(|s| s.path.anchors.len())
-                .sum::<usize>()
+        self.regions.iter().map(|r| r.outer.anchors.len() + r.holes.iter().map(|h| h.anchors.len()).sum::<usize>()).sum::<usize>()
+            + self.strokes.iter().map(|s| s.path.anchors.len()).sum::<usize>()
     }
 }
 
@@ -232,16 +220,12 @@ pub fn decode_image(bytes: &[u8]) -> Result<Image, String> {
         let px = d.decode().map_err(|e| format!("invalid JPEG: {e}"))?;
         let rgba: Vec<u8> = match info.pixel_format {
             jpeg_decoder::PixelFormat::L8 => px.iter().flat_map(|&g| [g, g, g, 255]).collect(),
-            jpeg_decoder::PixelFormat::RGB24 => px
-                .chunks_exact(3)
-                .flat_map(|c| [c[0], c[1], c[2], 255])
-                .collect(),
+            jpeg_decoder::PixelFormat::RGB24 => px.chunks_exact(3).flat_map(|c| [c[0], c[1], c[2], 255]).collect(),
             _ => return Err("only 8-bit grey and RGB JPEGs are supported".into()),
         };
         return Image::from_rgba(w, h, rgba);
     }
-    let pm = crate::assets::decode_png_checked(bytes)
-        .map_err(|e| format!("not a readable PNG or JPEG: {e}"))?;
+    let pm = crate::assets::decode_png_checked(bytes).map_err(|e| format!("not a readable PNG or JPEG: {e}"))?;
     let mut rgba = Vec::with_capacity(pm.pixels().len() * 4);
     for px in pm.pixels() {
         let c = px.demultiply();
@@ -436,11 +420,7 @@ pub fn quantise(img: &Image, k: usize, method: Quant, seed: u64) -> (Vec<[u8; 3]
     if exact.len() <= k {
         let mut pal: Vec<[u8; 3]> = exact.keys().copied().collect();
         pal.sort_by(|a, b| lum(*a).total_cmp(&lum(*b)).then(a.cmp(b)));
-        let idx: BTreeMap<[u8; 3], u16> = pal
-            .iter()
-            .enumerate()
-            .map(|(i, c)| (*c, i as u16))
-            .collect();
+        let idx: BTreeMap<[u8; 3], u16> = pal.iter().enumerate().map(|(i, c)| (*c, i as u16)).collect();
         for i in 0..n {
             if opaque(i) {
                 labels[i] = idx[&col(i)];
@@ -449,9 +429,7 @@ pub fn quantise(img: &Image, k: usize, method: Quant, seed: u64) -> (Vec<[u8; 3]
         return (pal, labels);
     }
     // 5-bit histogram
-    let bin = |c: [u8; 3]| {
-        ((c[0] as usize >> 3) << 10) | ((c[1] as usize >> 3) << 5) | (c[2] as usize >> 3)
-    };
+    let bin = |c: [u8; 3]| ((c[0] as usize >> 3) << 10) | ((c[1] as usize >> 3) << 5) | (c[2] as usize >> 3);
     let mut cnt = vec![0.0f64; 32768];
     let mut sum = vec![[0.0f64; 3]; 32768];
     for i in 0..n {
@@ -465,15 +443,7 @@ pub fn quantise(img: &Image, k: usize, method: Quant, seed: u64) -> (Vec<[u8; 3]
         }
     }
     let bins: Vec<usize> = (0..32768).filter(|&b| cnt[b] > 0.0).collect();
-    let pts: Vec<(V3, f64)> = bins
-        .iter()
-        .map(|&b| {
-            (
-                [sum[b][0] / cnt[b], sum[b][1] / cnt[b], sum[b][2] / cnt[b]],
-                cnt[b],
-            )
-        })
-        .collect();
+    let pts: Vec<(V3, f64)> = bins.iter().map(|&b| ([sum[b][0] / cnt[b], sum[b][1] / cnt[b], sum[b][2] / cnt[b]], cnt[b])).collect();
     let centres = match method {
         Quant::KMeans => kmeans(&pts, k, seed),
         Quant::MedianCut => median_cut(&pts, k),
@@ -498,16 +468,7 @@ pub fn quantise(img: &Image, k: usize, method: Quant, seed: u64) -> (Vec<[u8; 3]
     // drop empty clusters, sort dark to light
     let mut pal: Vec<(usize, [u8; 3])> = (0..centres.len())
         .filter(|&j| pwt[j] > 0.0)
-        .map(|j| {
-            (
-                j,
-                [
-                    (psum[j][0] / pwt[j]).round() as u8,
-                    (psum[j][1] / pwt[j]).round() as u8,
-                    (psum[j][2] / pwt[j]).round() as u8,
-                ],
-            )
-        })
+        .map(|j| (j, [(psum[j][0] / pwt[j]).round() as u8, (psum[j][1] / pwt[j]).round() as u8, (psum[j][2] / pwt[j]).round() as u8]))
         .collect();
     pal.sort_by(|a, b| lum(a.1).total_cmp(&lum(b.1)).then(a.1.cmp(&b.1)));
     let mut remap = vec![0u16; centres.len()];
@@ -648,10 +609,7 @@ pub fn despeckle(lab: &mut [u16], w: usize, h: usize, min_area: usize) {
                 }
             }
             tally.remove(&own);
-            if let Some((&best, _)) = tally
-                .iter()
-                .max_by_key(|(l, n)| (**n, std::cmp::Reverse(**l)))
-            {
+            if let Some((&best, _)) = tally.iter().max_by_key(|(l, n)| (**n, std::cmp::Reverse(**l))) {
                 for &p in &pixels[c] {
                     lab[p] = best;
                 }
@@ -693,9 +651,7 @@ const DY: [i32; 4] = [0, 1, 0, -1];
 pub fn border_loops(w: usize, h: usize, inside: &dyn Fn(usize, usize) -> bool) -> Vec<Loop> {
     let vw = w + 1;
     let mut edge = vec![0u8; vw * (h + 1)];
-    let fg = |x: i32, y: i32| {
-        x >= 0 && y >= 0 && (x as usize) < w && (y as usize) < h && inside(x as usize, y as usize)
-    };
+    let fg = |x: i32, y: i32| x >= 0 && y >= 0 && (x as usize) < w && (y as usize) < h && inside(x as usize, y as usize);
     for y in 0..h as i32 {
         for x in 0..w as i32 {
             if !fg(x, y) {
@@ -868,11 +824,7 @@ fn generate_bezier(d: &[P], u: &[f64], t1: P, t2: P) -> [P; 4] {
         x1 += a2.dot(tmp);
     }
     let det = c00 * c11 - c01 * c01;
-    let (al, ar) = if det.abs() > 1e-12 {
-        ((x0 * c11 - x1 * c01) / det, (c00 * x1 - c01 * x0) / det)
-    } else {
-        (0.0, 0.0)
-    };
+    let (al, ar) = if det.abs() > 1e-12 { ((x0 * c11 - x1 * c01) / det, (c00 * x1 - c01 * x0) / det) } else { (0.0, 0.0) };
     let seg = (d3 - d0).len();
     let eps = 1e-6 * seg;
     if al < eps || ar < eps || !al.is_finite() || !ar.is_finite() {
@@ -916,20 +868,14 @@ fn fit_cubic(d: &[P], t1: P, t2: P, err2: f64, out: &mut Vec<Bez>) {
     let n = d.len();
     if n == 2 {
         let dist = (d[1] - d[0]).len() / 3.0;
-        out.push(Bez {
-            p: [d[0], d[0] + t1 * dist, d[1] + t2 * dist, d[1]],
-            straight: false,
-        });
+        out.push(Bez { p: [d[0], d[0] + t1 * dist, d[1] + t2 * dist, d[1]], straight: false });
         return;
     }
     let mut u = chord_params(d);
     let mut b = generate_bezier(d, &u, t1, t2);
     let (mut e, mut split) = max_err(&b, d, &u);
     if e < err2 {
-        out.push(Bez {
-            p: b,
-            straight: false,
-        });
+        out.push(Bez { p: b, straight: false });
         return;
     }
     // Newton-Raphson re-parameterisation (Schneider tries it when the error is within a small factor of the
@@ -943,10 +889,7 @@ fn fit_cubic(d: &[P], t1: P, t2: P, err2: f64, out: &mut Vec<Bez>) {
             e = r.0;
             split = r.1;
             if e < err2 {
-                out.push(Bez {
-                    p: b,
-                    straight: false,
-                });
+                out.push(Bez { p: b, straight: false });
                 return;
             }
             if e > prev * 0.99 {
@@ -956,11 +899,7 @@ fn fit_cubic(d: &[P], t1: P, t2: P, err2: f64, out: &mut Vec<Bez>) {
     }
     let split = split.clamp(1, n - 2);
     let centre = (d[split - 1] - d[split + 1]).norm();
-    let centre = if centre.len() < 0.5 {
-        (d[n - 1] - d[0]).norm() * -1.0
-    } else {
-        centre
-    };
+    let centre = if centre.len() < 0.5 { (d[n - 1] - d[0]).norm() * -1.0 } else { centre };
     fit_cubic(&d[..=split], t1, centre, err2, out);
     fit_cubic(&d[split..], centre * -1.0, t2, err2, out);
 }
@@ -990,11 +929,7 @@ pub fn douglas_peucker(pts: &[Vec2], tol: f32) -> Vec<Vec2> {
     while let Some((a, b)) = stack.pop() {
         let mut worst = (0.0f64, a);
         for i in a + 1..b {
-            let d = dist_to_chord(
-                p(pts[a].x as f64, pts[a].y as f64),
-                p(pts[b].x as f64, pts[b].y as f64),
-                p(pts[i].x as f64, pts[i].y as f64),
-            );
+            let d = dist_to_chord(p(pts[a].x as f64, pts[a].y as f64), p(pts[b].x as f64, pts[b].y as f64), p(pts[i].x as f64, pts[i].y as f64));
             if d > worst.0 {
                 worst = (d, i);
             }
@@ -1005,11 +940,7 @@ pub fn douglas_peucker(pts: &[Vec2], tol: f32) -> Vec<Vec2> {
             stack.push((worst.1, b));
         }
     }
-    pts.iter()
-        .zip(&keep)
-        .filter(|(_, k)| **k)
-        .map(|(q, _)| *q)
-        .collect()
+    pts.iter().zip(&keep).filter(|(_, k)| **k).map(|(q, _)| *q).collect()
 }
 
 /// Closed-polygon Douglas-Peucker: split at the two points that are farthest apart.
@@ -1040,9 +971,7 @@ pub fn douglas_peucker_closed(pts: &[Vec2], tol: f32) -> Vec<Vec2> {
 /// neighbours has the smallest area until every remaining triangle has area >= `min_area`.
 pub fn visvalingam_closed(pts: &[Vec2], min_area: f32) -> Vec<Vec2> {
     let mut v: Vec<Vec2> = pts.to_vec();
-    let tri = |a: Vec2, b: Vec2, c: Vec2| {
-        ((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y)).abs() * 0.5
-    };
+    let tri = |a: Vec2, b: Vec2, c: Vec2| ((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y)).abs() * 0.5;
     while v.len() > 3 {
         let n = v.len();
         let mut best = (f32::MAX, 0);
@@ -1085,12 +1014,7 @@ impl Chain {
 
 fn resample_closed(poly: &[(i32, i32)]) -> Vec<P> {
     let n = poly.len();
-    let per: f64 = (0..n)
-        .map(|i| {
-            ((poly[(i + 1) % n].0 - poly[i].0) as f64)
-                .hypot((poly[(i + 1) % n].1 - poly[i].1) as f64)
-        })
-        .sum();
+    let per: f64 = (0..n).map(|i| ((poly[(i + 1) % n].0 - poly[i].0) as f64).hypot((poly[(i + 1) % n].1 - poly[i].1) as f64)).sum();
     let step = 1.0f64.min(per / 12.0);
     let mut out = Vec::new();
     for i in 0..n {
@@ -1108,11 +1032,7 @@ fn resample_closed(poly: &[(i32, i32)]) -> Vec<P> {
 fn detect_corners(c: &Chain, k: usize, angle_deg: f64) -> Vec<bool> {
     let n = c.n();
     let mut dev = vec![0.0f64; n];
-    let range: Vec<usize> = if c.closed {
-        (0..n).collect()
-    } else {
-        (k..n.saturating_sub(k)).collect()
-    };
+    let range: Vec<usize> = if c.closed { (0..n).collect() } else { (k..n.saturating_sub(k)).collect() };
     for &i in &range {
         let u = c.at(i as isize) - c.at(i as isize - k as isize);
         let v = c.at(i as isize + k as isize) - c.at(i as isize);
@@ -1130,13 +1050,7 @@ fn detect_corners(c: &Chain, k: usize, angle_deg: f64) -> Vec<bool> {
         let mut is_max = true;
         for off in 1..=k as isize {
             for j in [i as isize - off, i as isize + off] {
-                let jj = if c.closed {
-                    j.rem_euclid(n as isize) as usize
-                } else if j < 0 || j >= n as isize {
-                    continue;
-                } else {
-                    j as usize
-                };
+                let jj = if c.closed { j.rem_euclid(n as isize) as usize } else if j < 0 || j >= n as isize { continue } else { j as usize };
                 if dev[jj] > dev[i] || (dev[jj] == dev[i] && jj < i && (c.closed || true)) {
                     is_max = false;
                 }
@@ -1150,18 +1064,13 @@ fn detect_corners(c: &Chain, k: usize, angle_deg: f64) -> Vec<bool> {
 fn smooth_chain(c: &mut Chain, pinned: &[bool], passes: usize) {
     for _ in 0..passes {
         let src: Vec<P> = c.pts.clone();
-        let cc = Chain {
-            pts: src,
-            closed: c.closed,
-        };
+        let cc = Chain { pts: src, closed: c.closed };
         // the index is a coordinate/identifier used beyond one slice (parallel arrays, offsets, neighbours); an iterator would obscure it
         #[allow(clippy::needless_range_loop)]
         for i in 0..c.n() {
             let pin = pinned[i] || (!c.closed && (i == 0 || i == c.n() - 1));
             if !pin {
-                c.pts[i] =
-                    (cc.at(i as isize - 1) + cc.at(i as isize) * 2.0 + cc.at(i as isize + 1))
-                        * 0.25;
+                c.pts[i] = (cc.at(i as isize - 1) + cc.at(i as isize) * 2.0 + cc.at(i as isize + 1)) * 0.25;
             }
         }
     }
@@ -1175,11 +1084,7 @@ fn fit_chain(mut c: Chain, o: &TraceOptions) -> Vec<Bez> {
         return Vec::new();
     }
     let k = o.corner_window.min((n / 6).max(2));
-    let corner = if n >= 8 {
-        detect_corners(&c, k, o.corner_angle as f64)
-    } else {
-        vec![true; n]
-    };
+    let corner = if n >= 8 { detect_corners(&c, k, o.corner_angle as f64) } else { vec![true; n] };
     smooth_chain(&mut c, &corner, o.smooth);
     let err2 = (o.tol as f64) * (o.tol as f64);
     // cuts: indices where sections start/end. `hard[i]` = corner (one-sided tangents).
@@ -1199,13 +1104,7 @@ fn fit_chain(mut c: Chain, o: &TraceOptions) -> Vec<Bez> {
         }
     } else {
         cuts.push((0, true));
-        for (i, _) in corner
-            .iter()
-            .enumerate()
-            .take(n - 1)
-            .skip(1)
-            .filter(|(_, &k)| k)
-        {
+        for (i, _) in corner.iter().enumerate().take(n - 1).skip(1).filter(|(_, &k)| k) {
             cuts.push((i, true));
         }
         cuts.push((n - 1, true));
@@ -1221,38 +1120,17 @@ fn fit_chain(mut c: Chain, o: &TraceOptions) -> Vec<Bez> {
             continue;
         }
         let m = 3.min(data.len() - 1).max(1);
-        let straight = data.iter().all(|&q| {
-            dist_to_chord(data[0], data[data.len() - 1], q) <= (0.35f64).min(o.tol as f64 * 0.4)
-        });
+        let straight = data.iter().all(|&q| dist_to_chord(data[0], data[data.len() - 1], q) <= (0.35f64).min(o.tol as f64 * 0.4));
         if straight {
             let (p0, p3) = (data[0], data[data.len() - 1]);
-            out.push(Bez {
-                p: [p0, p0, p3, p3],
-                straight: true,
-            });
+            out.push(Bez { p: [p0, p0, p3, p3], straight: true });
             continue;
         }
         let central = |i: isize| (c.at(i + m as isize) - c.at(i - m as isize)).norm();
-        let t1 = if ha {
-            (data[m] - data[0]).norm()
-        } else {
-            central(a as isize)
-        };
-        let t2 = if hb {
-            (data[data.len() - 1 - m] - data[data.len() - 1]).norm()
-        } else {
-            central(b as isize) * -1.0
-        };
-        let t1 = if t1.len() < 0.5 {
-            (data[data.len() - 1] - data[0]).norm()
-        } else {
-            t1
-        };
-        let t2 = if t2.len() < 0.5 {
-            (data[0] - data[data.len() - 1]).norm()
-        } else {
-            t2
-        };
+        let t1 = if ha { (data[m] - data[0]).norm() } else { central(a as isize) };
+        let t2 = if hb { (data[data.len() - 1 - m] - data[data.len() - 1]).norm() } else { central(b as isize) * -1.0 };
+        let t1 = if t1.len() < 0.5 { (data[data.len() - 1] - data[0]).norm() } else { t1 };
+        let t2 = if t2.len() < 0.5 { (data[0] - data[data.len() - 1]).norm() } else { t2 };
         fit_cubic(&data, t1, t2, err2, &mut out);
     }
     out
@@ -1290,10 +1168,7 @@ fn anchors_from(bez: &[Bez], closed: bool) -> Vec<Anchor> {
 }
 
 fn polygon_anchors(poly: &[(i32, i32)], o: &TraceOptions) -> Vec<Anchor> {
-    let pts: Vec<Vec2> = poly
-        .iter()
-        .map(|&(x, y)| Vec2::new(x as f32, y as f32))
-        .collect();
+    let pts: Vec<Vec2> = poly.iter().map(|&(x, y)| Vec2::new(x as f32, y as f32)).collect();
     let s = match o.fit {
         Fit::PolygonVw => visvalingam_closed(&pts, o.tol * 2.0),
         _ => douglas_peucker_closed(&pts, o.tol),
@@ -1305,10 +1180,7 @@ fn loop_to_anchors(l: &Loop, o: &TraceOptions) -> Vec<Anchor> {
     if o.fit != Fit::Bezier || l.pts.len() < 5 {
         return polygon_anchors(&l.pts, o);
     }
-    let chain = Chain {
-        pts: resample_closed(&l.pts),
-        closed: true,
-    };
+    let chain = Chain { pts: resample_closed(&l.pts), closed: true };
     let bez = fit_chain(chain, o);
     if bez.is_empty() {
         return polygon_anchors(&l.pts, o);
@@ -1398,15 +1270,7 @@ fn trace_fill(img: &Image, o: &TraceOptions) -> Result<TraceResult, String> {
             for hl in &holes {
                 let fgp = {
                     let (vx, vy) = hl.pts[0];
-                    let d = if hl.pts[1].0 > vx {
-                        0
-                    } else if hl.pts[1].1 > vy {
-                        1
-                    } else if hl.pts[1].0 < vx {
-                        2
-                    } else {
-                        3
-                    };
+                    let d = if hl.pts[1].0 > vx { 0 } else if hl.pts[1].1 > vy { 1 } else if hl.pts[1].0 < vx { 2 } else { 3 };
                     let (fx, fy) = [(vx, vy), (vx - 1, vy), (vx - 1, vy - 1), (vx, vy - 1)][d];
                     (fx as f64 + 0.5, fy as f64 + 0.5)
                 };
@@ -1420,26 +1284,13 @@ fn trace_fill(img: &Image, o: &TraceOptions) -> Result<TraceResult, String> {
                 for i in 0..m {
                     let (a, b) = (hl.pts[i], hl.pts[(i + 1) % m]);
                     let len = ((b.0 - a.0).abs() + (b.1 - a.1).abs()) as usize;
-                    let d = if b.0 > a.0 {
-                        0
-                    } else if b.1 > a.1 {
-                        1
-                    } else if b.0 < a.0 {
-                        2
-                    } else {
-                        3
-                    };
+                    let d = if b.0 > a.0 { 0 } else if b.1 > a.1 { 1 } else if b.0 < a.0 { 2 } else { 3 };
                     for s in 0..len {
                         let (vx, vy) = (a.0 + DX[d] * s as i32, a.1 + DY[d] * s as i32);
                         let (ox, oy) = [(vx, vy - 1), (vx, vy), (vx - 1, vy), (vx - 1, vy - 1)][d];
                         let (gx, gy) = (ox + x0 as i32, oy + y0 as i32);
                         tot += 1;
-                        if gx >= 0
-                            && gy >= 0
-                            && (gx as usize) < w
-                            && (gy as usize) < h
-                            && lab[gy as usize * w + gx as usize] == TRANSP
-                        {
+                        if gx >= 0 && gy >= 0 && (gx as usize) < w && (gy as usize) < h && lab[gy as usize * w + gx as usize] == TRANSP {
                             tr += 1;
                         }
                     }
@@ -1461,39 +1312,14 @@ fn trace_fill(img: &Image, o: &TraceOptions) -> Result<TraceResult, String> {
             shift(&mut outer, off);
             let oa = signed_area_i(&ol.pts) as f32 * 0.5;
             let col = palette[label as usize];
-            regions.push((
-                Region {
-                    color: col,
-                    outer,
-                    holes: cuts,
-                    pixels: sizes[c],
-                    outer_area: oa,
-                },
-                label,
-            ));
+            regions.push((Region { color: col, outer, holes: cuts, pixels: sizes[c], outer_area: oa }, label));
         }
     }
     match o.zorder {
-        ZOrder::Area => regions.sort_by(|a, b| {
-            b.0.outer_area
-                .total_cmp(&a.0.outer_area)
-                .then(a.1.cmp(&b.1))
-        }),
-        ZOrder::Luminance => regions.sort_by(|a, b| {
-            lum(b.0.color)
-                .total_cmp(&lum(a.0.color))
-                .then(b.0.outer_area.total_cmp(&a.0.outer_area))
-        }),
+        ZOrder::Area => regions.sort_by(|a, b| b.0.outer_area.total_cmp(&a.0.outer_area).then(a.1.cmp(&b.1))),
+        ZOrder::Luminance => regions.sort_by(|a, b| lum(b.0.color).total_cmp(&lum(a.0.color)).then(b.0.outer_area.total_cmp(&a.0.outer_area))),
     }
-    Ok(TraceResult {
-        width: w,
-        height: h,
-        mode: Mode::Fill,
-        palette,
-        regions: regions.into_iter().map(|r| r.0).collect(),
-        strokes: Vec::new(),
-        stroke_color: [0, 0, 0],
-    })
+    Ok(TraceResult { width: w, height: h, mode: Mode::Fill, palette, regions: regions.into_iter().map(|r| r.0).collect(), strokes: Vec::new(), stroke_color: [0, 0, 0] })
 }
 
 fn shift(path: &mut VPath, off: (f32, f32)) {
@@ -1515,11 +1341,7 @@ pub fn otsu(hist: &[usize; 256]) -> u8 {
     if total == 0 {
         return 128;
     }
-    let sum_all: f64 = hist
-        .iter()
-        .enumerate()
-        .map(|(i, &c)| i as f64 * c as f64)
-        .sum();
+    let sum_all: f64 = hist.iter().enumerate().map(|(i, &c)| i as f64 * c as f64).sum();
     let (mut wb, mut sb, mut best, mut thr) = (0.0, 0.0, -1.0, 128u8);
     // the index is a coordinate/identifier used beyond one slice (parallel arrays, offsets, neighbours); an iterator would obscure it
     #[allow(clippy::needless_range_loop)]
@@ -1546,13 +1368,7 @@ pub fn otsu(hist: &[usize; 256]) -> u8 {
 /// Zhang-Suen (1984) thinning of a binary image (true = ink). Returns the skeleton.
 pub fn zhang_suen(bin: &[bool], w: usize, h: usize) -> Vec<bool> {
     let mut img = bin.to_vec();
-    let get = |im: &[bool], x: i32, y: i32| -> u8 {
-        (x >= 0
-            && y >= 0
-            && (x as usize) < w
-            && (y as usize) < h
-            && im[y as usize * w + x as usize]) as u8
-    };
+    let get = |im: &[bool], x: i32, y: i32| -> u8 { (x >= 0 && y >= 0 && (x as usize) < w && (y as usize) < h && im[y as usize * w + x as usize]) as u8 };
     loop {
         let mut changed = false;
         for step in 0..2 {
@@ -1563,16 +1379,7 @@ pub fn zhang_suen(bin: &[bool], w: usize, h: usize) -> Vec<bool> {
                         continue;
                     }
                     // P2..P9 clockwise from north
-                    let n = [
-                        get(&img, x, y - 1),
-                        get(&img, x + 1, y - 1),
-                        get(&img, x + 1, y),
-                        get(&img, x + 1, y + 1),
-                        get(&img, x, y + 1),
-                        get(&img, x - 1, y + 1),
-                        get(&img, x - 1, y),
-                        get(&img, x - 1, y - 1),
-                    ];
+                    let n = [get(&img, x, y - 1), get(&img, x + 1, y - 1), get(&img, x + 1, y), get(&img, x + 1, y + 1), get(&img, x, y + 1), get(&img, x - 1, y + 1), get(&img, x - 1, y), get(&img, x - 1, y - 1)];
                     let b: u8 = n.iter().sum();
                     if !(2..=6).contains(&b) {
                         continue;
@@ -1582,11 +1389,7 @@ pub fn zhang_suen(bin: &[bool], w: usize, h: usize) -> Vec<bool> {
                         continue;
                     }
                     let (p2, p4, p6, p8) = (n[0], n[2], n[4], n[6]);
-                    let ok = if step == 0 {
-                        p2 * p4 * p6 == 0 && p4 * p6 * p8 == 0
-                    } else {
-                        p2 * p4 * p8 == 0 && p2 * p6 * p8 == 0
-                    };
+                    let ok = if step == 0 { p2 * p4 * p6 == 0 && p4 * p6 * p8 == 0 } else { p2 * p4 * p8 == 0 && p2 * p6 * p8 == 0 };
                     if ok {
                         del.push(y as usize * w + x as usize);
                     }
@@ -1609,16 +1412,7 @@ pub fn zhang_suen(bin: &[bool], w: usize, h: usize) -> Vec<bool> {
             if get(&img, x, y) == 0 {
                 continue;
             }
-            let dirs: [(i32, i32); 8] = [
-                (0, -1),
-                (1, -1),
-                (1, 0),
-                (1, 1),
-                (0, 1),
-                (-1, 1),
-                (-1, 0),
-                (-1, -1),
-            ];
+            let dirs: [(i32, i32); 8] = [(0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1)];
             for q in 0..4 {
                 // orthogonal neighbours a = dirs[2q], b = dirs[(2q+2)%8], diagonal between = dirs[2q+1]
                 let (a, d, b) = (dirs[2 * q], dirs[2 * q + 1], dirs[(2 * q + 2) % 8]);
@@ -1716,21 +1510,14 @@ fn skeleton_chains(sk: &[bool], w: usize, h: usize, prune: usize) -> Vec<(Vec<P>
                     continue;
                 }
                 let (nx, ny) = (x + dx, y + dy);
-                if nx >= 0
-                    && ny >= 0
-                    && (nx as usize) < w
-                    && (ny as usize) < h
-                    && sk[ny as usize * w + nx as usize]
-                {
+                if nx >= 0 && ny >= 0 && (nx as usize) < w && (ny as usize) < h && sk[ny as usize * w + nx as usize] {
                     v.push(ny as usize * w + nx as usize);
                 }
             }
         }
         v
     };
-    let deg: Vec<usize> = (0..w * h)
-        .map(|i| if sk[i] { nb(i).len() } else { 0 })
-        .collect();
+    let deg: Vec<usize> = (0..w * h).map(|i| if sk[i] { nb(i).len() } else { 0 }).collect();
     // node pixels: degree != 2; cluster the junction pixels (degree >= 3) into single nodes
     let mut node_of = vec![usize::MAX; w * h];
     let mut nodes: Vec<Vec<usize>> = Vec::new();
@@ -1757,9 +1544,7 @@ fn skeleton_chains(sk: &[bool], w: usize, h: usize, prune: usize) -> Vec<(Vec<P>
     }
     let centre = |id: usize| -> P {
         let m = &nodes[id];
-        let (sx, sy) = m.iter().fold((0.0, 0.0), |a, &q| {
-            (a.0 + (q % w) as f64 + 0.5, a.1 + (q / w) as f64 + 0.5)
-        });
+        let (sx, sy) = m.iter().fold((0.0, 0.0), |a, &q| (a.0 + (q % w) as f64 + 0.5, a.1 + (q / w) as f64 + 0.5));
         p(sx / m.len() as f64, sy / m.len() as f64)
     };
     let mut visited = vec![false; w * h];
@@ -1777,10 +1562,7 @@ fn skeleton_chains(sk: &[bool], w: usize, h: usize, prune: usize) -> Vec<(Vec<P>
                     // node to node directly
                     let key = (m.min(r), m.max(r));
                     if direct.insert(key) {
-                        chains.push(RawChain {
-                            pix: vec![],
-                            ends: Some((id, node_of[r])),
-                        });
+                        chains.push(RawChain { pix: vec![], ends: Some((id, node_of[r])) });
                     }
                     continue;
                 }
@@ -1793,10 +1575,7 @@ fn skeleton_chains(sk: &[bool], w: usize, h: usize, prune: usize) -> Vec<(Vec<P>
                 loop {
                     visited[cur] = true;
                     pix.push(cur);
-                    let next: Vec<usize> = nb(cur)
-                        .into_iter()
-                        .filter(|&q| q != prev && !(pix.contains(&q)))
-                        .collect();
+                    let next: Vec<usize> = nb(cur).into_iter().filter(|&q| q != prev && !(pix.contains(&q))).collect();
                     // prefer a node neighbour
                     if let Some(&nn) = next.iter().find(|&&q| node_of[q] != usize::MAX) {
                         end = node_of[nn];
@@ -1813,10 +1592,7 @@ fn skeleton_chains(sk: &[bool], w: usize, h: usize, prune: usize) -> Vec<(Vec<P>
                         }
                     }
                 }
-                chains.push(RawChain {
-                    pix,
-                    ends: Some((id, end)),
-                });
+                chains.push(RawChain { pix, ends: Some((id, end)) });
             }
         }
     }
@@ -1827,9 +1603,7 @@ fn skeleton_chains(sk: &[bool], w: usize, h: usize, prune: usize) -> Vec<(Vec<P>
             visited[i] = true;
             let mut cur = i;
             loop {
-                let next = nb(cur)
-                    .into_iter()
-                    .find(|&q| !visited[q] && node_of[q] == usize::MAX);
+                let next = nb(cur).into_iter().find(|&q| !visited[q] && node_of[q] == usize::MAX);
                 match next {
                     Some(q) => {
                         visited[q] = true;
@@ -1843,10 +1617,7 @@ fn skeleton_chains(sk: &[bool], w: usize, h: usize, prune: usize) -> Vec<(Vec<P>
         }
     }
     // prune spurs: a chain with a free tip (degree-1 node) shorter than `prune`, attached to a junction
-    let node_deg: Vec<usize> = nodes
-        .iter()
-        .map(|m| if m.len() == 1 && deg[m[0]] == 1 { 1 } else { 3 })
-        .collect();
+    let node_deg: Vec<usize> = nodes.iter().map(|m| if m.len() == 1 && deg[m[0]] == 1 { 1 } else { 3 }).collect();
     let mut keep: Vec<bool> = vec![true; chains.len()];
     for (ci, c) in chains.iter().enumerate() {
         if let Some((a, b)) = c.ends {
@@ -1856,12 +1627,7 @@ fn skeleton_chains(sk: &[bool], w: usize, h: usize, prune: usize) -> Vec<(Vec<P>
             }
         }
     }
-    let chains: Vec<RawChain> = chains
-        .into_iter()
-        .zip(&keep)
-        .filter(|(_, k)| **k)
-        .map(|(c, _)| c)
-        .collect();
+    let chains: Vec<RawChain> = chains.into_iter().zip(&keep).filter(|(_, k)| **k).map(|(c, _)| c).collect();
     // incident count per node after pruning, then merge pass-through nodes (exactly two chain ends)
     type Poly = (Vec<P>, Option<(usize, usize)>);
     let mut polys: Vec<Poly> = chains
@@ -1871,11 +1637,7 @@ fn skeleton_chains(sk: &[bool], w: usize, h: usize, prune: usize) -> Vec<(Vec<P>
             if let Some((a, _)) = c.ends {
                 v.push(centre(a));
             }
-            v.extend(
-                c.pix
-                    .iter()
-                    .map(|&q| p((q % w) as f64 + 0.5, (q / w) as f64 + 0.5)),
-            );
+            v.extend(c.pix.iter().map(|&q| p((q % w) as f64 + 0.5, (q / w) as f64 + 0.5)));
             if let Some((_, b)) = c.ends {
                 v.push(centre(b));
             }
@@ -1945,10 +1707,7 @@ fn trace_line(img: &Image, o: &TraceOptions) -> Result<TraceResult, String> {
         hist[l.round().clamp(0.0, 255.0) as usize] += 1;
     }
     let thr = o.threshold.unwrap_or_else(|| otsu(&hist)) as f64;
-    let mut ink: Vec<bool> = lumv
-        .iter()
-        .map(|&l| if o.invert { l > thr } else { l <= thr })
-        .collect();
+    let mut ink: Vec<bool> = lumv.iter().map(|&l| if o.invert { l > thr } else { l <= thr }).collect();
     // drop tiny ink specks (8-connected)
     let min_a = o.min_area.ceil() as usize;
     if min_a > 1 {
@@ -2014,45 +1773,20 @@ fn trace_line(img: &Image, o: &TraceOptions) -> Result<TraceResult, String> {
                 cnt += 1.0;
             }
         }
-        let width = if cnt > 0.0 {
-            (ws / cnt * 10.0).round() / 10.0
-        } else {
-            1.0
-        };
+        let width = if cnt > 0.0 { (ws / cnt * 10.0).round() / 10.0 } else { 1.0 };
         let path = if o.fit == Fit::Bezier && pts.len() >= 3 {
-            let bez = fit_chain(
-                Chain {
-                    pts: pts.clone(),
-                    closed,
-                },
-                o,
-            );
+            let bez = fit_chain(Chain { pts: pts.clone(), closed }, o);
             VPath::new("line", closed, anchors_from(&bez, closed))
         } else {
             let v: Vec<Vec2> = pts.iter().map(|q| q.v2()).collect();
-            let s = if closed {
-                douglas_peucker_closed(&v, o.tol)
-            } else {
-                douglas_peucker(&v, o.tol)
-            };
+            let s = if closed { douglas_peucker_closed(&v, o.tol) } else { douglas_peucker(&v, o.tol) };
             VPath::new("line", closed, s.into_iter().map(Anchor::corner).collect())
         };
         if path.anchors.len() >= 2 {
-            strokes.push(Stroke {
-                path,
-                width: width as f32,
-            });
+            strokes.push(Stroke { path, width: width as f32 });
         }
     }
-    Ok(TraceResult {
-        width: w,
-        height: h,
-        mode: Mode::Line,
-        palette: vec![ink_col],
-        regions: Vec::new(),
-        strokes,
-        stroke_color: ink_col,
-    })
+    Ok(TraceResult { width: w, height: h, mode: Mode::Line, palette: vec![ink_col], regions: Vec::new(), strokes, stroke_color: ink_col })
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -2060,12 +1794,7 @@ fn trace_line(img: &Image, o: &TraceOptions) -> Result<TraceResult, String> {
 // ---------------------------------------------------------------------------------------------
 
 fn rgba_of(c: [u8; 3]) -> Rgba {
-    Rgba::new(
-        c[0] as f32 / 255.0,
-        c[1] as f32 / 255.0,
-        c[2] as f32 / 255.0,
-        1.0,
-    )
+    Rgba::new(c[0] as f32 / 255.0, c[1] as f32 / 255.0, c[2] as f32 / 255.0, 1.0)
 }
 
 fn hex(c: [u8; 3]) -> String {
@@ -2121,12 +1850,7 @@ pub fn to_project(res: &TraceResult, name: &str) -> Project {
 
 /// Append the traced group to an existing project (name made unique). The group is scaled to fit the
 /// project's stage when `fit_stage` is set (uniform scale, centred); returns the layer name.
-pub fn append_to_project(
-    p: &mut Project,
-    res: &TraceResult,
-    name: &str,
-    fit_stage: bool,
-) -> Result<String, String> {
+pub fn append_to_project(p: &mut Project, res: &TraceResult, name: &str, fit_stage: bool) -> Result<String, String> {
     if name.trim().is_empty() || name.contains('/') || name.contains("::") {
         return Err("layer name must be non-empty and contain no '/' or '::'".into());
     }
@@ -2141,10 +1865,7 @@ pub fn append_to_project(
         let s = (p.width / res.width as f32).min(p.height / res.height as f32);
         if s.is_finite() && s > 0.0 {
             layer.transform.scale = Vec2::new(s, s);
-            layer.transform.position = Vec2::new(
-                (p.width - res.width as f32 * s) * 0.5,
-                (p.height - res.height as f32 * s) * 0.5,
-            );
+            layer.transform.position = Vec2::new((p.width - res.width as f32 * s) * 0.5, (p.height - res.height as f32 * s) * 0.5);
         }
     }
     p.layers.push(layer);
@@ -2162,10 +1883,7 @@ fn svg_path_d(path: &VPath) -> String {
             d.push_str(&format!("L{:.2} {:.2}", to.pos.x, to.pos.y));
         } else {
             let (c1, c2) = (from.hout(), to.hin());
-            d.push_str(&format!(
-                "C{:.2} {:.2} {:.2} {:.2} {:.2} {:.2}",
-                c1.x, c1.y, c2.x, c2.y, to.pos.x, to.pos.y
-            ));
+            d.push_str(&format!("C{:.2} {:.2} {:.2} {:.2} {:.2} {:.2}", c1.x, c1.y, c2.x, c2.y, to.pos.x, to.pos.y));
         }
     };
     for i in 1..a.len() {
@@ -2186,11 +1904,7 @@ pub fn to_svg(res: &TraceResult) -> String {
         for h in &r.holes {
             d.push_str(&svg_path_d(h));
         }
-        s.push_str(&format!(
-            "<path d=\"{}\" fill=\"{}\" fill-rule=\"evenodd\"/>\n",
-            d,
-            hex(r.color)
-        ));
+        s.push_str(&format!("<path d=\"{}\" fill=\"{}\" fill-rule=\"evenodd\"/>\n", d, hex(r.color)));
     }
     for st in &res.strokes {
         s.push_str(&format!(
@@ -2222,11 +1936,7 @@ fn over_white(rgba: &[u8]) -> Vec<[f64; 3]> {
     rgba.chunks_exact(4)
         .map(|p| {
             let a = p[3] as f64 / 255.0;
-            [
-                p[0] as f64 * a + 255.0 * (1.0 - a),
-                p[1] as f64 * a + 255.0 * (1.0 - a),
-                p[2] as f64 * a + 255.0 * (1.0 - a),
-            ]
+            [p[0] as f64 * a + 255.0 * (1.0 - a), p[1] as f64 * a + 255.0 * (1.0 - a), p[2] as f64 * a + 255.0 * (1.0 - a)]
         })
         .collect()
 }
@@ -2247,16 +1957,8 @@ pub fn compare(a: &[u8], b: &[u8], w: usize, h: usize) -> Result<Fidelity, Strin
     }
     let n = (w * h * 3) as f64;
     let mse = sq / n;
-    let psnr = if mse <= 1e-12 {
-        99.0
-    } else {
-        10.0 * (255.0f64 * 255.0 / mse).log10()
-    };
-    let ly = |v: &[[f64; 3]]| -> Vec<f64> {
-        v.iter()
-            .map(|c| 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2])
-            .collect()
-    };
+    let psnr = if mse <= 1e-12 { 99.0 } else { 10.0 * (255.0f64 * 255.0 / mse).log10() };
+    let ly = |v: &[[f64; 3]]| -> Vec<f64> { v.iter().map(|c| 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]).collect() };
     let (la, lb) = (ly(&pa), ly(&pb));
     let win = 8usize.min(w).min(h);
     let (c1, c2) = ((0.01f64 * 255.0).powi(2), (0.03f64 * 255.0).powi(2));
@@ -2287,32 +1989,19 @@ pub fn compare(a: &[u8], b: &[u8], w: usize, h: usize) -> Result<Fidelity, Strin
             va /= m - 1.0;
             vb /= m - 1.0;
             cov /= m - 1.0;
-            total += ((2.0 * ma * mb + c1) * (2.0 * cov + c2))
-                / ((ma * ma + mb * mb + c1) * (va + vb + c2));
+            total += ((2.0 * ma * mb + c1) * (2.0 * cov + c2)) / ((ma * ma + mb * mb + c1) * (va + vb + c2));
             cnt += 1.0;
             x += 4;
         }
         y += 4;
     }
-    Ok(Fidelity {
-        mae: abs / n,
-        rmse: mse.sqrt(),
-        psnr,
-        ssim: if cnt > 0.0 { total / cnt } else { 1.0 },
-    })
+    Ok(Fidelity { mae: abs / n, rmse: mse.sqrt(), psnr, ssim: if cnt > 0.0 { total / cnt } else { 1.0 } })
 }
 
 /// Rasterise the trace with the engine's own renderer and compare it to the source bitmap.
 pub fn measure(img: &Image, res: &TraceResult) -> Result<Fidelity, String> {
     let eng = crate::Engine::new(to_project(res, "fidelity")).map_err(|e| e.join("; "))?;
-    let (w, h, px) = crate::raster::render_rgba(
-        &eng,
-        0.0,
-        &crate::raster::RasterOptions {
-            transparent: true,
-            ..Default::default()
-        },
-    );
+    let (w, h, px) = crate::raster::render_rgba(&eng, 0.0, &crate::raster::RasterOptions { transparent: true, ..Default::default() });
     if w as usize != img.w || h as usize != img.h {
         return Err("rendered size differs from the source".into());
     }
@@ -2338,13 +2027,8 @@ pub struct BenchRow {
 
 fn render_source(p: Project) -> Image {
     let eng = crate::Engine::new(p).expect("synthetic source validates");
-    let (w, h, px) =
-        crate::raster::render_rgba(&eng, 0.0, &crate::raster::RasterOptions::default());
-    Image {
-        w: w as usize,
-        h: h as usize,
-        rgba: px,
-    }
+    let (w, h, px) = crate::raster::render_rgba(&eng, 0.0, &crate::raster::RasterOptions::default());
+    Image { w: w as usize, h: h as usize, rgba: px }
 }
 
 /// Deterministic synthetic test images: anti-aliased flat shapes, a smooth gradient, text-like strokes,
@@ -2356,31 +2040,10 @@ pub fn synthetic(name: &str) -> Option<Image> {
             let mut p = Project::new("s", 160.0, 120.0, 24.0, 1);
             p.background = Some(white);
             p.layers = vec![
-                Layer::vector(
-                    "c",
-                    vec![VPath::circle("c", Vec2::new(40.0, 40.0), 26.0).with_fill("#d62828")],
-                ),
-                Layer::vector(
-                    "r",
-                    vec![VPath::rect("r", 85.0, 15.0, 55.0, 40.0).with_fill("#1d4ed8")],
-                ),
-                Layer::vector(
-                    "t",
-                    vec![VPath::polygon(
-                        "t",
-                        &[
-                            Vec2::new(30.0, 105.0),
-                            Vec2::new(75.0, 70.0),
-                            Vec2::new(110.0, 110.0),
-                        ],
-                    )
-                    .with_fill("#15803d")],
-                ),
-                Layer::vector(
-                    "o",
-                    vec![VPath::circle("o", Vec2::new(125.0, 88.0), 22.0)
-                        .with_stroke("#111111", 8.0)],
-                ),
+                Layer::vector("c", vec![VPath::circle("c", Vec2::new(40.0, 40.0), 26.0).with_fill("#d62828")]),
+                Layer::vector("r", vec![VPath::rect("r", 85.0, 15.0, 55.0, 40.0).with_fill("#1d4ed8")]),
+                Layer::vector("t", vec![VPath::polygon("t", &[Vec2::new(30.0, 105.0), Vec2::new(75.0, 70.0), Vec2::new(110.0, 110.0)]).with_fill("#15803d")]),
+                Layer::vector("o", vec![VPath::circle("o", Vec2::new(125.0, 88.0), 22.0).with_stroke("#111111", 8.0)]),
             ];
             let mut img = render_source(p);
             if name == "noisy_shapes" {
@@ -2397,15 +2060,8 @@ pub fn synthetic(name: &str) -> Option<Image> {
         "gradient" => {
             let mut p = Project::new("g", 160.0, 80.0, 24.0, 1);
             p.background = Some(white);
-            let paint = Paint::linear(
-                Vec2::new(0.0, 0.0),
-                Vec2::new(160.0, 0.0),
-                &[(0.0, "#1e3a8a"), (0.5, "#f59e0b"), (1.0, "#fef08a")],
-            );
-            p.layers = vec![Layer::vector(
-                "g",
-                vec![VPath::rect("g", 0.0, 0.0, 160.0, 80.0).with_paint(paint)],
-            )];
+            let paint = Paint::linear(Vec2::new(0.0, 0.0), Vec2::new(160.0, 0.0), &[(0.0, "#1e3a8a"), (0.5, "#f59e0b"), (1.0, "#fef08a")]);
+            p.layers = vec![Layer::vector("g", vec![VPath::rect("g", 0.0, 0.0, 160.0, 80.0).with_paint(paint)])];
             Some(render_source(p))
         }
         "strokes" => {
@@ -2413,8 +2069,7 @@ pub fn synthetic(name: &str) -> Option<Image> {
             p.background = Some(white);
             let line = |n: &str, pts: &[(f32, f32)]| {
                 let v: Vec<Vec2> = pts.iter().map(|&(x, y)| Vec2::new(x, y)).collect();
-                VPath::new(n, false, v.into_iter().map(Anchor::corner).collect())
-                    .with_stroke("#000000", 4.0)
+                VPath::new(n, false, v.into_iter().map(Anchor::corner).collect()).with_stroke("#000000", 4.0)
             };
             let mut paths = vec![
                 line("A1", &[(10.0, 65.0), (25.0, 15.0), (40.0, 65.0)]),
@@ -2423,9 +2078,7 @@ pub fn synthetic(name: &str) -> Option<Image> {
                 line("H2", &[(80.0, 15.0), (80.0, 65.0)]),
                 line("H3", &[(55.0, 40.0), (80.0, 40.0)]),
             ];
-            paths.push(
-                VPath::ellipse("O", Vec2::new(122.0, 40.0), 16.0, 25.0).with_stroke("#000000", 4.0),
-            );
+            paths.push(VPath::ellipse("O", Vec2::new(122.0, 40.0), 16.0, 25.0).with_stroke("#000000", 4.0));
             p.layers = vec![Layer::vector("txt", paths)];
             Some(render_source(p))
         }
@@ -2448,28 +2101,12 @@ pub fn benchmark() -> Vec<BenchRow> {
     let mut rows = Vec::new();
     for (name, mode, colors, tol, denoise) in cases {
         let img = synthetic(name).expect("known case");
-        let o = TraceOptions {
-            mode,
-            colors,
-            tol,
-            denoise,
-            ..Default::default()
-        };
+        let o = TraceOptions { mode, colors, tol, denoise, ..Default::default() };
         let t0 = crate::clock::Stamp::now();
         let res = trace(&img, &o).expect("benchmark trace");
         let millis = t0.elapsed().as_secs_f64() * 1000.0;
         let fidelity = measure(&img, &res).expect("benchmark measure");
-        rows.push(BenchRow {
-            name,
-            mode,
-            colors,
-            tol,
-            fidelity,
-            regions: res.regions.len(),
-            strokes: res.strokes.len(),
-            anchors: res.anchor_count(),
-            millis,
-        });
+        rows.push(BenchRow { name, mode, colors, tol, fidelity, regions: res.regions.len(), strokes: res.strokes.len(), anchors: res.anchor_count(), millis });
     }
     rows
 }
@@ -2495,35 +2132,18 @@ mod tests {
     fn bbox(p: &VPath) -> (f32, f32, f32, f32) {
         let mut b = (f32::MAX, f32::MAX, f32::MIN, f32::MIN);
         for a in &p.anchors {
-            b = (
-                b.0.min(a.pos.x),
-                b.1.min(a.pos.y),
-                b.2.max(a.pos.x),
-                b.3.max(a.pos.y),
-            );
+            b = (b.0.min(a.pos.x), b.1.min(a.pos.y), b.2.max(a.pos.x), b.3.max(a.pos.y));
         }
         b
     }
 
     fn disc_img(w: usize, h: usize, cx: f32, cy: f32, r: f32, fg: [u8; 4], bg: [u8; 4]) -> Image {
-        make(w, h, |x, y| {
-            if ((x as f32 + 0.5 - cx).powi(2) + (y as f32 + 0.5 - cy).powi(2)).sqrt() <= r {
-                fg
-            } else {
-                bg
-            }
-        })
+        make(w, h, |x, y| if ((x as f32 + 0.5 - cx).powi(2) + (y as f32 + 0.5 - cy).powi(2)).sqrt() <= r { fg } else { bg })
     }
 
     #[test]
     fn rectangle_gives_exact_box_and_four_straight_corners() {
-        let img = make(60, 40, |x, y| {
-            if (10..30).contains(&x) && (10..20).contains(&y) {
-                RED
-            } else {
-                WHITE
-            }
-        });
+        let img = make(60, 40, |x, y| if (10..30).contains(&x) && (10..20).contains(&y) { RED } else { WHITE });
         let r = trace(&img, &TraceOptions::default()).unwrap();
         assert_eq!(r.regions.len(), 2);
         // back to front: white background first, red rectangle on top
@@ -2533,18 +2153,9 @@ mod tests {
         assert_eq!(red.pixels, 200);
         assert_eq!(bbox(&red.outer), (10.0, 10.0, 30.0, 20.0));
         assert_eq!(red.outer.anchors.len(), 4, "exactly the four corners");
-        assert!(
-            red.outer
-                .anchors
-                .iter()
-                .all(|a| a.handle_in.is_none() && a.handle_out.is_none()),
-            "straight edges carry no handles"
-        );
+        assert!(red.outer.anchors.iter().all(|a| a.handle_in.is_none() && a.handle_out.is_none()), "straight edges carry no handles");
         assert!((red.outer_area - 200.0).abs() < 1e-3);
-        assert!(
-            red.holes.is_empty(),
-            "the white background has no transparent hole to cut"
-        );
+        assert!(red.holes.is_empty(), "the white background has no transparent hole to cut");
     }
 
     #[test]
@@ -2554,24 +2165,11 @@ mod tests {
         assert_eq!(r.regions.len(), 2);
         let d = &r.regions[1];
         let b = bbox(&d.outer);
-        assert!(
-            (b.0 - 15.0).abs() < 1.5
-                && (b.2 - 65.0).abs() < 1.5
-                && (b.1 - 15.0).abs() < 1.5
-                && (b.3 - 65.0).abs() < 1.5,
-            "bbox {b:?}"
-        );
+        assert!((b.0 - 15.0).abs() < 1.5 && (b.2 - 65.0).abs() < 1.5 && (b.1 - 15.0).abs() < 1.5 && (b.3 - 65.0).abs() < 1.5, "bbox {b:?}");
         let exact = std::f32::consts::PI * 625.0;
         assert!((d.pixels as f32 - exact).abs() / exact < 0.02);
-        assert!(
-            d.outer.anchors.len() <= 24,
-            "{} anchors for a circle",
-            d.outer.anchors.len()
-        );
-        assert!(
-            d.outer.anchors.iter().any(|a| a.handle_out.is_some()),
-            "curved, not polygonal"
-        );
+        assert!(d.outer.anchors.len() <= 24, "{} anchors for a circle", d.outer.anchors.len());
+        assert!(d.outer.anchors.iter().any(|a| a.handle_out.is_some()), "curved, not polygonal");
         let f = measure(&img, &r).unwrap();
         assert!(f.mae < 1.5 && f.ssim > 0.97, "{f:?}");
     }
@@ -2581,54 +2179,29 @@ mod tests {
         // ring on a transparent background: outer region with one cut-out hole
         let ring = make(80, 80, |x, y| {
             let d = ((x as f32 + 0.5 - 40.0).powi(2) + (y as f32 + 0.5 - 40.0).powi(2)).sqrt();
-            if d <= 30.0 && d > 12.0 {
-                RED
-            } else {
-                NONE
-            }
+            if d <= 30.0 && d > 12.0 { RED } else { NONE }
         });
         let r = trace(&ring, &TraceOptions::default()).unwrap();
         assert_eq!(r.regions.len(), 1);
         assert_eq!(r.regions[0].holes.len(), 1);
         let svg = to_svg(&r);
-        assert!(
-            svg.contains("evenodd") && svg.matches('M').count() == 2,
-            "{svg}"
-        );
+        assert!(svg.contains("evenodd") && svg.matches('M').count() == 2, "{svg}");
         let f = measure(&ring, &r).unwrap();
         assert!(f.mae < 2.0, "{f:?}");
         // render: the centre must stay empty (alpha 0)
         let eng = crate::Engine::new(to_project(&r, "t")).unwrap();
-        let (w, _, px) = crate::raster::render_rgba(
-            &eng,
-            0.0,
-            &crate::raster::RasterOptions {
-                transparent: true,
-                ..Default::default()
-            },
-        );
+        let (w, _, px) = crate::raster::render_rgba(&eng, 0.0, &crate::raster::RasterOptions { transparent: true, ..Default::default() });
         assert_eq!(px[(40 * w as usize + 40) * 4 + 3], 0, "hole is empty");
         assert!(px[(40 * w as usize + 12) * 4 + 3] > 200, "ring is painted");
         // the same ring on an opaque blue background with a white centre: nothing is cut, three regions stack
         let solid = make(80, 80, |x, y| {
             let d = ((x as f32 + 0.5 - 40.0).powi(2) + (y as f32 + 0.5 - 40.0).powi(2)).sqrt();
-            if d <= 12.0 {
-                WHITE
-            } else if d <= 30.0 {
-                RED
-            } else {
-                BLUE
-            }
+            if d <= 12.0 { WHITE } else if d <= 30.0 { RED } else { BLUE }
         });
         let r = trace(&solid, &TraceOptions::default()).unwrap();
         assert_eq!(r.regions.len(), 3);
         assert!(r.regions.iter().all(|x| x.holes.is_empty()));
-        assert!(
-            r.regions
-                .windows(2)
-                .all(|w| w[0].outer_area >= w[1].outer_area),
-            "enclosing regions first"
-        );
+        assert!(r.regions.windows(2).all(|w| w[0].outer_area >= w[1].outer_area), "enclosing regions first");
         let f = measure(&solid, &r).unwrap();
         assert!(f.mae < 2.0 && f.ssim > 0.97, "{f:?}");
     }
@@ -2638,42 +2211,19 @@ mod tests {
         let tri = make(80, 80, |x, y| {
             let (fx, fy) = (x as f32 + 0.5, y as f32 + 0.5);
             // triangle (40,10) (70,65) (10,65)
-            let s =
-                |a: (f32, f32), b: (f32, f32)| (b.0 - a.0) * (fy - a.1) - (b.1 - a.1) * (fx - a.0);
-            let (d1, d2, d3) = (
-                s((40.0, 10.0), (70.0, 65.0)),
-                s((70.0, 65.0), (10.0, 65.0)),
-                s((10.0, 65.0), (40.0, 10.0)),
-            );
-            if (d1 >= 0.0 && d2 >= 0.0 && d3 >= 0.0) || (d1 <= 0.0 && d2 <= 0.0 && d3 <= 0.0) {
-                RED
-            } else {
-                WHITE
-            }
+            let s = |a: (f32, f32), b: (f32, f32)| (b.0 - a.0) * (fy - a.1) - (b.1 - a.1) * (fx - a.0);
+            let (d1, d2, d3) = (s((40.0, 10.0), (70.0, 65.0)), s((70.0, 65.0), (10.0, 65.0)), s((10.0, 65.0), (40.0, 10.0)));
+            if (d1 >= 0.0 && d2 >= 0.0 && d3 >= 0.0) || (d1 <= 0.0 && d2 <= 0.0 && d3 <= 0.0) { RED } else { WHITE }
         });
         let r = trace(&tri, &TraceOptions::default()).unwrap();
         let t = &r.regions[1];
-        let corners = t
-            .outer
-            .anchors
-            .iter()
-            .filter(|a| {
-                let (i, o) = (
-                    (a.pos - a.hin()).normalized(),
-                    (a.hout() - a.pos).normalized(),
-                );
-                a.handle_in.is_none() || a.handle_out.is_none() || i.dot(o) < 0.85
-            })
-            .count();
+        let corners = t.outer.anchors.iter().filter(|a| {
+            let (i, o) = ((a.pos - a.hin()).normalized(), (a.hout() - a.pos).normalized());
+            a.handle_in.is_none() || a.handle_out.is_none() || i.dot(o) < 0.85
+        }).count();
         assert!((3..=6).contains(&corners), "{corners} corner anchors");
         let b = bbox(&t.outer);
-        assert!(
-            (b.0 - 10.0).abs() < 2.0
-                && (b.2 - 70.0).abs() < 2.0
-                && (b.1 - 10.0).abs() < 2.0
-                && (b.3 - 65.0).abs() < 2.0,
-            "{b:?}"
-        );
+        assert!((b.0 - 10.0).abs() < 2.0 && (b.2 - 70.0).abs() < 2.0 && (b.1 - 10.0).abs() < 2.0 && (b.3 - 65.0).abs() < 2.0, "{b:?}");
         let f = measure(&tri, &r).unwrap();
         assert!(f.mae < 3.0 && f.ssim > 0.93, "{f:?}");
     }
@@ -2702,79 +2252,31 @@ mod tests {
         // a straight line is a single segment with the data on it
         let line: Vec<P> = (0..20).map(|i| p(i as f64, 2.0 * i as f64)).collect();
         let mut out = Vec::new();
-        fit_cubic(
-            &line,
-            (line[1] - line[0]).norm(),
-            (line[18] - line[19]).norm(),
-            0.01,
-            &mut out,
-        );
+        fit_cubic(&line, (line[1] - line[0]).norm(), (line[18] - line[19]).norm(), 0.01, &mut out);
         assert_eq!(out.len(), 1);
         // two points
         let mut out = Vec::new();
-        fit_cubic(
-            &[p(0.0, 0.0), p(3.0, 4.0)],
-            p(0.6, 0.8),
-            p(-0.6, -0.8),
-            0.01,
-            &mut out,
-        );
+        fit_cubic(&[p(0.0, 0.0), p(3.0, 4.0)], p(0.6, 0.8), p(-0.6, -0.8), 0.01, &mut out);
         assert_eq!(out.len(), 1);
     }
 
     #[test]
     fn deterministic_and_seed_sensitive_only_where_it_should_be() {
-        let img = make(64, 64, |x, y| {
-            [(x * 4) as u8, (y * 4) as u8, ((x + y) * 2) as u8, 255]
-        });
-        let o = TraceOptions {
-            colors: 6,
-            ..Default::default()
-        };
+        let img = make(64, 64, |x, y| [(x * 4) as u8, (y * 4) as u8, ((x + y) * 2) as u8, 255]);
+        let o = TraceOptions { colors: 6, ..Default::default() };
         let a = trace(&img, &o).unwrap();
         let b = trace(&img, &o).unwrap();
         assert_eq!(a.palette, b.palette);
         assert_eq!(a.regions.len(), b.regions.len());
-        assert_eq!(
-            to_svg(&a),
-            to_svg(&b),
-            "same input, same output, byte for byte"
-        );
-        let mc = trace(
-            &img,
-            &TraceOptions {
-                quant: Quant::MedianCut,
-                ..o.clone()
-            },
-        )
-        .unwrap();
+        assert_eq!(to_svg(&a), to_svg(&b), "same input, same output, byte for byte");
+        let mc = trace(&img, &TraceOptions { quant: Quant::MedianCut, ..o.clone() }).unwrap();
         assert!(mc.palette.len() <= 6 && mc.palette.len() >= 2);
-        assert_eq!(
-            to_svg(&mc),
-            to_svg(
-                &trace(
-                    &img,
-                    &TraceOptions {
-                        quant: Quant::MedianCut,
-                        ..o
-                    }
-                )
-                .unwrap()
-            )
-        );
+        assert_eq!(to_svg(&mc), to_svg(&trace(&img, &TraceOptions { quant: Quant::MedianCut, ..o }).unwrap()));
     }
 
     #[test]
     fn quantiser_keeps_few_colours_exactly_and_reduces_many() {
-        let img = make(30, 10, |x, _| {
-            if x < 10 {
-                RED
-            } else if x < 20 {
-                BLUE
-            } else {
-                WHITE
-            }
-        });
+        let img = make(30, 10, |x, _| if x < 10 { RED } else if x < 20 { BLUE } else { WHITE });
         let (pal, lab) = quantise(&img, 8, Quant::KMeans, 1);
         assert_eq!(pal.len(), 3);
         assert!(pal.contains(&[220, 30, 30]) && pal.contains(&[30, 40, 200]));
@@ -2782,51 +2284,22 @@ mod tests {
         let grad = make(256, 4, |x, _| [x as u8, x as u8, x as u8, 255]);
         let (pal, _) = quantise(&grad, 4, Quant::KMeans, 7);
         assert_eq!(pal.len(), 4);
-        assert!(
-            pal.windows(2).all(|w| lum(w[0]) <= lum(w[1])),
-            "sorted dark to light"
-        );
+        assert!(pal.windows(2).all(|w| lum(w[0]) <= lum(w[1])), "sorted dark to light");
         let (pal, lab) = quantise(&make(4, 4, |_, _| NONE), 4, Quant::KMeans, 1);
         assert!(pal.is_empty() && lab.iter().all(|&l| l == TRANSP));
     }
 
     #[test]
     fn gradient_becomes_bands_with_bounded_error() {
-        let grad = make(96, 32, |x, _| {
-            let v = (x * 255 / 95) as u8;
-            [v, v / 2, 255 - v, 255]
-        });
-        let o = TraceOptions {
-            colors: 8,
-            ..Default::default()
-        };
+        let grad = make(96, 32, |x, _| { let v = (x * 255 / 95) as u8; [v, v / 2, 255 - v, 255] });
+        let o = TraceOptions { colors: 8, ..Default::default() };
         let r = trace(&grad, &o).unwrap();
-        assert!(
-            r.regions.len() >= 6 && r.regions.len() <= 12,
-            "{}",
-            r.regions.len()
-        );
+        assert!(r.regions.len() >= 6 && r.regions.len() <= 12, "{}", r.regions.len());
         let f = measure(&grad, &r).unwrap();
         // 8 bands over 255 levels: half a step is about 16 levels
         assert!(f.mae < 12.0, "{f:?}");
-        let f16 = measure(
-            &grad,
-            &trace(
-                &grad,
-                &TraceOptions {
-                    colors: 16,
-                    ..Default::default()
-                },
-            )
-            .unwrap(),
-        )
-        .unwrap();
-        assert!(
-            f16.mae < f.mae,
-            "more colours, less error: {} vs {}",
-            f16.mae,
-            f.mae
-        );
+        let f16 = measure(&grad, &trace(&grad, &TraceOptions { colors: 16, ..Default::default() }).unwrap()).unwrap();
+        assert!(f16.mae < f.mae, "more colours, less error: {} vs {}", f16.mae, f.mae);
     }
 
     #[test]
@@ -2834,113 +2307,25 @@ mod tests {
         let mut img = make(40, 40, |_, _| WHITE);
         img.rgba[(20 * 40 + 20) * 4..(20 * 40 + 20) * 4 + 4].copy_from_slice(&RED);
         img.rgba[(5 * 40 + 5) * 4..(5 * 40 + 5) * 4 + 4].copy_from_slice(&BLUE);
-        let keep = trace(
-            &img,
-            &TraceOptions {
-                min_area: 0.0,
-                denoise: 0,
-                ..Default::default()
-            },
-        )
-        .unwrap();
+        let keep = trace(&img, &TraceOptions { min_area: 0.0, denoise: 0, ..Default::default() }).unwrap();
         assert_eq!(keep.regions.len(), 3, "specks traced when asked to");
-        let clean = trace(
-            &img,
-            &TraceOptions {
-                min_area: 4.0,
-                denoise: 0,
-                ..Default::default()
-            },
-        )
-        .unwrap();
+        let clean = trace(&img, &TraceOptions { min_area: 4.0, denoise: 0, ..Default::default() }).unwrap();
         assert_eq!(clean.regions.len(), 1);
-        let maj = trace(
-            &img,
-            &TraceOptions {
-                min_area: 0.0,
-                denoise: 1,
-                ..Default::default()
-            },
-        )
-        .unwrap();
+        let maj = trace(&img, &TraceOptions { min_area: 0.0, denoise: 1, ..Default::default() }).unwrap();
         assert_eq!(maj.regions.len(), 1, "a lone pixel loses the 3x3 vote");
         // a one pixel wide sliver between two areas disappears with denoise, a 4 px band stays
-        let sliver = make(40, 20, |x, _| {
-            if x < 19 {
-                RED
-            } else if x == 19 {
-                BLUE
-            } else {
-                WHITE
-            }
-        });
-        assert_eq!(
-            trace(
-                &sliver,
-                &TraceOptions {
-                    denoise: 1,
-                    ..Default::default()
-                }
-            )
-            .unwrap()
-            .regions
-            .len(),
-            3,
-            "a boundary sliver ties the 3x3 vote and stays"
-        );
-        let inner = make(40, 20, |x, y| {
-            if x == 10 && y > 2 && y < 17 {
-                BLUE
-            } else {
-                RED
-            }
-        });
-        assert_eq!(
-            trace(
-                &inner,
-                &TraceOptions {
-                    denoise: 1,
-                    ..Default::default()
-                }
-            )
-            .unwrap()
-            .regions
-            .len(),
-            1,
-            "a line inside an area loses the vote"
-        );
-        let band = make(40, 20, |x, _| {
-            if x < 14 {
-                RED
-            } else if x < 18 {
-                BLUE
-            } else {
-                WHITE
-            }
-        });
-        assert_eq!(
-            trace(
-                &band,
-                &TraceOptions {
-                    denoise: 1,
-                    ..Default::default()
-                }
-            )
-            .unwrap()
-            .regions
-            .len(),
-            3
-        );
+        let sliver = make(40, 20, |x, _| if x < 19 { RED } else if x == 19 { BLUE } else { WHITE });
+        assert_eq!(trace(&sliver, &TraceOptions { denoise: 1, ..Default::default() }).unwrap().regions.len(), 3, "a boundary sliver ties the 3x3 vote and stays");
+        let inner = make(40, 20, |x, y| if x == 10 && y > 2 && y < 17 { BLUE } else { RED });
+        assert_eq!(trace(&inner, &TraceOptions { denoise: 1, ..Default::default() }).unwrap().regions.len(), 1, "a line inside an area loses the vote");
+        let band = make(40, 20, |x, _| if x < 14 { RED } else if x < 18 { BLUE } else { WHITE });
+        assert_eq!(trace(&band, &TraceOptions { denoise: 1, ..Default::default() }).unwrap().regions.len(), 3);
     }
 
     #[test]
     fn border_following_finds_outer_and_hole_with_signed_area() {
         let (w, h) = (12, 12);
-        let inside = |x: usize, y: usize| {
-            (2..10).contains(&x)
-                && (2..10).contains(&y)
-                && !((5..7).contains(&x) && (5..7).contains(&y))
-        };
+        let inside = |x: usize, y: usize| (2..10).contains(&x) && (2..10).contains(&y) && !((5..7).contains(&x) && (5..7).contains(&y));
         let loops = border_loops(w, h, &inside);
         assert_eq!(loops.len(), 2);
         let mut areas: Vec<i64> = loops.iter().map(|l| signed_area_i(&l.pts) / 2).collect();
@@ -2954,12 +2339,7 @@ mod tests {
     #[test]
     fn zhang_suen_thins_a_bar_to_one_pixel_and_keeps_connectivity() {
         let (w, h) = (40usize, 15usize);
-        let bar: Vec<bool> = (0..w * h)
-            .map(|i| {
-                let (x, y) = (i % w, i / w);
-                (3..37).contains(&x) && (5..10).contains(&y)
-            })
-            .collect();
+        let bar: Vec<bool> = (0..w * h).map(|i| { let (x, y) = (i % w, i / w); (3..37).contains(&x) && (5..10).contains(&y) }).collect();
         let sk = zhang_suen(&bar, w, h);
         let n = sk.iter().filter(|&&b| b).count();
         assert!((26..=40).contains(&n), "{n} skeleton pixels");
@@ -2968,54 +2348,21 @@ mod tests {
             assert_eq!(col.len(), 1, "column {x}: {col:?}");
             assert!((6..=8).contains(&col[0]));
         }
-        assert!(
-            sk.iter().zip(&bar).all(|(s, b)| !*s || *b),
-            "skeleton lies inside the shape"
-        );
-        assert_eq!(
-            zhang_suen(&sk, w, h),
-            sk,
-            "thinning a skeleton changes nothing"
-        );
+        assert!(sk.iter().zip(&bar).all(|(s, b)| !*s || *b), "skeleton lies inside the shape");
+        assert_eq!(zhang_suen(&sk, w, h), sk, "thinning a skeleton changes nothing");
     }
 
     #[test]
     fn line_mode_traces_a_cross_and_a_ring() {
         // white page, black plus sign 3 px thick
-        let plus = make(60, 60, |x, y| {
-            if ((28..31).contains(&x) && (8..52).contains(&y))
-                || ((28..31).contains(&y) && (8..52).contains(&x))
-            {
-                [0, 0, 0, 255]
-            } else {
-                WHITE
-            }
-        });
-        let o = TraceOptions {
-            mode: Mode::Line,
-            ..Default::default()
-        };
+        let plus = make(60, 60, |x, y| if ((28..31).contains(&x) && (8..52).contains(&y)) || ((28..31).contains(&y) && (8..52).contains(&x)) { [0, 0, 0, 255] } else { WHITE });
+        let o = TraceOptions { mode: Mode::Line, ..Default::default() };
         let r = trace(&plus, &o).unwrap();
-        assert!(
-            (4..=6).contains(&r.strokes.len()),
-            "{} strokes",
-            r.strokes.len()
-        );
-        assert!(
-            r.strokes.iter().all(|s| (s.width - 3.0).abs() <= 1.0),
-            "{:?}",
-            r.strokes.iter().map(|s| s.width).collect::<Vec<_>>()
-        );
+        assert!((4..=6).contains(&r.strokes.len()), "{} strokes", r.strokes.len());
+        assert!(r.strokes.iter().all(|s| (s.width - 3.0).abs() <= 1.0), "{:?}", r.strokes.iter().map(|s| s.width).collect::<Vec<_>>());
         let f = measure(&plus, &r).unwrap();
         assert!(f.mae < 12.0 && f.ssim > 0.7, "{f:?}");
-        let ring = make(70, 70, |x, y| {
-            let d = ((x as f32 + 0.5 - 35.0).powi(2) + (y as f32 + 0.5 - 35.0).powi(2)).sqrt();
-            if (22.0..25.0).contains(&d) {
-                [0, 0, 0, 255]
-            } else {
-                WHITE
-            }
-        });
+        let ring = make(70, 70, |x, y| { let d = ((x as f32 + 0.5 - 35.0).powi(2) + (y as f32 + 0.5 - 35.0).powi(2)).sqrt(); if (22.0..25.0).contains(&d) { [0, 0, 0, 255] } else { WHITE } });
         let r = trace(&ring, &o).unwrap();
         assert_eq!(r.strokes.len(), 1);
         assert!(r.strokes[0].path.closed);
@@ -3026,22 +2373,8 @@ mod tests {
         let blank = make(20, 20, |_, _| WHITE);
         assert!(trace(&blank, &o).unwrap().strokes.is_empty());
         // inverted: white strokes on black
-        let inv = make(60, 60, |x, y| {
-            if (28..31).contains(&x) && (8..52).contains(&y) {
-                WHITE
-            } else {
-                [0, 0, 0, 255]
-            }
-        });
-        let r = trace(
-            &inv,
-            &TraceOptions {
-                mode: Mode::Line,
-                invert: true,
-                ..Default::default()
-            },
-        )
-        .unwrap();
+        let inv = make(60, 60, |x, y| if (28..31).contains(&x) && (8..52).contains(&y) { WHITE } else { [0, 0, 0, 255] });
+        let r = trace(&inv, &TraceOptions { mode: Mode::Line, invert: true, ..Default::default() }).unwrap();
         assert_eq!(r.strokes.len(), 1);
     }
 
@@ -3057,53 +2390,20 @@ mod tests {
 
     #[test]
     fn simplifiers_keep_corners_and_respect_tolerance() {
-        let pts: Vec<Vec2> = (0..=20)
-            .map(|i| Vec2::new(i as f32, if i < 10 { 0.0 } else { (i - 10) as f32 }))
-            .collect();
+        let pts: Vec<Vec2> = (0..=20).map(|i| Vec2::new(i as f32, if i < 10 { 0.0 } else { (i - 10) as f32 })).collect();
         let s = douglas_peucker(&pts, 0.1);
         assert_eq!(s.len(), 3, "start, bend, end");
         assert_eq!(s[1], Vec2::new(10.0, 0.0));
-        let noisy: Vec<Vec2> = (0..=20)
-            .map(|i| Vec2::new(i as f32, if i % 2 == 0 { 0.0 } else { 0.2 }))
-            .collect();
+        let noisy: Vec<Vec2> = (0..=20).map(|i| Vec2::new(i as f32, if i % 2 == 0 { 0.0 } else { 0.2 })).collect();
         assert_eq!(douglas_peucker(&noisy, 0.5).len(), 2);
-        let sq = vec![
-            Vec2::new(0.0, 0.0),
-            Vec2::new(5.0, 0.1),
-            Vec2::new(10.0, 0.0),
-            Vec2::new(10.0, 10.0),
-            Vec2::new(0.0, 10.0),
-        ];
+        let sq = vec![Vec2::new(0.0, 0.0), Vec2::new(5.0, 0.1), Vec2::new(10.0, 0.0), Vec2::new(10.0, 10.0), Vec2::new(0.0, 10.0)];
         assert_eq!(douglas_peucker_closed(&sq, 0.5).len(), 4);
-        assert_eq!(
-            visvalingam_closed(&sq, 1.0).len(),
-            4,
-            "the 0.5 area triangle goes"
-        );
+        assert_eq!(visvalingam_closed(&sq, 1.0).len(), 4, "the 0.5 area triangle goes");
         assert_eq!(visvalingam_closed(&sq, 0.0).len(), 5);
         let img = disc_img(60, 60, 30.0, 30.0, 20.0, RED, WHITE);
-        let poly = trace(
-            &img,
-            &TraceOptions {
-                fit: Fit::Polygon,
-                tol: 1.0,
-                ..Default::default()
-            },
-        )
-        .unwrap();
-        assert!(poly.regions[1]
-            .outer
-            .anchors
-            .iter()
-            .all(|a| a.handle_in.is_none() && a.handle_out.is_none()));
-        let vw = trace(
-            &img,
-            &TraceOptions {
-                fit: Fit::PolygonVw,
-                ..Default::default()
-            },
-        )
-        .unwrap();
+        let poly = trace(&img, &TraceOptions { fit: Fit::Polygon, tol: 1.0, ..Default::default() }).unwrap();
+        assert!(poly.regions[1].outer.anchors.iter().all(|a| a.handle_in.is_none() && a.handle_out.is_none()));
+        let vw = trace(&img, &TraceOptions { fit: Fit::PolygonVw, ..Default::default() }).unwrap();
         assert!(vw.regions[1].outer.anchors.len() >= 8);
     }
 
@@ -3112,11 +2412,7 @@ mod tests {
         let img = make(32, 32, |x, y| [(x * 8) as u8, (y * 8) as u8, 100, 255]);
         let same = compare(&img.rgba, &img.rgba, 32, 32).unwrap();
         assert!(same.mae == 0.0 && same.ssim > 0.999 && same.psnr >= 99.0);
-        let inv: Vec<u8> = img
-            .rgba
-            .chunks_exact(4)
-            .flat_map(|p| [255 - p[0], 255 - p[1], 255 - p[2], 255])
-            .collect();
+        let inv: Vec<u8> = img.rgba.chunks_exact(4).flat_map(|p| [255 - p[0], 255 - p[1], 255 - p[2], 255]).collect();
         let d = compare(&img.rgba, &inv, 32, 32).unwrap();
         assert!(d.mae > 50.0 && d.ssim < 0.5 && d.psnr < 20.0, "{d:?}");
         assert!(compare(&img.rgba, &inv[..100], 32, 32).is_err());
@@ -3127,21 +2423,12 @@ mod tests {
         let img = disc_img(40, 40, 20.0, 20.0, 10.0, RED, NONE);
         let r = trace(&img, &TraceOptions::default()).unwrap();
         let mut p = Project::new("host", 200.0, 100.0, 24.0, 1);
-        assert_eq!(
-            append_to_project(&mut p, &r, "traced", true).unwrap(),
-            "traced"
-        );
-        assert_eq!(
-            append_to_project(&mut p, &r, "traced", false).unwrap(),
-            "traced_2"
-        );
+        assert_eq!(append_to_project(&mut p, &r, "traced", true).unwrap(), "traced");
+        assert_eq!(append_to_project(&mut p, &r, "traced", false).unwrap(), "traced_2");
         assert!(append_to_project(&mut p, &r, "a/b", false).is_err());
         assert!(append_to_project(&mut p, &r, " ", false).is_err());
         let l = &p.layers[0];
-        assert!(
-            (l.transform.scale.x - 2.5).abs() < 1e-5,
-            "40 px image fitted into 100 px stage height"
-        );
+        assert!((l.transform.scale.x - 2.5).abs() < 1e-5, "40 px image fitted into 100 px stage height");
         crate::Engine::new(p.clone()).expect("project with traced layers validates");
         let j = p.to_json_pretty();
         assert!(Project::from_json(&j).is_ok());
@@ -3156,52 +2443,22 @@ mod tests {
         assert!(Image::from_rgba(2, 2, vec![0; 3]).is_err());
         let img = make(8, 8, |_, _| WHITE);
         for bad in [
-            TraceOptions {
-                colors: 1,
-                ..Default::default()
-            },
-            TraceOptions {
-                colors: 65,
-                ..Default::default()
-            },
-            TraceOptions {
-                tol: 0.0,
-                ..Default::default()
-            },
-            TraceOptions {
-                tol: f32::NAN,
-                ..Default::default()
-            },
-            TraceOptions {
-                min_area: -1.0,
-                ..Default::default()
-            },
-            TraceOptions {
-                corner_angle: 0.0,
-                ..Default::default()
-            },
-            TraceOptions {
-                corner_window: 1,
-                ..Default::default()
-            },
-            TraceOptions {
-                smooth: 1000,
-                ..Default::default()
-            },
+            TraceOptions { colors: 1, ..Default::default() },
+            TraceOptions { colors: 65, ..Default::default() },
+            TraceOptions { tol: 0.0, ..Default::default() },
+            TraceOptions { tol: f32::NAN, ..Default::default() },
+            TraceOptions { min_area: -1.0, ..Default::default() },
+            TraceOptions { corner_angle: 0.0, ..Default::default() },
+            TraceOptions { corner_window: 1, ..Default::default() },
+            TraceOptions { smooth: 1000, ..Default::default() },
         ] {
             assert!(trace(&img, &bad).is_err());
         }
         // a 1x1 image and an all-transparent image
         let one = make(1, 1, |_, _| RED);
-        assert_eq!(
-            trace(&one, &TraceOptions::default()).unwrap().regions.len(),
-            1
-        );
+        assert_eq!(trace(&one, &TraceOptions::default()).unwrap().regions.len(), 1);
         let none = make(5, 5, |_, _| NONE);
-        assert!(trace(&none, &TraceOptions::default())
-            .unwrap()
-            .regions
-            .is_empty());
+        assert!(trace(&none, &TraceOptions::default()).unwrap().regions.is_empty());
     }
 
     #[test]
@@ -3211,25 +2468,12 @@ mod tests {
         for r in &rows {
             assert!(r.fidelity.mae.is_finite() && r.anchors > 0, "{r:?}");
         }
-        let get = |n: &str, m: Mode, c: usize, t: f32| {
-            rows.iter()
-                .find(|r| r.name == n && r.mode == m && r.colors == c && r.tol == t)
-                .unwrap()
-        };
+        let get = |n: &str, m: Mode, c: usize, t: f32| rows.iter().find(|r| r.name == n && r.mode == m && r.colors == c && r.tol == t).unwrap();
         let shapes = get("shapes", Mode::Fill, 6, 1.0);
-        assert!(
-            shapes.fidelity.mae < 4.0 && shapes.fidelity.ssim > 0.9,
-            "{shapes:?}"
-        );
+        assert!(shapes.fidelity.mae < 4.0 && shapes.fidelity.ssim > 0.9, "{shapes:?}");
         let line = get("strokes", Mode::Line, 2, 1.0);
-        assert!(
-            line.fidelity.mae < 15.0 && line.fidelity.ssim > 0.6,
-            "{line:?}"
-        );
-        assert!(
-            get("gradient", Mode::Fill, 32, 1.0).fidelity.mae
-                < get("gradient", Mode::Fill, 8, 1.0).fidelity.mae
-        );
+        assert!(line.fidelity.mae < 15.0 && line.fidelity.ssim > 0.6, "{line:?}");
+        assert!(get("gradient", Mode::Fill, 32, 1.0).fidelity.mae < get("gradient", Mode::Fill, 8, 1.0).fidelity.mae);
         assert!(synthetic("nope").is_none());
     }
 
