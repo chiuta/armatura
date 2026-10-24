@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Alexandru-Ionuț Chiuță (Alexio)
 /* scripts/build-person-demo.mjs — demo-ul „pas cu pas” al persoanei care merge, din randările REALE ale motorului.
  *
  *   node scripts/build-person-demo.mjs --bin /cale/osatura [--template site/index.template.html]
