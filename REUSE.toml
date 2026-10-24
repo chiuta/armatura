@@ -8,7 +8,7 @@ SPDX-PackageSupplier = "Alexandru-Ionuț Chiuță (Alexio)"
 
 # --- osatura-cli (AGPL-3.0-or-later): studio page, Cargo manifest ---
 [[annotations]]
-path = ["osatura-cli/src/studio.html", "osatura-cli/Cargo.toml"]
+path = ["osatura-cli/src/studio.html", "osatura-cli/Cargo.toml", "scripts/studio-tour/tour.css", "scripts/studio-tour/tour.html"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 Alexandru-Ionuț Chiuță (Alexio)"
 SPDX-License-Identifier = "AGPL-3.0-or-later"
@@ -42,7 +42,7 @@ path = [
   "README.ro.md", "CHANGELOG.md", "docs/GETTING_STARTED.md", "docs/CLI_REFERENCE.md", "docs/EXPORT_FORMATS.md",
   "docs/PROJECT_FORMAT.md", "docs/ARCHITECTURE.md", "docs/GLOSSARY.md", "docs/RIGGING_GUIDE.md", "docs/ANIMATION_GUIDE.md",
   "docs/STUDIO.md", "docs/FAQ.md", "docs/C_ABI.md", "docs/WASM.md", "docs/DEVELOPMENT.md", "docs/SECURITY.md",
-  ".gitignore", ".gitattributes", "docs/LIMITATIONS.md", "docs/INDEX.md", "docs/RELEASE_CHECKLIST.md", "docs/img/**", "docs/examples/**",
+  ".gitignore", ".gitattributes", "docs/LIMITATIONS.md", "docs/INDEX.md", "docs/RELEASE_CHECKLIST.md", "docs/img/**", "docs/examples/**", "scripts/lib/demo-person-i18n.json",
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 Alexandru-Ionuț Chiuță (Alexio)"
