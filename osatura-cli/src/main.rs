@@ -235,7 +235,7 @@ EDITING / GENERATORS / IMPORT
   osatura idle     breath <project.json> <out.json> --target T --prop P [--amp A --period F]   slow scale breathing
   osatura idle     sway <project.json> <out.json> --target T --prop P [--amp A --freq HZ --seed N]   gentle noise sway
   osatura follow   <project.json> <out.json> --target SRC --prop P --chain a,b,c [--delay F --decay X]
-  osatura import-svg <file.svg> <out.json>            SVG subset -> vector layer (warnings for the rest)
+  osatura import-svg <file.svg> <out.json> [--split]  SVG subset -> one vector layer, or one layer per shape named by its id (warnings for the rest)
   osatura mocap-info <file.bvh>   hierarchy, channels, frame rate and extent of a BVH file
   osatura mocap-match <project.json> <file.bvh> [--map map.json]   automatic BVH joint to rig bone matching with confidence table
   osatura mocap-retarget <project.json> <file.bvh> <out.json> [--view front|side|top|yaw=DEG] [--map map.json] [--scale auto|N] [--fps F] [--smooth N] [--start F] [--end F] [--rest-frame F] [--min-conf C] [--weight W] [--mirror] [--no-root] [--in-place] [--keep-length] [--footlock BONE --ground Y]   bake mocap as appended channels; a clip longer than the project extends the project length (a message says so), --keep-length cuts the clip at the project length instead
@@ -2294,13 +2294,38 @@ fn run(raw: &[String]) -> Result<(), String> {
             let name = Path::new(file).file_stem().and_then(|n| n.to_str()).unwrap_or("svg");
             let (w, h) = if r.width > 0.0 && r.height > 0.0 { (r.width, r.height) } else { (512.0, 512.0) };
             let mut p = Project::new(name, w, h, 24.0, 24);
-            p.layers = vec![osatura_core::project::Layer::vector("svg", r.paths.clone())];
+            if a.flags.iter().any(|f| f == "--split") {
+                // one layer per shape, named after its SVG id (made unique), in document order: ready to be attached to bones
+                let mut seen = std::collections::HashSet::new();
+                p.layers = r
+                    .paths
+                    .iter()
+                    .map(|path| {
+                        let base = if path.name.is_empty() { "shape".to_string() } else { path.name.clone() };
+                        let mut n = base.clone();
+                        let mut k = 2;
+                        while !seen.insert(n.clone()) {
+                            n = format!("{base} {k}");
+                            k += 1;
+                        }
+                        let mut path = path.clone();
+                        path.name = n.clone();
+                        osatura_core::project::Layer::vector(&n, vec![path])
+                    })
+                    .collect();
+            } else {
+                p.layers = vec![osatura_core::project::Layer::vector("svg", r.paths.clone())];
+            }
             Engine::new(p.clone()).map_err(|errs| errs.join("; "))?;
             write_json(&p, out)?;
             for w in &r.warnings {
                 println!("warning: {w}");
             }
-            println!("wrote {out} ({} paths)", r.paths.len());
+            if a.flags.iter().any(|f| f == "--split") {
+                println!("wrote {out} ({} paths, {} layers)", r.paths.len(), p.layers.len());
+            } else {
+                println!("wrote {out} ({} paths)", r.paths.len());
+            }
             Ok(())
         }
         ["import-bvh", path, bvh, out] => {

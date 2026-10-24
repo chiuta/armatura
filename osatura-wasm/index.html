@@ -7,20 +7,28 @@
 <input type="file" id="f" accept=".json"> <button id="s">Stop</button> <span id="m"></span>
 <div><canvas id="c"></canvas></div>
 <script type="module">
-import { Osatura } from './js/osatura.js';
+// The repository keeps the wrapper in ./js/, the release package (osatura-web) has it next to this page.
+let Osatura;
+try { ({ Osatura } = await import('./js/osatura.js')); } catch (e) { ({ Osatura } = await import('./osatura.js')); }
 const m = document.getElementById('m');
 let a;
+async function open(text) {
+  if (a) a.close();
+  a = await Osatura.create(x, text);
+  m.textContent = `${a.width}x${a.height}, ${a.frames} frames @ ${a.fps} fps`;
+  a.play(document.getElementById('c'));
+}
+let x;
 try {
-  const x = await Osatura.instantiate('./osatura_wasm.wasm');
+  x = await Osatura.instantiate('./osatura_wasm.wasm');
   document.getElementById('f').onchange = async (e) => {
-    try {
-      const text = await e.target.files[0].text();
-      if (a) a.close();
-      a = await Osatura.create(x, text);
-      m.textContent = `${a.width}x${a.height}, ${a.frames} frames @ ${a.fps} fps`;
-      a.play(document.getElementById('c'));
-    } catch (err) { m.textContent = String(err.message || err); }
+    try { await open(await e.target.files[0].text()); } catch (err) { m.textContent = String(err.message || err); }
   };
   document.getElementById('s').onclick = () => a && a.stop();
+  // First start: the release package ships the walking-person demo next to this page and plays it at once.
+  try {
+    const r = await fetch('./demo-person.json');
+    if (r.ok) await open(await r.text());
+  } catch (err) { m.textContent = String(err.message || err); }
 } catch (err) { m.textContent = 'wasm not found (not built yet): ' + err.message; }
 </script>

@@ -7,6 +7,7 @@
 *{box-sizing:border-box}
 body{margin:0;font:13px system-ui,sans-serif;background:#15171d;color:#e6e6ee;display:flex;flex-direction:column;height:100vh;overflow:hidden}
 header{flex:none;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;background:#1d2029;border-bottom:1px solid #2c3040}
+body.simple header .tool,body.simple #ovbtn,body.simple #sgbtn,body.simple #cb{display:none}
 header .brk{flex:0 0 100%;height:0;margin:-4px 0}
 header b{letter-spacing:.12em;margin-right:12px}
 button{background:#343b52;color:#fff;border:0;border-radius:5px;padding:5px 11px;cursor:pointer}
@@ -184,6 +185,7 @@ kbd{font:11px ui-monospace,monospace;background:#0f1116;border:1px solid #3a4056
 <button id="lockbtn" title="lock or unlock the selected layers: locked layers are skipped by clicks and boxes, and refuse edits">Lock</button></span>
 <span style="flex:1"></span>
 <button id="ovbtn" title="onion skin, motion trails and scrub proxy settings">Overlays</button><button id="demobtn" title="guided step-by-step demo: build a walking person with the real commands">Demo</button><button id="sgbtn" title="pose suggestions learned from this project's own poses">Suggest</button><button id="lmenubtn" title="panels, presets, reset layout">Layout</button><button id="palbtn" title="command palette (shortcut shown in the palette)">Commands</button><button id="keysbtn" title="view and change keyboard shortcuts">Keys</button>
+<button id="simplebtn" aria-pressed="false" title="show only the essential controls (undo, save, panels, exports); your choice is remembered in this browser">Simple view</button>
 <span class="brk"></span>
 <span id="cb"><input id="cname" placeholder="your name" maxlength="40" aria-label="your name for the shared session"><button id="cjoin" title="join or leave the shared editing session of this studio">Collab</button><span id="cusers"></span></span>
 <a class="btn" href="/export.gif">GIF</a><a class="btn" href="/export.html">HTML player</a><a class="btn" href="/export.lottie.json">Lottie</a>
@@ -1176,6 +1178,11 @@ async function uiStart(){ let v=null; try{ const r=await fetch('/api/ui'); if(r.
  if(!UI.layout||jsValidate(UI.layout).length)UI.layout=norm(clone(UI.defLayout));
  UI.lastGood=JSON.stringify(UI.layout); UI.ready=true; lyRender(); }
 uiStart();
+// Simple view: hides the editing options, overlays, suggestions and collaboration so that a first visit shows only the essentials.
+{ const sb=$('simplebtn'); const setSimple=(on,save)=>{ document.body.classList.toggle('simple',on); sb.textContent=on?'Full view':'Simple view'; sb.setAttribute('aria-pressed',on?'true':'false');
+  if(save){ try{ localStorage.setItem('osatura.ui.simple',on?'1':'0'); }catch(e){} } window.dispatchEvent(new Event('resize')); };
+  sb.addEventListener('click',()=>setSimple(!document.body.classList.contains('simple'),true));
+  let on=false; try{ on=localStorage.getItem('osatura.ui.simple')==='1'; }catch(e){} if(on)setSimple(true,false); }
 </script>
 <script>
 // ---- overlays: onion skin ghosts, motion trails of the selection, scrub proxy (R-103) ----

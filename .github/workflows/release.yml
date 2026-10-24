@@ -94,6 +94,7 @@ jobs:
           mkdir -p $d
           cp target/wasm32-unknown-unknown/release/osatura_wasm.wasm $d/
           cp osatura-wasm/js/osatura.js osatura-wasm/index.html $d/
+          cargo run --release --locked -p osatura-cli -- demo-person $d/demo-person.json
           cp -r LICENSES $d/ && cp LICENSE $d/
           printf 'Module: MPL-2.0. Source: https://github.com/chiuta/osatura at %s\n' "$GITHUB_SHA" > $d/SOURCE.txt
           ls -la $d/osatura_wasm.wasm | tee wasm-size.txt

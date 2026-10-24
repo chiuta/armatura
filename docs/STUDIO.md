@@ -109,7 +109,7 @@ Undo, Redo, **Save**; checkboxes `bones` (draw the skeleton), `auto-key`, `grid`
 `whole groups` (a click on part of a group selects the top-level group), `points` (show anchors, handles, cage/lattice/pin points and mesh vertices of
 selected layers); a `box` selector for what a drag-box selects (`touches`, `contains`, `bounds touch`; it starts at `touches`); **Lock**; and the buttons **Overlays**, **Suggest**, **Layout**,
 **Commands** (palette) and **Keys** (shortcut editor). A second row has your name and **Collab**, and the export buttons **GIF**, **HTML player** and **Lottie**,
-which download what `osatura export` would write (the HTML player includes the mixed sound when there is sound and `ffmpeg` can make the mp3).
+which download what `osatura export` would write (the HTML player includes the mixed sound when there is sound and `ffmpeg` can make the mp3). The **Simple view** button hides the editing checkboxes, Overlays, Suggest and the command palette button so that only undo, save, panels and exports remain; the choice is remembered in this browser (or window) and the full toolbar comes back with **Full view**.
 
 ### Panels and layouts
 

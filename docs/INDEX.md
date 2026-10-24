@@ -17,6 +17,10 @@ Contents: [All documents](#all-documents) - [Reading paths by audience](#reading
 | [STUDIO.md](STUDIO.md) | The browser editor: panels, shortcuts, collaboration, scrub previews | animators, riggers |
 | [RIGGING_GUIDE.md](RIGGING_GUIDE.md) | Building a rig: bones, IK, skinning, deformers, drivers, state machines, layout | riggers, technical artists |
 | [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md) | Keys, easing, clips and takes, physics, lip-sync, audio, export choices | animators |
+| [TUTORIAL_SVG.md](TUTORIAL_SVG.md) | From a vector drawing to a walking GIF: import, rig by script, export (commands and outputs are real) | artists |
+| [COMPARISON.md](COMPARISON.md) | An honest, dated comparison with other 2D animation tools | evaluators |
+| [VERIFY_DOWNLOADS.md](VERIFY_DOWNLOADS.md) | Checking release archives against the SHA-256 sums | everyone installing |
+| [GOOD_FIRST_TASKS.md](GOOD_FIRST_TASKS.md) | Small jobs for a first contribution | new contributors |
 | [PROJECT_FORMAT.md](PROJECT_FORMAT.md) | The JSON project format field by field | tool builders, riggers editing JSON |
 | [EXPORT_FORMATS.md](EXPORT_FORMATS.md) | What each export and import format carries and drops | pipeline builders, integrators |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Crates, modules, data flow, evaluation and rendering design | contributors, reviewers |
@@ -24,7 +28,7 @@ Contents: [All documents](#all-documents) - [Reading paths by audience](#reading
 | [FAQ.md](FAQ.md) | Short answers to common questions | everyone |
 | [API.md](API.md) | The stable Rust facade (version 1.4.0): calls, errors, limits, examples | Rust integrators |
 | [C_ABI.md](C_ABI.md) | The C interface (`osatura-capi`): functions, memory rules, C and Python examples | C, C++, Python, Go, C# integrators |
-| [WASM.md](WASM.md) | WebAssembly module and JavaScript wrapper. **Status: built and tested under Node in CI, never run in a browser**; includes the checklist for the first browser run | web developers |
+| [WASM.md](WASM.md) | WebAssembly module and JavaScript wrapper. **Status: built and tested under Node in CI; run in headless Chromium, not yet in Firefox or Safari**; includes the checklist for the first browser run | web developers |
 | [CI.md](CI.md) | Animation CI (`osatura ci`): manifest, thresholds, goldens, reports, pipeline examples | technical artists, build engineers |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Building, tests, conventions, new-module checklist, release checklist, debugging | contributors, maintainers |
 | [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Owner-side steps before and after publishing the draft release | owner |
