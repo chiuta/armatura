@@ -60,3 +60,22 @@ path = "docs/THIRD_PARTY_NOTICES.md"
 precedence = "override"
 SPDX-FileCopyrightText = "the respective crate authors"
 SPDX-License-Identifier = "LicenseRef-third-party"
+
+# --- landing page branch: translations, UI strings, generated page and data, build tooling ---
+[[annotations]]
+path = ["docs/i18n/**", "site/i18n/*.json"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Alexandru-Ionuț Chiuță (Alexio)"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = ["index.html", "site/index.template.html", "site/data/*.js"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Alexandru-Ionuț Chiuță (Alexio)"
+SPDX-License-Identifier = "CC-BY-4.0 AND MPL-2.0"
+
+[[annotations]]
+path = ["CNAME", "scripts/build-site.py", "scripts/i18n.py"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Alexandru-Ionuț Chiuță (Alexio)"
+SPDX-License-Identifier = "MPL-2.0"
